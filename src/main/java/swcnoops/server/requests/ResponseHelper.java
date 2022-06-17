@@ -16,11 +16,8 @@ public class ResponseHelper {
         }
     };
 
-    // TODO - need to look at this again as the status should be json ignored
-    // but setting that makes the client crash which means one of the commands
-    // needs something populated in the result
     final static public CommandResult SUCCESS_COMMAND_RESULT = new CommandResult() {
-        //@JsonIgnore
+        @JsonIgnore
         @Override
         public Integer getStatus() {
             return Integer.valueOf(0);
