@@ -35,9 +35,7 @@ public class CommandFactory {
         this.add(new PlayerCrateCheckDaily());
         this.add(new PlayerPveStart());
         this.add(new PlayerMissionsMissionMap());
-
-        // need to rewrite this as this might fix newPLayer crashing
-        this.add(new OkCommandAction("player.fue.complete"));
+        this.add(new PlayerFueComplete());
 
         // these are unsure at the moment and needs to be looked at again
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
