@@ -1,0 +1,55 @@
+package swcnoops.server.model;
+
+import java.util.List;
+import java.util.Map;
+
+public class PlayerModel {
+    public GuildInfo guildInfo;
+    public Upgrades upgrades;
+    public Object prizes;
+    public Map<String, Map<String, Long>> donatedTroops;
+    public Object buildingsUnderConstruction;
+    public WarMap map;
+    public Inventory inventory;
+    public String faction;
+    public String currentQuest;
+    public Long protectedUntil;
+    public Long protectionFrom;
+    public Object protectionCooldownUntil;
+    public List<BattleLog> battleLogs;
+    public Object campaigns;
+    public Object missions;
+    public Object tournaments;
+    public Boolean isFueInProgress;
+    public Object DamagedBuildings;
+    public Object deviceInfo;
+    public Double timeZoneOffset;
+    public List<Contract> contracts;
+    public Object frozenBuildings;
+    public boolean isConnectedAccount;
+    public Long pvpTargetServedTime;
+    public Object intros;
+    public String lastMission;
+    public boolean isRateIncentivized;
+    public Object lastPaymentTime;
+    public Long lastWarParticipationTime;
+    public Object identitySwitchTimes;
+    public Object openOffer;
+    public List<String> unlockedPlanets;
+    public Integer relocationStarCount;
+    public Object holonetRewards;
+    //TODO - public PlayerObjectives playerObjectives;
+    public Object playerObjectives;
+    public Long lastObjectiveCheckTime;
+    //TODO - public Raids raids;
+    public Object raids;
+    public Object perksInfo;
+    public Object armoryInfo;
+    public Object episodeProgressInfo;
+    public Object mcaInfo;
+    public Object activeArmory;
+    public Map<String,Integer> shards;
+    public Object troopDonationProgress;
+    public Object shardShopData;
+    public List<CreatureTrapData> creatureTrapData;
+}
