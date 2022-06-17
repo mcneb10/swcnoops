@@ -1,9 +1,27 @@
 package swcnoops.server.commands.player;
 
-import swcnoops.server.commands.OkCommandAction;
+import swcnoops.server.commands.AbstractCommandAction;
+import swcnoops.server.commands.player.response.PlayerStoreShardOffersGetResult;
+import swcnoops.server.json.JsonParser;
 
-public class PlayerStoreShardOffersGet extends OkCommandAction {
-    public PlayerStoreShardOffersGet() {
-        super("player.store.shard.offers.get");
+public class PlayerStoreShardOffersGet extends AbstractCommandAction<PlayerStoreOffersGet, PlayerStoreShardOffersGetResult> {
+    @Override
+    protected PlayerStoreShardOffersGetResult execute(PlayerStoreOffersGet arguments) throws Exception {
+        PlayerStoreShardOffersGetResult playerStoreShardOffersGetResult = new PlayerStoreShardOffersGetResult();
+
+        // empty string to turn off "Shard Shop Active Series not found!"
+        // need to find some real examples
+        playerStoreShardOffersGetResult.activeSeriesId = "";
+        return playerStoreShardOffersGetResult;
+    }
+
+    @Override
+    protected PlayerStoreOffersGet parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, PlayerStoreOffersGet.class);
+    }
+
+    @Override
+    public String getAction() {
+        return "player.store.shard.offers.get";
     }
 }
