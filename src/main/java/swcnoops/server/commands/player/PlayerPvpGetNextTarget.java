@@ -27,14 +27,21 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
     private Buildings getNextLayout() {
         Buildings mapObject = null;
-        File layoutFile = null;
+        File layoutFile;
         try {
-            if (layouts == null) {
+            if (layouts == null || layouts.size() == 0) {
                 layouts = listf(ServiceFactory.instance().getConfig().layoutsPath);
             }
 
             int index = rand.nextInt(layouts.size());
-            layoutFile = this.layouts.get(index - 1);
+            if (index < 0)
+                index = 0;
+
+            if (index >= layouts.size())
+                index = layouts.size() - 1;
+
+            layoutFile = this.layouts.get(index);
+            this.layouts.remove(index);
             mapObject = ServiceFactory.instance().getJsonParser().fromJsonFile(layoutFile.getAbsolutePath(), Buildings.class);
             return mapObject;
         } catch(Exception ex) {
