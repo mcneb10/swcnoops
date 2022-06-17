@@ -1,2 +1,2 @@
 # swcnoops
-Star wars command private server
+Star wars commander private server
