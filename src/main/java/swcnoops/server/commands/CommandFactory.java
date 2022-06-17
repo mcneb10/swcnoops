@@ -36,6 +36,9 @@ public class CommandFactory {
         this.add(new PlayerPveStart());
         this.add(new PlayerMissionsMissionMap());
 
+        // need to rewrite this as this might fix newPLayer crashing
+        this.add(new OkCommandAction("player.fue.complete"));
+
         // these are unsure at the moment and needs to be looked at again
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
@@ -70,7 +73,6 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.deployable.spend"));
         this.add(new OkCommandAction("player.deployable.upgrade.start"));
         this.add(new OkCommandAction("player.fue.setQuest"));
-        this.add(new OkCommandAction("player.fue.complete"));
         this.add(new OkCommandAction("player.building.collect.all"));
         this.add(new OkCommandAction("player.planet.relocate"));
         this.add(new OkCommandAction("player.raids.update"));
