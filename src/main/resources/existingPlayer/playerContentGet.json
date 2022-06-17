@@ -1,0 +1,25 @@
+{
+        "cdnRoots": [
+          "https://zynga-swc-prod-1-seed.akamaized.net/"
+        ],
+        "secureCdnRoots": [
+          "https://zynga-swc-prod-1-seed.akamaized.net/"
+        ],
+        "manifestVersion": 2045,
+        "manifest": "manifests/__manifest_zyngaswc_prod.02045.json",
+        "patches": [
+          "patches/arc.json",
+          "patches/base.json",
+          "patches/fue.json",
+          "patches/reserved.json",
+          "patches/cae.json",
+          "patches/wts.json",
+          "patches/holo.json",
+          "patches/olc.json",
+          "patches/war.json",
+          "patches/prk.json",
+          "patches/trp.json",
+          "patches/epi.json",
+          "strings/strings_en-US.json"
+        ]
+}
