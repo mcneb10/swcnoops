@@ -12,6 +12,7 @@ To use the server
 
 # Redirect game client
 I used Fiddler's autoresponder to intercept and redirect the following API calls from the client.
+I would also recommend setting AutoResponder to not passthrough any unmatched rules, as this will prevent other calls it makes to facebook, logging and tracing.
 
 redirect - regex:https://zynga-swc-prod-1-seed.akamaized.net/(.*)
 
