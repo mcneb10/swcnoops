@@ -7,10 +7,11 @@ This first version has just enough APIs to provide a set of bases that can be at
 This is a standalone webserver to bring this great game back to players who miss it as much as I do.
 To use the server
 
-1) Change config class to point to the root directory of the asset bundles and layouts
-2) Copy "swcFiles" folder, which contains the last manifest file, along with your copy of the assetbundles to a location configured in your config class
-3) Start the server by executing Main class, currently I run in debug to catch any missing APIs not implemented
-4) Run a patched version of the game client to point to the server OR run the game through a proxy and redirect the calls
+1) Change config class to point to the root directory of the asset bundles and layouts.
+2) Copy "swcFiles" folder, which contains the last manifest file, along with your copy of the assetbundles to a location configured in your config class.
+3) Copy a set of base layouts (same format as layout manager) to the location configured in your config class.
+4) Start the server by executing Main class, currently I run in debug to catch any missing APIs not implemented.
+5) Run a patched version of the game client to point to the server OR run the game through a proxy and redirect the calls.
 
 ## Redirect game client
 The game client can be easily tricked into having its calls redirected. In the early days, the community worked out how to access the server, which brought out layout manager and some other utilities. The old original disassembled source of the client was also available, which is mostly what allowed me to do this reverse engineering. All of these are still available on github and a good starting point in understanding the APIs.
@@ -40,3 +41,30 @@ For code, layouts and the latest manifest file, I have no problems giving those 
 Now in theory, if you still have the game installed and played it before the shutdown, there is a chance you will have some of the assets in the unity cache. At present I dont know how to reverse those, but it should be feasible to turn those cached files back to a bundle. So if you still have the game installed, quickly take a copy of those files and keep them safe.
 
 If you are a modder and you are interested in providing mods to the game. If you are interested then I can give you those bundles to mod, with the intention that it could be used freely to maybe one day bring this game back to the community. Unfortnately I do not have the skills to mod unity bundles, not one of my skill sets, although to be honest none of this is my area of expertise, I just miss the game, the squads and the community, and this is my way to give something back so this game is not lost forever.
+
+## What works, what does not, TODO and where is this going
+The first version of the server supports a single player with a maxed out base and PVP working.
+You can attack the bases provided in your layouts folder. 
+Currently donating to your SC does not work, and enemy SC is empty.
+Enemy does not have any Droidekas.
+Anything outside of that you will crash your client as it does not like any failed APIs that does not provide what it needs.
+The good news, if you are using fiddler the errors get sent out to a URL with "bi_event2" at the end, and that sometimes gives you details on critical errors.
+That is how I recognise if there are problems and which API is not working.
+
+Things to work on in no particular order (eventually)
+* Persist player state to resume where they have left off.
+* Enemy SC to always be full.
+* Donating to your own SC.
+* Enemy Droidekas.
+* Fix new player to not crash.
+* Creating and Saving War layouts.
+* Campaigns and Missions.
+* Multiplayer support.
+* Replays.
+
+Things that may never work.
+* Squad chat
+* Episodes and special events
+
+Who knows where this will lead to, not really thought that far.
+I program all day as a day job and to be honest I dont enjoy it when I stop work. However I find reverse engineering different and currently learning new things is a lot of fun. Maybe one day I will do a remake of a version of this game, but I cant see attempting that any time soon and certainly not to do that on my own.
