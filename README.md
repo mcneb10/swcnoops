@@ -13,7 +13,7 @@ To use the server
 ## Redirect game client
 The game client can be easily tricked into having its calls redirected. In the early days, the community worked out how to access the server, which brought out layout manager and some other utilities. The old original disassembled source of the client was also available, which is mostly what allowed me to do this reverse engineering. All of this you can find on github still.
 
-For me I used fiddler to listen to the API calls between the client and server. This was easily achieved if you ran on an Android emulator using Android 5, or even easier if you ran the game through Facebook gameroom.
+For me I used fiddler to listen to the API calls between the client and server. This was easily achieved if you ran on an Android emulator using Android 5, or even easier if you ran the game through Facebook gameroom. Please dont ask me how to do this as you will find better instructions if you google fiddler and intercepting https calls. There is no need for me to give those instructions out as all I did was follow what I found by googling.
 
 Anyway to redirect the game client now, I have been using Fiddler's autoresponder to intercept and redirect the following API calls from the client.
 I would also recommend setting AutoResponder to not passthrough any unmatched rules, as this will prevent other calls it makes to facebook, logging and tracing.
