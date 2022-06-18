@@ -5,7 +5,8 @@ A reverse engineer of the server to run the game Star Wars Commander privately.
 This first version has just enough APIs to provide a set of bases that can be attacked.
 
 This is a standalone webserver to bring this great game back to players who miss it as much as I do.
-To use the server
+
+To use the server :
 
 1) Change config class to point to the root directory of the asset bundles and layouts.
 2) Copy "swcFiles" folder, which contains the last manifest file, along with your copy of the assetbundles to a location configured in your config class.
