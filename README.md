@@ -8,14 +8,16 @@ This is a standalone webserver to bring this great game back to players who miss
 To use the server
 
 1) Change config class to point to the root directory of the asset bundles and layouts
-2) Run a patched version of the game client to point to the server OR run the game through a proxy and redirect the calls
+2) Copy "swcFiles" folder, which contains the last manifest file, along with your copy of the assetbundles to a location configured in your config class
+3) Start the server by executing Main class, currently I run in debug to catch any missing APIs not implemented
+4) Run a patched version of the game client to point to the server OR run the game through a proxy and redirect the calls
 
 ## Redirect game client
-The game client can be easily tricked into having its calls redirected. In the early days, the community worked out how to access the server, which brought out layout manager and some other utilities. The old original disassembled source of the client was also available, which is mostly what allowed me to do this reverse engineering. All of this you can find on github still.
+The game client can be easily tricked into having its calls redirected. In the early days, the community worked out how to access the server, which brought out layout manager and some other utilities. The old original disassembled source of the client was also available, which is mostly what allowed me to do this reverse engineering. All of these are still available on github and a good starting point in understanding the APIs.
 
-For me I used fiddler to listen to the API calls between the client and server. This was easily achieved if you ran on an Android emulator using Android 5, or even easier if you ran the game through Facebook gameroom. Please dont ask me how to do this as you will find better instructions if you google fiddler and intercepting https calls. There is no need for me to give those instructions out as all I did was follow what I found by googling.
+Like them I used Fiddler to listen to the API calls between the client and server. This was easily achieved if you ran the game on an Android emulator using Android 5, or even easier if you ran the game through Facebook gameroom. Please dont ask me how to do this as you will find better instructions if you google fiddler and intercepting https calls. There is no need for me to repeat those instructions as all I did was follow what I found by googling.
 
-Anyway to redirect the game client now, I have been using Fiddler's autoresponder to intercept and redirect the following API calls from the client.
+Anyway to redirect the game client, I used Fiddler's autoresponder to intercept and redirect the following API calls from the client.
 I would also recommend setting AutoResponder to not passthrough any unmatched rules, as this will prevent other calls it makes to facebook, logging and tracing.
 
 >redirect - regex:https://zynga-swc-prod-1-seed.akamaized.net/(.*)
@@ -25,6 +27,7 @@ I would also recommend setting AutoResponder to not passthrough any unmatched ru
 >to - http://<serverhost:port>/$1
 
 where "serverhost" and "port" is the ip and port of your game server.
+Notice that the redirect for zynga-swc-prod-1-seed.akamaized.net, changes the URL to pre-append "swcFiles", that is used by the server to recognise it is a GET for the manifest and assetbundles. This is case sensitive and must match with what you have set in the Config class.
 The client if running on Android or an Android emulator, you need to configure the wifi connection to use the proxy (google this if you do not know how).
 
 ## Patching game client
