@@ -26,6 +26,9 @@ The client if running on Android or an Android emulator, you need to configure t
 ## Patching game client
 Coming... (once I have worked out how to do it)
 
-## Obtaining game asset bundle
-Coming...
+## Obtaining game asset bundle and modding
+Currently I am undecided if I should provide out the assetbundles, the thinking behind that is I dont want the responsibility of potentially giving out a harmful binary (as some of those files I obtained from some link I found recently, which you can easily find if you search hard enough - hint some modelling site has provided some)
+For code, layouts and the latest manifest file, I have no problems giving those out, those I will checkin in when I get the chance.
+Now in theory, if you still have the game installed and played it before the shutdown, there is a chance you will have some of the assets in the unity cache. At present I dont know how to reverse those, but it should be feasible to turn those cached files back to a bundle. So if you still have the game installed, quickly take a copy of those files and keep them safe.
 
+If you are a modder and you are interested in providing mods to the game. If you are interested then I can give you those bundles to mod, with the intention that it could be used freely to maybe one day bring this game back to the community.
