@@ -29,6 +29,8 @@ public class Main extends NanoHTTPD {
         // TODO - load in config and init serviceFactory
         Config config = new Config();
         ServiceFactory.instance(config);
+        // TODO - should have a nicer way to init on startup and register to factory
+        ServiceFactory.instance().getPlayerDatasource().initOnStartup();
     }
 
     @Override
@@ -66,8 +68,10 @@ public class Main extends NanoHTTPD {
                     response = newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "bad");
             }
         } catch(Exception ex) {
+            // TODO - should log here
             System.out.println(ex);
             ex.printStackTrace();
+            response = newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "bad");
         }
 
         return response;

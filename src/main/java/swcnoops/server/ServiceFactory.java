@@ -1,16 +1,22 @@
 package swcnoops.server;
 
+import swcnoops.server.datasource.PlayerDataSource;
+import swcnoops.server.datasource.PlayerDatasourceImpl;
 import swcnoops.server.json.GsonJsonParser;
 import swcnoops.server.json.JacksonJsonParser;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.BatchProcessor;
 import swcnoops.server.requests.BatchProcessorImpl;
+import swcnoops.server.session.SessionManager;
+import swcnoops.server.session.SessionManagerImpl;
 
 public class ServiceFactory {
+    static private ServiceFactory instance;
     private JsonParser jsonParser;
     private Config config;
     private BatchProcessor batchProcessor;
-    static private ServiceFactory instance;
+    private SessionManager sessionManager;
+    private PlayerDataSource playerDatasource;
 
     static final public ServiceFactory instance() {
         return instance;
@@ -22,19 +28,6 @@ public class ServiceFactory {
         }
 
         return instance;
-    }
-
-    static final private ServiceFactory initialise(Config config) {
-        ServiceFactory newInstance = new ServiceFactory();
-        newInstance.config = config;
-        newInstance.batchProcessor = new BatchProcessorImpl();
-
-        if (config.jsonParse == Config.JsonParser.Jackson)
-            newInstance.jsonParser = new JacksonJsonParser();
-        else
-            newInstance.jsonParser = new GsonJsonParser();
-
-        return newInstance;
     }
 
     public BatchProcessor getBatchProcessor() {
@@ -60,5 +53,28 @@ public class ServiceFactory {
      */
     static public long getSystemTimeSecondsFromEpoch() {
         return System.currentTimeMillis() / 1000;
+    }
+
+    public SessionManager getSessionManager() {
+        return this.sessionManager;
+    }
+
+    public PlayerDataSource getPlayerDatasource() {
+        return this.playerDatasource;
+    }
+
+    static final private ServiceFactory initialise(Config config) {
+        ServiceFactory newInstance = new ServiceFactory();
+        newInstance.config = config;
+        newInstance.batchProcessor = new BatchProcessorImpl();
+        newInstance.sessionManager = new SessionManagerImpl();
+        newInstance.playerDatasource = new PlayerDatasourceImpl();
+
+        if (config.jsonParse == Config.JsonParser.Jackson)
+            newInstance.jsonParser = new JacksonJsonParser();
+        else
+            newInstance.jsonParser = new GsonJsonParser();
+
+        return newInstance;
     }
 }

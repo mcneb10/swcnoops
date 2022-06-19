@@ -1,6 +1,6 @@
 package swcnoops.server.commands.player.response;
 
-import swcnoops.server.model.Map;
+import swcnoops.server.model.PlayerMap;
 import swcnoops.server.requests.AbstractCommandResult;
 
 public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
@@ -22,7 +22,7 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
     public int potentialMedalsToLose;
     public int potentialTournamentRatingDeltaWin;
     public int potentialTournamentRatingDeltaLose;
-    public Map map;
+    public PlayerMap map;
     public int availableCredits;
     public int availableMaterials;
     public int availableContraband;

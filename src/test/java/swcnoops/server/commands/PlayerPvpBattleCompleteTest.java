@@ -14,7 +14,7 @@ public class PlayerPvpBattleCompleteTest {
     }
 
     @Test
-    public void test() {
+    public void test() throws Exception {
         PlayerPvpBattleComplete action = new PlayerPvpBattleComplete();
         PlayerPvpBattleCompleteCommandResult response = action.execute(null);
         assertNotNull(response);

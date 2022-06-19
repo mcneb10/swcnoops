@@ -38,7 +38,7 @@ public class BatchProcessorImpl implements BatchProcessor {
     }
 
     @Override
-    public BatchResponse executeCommands(Batch batch) {
+    public BatchResponse executeCommands(Batch batch) throws Exception {
         List<ResponseData> responseDatums = new ArrayList<>(batch.getCommands().size());
 
         for (Command command : batch.getCommands()) {

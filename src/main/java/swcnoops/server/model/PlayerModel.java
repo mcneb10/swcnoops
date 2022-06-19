@@ -9,7 +9,7 @@ public class PlayerModel {
     public Object prizes;
     public Map<String, Map<String, Long>> donatedTroops;
     public Object buildingsUnderConstruction;
-    public WarMap map;
+    public PlayerMap map;
     public Inventory inventory;
     public String faction;
     public String currentQuest;
