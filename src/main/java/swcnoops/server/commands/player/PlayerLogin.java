@@ -7,6 +7,7 @@ import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
 import swcnoops.server.requests.LoginMessages;
 import swcnoops.server.requests.Messages;
+import swcnoops.server.session.PlayerSession;
 
 public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginCommandResult> {
     @Override
@@ -24,8 +25,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     protected PlayerLoginCommandResult execute(PlayerLogin arguments) throws Exception {
         PlayerLoginCommandResult response;
         try {
-            response = ServiceFactory.instance().getJsonParser()
-                    .toObjectFromResource(ServiceFactory.instance().getConfig().playerLoginTemplate, PlayerLoginCommandResult.class);
+            response = loadPlayerDetails(arguments.getPlayerId());
             configureLoginForPlayer(response, arguments.getPlayerId());
         } catch (Exception ex) {
             // TODO
@@ -35,12 +35,22 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         return response;
     }
 
+    private PlayerLoginCommandResult loadPlayerDetails(String playerId) throws Exception {
+        PlayerLoginCommandResult response = ServiceFactory.instance().getJsonParser()
+                .toObjectFromResource(ServiceFactory.instance().getConfig().playerLoginTemplate, PlayerLoginCommandResult.class);
+        return response;
+    }
+
     // TODO - setup map and troops
     private void configureLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId) {
-        playerLoginResponse.playerId = playerId;
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
 
-//        // set the time the game is at for the client
-//        playerLoginResponse.sharedPrefs.put("llt", Long.valueOf(ServiceFactory.getSystemTimeSecondsFromEpoch()).toString());
+        playerLoginResponse.playerId = playerSession.getPlayerId();
+        playerLoginResponse.name = playerSession.getPlayer().getName();
+
+        // TODO
+        // playerLoginResponse.playerModel.map = playerSession.getMap();
+
         // turn off conflicts
         playerLoginResponse.sharedPrefs.put("tv", null);
         // this disables login to google at start up

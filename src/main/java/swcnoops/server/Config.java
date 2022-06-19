@@ -18,5 +18,8 @@ public class Config {
     public String swcRootPath = "c:/swcnoops/";
     public String layoutsPath = swcRootPath + "layouts";
     public String event2BiLoggingIpAddress = "https://swc-bi-prod.apps.starwarscommander.com";
+    public String playerSqliteDB = "jdbc:sqlite:" + swcRootPath + "players.db";
+    public String playerCreatePlayerDBSqlResource = "sqlite/createPlayerSqliteTable.sql";
+
     public enum JsonParser {Jackson, Gson}
 }
