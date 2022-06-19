@@ -36,6 +36,7 @@ public class CommandFactory {
         this.add(new PlayerPveStart());
         this.add(new PlayerMissionsMissionMap());
         this.add(new PlayerFueComplete());
+        this.add(new PlayerNameSet());
 
         // these are unsure at the moment and needs to be looked at again
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
@@ -55,7 +56,6 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.missions.startSpecop"));
         this.add(new OkCommandAction("player.missions.claimMission"));
         this.add(new OkCommandAction("player.faction.set"));
-        this.add(new OkCommandAction("player.name.set"));
         this.add(new OkCommandAction("player.building.upgrade"));
         this.add(new OkCommandAction("player.building.upgradeAll"));
         this.add(new OkCommandAction("player.building.instantUpgrade"));

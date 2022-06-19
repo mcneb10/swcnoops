@@ -68,8 +68,10 @@ public class Main extends NanoHTTPD {
                     response = newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "bad");
             }
         } catch(Exception ex) {
+            // TODO - should log here
             System.out.println(ex);
             ex.printStackTrace();
+            response = newFixedLengthResponse(Response.Status.BAD_REQUEST, MIME_PLAINTEXT, "bad");
         }
 
         return response;

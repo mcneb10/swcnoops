@@ -24,8 +24,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     stmt.executeUpdate(sql);
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to check player DB " + ex);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed player DB check", ex);
         }
     }
 
@@ -63,10 +63,29 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     }
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to check player DB");
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to load player from DB id=" + playerId, ex);
         }
 
         return player;
+    }
+
+    @Override
+    public void savePlayerName(String playerId, String playerName) {
+        final String sql = "update Player " +
+                              "set name = ? " +
+                            "WHERE id = ?";
+
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                    stmt.setString(1, playerName);
+                    stmt.setString(2, playerId);
+                    stmt.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player name id=" + playerId, ex);
+        }
     }
 }

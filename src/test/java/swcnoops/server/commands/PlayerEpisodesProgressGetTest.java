@@ -19,7 +19,7 @@ public class PlayerEpisodesProgressGetTest {
     }
 
     @Test
-    public void test() {
+    public void test() throws Exception {
         PlayerEpisodesProgressGet action = new PlayerEpisodesProgressGet();
         PlayerEpisodesProgressGetCommandResult response = action.execute(null);
         assertNotNull(response);
