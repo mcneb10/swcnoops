@@ -3,55 +3,51 @@ package swcnoops.server.session;
 import swcnoops.server.game.BuildableData;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
 public class ContractGroup {
     final private String unitTypeId;
     final private BuildableData buildableData;
-    private long startTime;
-    private boolean headRemoved = false;
     final private LinkedList<AbstractBuildContract> contracts = new LinkedList<>();
-    public ContractGroup(String unitTypeId, BuildableData buildableData, long startTime) {
+
+    public ContractGroup(String unitTypeId, BuildableData buildableData) {
         this.unitTypeId = unitTypeId;
         this.buildableData = buildableData;
-        this.startTime = startTime;
     }
 
-    public String getUnitTypeId() {
+    protected String getUnitTypeId() {
         return unitTypeId;
     }
 
-    public long getStartTime() {
-        return startTime;
-    }
-
-    public void addContractsToGroup(List<AbstractBuildContract> buildContracts) {
+    protected void addContractsToGroup(List<AbstractBuildContract> buildContracts) {
         for (AbstractBuildContract buildContract : buildContracts) {
             buildContract.setContractGroup(this);
             this.contracts.add(buildContract);
         }
     }
 
-    public List<AbstractBuildContract> removeContracts(int quantity) {
+    protected List<AbstractBuildContract> removeContracts(int quantity, boolean fromBack) {
         List<AbstractBuildContract> contractsRemoved = new ArrayList<>(quantity);
-        if (this.contracts.size() > quantity) {
+        if (quantity > this.contracts.size()) {
             quantity = this.contracts.size();
         }
 
         for (int i = 0; i < quantity; i++) {
-            contractsRemoved.add(this.contracts.removeLast());
+            if (fromBack)
+                contractsRemoved.add(this.contracts.removeLast());
+            else
+                contractsRemoved.add(this.contracts.removeFirst());
         }
 
         return contractsRemoved;
     }
 
-    public boolean isEmpty() {
+    protected boolean isEmpty() {
         return (this.contracts.size() == 0);
     }
 
-    public long recalculateContractEndTimes(long time) {
+    protected long recalculateContractEndTimes(long time) {
         long startTime = time;
         for (AbstractBuildContract contract : contracts) {
             startTime = startTime + this.buildableData.getBuildingTime();
@@ -61,41 +57,15 @@ public class ContractGroup {
         return startTime;
     }
 
-    public BuildableData getBuildableData() {
+    protected BuildableData getBuildableData() {
         return buildableData;
     }
 
     protected void removeCompletedContract(AbstractBuildContract troopContract) {
-        // this should really always be the first in the queue
-        this.headRemoved = this.contracts.getFirst() == troopContract;
         this.contracts.remove(troopContract);
     }
 
-    public boolean isHeadRemoved() {
-        return headRemoved;
-    }
-
-    public void resetHeadRemoved(long time) {
-        this.setHeadRemoved(false);
-        this.startTime = time;
-    }
-
-    public void setHeadRemoved(boolean headRemoved) {
-        this.headRemoved = headRemoved;
-    }
-
-    public List<AbstractBuildContract> buyOutContract(int quantity) {
-        List<AbstractBuildContract> boughtOutContracts = new ArrayList<>(quantity);
-        Iterator<AbstractBuildContract> contractIterator = this.contracts.iterator();
-
-        while (contractIterator.hasNext() && quantity > 0) {
-            quantity--;
-            AbstractBuildContract buildContract = contractIterator.next();
-            boughtOutContracts.add(buildContract);
-            contractIterator.remove();
-            this.headRemoved = true;
-        }
-
-        return boughtOutContracts;
+    protected List<AbstractBuildContract> getFirstEndTime() {
+        return this.contracts;
     }
 }

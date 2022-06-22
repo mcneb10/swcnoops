@@ -1,8 +1,7 @@
 package swcnoops.server.session;
 
-import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildableData;
-import swcnoops.server.game.GameDataManager;
+
 import java.util.*;
 
 /**
@@ -14,9 +13,8 @@ import java.util.*;
  */
 public class ContractConstructor {
     final private String buildingId;
-    final private LinkedList<ContractGroup> buildQueue = new LinkedList<>();
-    final private Map<String,ContractGroup> buildQueueMap = new HashMap<>();
-    private long starTime;
+    final private ContractBuildQueue contractBuildQueue = new ContractBuildQueue();
+    private long startTime;
 
     public ContractConstructor(String buildingId) {
         this.buildingId = buildingId;
@@ -26,98 +24,58 @@ public class ContractConstructor {
         return this.buildingId;
     }
 
-    public void addContracts(List<AbstractBuildContract> buildContracts, long startTime) {
-        AbstractBuildContract buildContract = buildContracts.get(0);
-        ContractGroup contractGroup = this.buildQueueMap.get(buildContract.getUnitTypeId());
-        if (contractGroup == null) {
-            contractGroup = createContractGroup(buildContract, startTime);
-            this.buildQueueMap.put(contractGroup.getUnitTypeId(), contractGroup);
-            this.buildQueue.add(contractGroup);
-        }
+    protected void addContracts(List<AbstractBuildContract> buildContracts, long startTime) {
+        // if first item in the queue, then we set the startTime
+        if (this.contractBuildQueue.isEmpty())
+            this.startTime = startTime;
 
-        contractGroup.addContractsToGroup(buildContracts);
+        this.contractBuildQueue.addToBuildQueue(buildContracts);
+        this.recalculateContractEndTimes(startTime);
     }
 
-    private ContractGroup createContractGroup(AbstractBuildContract abstractBuildContract, long startTime) {
-        BuildableData buildableData = getBuildableData(abstractBuildContract.getContractType(), abstractBuildContract.getUnitTypeId());
-        ContractGroup contractGroup = new ContractGroup(abstractBuildContract.getUnitTypeId(), buildableData, startTime);
-        return contractGroup;
+    protected List<AbstractBuildContract> removeContracts(String unitTypeId, int quantity, long time, boolean fromBack) {
+        List<AbstractBuildContract> removeContracts =
+                this.contractBuildQueue.removeContracts(unitTypeId, quantity, fromBack);
+        this.recalculateContractEndTimes(time);
+        return removeContracts;
     }
 
-    private BuildableData getBuildableData(String contractType, String unitTypeId) {
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-
-        BuildableData buildableData;
-        if ("Troop".equals(contractType))
-            buildableData = gameDataManager.getTroopDataByUid(unitTypeId);
-        else
-            throw new RuntimeException("Failed to get buildTime for " + unitTypeId);
-
-        return buildableData;
-    }
-
-    public List<AbstractBuildContract> cancelContracts(String unitTypeId, int quantity) {
-        List<AbstractBuildContract> cancelledContracts = null;
-        ContractGroup contractGroup = this.buildQueueMap.get(unitTypeId);
-        if (contractGroup != null) {
-            boolean groupHeadOfQueue = this.buildQueue.getFirst() == contractGroup;
-            cancelledContracts = contractGroup.removeContracts(quantity);
-            if (removeContractGroupIfEmpty(contractGroup)) {
-                if (groupHeadOfQueue && this.buildQueue.size() > 0)
-                    this.buildQueue.getFirst().setHeadRemoved(true);
-            }
-        } else {
-            throw new RuntimeException("Failed to find unit to remove " + unitTypeId);
-        }
-
-        return cancelledContracts;
-    }
-
-    private boolean removeContractGroupIfEmpty(ContractGroup contractGroup) {
-        boolean removed = false;
-        if (contractGroup.isEmpty()) {
-            this.buildQueue.remove(contractGroup);
-            this.buildQueueMap.remove(contractGroup.getUnitTypeId());
-            removed = true;
-        }
-
-        return removed;
-    }
-
-    public void recalculateContractEndTimes(long time) {
-        long startTime = time;
-        if (this.buildQueue.size() > 0) {
-            ContractGroup firstContractGroup = this.buildQueue.getFirst();
-            if (firstContractGroup.isHeadRemoved())
-                firstContractGroup.resetHeadRemoved(time);
-            startTime = firstContractGroup.getStartTime();
-        }
-
-        for (ContractGroup contractGroup : this.buildQueue) {
-            startTime = contractGroup.recalculateContractEndTimes(startTime);
-        }
-    }
-
-    public List<AbstractBuildContract> buyOutContract(String unitTypeId, int quantity, long time) {
-        List<AbstractBuildContract> boughtOutContracts;
-        ContractGroup contractGroup = this.buildQueueMap.get(unitTypeId);
-        if (contractGroup != null) {
-            boughtOutContracts = contractGroup.buyOutContract(quantity);
-            boolean groupHeadOfQueue = this.buildQueue.getFirst() == contractGroup;
-            if (this.removeContractGroupIfEmpty(contractGroup)) {
-                if (groupHeadOfQueue && this.buildQueue.size() > 0)
-                    this.buildQueue.getFirst().setHeadRemoved(true);
-            }
-        } else {
-            throw new RuntimeException("Failed to find unit to remove " + unitTypeId);
-        }
-
-        return boughtOutContracts;
-    }
-
-    public void removeCompletedContract(AbstractBuildContract troopContract) {
+    protected void removeCompletedContract(AbstractBuildContract troopContract) {
         // remove it from its group first, then see if the whole group can be removed
         troopContract.getContractGroup().removeCompletedContract(troopContract);
-        this.removeContractGroupIfEmpty(troopContract.getContractGroup());
+        this.contractBuildQueue.removeContractGroupIfEmpty(troopContract.getContractGroup());
+    }
+
+    private void recalculateContractEndTimes(long timeFromClient) {
+        this.startTime = determineStartTime(timeFromClient);
+        this.contractBuildQueue.recalculateContractEndTimes(this.startTime);
+    }
+
+    private long determineStartTime(long timeFromClient) {
+        long startTimeForQueue = this.startTime;
+
+        // we work out if the start time has changed for this queue
+        // done by looking at what is in the queue and if it adds up
+        if (this.contractBuildQueue.getBuildQueue().size() > 0) {
+            ContractGroup firstContractGroup = this.contractBuildQueue.getBuildQueue().getFirst();
+            BuildableData buildableData = firstContractGroup.getBuildableData();
+            List<AbstractBuildContract> buildContracts = firstContractGroup.getFirstEndTime();
+            if (buildContracts.size() > 0) {
+                long firstEndTime = buildContracts.get(0).getEndTime();
+                if (firstEndTime != 0) {
+                    long startDateForContract = firstEndTime - buildableData.getBuildingTime();
+
+                    // this means the head was removed earlier so all contracts should also start earlier
+                    if (timeFromClient < startDateForContract) {
+                        startTimeForQueue = timeFromClient;
+                    } else if (timeFromClient > startDateForContract) {
+                        // was in the middle of building we adjust our start to match the first contract
+                        startTimeForQueue = startDateForContract;
+                    }
+                }
+            }
+        }
+
+        return startTimeForQueue;
     }
 }
