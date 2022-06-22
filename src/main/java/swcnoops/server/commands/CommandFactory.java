@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CommandFactory {
-    private Map<String, CommandAction> commandMap = new HashMap<>();
+    final private Map<String, CommandAction> commandMap = new HashMap<>();
 
     public CommandFactory() {
         this.add(new AuthPreauthGeneratePlayerWithFacebook());
@@ -41,8 +41,8 @@ public class CommandFactory {
         this.add(new PlayerDeployableCancel());
         this.add(new PlayerDeployableBuyout());
         this.add(new PlayerDeployableRemove());
+        this.add(new PlayerDeployableSpend());
 
-        //this.add(new OkCommandAction("player.deployable.spend"));
         //this.add(new OkCommandAction("player.deployable.upgrade.start"));
 
         // these are unsure at the moment and needs to be looked at again
@@ -84,7 +84,7 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.pvp.releaseTarget"));
     }
 
-    final private void add(CommandAction commandAction) {
+    private void add(CommandAction commandAction) {
         commandMap.put(commandAction.getAction(), commandAction);
     }
 

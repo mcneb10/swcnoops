@@ -33,7 +33,8 @@ public class ContractBuildQueue {
     }
 
     private ContractGroup createContractGroup(AbstractBuildContract abstractBuildContract) {
-        BuildableData buildableData = getBuildableData(abstractBuildContract.getContractType(), abstractBuildContract.getUnitTypeId());
+        BuildableData buildableData = getBuildableData(abstractBuildContract.getContractType(),
+                abstractBuildContract.getUnitTypeId());
         return new ContractGroup(abstractBuildContract.getUnitTypeId(), buildableData);
     }
 
