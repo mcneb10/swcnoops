@@ -76,4 +76,9 @@ public class BuildingData implements BuildableData {
     public int getSize() {
         throw new NotImplementedException();
     }
+
+    @Override
+    public boolean isSpecialAttack() {
+        return false;
+    }
 }

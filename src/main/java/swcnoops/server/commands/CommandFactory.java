@@ -33,7 +33,6 @@ public class CommandFactory {
         this.add(new PlayerStoreOffersGet());
         this.add(new PlayerStoreShardOffersGet());
         this.add(new PlayerCrateCheckDaily());
-        this.add(new PlayerPveStart());
         this.add(new PlayerMissionsMissionMap());
         this.add(new PlayerFueComplete());
         this.add(new PlayerNameSet());
@@ -42,6 +41,9 @@ public class CommandFactory {
         this.add(new PlayerDeployableBuyout());
         this.add(new PlayerDeployableRemove());
         this.add(new PlayerDeployableSpend());
+
+        //this.add(new PlayerPveStart());
+        this.add(new PlayerPvpBattleStart());
 
         //this.add(new OkCommandAction("player.deployable.upgrade.start"));
 
@@ -78,7 +80,6 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.planet.relocate"));
         this.add(new OkCommandAction("player.raids.update"));
         this.add(new PlayerPvpGetNextTarget());
-        this.add(new OkCommandAction("player.pvp.battle.start"));
         this.add(new PlayerPvpBattleComplete());
         this.add(new PlayerEpisodesProgressGet());
         this.add(new OkCommandAction("player.pvp.releaseTarget"));

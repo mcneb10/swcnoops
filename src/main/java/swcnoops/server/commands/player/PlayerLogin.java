@@ -60,13 +60,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         setupShards(playerLoginResponse.playerModel);
         setupDonatedTroops(playerLoginResponse.playerModel);
 
-        // not sure if we need to do this, the time given to us by client is always 0
-        // so no good using that value. If we dont do it I think the client will just sort itself out
-        // and probably work out which contracts have already completed and which ones already built
-        //playerSession.moveCompletedTroopsToStarport(ServiceFactory.getSystemTimeSecondsFromEpoch());
-
-        setupInventory(playerLoginResponse.playerModel, playerSession);
+        playerSession.onboardTransports(ServiceFactory.getSystemTimeSecondsFromEpoch());
         setupContracts(playerLoginResponse.playerModel, playerSession, time);
+        setupInventory(playerLoginResponse.playerModel, playerSession);
 
         // turn off conflicts
         playerLoginResponse.sharedPrefs.put("tv", null);
@@ -100,10 +96,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private SubStorage loadTroopsInTransport(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
+        playerSession.loadTransports(subStorage);
         subStorage.champion.storage.clear();
-        playerSession.loadTroopsForTransport(subStorage.troop.storage);
         subStorage.hero.storage.clear();
-        subStorage.specialAttack.storage.clear();
         return subStorage;
     }
 

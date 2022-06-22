@@ -4,25 +4,22 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
-import swcnoops.server.model.Building;
-import swcnoops.server.model.Contract;
-import swcnoops.server.model.PlayerMap;
-import swcnoops.server.model.StorageAmount;
+import swcnoops.server.model.*;
+
 import java.util.*;
 
 public class PlayerSessionImpl implements PlayerSession {
     final private Player player;
-    final private Starport starport;
+    final private TroopsTransport troopsTransport;
+    final private TroopsTransport specialAttackTransport;
 
     final private ContractManager contractManager;
 
     public PlayerSessionImpl(Player player) {
         this.player = player;
-        this.starport = new Starport();
-        this.contractManager = new ContractManagerImpl(this.starport);
-
-        // TODO
-        //initialiseStartport(this.player.getPlayerSettings().getTroopsOnTransport());
+        this.troopsTransport = new TroopsTransport();
+        this.specialAttackTransport = new TroopsTransport();
+        this.contractManager = new ContractManagerImpl(this.troopsTransport, this.specialAttackTransport);
     }
 
     @Override
@@ -52,14 +49,29 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
-        this.contractManager.moveCompletedTroopsToStarport(time);
-        this.starport.removeTroops(deployablesToRemove);
+        this.troopsTransport.removeTroopsOnBoard(deployablesToRemove);
+        this.specialAttackTransport.removeTroopsOnBoard(deployablesToRemove);
     }
 
     @Override
-    public void loadTroopsForTransport(Map<String, StorageAmount> storage) {
+    public void playerBattleStart(long time) {
+        this.contractManager.moveCompletedTroops(time);
+    }
+
+    @Override
+    public void onboardTransports(long time) {
+        this.contractManager.moveCompletedTroops(time);
+    }
+
+    @Override
+    public void loadTransports(SubStorage subStorage) {
+        this.loadTroopsForTransport(this.troopsTransport, subStorage.troop.storage);
+        this.loadTroopsForTransport(this.specialAttackTransport, subStorage.specialAttack.storage);
+    }
+
+    private void loadTroopsForTransport(TroopsTransport transport, Map<String, StorageAmount> storage) {
         storage.clear();
-        Iterator<Map.Entry<String,Integer>> troopIterator = this.starport.getTroops().entrySet().iterator();
+        Iterator<Map.Entry<String,Integer>> troopIterator = transport.getTroopsOnBoard().entrySet().iterator();
         while(troopIterator.hasNext()) {
             Map.Entry<String,Integer> entry = troopIterator.next();
             StorageAmount storageAmount = new StorageAmount();
@@ -99,7 +111,10 @@ public class PlayerSessionImpl implements PlayerSession {
     private void configureTransports(BuildingData buildingData) {
         switch (buildingData.getType()) {
             case "starport" :
-                this.starport.addStorage(buildingData.getStorage());
+                this.troopsTransport.addStorage(buildingData.getStorage());
+                break;
+            case "fleet_command" :
+                this.specialAttackTransport.addStorage(buildingData.getStorage());
                 break;
         }
     }

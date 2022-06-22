@@ -10,9 +10,16 @@ public class TroopData implements BuildableData {
     private int trainingTime;
     private String upgradeShardUid;
     private int upgradeShards;
+    final private boolean isSpecialAttack;
 
-    public TroopData(String uid) {
+    public TroopData(String uid, boolean isSpecialAttack) {
         this.uid = uid;
+        this.isSpecialAttack = isSpecialAttack;
+    }
+
+    @Override
+    public boolean isSpecialAttack() {
+        return isSpecialAttack;
     }
 
     public String getUid() {

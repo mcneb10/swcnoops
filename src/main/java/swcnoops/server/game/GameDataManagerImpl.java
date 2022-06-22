@@ -34,7 +34,13 @@ public class GameDataManagerImpl implements GameDataManager {
         Map<String, Map> contentMap = jsonSpreadSheet.get("content");
         Map<String, Map> objectsMap = contentMap.get("objects");
         List<Map<String,String>> troopDataMap = (List<Map<String,String>>) objectsMap.get("TroopData");
+        addToMap(map, troopDataMap);
+        List<Map<String,String>> specialAttackDataMap = (List<Map<String,String>>) objectsMap.get("SpecialAttackData");
+        addToMap(map, specialAttackDataMap);
+        return map;
+    }
 
+    private void addToMap(Map<String, TroopData> map, List<Map<String, String>> troopDataMap) {
         for (Map<String,String> troop : troopDataMap) {
             String faction = troop.get("faction");
             int lvl = Integer.valueOf(troop.get("lvl"));
@@ -45,8 +51,9 @@ public class GameDataManagerImpl implements GameDataManager {
             int trainingTime = Integer.valueOf(troop.get("trainingTime")).intValue();
             String upgradeShardUid = troop.get("upgradeShardUid");
             int upgradeShards = Integer.valueOf(troop.get("upgradeShards") == null ? "0" : troop.get("upgradeShards")).intValue();
+            boolean isSpecialAttack = troop.containsKey("specialAttackID");
 
-            TroopData troopData = new TroopData(uid);
+            TroopData troopData = new TroopData(uid, isSpecialAttack);
             troopData.setFaction(faction);
             troopData.setLevel(lvl);
             troopData.setUnitId(unitId);
@@ -58,8 +65,6 @@ public class GameDataManagerImpl implements GameDataManager {
 
             map.put(troopData.getUid(), troopData);
         }
-
-        return map;
     }
 
     private Map<String, BuildingData> loadBuildings() throws Exception {

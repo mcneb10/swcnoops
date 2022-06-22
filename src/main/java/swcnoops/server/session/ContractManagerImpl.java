@@ -4,15 +4,17 @@ import java.util.*;
 
 public class ContractManagerImpl implements ContractManager {
     final private Map<String, ContractConstructor> contractConstructors = new HashMap<>();
-    final private List<AbstractBuildContract> allTroopContracts = new ArrayList<>();
-    final private Starport starport;
-    public ContractManagerImpl(Starport starport) {
-        this.starport = starport;
+    final private TroopsTransport troopsTransport;
+    final private TroopsTransport specialAttackTransport;
+
+    public ContractManagerImpl(TroopsTransport troopsTransport, TroopsTransport specialAttackTransport) {
+        this.troopsTransport = troopsTransport;
+        this.specialAttackTransport = specialAttackTransport;
     }
 
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
-        moveCompletedTroopsToStarport(startTime);
+        moveCompletedTroops(startTime);
 
         // create contracts for the things that we want to build
         ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
@@ -23,8 +25,25 @@ public class ContractManagerImpl implements ContractManager {
         }
 
         contractConstructor.addContracts(troopBuildContracts, startTime);
-        this.allTroopContracts.addAll(troopBuildContracts);
-        this.sortTroopContracts();
+        TroopsTransport transport = getTransport(troopBuildContracts.get(0));
+        if (transport != null) {
+            transport.addTroopsToQueue(troopBuildContracts);
+            transport.sortTroopsInQueue();
+        }
+    }
+
+    private TroopsTransport getTransport(List<AbstractBuildContract> buildContracts) {
+        if (buildContracts == null || buildContracts.size() == 0)
+            return null;
+
+        return getTransport(buildContracts.get(0));
+    }
+
+    private TroopsTransport getTransport(AbstractBuildContract buildContract) {
+        if (buildContract.getContractGroup().getBuildableData().isSpecialAttack())
+            return this.specialAttackTransport;
+
+        return this.troopsTransport;
     }
 
     @Override
@@ -34,10 +53,12 @@ public class ContractManagerImpl implements ContractManager {
         ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
         List<AbstractBuildContract> cancelledContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, true);
-        if (cancelledContracts != null)
-            this.allTroopContracts.removeAll(cancelledContracts);
-        this.sortTroopContracts();
-        moveCompletedTroopsToStarport(time);
+        TroopsTransport transport = this.getTransport(cancelledContracts);
+        if (transport != null) {
+            transport.removeTroopsFromQueue(cancelledContracts);
+            transport.sortTroopsInQueue();
+            transport.onBoardCompletedTroops(time);
+        }
     }
 
     @Override
@@ -47,44 +68,18 @@ public class ContractManagerImpl implements ContractManager {
         ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
         List<AbstractBuildContract> boughtOutContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, false);
-        if (boughtOutContracts != null)
-            moveToStarport(boughtOutContracts);
-        this.sortTroopContracts();
-        moveCompletedTroopsToStarport(time);
-    }
-
-    private void sortTroopContracts() {
-        this.allTroopContracts.sort((a, b) -> a.compareEndTime(b));
+        TroopsTransport transport = this.getTransport(boughtOutContracts);
+        if (transport != null) {
+            transport.moveToStarport(boughtOutContracts);
+            transport.sortTroopsInQueue();
+            transport.onBoardCompletedTroops(time);
+        }
     }
 
     @Override
-    public void moveCompletedTroopsToStarport(long clientTime) {
-        Iterator<AbstractBuildContract> troopContractIterator = this.allTroopContracts.iterator();
-        while(troopContractIterator.hasNext()) {
-            AbstractBuildContract troopContract = troopContractIterator.next();
-            // troopContracts are sorted in endTime order
-            if (troopContract.getEndTime() > clientTime) {
-                break;
-            }
-
-            // is there enough space to move this completed troop to the transport
-            if (troopContract.getContractGroup().getBuildableData().getSize() < this.starport.getAvailableCapacity()) {
-                troopContractIterator.remove();
-                troopContract.getParent().removeCompletedContract(troopContract);
-                this.moveToStarport(troopContract);
-            }
-        }
-    }
-
-    private void moveToStarport(List<AbstractBuildContract> boughtOutContracts) {
-        for (AbstractBuildContract buildContract : boughtOutContracts) {
-            moveToStarport(buildContract);
-        }
-    }
-
-    private void moveToStarport(AbstractBuildContract buildContract) {
-        this.allTroopContracts.remove(buildContract);
-        this.starport.addTroopContract(buildContract);
+    public void moveCompletedTroops(long clientTime) {
+        this.troopsTransport.onBoardCompletedTroops(clientTime);
+        this.specialAttackTransport.onBoardCompletedTroops(clientTime);
     }
 
     private ContractConstructor getOrCreateContractConstructor(String buildingId) {
@@ -98,6 +93,9 @@ public class ContractManagerImpl implements ContractManager {
 
     @Override
     public List<AbstractBuildContract> getAllTroopContracts() {
-        return this.allTroopContracts;
+        List<AbstractBuildContract> allContracts = new ArrayList<>();
+        allContracts.addAll(this.troopsTransport.getTroopsInQueue());
+        allContracts.addAll(this.specialAttackTransport.getTroopsInQueue());
+        return allContracts;
     }
 }
