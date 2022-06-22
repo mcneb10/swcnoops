@@ -11,7 +11,7 @@ import swcnoops.server.json.JsonParser;
 @Deprecated
 public class PlayerEpisodesProgressGet extends AbstractCommandAction<PlayerEpisodesProgressGet, PlayerEpisodesProgressGetCommandResult> {
     @Override
-    protected PlayerEpisodesProgressGetCommandResult execute(PlayerEpisodesProgressGet arguments) throws Exception {
+    protected PlayerEpisodesProgressGetCommandResult execute(PlayerEpisodesProgressGet arguments, long time) throws Exception {
         PlayerEpisodesProgressGetCommandResult response =
                 ServiceFactory.instance().getJsonParser()
                         .toObjectFromResource("templates/playerEpisodesProgressGet.json",

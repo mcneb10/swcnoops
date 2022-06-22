@@ -17,13 +17,13 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     }
 
     @Override
-    public R execute(Object args) throws Exception {
+    public R execute(Object args, long time) throws Exception {
         JsonParser jsonParser = ServiceFactory.instance().getJsonParser();
         A parsedArgument = this.parseArgument(jsonParser, args);
-        return this.execute(parsedArgument);
+        return this.execute(parsedArgument, time);
     }
 
-    protected abstract R execute(A arguments) throws Exception;
+    protected abstract R execute(A arguments, long time) throws Exception;
 
     protected abstract A parseArgument(JsonParser jsonParser, Object argumentObject);
 

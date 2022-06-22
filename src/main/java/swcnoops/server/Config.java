@@ -21,5 +21,8 @@ public class Config {
     public String playerSqliteDB = "jdbc:sqlite:" + swcRootPath + "players.db";
     public String playerCreatePlayerDBSqlResource = "sqlite/createPlayerSqliteTable.sql";
 
+    public String troopJson = "patches\\1576760844\\trp.json";
+    public String baseJson = "patches\\1584443067\\base.json";
+
     public enum JsonParser {Jackson, Gson}
 }

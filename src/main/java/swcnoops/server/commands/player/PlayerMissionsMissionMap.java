@@ -8,7 +8,7 @@ import swcnoops.server.json.JsonParser;
 public class PlayerMissionsMissionMap extends AbstractCommandAction<PlayerMissionsMissionMap, PlayerMissionsMissionMapCommandResult>
 {
     @Override
-    protected PlayerMissionsMissionMapCommandResult execute(PlayerMissionsMissionMap arguments) throws Exception {
+    protected PlayerMissionsMissionMapCommandResult execute(PlayerMissionsMissionMap arguments, long time) throws Exception {
         PlayerMissionsMissionMapCommandResult playerMissionsMissionMapResponse = new PlayerMissionsMissionMapCommandResult();
         playerMissionsMissionMapResponse.setBattleId(ServiceFactory.createRandomUUID());
         return playerMissionsMissionMapResponse;

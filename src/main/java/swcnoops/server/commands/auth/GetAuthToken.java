@@ -36,7 +36,7 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
     }
 
     @Override
-    protected CommandResult execute(GetAuthToken arguments) throws Exception {
+    protected CommandResult execute(GetAuthToken arguments, long time) throws Exception {
         byte[] a = Base64.getDecoder().decode(arguments.getRequestToken());
         String requestToken = new String(a);
 

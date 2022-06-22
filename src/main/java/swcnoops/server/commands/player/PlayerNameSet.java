@@ -15,14 +15,14 @@ public class PlayerNameSet extends AbstractCommandAction<PlayerNameSet, CommandR
     }
 
     @Override
-    protected CommandResult execute(PlayerNameSet arguments) throws Exception {
+    protected CommandResult execute(PlayerNameSet arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
         ServiceFactory.instance().getPlayerDatasource()
                 .savePlayerName(arguments.getPlayerId(), arguments.getPlayerName());
 
-        playerSession.getPlayer().setName(arguments.getPlayerName());
+        playerSession.getPlayer().getPlayerSettings().setName(arguments.getPlayerName());
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

@@ -16,7 +16,7 @@ public class PlayerPvpGetNextTargetTest {
     @Test
     public void testNextLayout() throws Exception {
         PlayerPvpGetNextTarget playerPvpGetNextTarget = new PlayerPvpGetNextTarget();
-        PlayerPvpGetNextTargetCommandResult response = playerPvpGetNextTarget.execute(null);
+        PlayerPvpGetNextTargetCommandResult response = playerPvpGetNextTarget.execute(null, 1);
         assertNotNull(response);
     }
 }

@@ -11,8 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BatchProcessorImpl implements BatchProcessor {
-    private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'+01:00'");
-    private CommandFactory commandFactory = new CommandFactory();
+    final private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'+01:00'");
+    final private CommandFactory commandFactory = new CommandFactory();
 
     public BatchProcessorImpl() {
     }
@@ -48,7 +48,7 @@ public class BatchProcessorImpl implements BatchProcessor {
                 System.err.println(command.getAction() + " is not supported");
             }
 
-            CommandResult commandResult = commandAction.execute(command.getArgs());
+            CommandResult commandResult = commandAction.execute(command.getArgs(), command.getTime());
             command.setResponse(commandResult);
             // TODO - for now we mark it as success without a response
             if (commandResult == null) {

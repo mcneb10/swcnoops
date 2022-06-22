@@ -21,7 +21,7 @@ public class PlayerContentGet extends AbstractCommandAction<PlayerContentGet, Pl
     }
 
     @Override
-    protected PlayerContentGetCommandResult execute(PlayerContentGet arguments) throws Exception {
+    protected PlayerContentGetCommandResult execute(PlayerContentGet arguments, long time) throws Exception {
         PlayerContentGetCommandResult response =
                 parseJsonFile(ServiceFactory.instance().getConfig().playerContentGetTemplate, PlayerContentGetCommandResult.class);
 //        response.cdnRoots.clear();

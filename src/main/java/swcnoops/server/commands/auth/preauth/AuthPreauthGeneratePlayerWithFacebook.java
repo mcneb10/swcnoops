@@ -14,7 +14,7 @@ public class AuthPreauthGeneratePlayerWithFacebook extends AbstractCommandAction
     }
 
     @Override
-    protected AuthPreauthGeneratePlayerWithFacebookResult execute(AuthPreauthGeneratePlayerWithFacebook arguments) throws Exception {
+    protected AuthPreauthGeneratePlayerWithFacebookResult execute(AuthPreauthGeneratePlayerWithFacebook arguments, long time) throws Exception {
         // TODO - change generate our guid and secret
         AuthPreauthGeneratePlayerWithFacebookResult generatePlayerResponse = new AuthPreauthGeneratePlayerWithFacebookResult();
         generatePlayerResponse.playerId = "2c2d4aea-7f38-11e5-a29f-069096004f69";

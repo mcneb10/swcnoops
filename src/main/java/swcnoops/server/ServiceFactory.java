@@ -2,6 +2,8 @@ package swcnoops.server;
 
 import swcnoops.server.datasource.PlayerDataSource;
 import swcnoops.server.datasource.PlayerDatasourceImpl;
+import swcnoops.server.game.GameDataManager;
+import swcnoops.server.game.GameDataManagerImpl;
 import swcnoops.server.json.GsonJsonParser;
 import swcnoops.server.json.JacksonJsonParser;
 import swcnoops.server.json.JsonParser;
@@ -17,6 +19,7 @@ public class ServiceFactory {
     private BatchProcessor batchProcessor;
     private SessionManager sessionManager;
     private PlayerDataSource playerDatasource;
+    private GameDataManager gameDataManager;
 
     static final public ServiceFactory instance() {
         return instance;
@@ -30,15 +33,15 @@ public class ServiceFactory {
         return instance;
     }
 
-    public BatchProcessor getBatchProcessor() {
+    final public BatchProcessor getBatchProcessor() {
         return batchProcessor;
     }
 
-    public JsonParser getJsonParser() {
+    final public JsonParser getJsonParser() {
         return jsonParser;
     }
 
-    public Config getConfig() {
+    final public Config getConfig() {
         return config;
     }
 
@@ -55,12 +58,16 @@ public class ServiceFactory {
         return System.currentTimeMillis() / 1000;
     }
 
-    public SessionManager getSessionManager() {
+    final public SessionManager getSessionManager() {
         return this.sessionManager;
     }
 
-    public PlayerDataSource getPlayerDatasource() {
+    final public PlayerDataSource getPlayerDatasource() {
         return this.playerDatasource;
+    }
+
+    final public GameDataManager getGameDataManager() {
+        return this.gameDataManager;
     }
 
     static final private ServiceFactory initialise(Config config) {
@@ -69,6 +76,7 @@ public class ServiceFactory {
         newInstance.batchProcessor = new BatchProcessorImpl();
         newInstance.sessionManager = new SessionManagerImpl();
         newInstance.playerDatasource = new PlayerDatasourceImpl();
+        newInstance.gameDataManager = new GameDataManagerImpl();
 
         if (config.jsonParse == Config.JsonParser.Jackson)
             newInstance.jsonParser = new JacksonJsonParser();

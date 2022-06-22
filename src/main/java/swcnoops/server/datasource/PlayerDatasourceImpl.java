@@ -1,6 +1,8 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.model.PlayerMap;
+import swcnoops.server.model.Upgrades;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -47,7 +49,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public Player loadPlayer(String playerId) {
-        final String sql = "SELECT id, name " +
+        final String sql = "SELECT id, secret " +
                              "FROM Player p WHERE p.id = ?";
 
         Player player = null;
@@ -59,7 +61,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                     while (rs.next()) {
                         player = new Player(rs.getString("id"));
-                        player.setName(rs.getString("name"));
+                        player.setSecret(rs.getString("secret"));
                     }
                 }
             }
@@ -72,7 +74,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void savePlayerName(String playerId, String playerName) {
-        final String sql = "update Player " +
+        final String sql = "update PlayerSettings " +
                               "set name = ? " +
                             "WHERE id = ?";
 
@@ -87,5 +89,48 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player name id=" + playerId, ex);
         }
+    }
+
+    @Override
+    public PlayerSettings loadPlayerSettings(String playerId) {
+        final String sql = "SELECT id, name, faction, baseMap, upgrades " +
+                "FROM PlayerSettings p WHERE p.id = ?";
+
+        PlayerSettings playerSettings = null;
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+                    pstmt.setString(1, playerId);
+                    ResultSet rs = pstmt.executeQuery();
+
+                    while (rs.next()) {
+                        playerSettings = new PlayerSettings(rs.getString("id"));
+                        playerSettings.setName(rs.getString("name"));
+                        playerSettings.setFaction(rs.getString("faction"));
+
+                        String baseMap = rs.getString("baseMap");
+                        PlayerMap playerMap = null;
+                        if (baseMap != null) {
+                            playerMap = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(baseMap, PlayerMap.class);
+                        }
+                        playerSettings.setBaseMap(playerMap);
+
+                        String upgradesJson = rs.getString("upgrades");
+                        Upgrades upgrades;
+                        if (upgradesJson != null)
+                            upgrades = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(upgradesJson, Upgrades.class);
+                        else
+                            upgrades = new Upgrades();
+                        playerSettings.setUpgrades(upgrades);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load player settings from DB id=" + playerId, ex);
+        }
+
+        return playerSettings;
     }
 }

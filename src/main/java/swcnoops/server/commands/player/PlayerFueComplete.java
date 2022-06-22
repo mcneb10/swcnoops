@@ -8,7 +8,7 @@ import swcnoops.server.model.PlayerModel;
 
 public class PlayerFueComplete extends AbstractCommandAction<PlayerFueComplete, PlayerFueCompleteResult> {
     @Override
-    protected PlayerFueCompleteResult execute(PlayerFueComplete arguments) throws Exception {
+    protected PlayerFueCompleteResult execute(PlayerFueComplete arguments, long time) throws Exception {
         PlayerFueCompleteResult playerFueCompleteResult = new PlayerFueCompleteResult();
         playerFueCompleteResult.playerModel = new PlayerModel();
         playerFueCompleteResult.playerModel.episodeProgressInfo = new EpisodeProgressInfo();

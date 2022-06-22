@@ -1,8 +1,8 @@
 package swcnoops.server.model;
 
 public class SubStorage {
-    public InventoryStorage champion;
-    public InventoryStorage hero;
-    public InventoryStorage specialAttack;
-    public InventoryStorage troop;
+    public SubStorageInventory champion = new SubStorageInventory();
+    public SubStorageInventory hero = new SubStorageInventory();
+    public SubStorageInventory specialAttack = new SubStorageInventory();
+    public SubStorageInventory troop = new SubStorageInventory();
 }

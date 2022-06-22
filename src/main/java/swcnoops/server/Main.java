@@ -31,6 +31,7 @@ public class Main extends NanoHTTPD {
         ServiceFactory.instance(config);
         // TODO - should have a nicer way to init on startup and register to factory
         ServiceFactory.instance().getPlayerDatasource().initOnStartup();
+        ServiceFactory.instance().getGameDataManager().initOnStartup();
     }
 
     @Override

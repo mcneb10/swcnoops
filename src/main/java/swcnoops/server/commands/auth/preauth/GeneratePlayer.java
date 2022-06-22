@@ -19,7 +19,7 @@ public class GeneratePlayer extends AbstractCommandAction<GeneratePlayer, Genera
     }
 
     @Override
-    protected GeneratePlayerCommandResult execute(GeneratePlayer arguments) throws Exception {
+    protected GeneratePlayerCommandResult execute(GeneratePlayer arguments, long time) throws Exception {
         // TODO - change generate our guid and secret
         GeneratePlayerCommandResult generatePlayerResponse = new GeneratePlayerCommandResult();
         generatePlayerResponse.playerId = "2c2d4aea-7f38-11e5-a29f-069096004f69";

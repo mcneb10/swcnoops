@@ -17,7 +17,7 @@ public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetPar
     }
 
     @Override
-    protected GuildWarGetParticipantCommandResult execute(GuildWarGetParticipant arguments) throws Exception {
+    protected GuildWarGetParticipantCommandResult execute(GuildWarGetParticipant arguments, long time) throws Exception {
         GuildWarGetParticipantCommandResult result =
                 parseJsonFile(ServiceFactory.instance().getConfig().guildWarGetParticipantTemplate, GuildWarGetParticipantCommandResult.class);
         result.id = arguments.getPlayerId();

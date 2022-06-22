@@ -3238,7 +3238,16 @@
           "deviceInfo": {
           },
           "timeZoneOffset": 0.0,
-          "contracts": [],
+          "contracts": [
+            {
+              "buildingId": "bld_111",
+              "contractType": "Troop",
+              "endTime": 1588274418,
+              "perkIds": [
+              ],
+              "uid": "troopRebelJetpackTrooper11"
+            }
+          ],
           "frozenBuildings": [],
           "isConnectedAccount": false,
           "pvpTargetServedTime": null,

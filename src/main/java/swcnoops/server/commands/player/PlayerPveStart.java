@@ -7,7 +7,7 @@ import swcnoops.server.json.JsonParser;
 
 public class PlayerPveStart extends AbstractCommandAction<PlayerPveStart, PlayerPveStartCommandResult> {
     @Override
-    protected PlayerPveStartCommandResult execute(PlayerPveStart arguments) throws Exception {
+    protected PlayerPveStartCommandResult execute(PlayerPveStart arguments, long time) throws Exception {
         PlayerPveStartCommandResult playerPveStartResponse = new PlayerPveStartCommandResult();
         playerPveStartResponse.setBattleId(ServiceFactory.createRandomUUID());
         return playerPveStartResponse;
