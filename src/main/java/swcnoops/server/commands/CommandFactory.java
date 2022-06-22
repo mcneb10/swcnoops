@@ -37,18 +37,13 @@ public class CommandFactory {
         this.add(new PlayerMissionsMissionMap());
         this.add(new PlayerFueComplete());
         this.add(new PlayerNameSet());
-
         this.add(new PlayerDeployableTrain());
         this.add(new PlayerDeployableCancel());
         this.add(new PlayerDeployableBuyout());
+        this.add(new PlayerDeployableRemove());
 
-//        this.add(new OkCommandAction("player.deployable.train"));
-//        this.add(new OkCommandAction("player.deployable.cancel"));
-//        this.add(new OkCommandAction("player.deployable.buyout"));
-
-        this.add(new OkCommandAction("player.deployable.spend"));
-        this.add(new OkCommandAction("player.deployable.upgrade.start"));
-        this.add(new OkCommandAction("player.deployable.remove"));
+        //this.add(new OkCommandAction("player.deployable.spend"));
+        //this.add(new OkCommandAction("player.deployable.upgrade.start"));
 
         // these are unsure at the moment and needs to be looked at again
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));

@@ -45,10 +45,15 @@ public class PlayerSessionImpl implements PlayerSession {
         this.contractManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
     }
 
-    // TODO
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         this.contractManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
+    }
+
+    @Override
+    public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
+        this.contractManager.moveCompletedTroopsToStarport(time);
+        this.starport.removeTroops(deployablesToRemove);
     }
 
     @Override

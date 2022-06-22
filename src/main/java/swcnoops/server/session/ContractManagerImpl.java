@@ -57,7 +57,8 @@ public class ContractManagerImpl implements ContractManager {
         this.allTroopContracts.sort((a, b) -> a.compareEndTime(b));
     }
 
-    private void moveCompletedTroopsToStarport(long clientTime) {
+    @Override
+    public void moveCompletedTroopsToStarport(long clientTime) {
         Iterator<AbstractBuildContract> troopContractIterator = this.allTroopContracts.iterator();
         while(troopContractIterator.hasNext()) {
             AbstractBuildContract troopContract = troopContractIterator.next();

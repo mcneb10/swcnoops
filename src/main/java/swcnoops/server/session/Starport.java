@@ -1,8 +1,11 @@
 package swcnoops.server.session;
 
+import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildableData;
+import swcnoops.server.model.StorageAmount;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 /**
@@ -38,5 +41,30 @@ public class Starport {
 
     public Map<String, Integer> getTroops() {
         return troops;
+    }
+
+    public void removeTroops(Map<String, Integer> deployablesToRemove) {
+        deployablesToRemove.entrySet().iterator();
+
+        Iterator<Map.Entry<String,Integer>> troopIterator = deployablesToRemove.entrySet().iterator();
+        while(troopIterator.hasNext()) {
+            Map.Entry<String,Integer> entry = troopIterator.next();
+            if (this.troops.containsKey(entry.getKey())) {
+                int onBoard = this.troops.get(entry.getKey()).intValue();
+                // number from client is negative
+                int numberToRemove = Math.abs(entry.getValue().intValue());
+                if (onBoard < numberToRemove) {
+                    numberToRemove = onBoard;
+                }
+
+                onBoard = onBoard - numberToRemove;
+                this.seatsTaken -= numberToRemove;
+                if (onBoard == 0) {
+                    this.troops.remove(entry.getKey());
+                } else {
+                    this.troops.put(entry.getKey(), Integer.valueOf(onBoard));
+                }
+            }
+        }
     }
 }

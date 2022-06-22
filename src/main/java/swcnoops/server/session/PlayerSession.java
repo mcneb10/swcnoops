@@ -24,4 +24,6 @@ public interface PlayerSession {
     void loadContracts(List<Contract> contracts, long time);
 
     void configureForMap(PlayerMap map);
+
+    void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
 }
