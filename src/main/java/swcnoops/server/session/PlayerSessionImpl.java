@@ -13,6 +13,7 @@ public class PlayerSessionImpl implements PlayerSession {
     final private TroopsTransport troopsTransport;
     final private TroopsTransport specialAttackTransport;
     final private TroopsTransport heroTransport;
+    final private TroopsTransport championTransport;
 
     final private ContractManager contractManager;
 
@@ -21,8 +22,9 @@ public class PlayerSessionImpl implements PlayerSession {
         this.troopsTransport = new TroopsTransport();
         this.specialAttackTransport = new TroopsTransport();
         this.heroTransport = new TroopsTransport(3);
+        this.championTransport = new TroopsTransport(2);
         this.contractManager = new ContractManagerImpl(this.troopsTransport,
-                this.specialAttackTransport, this.heroTransport);
+                this.specialAttackTransport, this.heroTransport, this.championTransport);
     }
 
     @Override
@@ -52,9 +54,34 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
-        this.troopsTransport.removeTroopsOnBoard(deployablesToRemove);
-        this.specialAttackTransport.removeTroopsOnBoard(deployablesToRemove);
-        this.heroTransport.removeTroopsOnBoard(deployablesToRemove);
+        if (deployablesToRemove != null) {
+            this.troopsTransport.removeTroopsOnBoard(deployablesToRemove);
+            this.specialAttackTransport.removeTroopsOnBoard(deployablesToRemove);
+            this.heroTransport.removeTroopsOnBoard(deployablesToRemove);
+            this.championTransport.removeTroopsOnBoard(deployablesToRemove);
+        }
+    }
+//CreatureDeployed
+    @Override
+    public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
+        if (deployablesToRemove != null) {
+            for (DeploymentRecord deploymentRecord : deployablesToRemove) {
+                switch (deploymentRecord.getAction()) {
+                    case "HeroDeployed":
+                        this.heroTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                        break;
+                    case "TroopPlaced":
+                        this.troopsTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                        break;
+                    case "SpecialAttackDeployed":
+                        this.specialAttackTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                        break;
+                    case "ChampionDeployed":
+                        this.championTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                        break;
+                }
+            }
+        }
     }
 
     @Override
@@ -72,6 +99,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.loadTroopsForTransport(this.troopsTransport, subStorage.troop.storage);
         this.loadTroopsForTransport(this.specialAttackTransport, subStorage.specialAttack.storage);
         this.loadTroopsForTransport(this.heroTransport, subStorage.hero.storage);
+        this.loadTroopsForTransport(this.championTransport, subStorage.champion.storage);
     }
 
     private void loadTroopsForTransport(TroopsTransport transport, Map<String, StorageAmount> storage) {
@@ -102,6 +130,11 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void configureForMap(PlayerMap map) {
+        // TODO - redo this as at the moment no nice way of knowing when
+        // to initialise the players session
+        this.troopsTransport.resetStorage();
+        this.specialAttackTransport.resetStorage();
+
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         for (Building building : map.buildings) {
             BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);

@@ -97,7 +97,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private SubStorage loadTroopsInTransport(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
         playerSession.loadTransports(subStorage);
-        subStorage.champion.storage.clear();
         return subStorage;
     }
 

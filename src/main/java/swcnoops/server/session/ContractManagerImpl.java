@@ -7,13 +7,15 @@ public class ContractManagerImpl implements ContractManager {
     final private TroopsTransport troopsTransport;
     final private TroopsTransport specialAttackTransport;
     final private TroopsTransport heroTransport;
+    final private TroopsTransport championTransport;
 
     public ContractManagerImpl(TroopsTransport troopsTransport, TroopsTransport specialAttackTransport,
-                               TroopsTransport heroTransport)
+                               TroopsTransport heroTransport, TroopsTransport championTransport)
     {
         this.troopsTransport = troopsTransport;
         this.specialAttackTransport = specialAttackTransport;
         this.heroTransport = heroTransport;
+        this.championTransport = championTransport;
     }
 
     @Override
@@ -49,6 +51,9 @@ public class ContractManagerImpl implements ContractManager {
 
         if (buildContract.getContractGroup().getBuildableData().getType().equals("hero"))
             return this.heroTransport;
+
+        if (buildContract.getContractGroup().getBuildableData().getType().equals("champion"))
+            return this.championTransport;
 
         return this.troopsTransport;
     }
@@ -88,6 +93,7 @@ public class ContractManagerImpl implements ContractManager {
         this.troopsTransport.onBoardCompletedTroops(clientTime);
         this.specialAttackTransport.onBoardCompletedTroops(clientTime);
         this.heroTransport.onBoardCompletedTroops(clientTime);
+        this.championTransport.onBoardCompletedTroops(clientTime);
     }
 
     private ContractConstructor getOrCreateContractConstructor(String buildingId) {
@@ -105,6 +111,7 @@ public class ContractManagerImpl implements ContractManager {
         allContracts.addAll(this.troopsTransport.getTroopsInQueue());
         allContracts.addAll(this.specialAttackTransport.getTroopsInQueue());
         allContracts.addAll(this.heroTransport.getTroopsInQueue());
+        allContracts.addAll(this.championTransport.getTroopsInQueue());
         return allContracts;
     }
 }

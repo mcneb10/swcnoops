@@ -7,6 +7,7 @@ import java.util.*;
 /**
  * This is to model the games transports to hold the troops that has finished building.
  * Also used for special attacks (air) for its contracts.
+ * Used for hero building, not the same as how the client behaves but close enough.
  */
 public class TroopsTransport {
     private int storage;
@@ -24,6 +25,10 @@ public class TroopsTransport {
 
     public int getStorage() {
         return storage;
+    }
+
+    public void resetStorage() {
+        this.storage = 0;
     }
 
     public void addStorage(int storage) {
@@ -55,21 +60,25 @@ public class TroopsTransport {
         Iterator<Map.Entry<String,Integer>> troopIterator = deployablesToRemove.entrySet().iterator();
         while(troopIterator.hasNext()) {
             Map.Entry<String,Integer> entry = troopIterator.next();
-            if (this.troopsOnBoard.containsKey(entry.getKey())) {
-                int onBoard = this.troopsOnBoard.get(entry.getKey()).intValue();
-                // number from client is negative
-                int numberToRemove = Math.abs(entry.getValue().intValue());
-                if (onBoard < numberToRemove) {
-                    numberToRemove = onBoard;
-                }
+            removeTroopsOnBoard(entry.getKey(), entry.getValue());
+        }
+    }
 
-                onBoard = onBoard - numberToRemove;
-                this.seatsTaken -= numberToRemove;
-                if (onBoard == 0) {
-                    this.troopsOnBoard.remove(entry.getKey());
-                } else {
-                    this.troopsOnBoard.put(entry.getKey(), Integer.valueOf(onBoard));
-                }
+    public void removeTroopsOnBoard(String key, Integer value) {
+        if (this.troopsOnBoard.containsKey(key)) {
+            int onBoard = value.intValue();
+            // number from client is negative
+            int numberToRemove = Math.abs(value.intValue());
+            if (onBoard < numberToRemove) {
+                numberToRemove = onBoard;
+            }
+
+            onBoard = onBoard - numberToRemove;
+            this.seatsTaken -= numberToRemove;
+            if (onBoard == 0) {
+                this.troopsOnBoard.remove(key);
+            } else {
+                this.troopsOnBoard.put(key, Integer.valueOf(onBoard));
             }
         }
     }

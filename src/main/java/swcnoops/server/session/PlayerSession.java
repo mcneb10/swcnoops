@@ -2,6 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.datasource.Player;
 import swcnoops.server.model.Contract;
+import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.SubStorage;
 
@@ -24,9 +25,11 @@ public interface PlayerSession {
     void configureForMap(PlayerMap map);
 
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
+    void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     void playerBattleStart(long time);
     void onboardTransports(long time);
 
     void loadTransports(SubStorage subStorage);
+
 }

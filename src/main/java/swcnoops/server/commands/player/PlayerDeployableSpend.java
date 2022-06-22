@@ -7,10 +7,7 @@ import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
-
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class PlayerDeployableSpend extends AbstractCommandAction<PlayerDeployableSpend, CommandResult> {
     private String battleId;
@@ -22,23 +19,8 @@ public class PlayerDeployableSpend extends AbstractCommandAction<PlayerDeployabl
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        Map<String, Integer> troopsDeployed = map(arguments.getUnits());
-        playerSession.removeDeployedTroops(troopsDeployed, time);
+        playerSession.removeDeployedTroops(arguments.getUnits(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
-    }
-
-    private Map<String, Integer> map(List<DeploymentRecord> units) {
-        Map<String, Integer> troopsDeployed = new HashMap<>();
-        for (DeploymentRecord deploymentRecord : units) {
-            Integer troopCount = troopsDeployed.get(deploymentRecord.getUid());
-            if (troopCount == null) {
-                troopCount = Integer.valueOf(0);
-            }
-            troopCount = Integer.valueOf(troopCount.intValue() + 1);
-            troopsDeployed.put(deploymentRecord.getUid(), troopCount);
-        }
-
-        return troopsDeployed;
     }
 
     @Override
