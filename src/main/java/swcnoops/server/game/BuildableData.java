@@ -6,4 +6,6 @@ public interface BuildableData {
     int getSize();
 
     boolean isSpecialAttack();
+
+    String getType();
 }

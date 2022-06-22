@@ -6,10 +6,14 @@ public class ContractManagerImpl implements ContractManager {
     final private Map<String, ContractConstructor> contractConstructors = new HashMap<>();
     final private TroopsTransport troopsTransport;
     final private TroopsTransport specialAttackTransport;
+    final private TroopsTransport heroTransport;
 
-    public ContractManagerImpl(TroopsTransport troopsTransport, TroopsTransport specialAttackTransport) {
+    public ContractManagerImpl(TroopsTransport troopsTransport, TroopsTransport specialAttackTransport,
+                               TroopsTransport heroTransport)
+    {
         this.troopsTransport = troopsTransport;
         this.specialAttackTransport = specialAttackTransport;
+        this.heroTransport = heroTransport;
     }
 
     @Override
@@ -42,6 +46,9 @@ public class ContractManagerImpl implements ContractManager {
     private TroopsTransport getTransport(AbstractBuildContract buildContract) {
         if (buildContract.getContractGroup().getBuildableData().isSpecialAttack())
             return this.specialAttackTransport;
+
+        if (buildContract.getContractGroup().getBuildableData().getType().equals("hero"))
+            return this.heroTransport;
 
         return this.troopsTransport;
     }
@@ -80,6 +87,7 @@ public class ContractManagerImpl implements ContractManager {
     public void moveCompletedTroops(long clientTime) {
         this.troopsTransport.onBoardCompletedTroops(clientTime);
         this.specialAttackTransport.onBoardCompletedTroops(clientTime);
+        this.heroTransport.onBoardCompletedTroops(clientTime);
     }
 
     private ContractConstructor getOrCreateContractConstructor(String buildingId) {
@@ -96,6 +104,7 @@ public class ContractManagerImpl implements ContractManager {
         List<AbstractBuildContract> allContracts = new ArrayList<>();
         allContracts.addAll(this.troopsTransport.getTroopsInQueue());
         allContracts.addAll(this.specialAttackTransport.getTroopsInQueue());
+        allContracts.addAll(this.heroTransport.getTroopsInQueue());
         return allContracts;
     }
 }

@@ -14,6 +14,14 @@ public class TroopsTransport {
     final private Map<String, Integer> troopsOnBoard = new HashMap<>();
     final private List<AbstractBuildContract> troopsInQueue = new ArrayList<>();
 
+    public TroopsTransport() {
+        this(0);
+    }
+
+    public TroopsTransport(int storage) {
+        this.storage = storage;
+    }
+
     public int getStorage() {
         return storage;
     }

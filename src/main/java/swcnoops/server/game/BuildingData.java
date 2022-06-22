@@ -35,6 +35,7 @@ public class BuildingData implements BuildableData {
         this.type = type;
     }
 
+    @Override
     public String getType() {
         return type;
     }

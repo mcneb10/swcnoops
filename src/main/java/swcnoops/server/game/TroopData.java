@@ -54,6 +54,7 @@ public class TroopData implements BuildableData {
         this.type = type;
     }
 
+    @Override
     public String getType() {
         return type;
     }

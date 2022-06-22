@@ -98,7 +98,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         SubStorage subStorage = new SubStorage();
         playerSession.loadTransports(subStorage);
         subStorage.champion.storage.clear();
-        subStorage.hero.storage.clear();
         return subStorage;
     }
 

@@ -12,6 +12,7 @@ public class PlayerSessionImpl implements PlayerSession {
     final private Player player;
     final private TroopsTransport troopsTransport;
     final private TroopsTransport specialAttackTransport;
+    final private TroopsTransport heroTransport;
 
     final private ContractManager contractManager;
 
@@ -19,7 +20,9 @@ public class PlayerSessionImpl implements PlayerSession {
         this.player = player;
         this.troopsTransport = new TroopsTransport();
         this.specialAttackTransport = new TroopsTransport();
-        this.contractManager = new ContractManagerImpl(this.troopsTransport, this.specialAttackTransport);
+        this.heroTransport = new TroopsTransport(3);
+        this.contractManager = new ContractManagerImpl(this.troopsTransport,
+                this.specialAttackTransport, this.heroTransport);
     }
 
     @Override
@@ -51,6 +54,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         this.troopsTransport.removeTroopsOnBoard(deployablesToRemove);
         this.specialAttackTransport.removeTroopsOnBoard(deployablesToRemove);
+        this.heroTransport.removeTroopsOnBoard(deployablesToRemove);
     }
 
     @Override
@@ -67,6 +71,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void loadTransports(SubStorage subStorage) {
         this.loadTroopsForTransport(this.troopsTransport, subStorage.troop.storage);
         this.loadTroopsForTransport(this.specialAttackTransport, subStorage.specialAttack.storage);
+        this.loadTroopsForTransport(this.heroTransport, subStorage.hero.storage);
     }
 
     private void loadTroopsForTransport(TroopsTransport transport, Map<String, StorageAmount> storage) {
@@ -110,10 +115,10 @@ public class PlayerSessionImpl implements PlayerSession {
 
     private void configureTransports(BuildingData buildingData) {
         switch (buildingData.getType()) {
-            case "starport" :
+            case "starport":
                 this.troopsTransport.addStorage(buildingData.getStorage());
                 break;
-            case "fleet_command" :
+            case "fleet_command":
                 this.specialAttackTransport.addStorage(buildingData.getStorage());
                 break;
         }
