@@ -24,6 +24,4 @@ public interface PlayerSession {
     void loadContracts(List<Contract> contracts, long time);
 
     void configureForMap(PlayerMap map);
-
-    void moveCompletedTroopsToStarport(long time);
 }

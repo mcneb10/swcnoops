@@ -34,14 +34,17 @@ public class ContractGroup {
         }
     }
 
-    public void removeContracts(int quantity) {
+    public List<AbstractBuildContract> removeContracts(int quantity) {
+        List<AbstractBuildContract> contractsRemoved = new ArrayList<>(quantity);
         if (this.contracts.size() > quantity) {
             quantity = this.contracts.size();
         }
 
         for (int i = 0; i < quantity; i++) {
-            this.contracts.removeLast();
+            contractsRemoved.add(this.contracts.removeLast());
         }
+
+        return contractsRemoved;
     }
 
     public boolean isEmpty() {
@@ -62,9 +65,9 @@ public class ContractGroup {
         return buildableData;
     }
 
-    public void removeCompletedContract(AbstractBuildContract troopContract) {
+    protected void removeCompletedContract(AbstractBuildContract troopContract) {
         // this should really always be the first in the queue
-        this.headRemoved = true;
+        this.headRemoved = this.contracts.getFirst() == troopContract;
         this.contracts.remove(troopContract);
     }
 

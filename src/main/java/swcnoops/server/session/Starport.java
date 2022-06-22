@@ -5,6 +5,9 @@ import swcnoops.server.game.BuildableData;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This is to model the games transports to hold the troops that has finished building.
+ */
 public class Starport {
     private int storage;
     private int seatsTaken;
@@ -18,7 +21,6 @@ public class Starport {
         this.storage += storage;
     }
 
-    // TODO
     public int getAvailableCapacity() {
         return this.storage - this.seatsTaken;
     }

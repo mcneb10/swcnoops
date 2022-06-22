@@ -16,6 +16,7 @@ public class ContractConstructor {
     final private String buildingId;
     final private LinkedList<ContractGroup> buildQueue = new LinkedList<>();
     final private Map<String,ContractGroup> buildQueueMap = new HashMap<>();
+    private long starTime;
 
     public ContractConstructor(String buildingId) {
         this.buildingId = buildingId;
@@ -55,11 +56,12 @@ public class ContractConstructor {
         return buildableData;
     }
 
-    public void cancelContract(String unitTypeId, int quantity) {
+    public List<AbstractBuildContract> cancelContracts(String unitTypeId, int quantity) {
+        List<AbstractBuildContract> cancelledContracts = null;
         ContractGroup contractGroup = this.buildQueueMap.get(unitTypeId);
         if (contractGroup != null) {
             boolean groupHeadOfQueue = this.buildQueue.getFirst() == contractGroup;
-            contractGroup.removeContracts(quantity);
+            cancelledContracts = contractGroup.removeContracts(quantity);
             if (removeContractGroupIfEmpty(contractGroup)) {
                 if (groupHeadOfQueue && this.buildQueue.size() > 0)
                     this.buildQueue.getFirst().setHeadRemoved(true);
@@ -67,9 +69,11 @@ public class ContractConstructor {
         } else {
             throw new RuntimeException("Failed to find unit to remove " + unitTypeId);
         }
+
+        return cancelledContracts;
     }
 
-    public boolean removeContractGroupIfEmpty(ContractGroup contractGroup) {
+    private boolean removeContractGroupIfEmpty(ContractGroup contractGroup) {
         boolean removed = false;
         if (contractGroup.isEmpty()) {
             this.buildQueue.remove(contractGroup);
@@ -109,5 +113,11 @@ public class ContractConstructor {
         }
 
         return boughtOutContracts;
+    }
+
+    public void removeCompletedContract(AbstractBuildContract troopContract) {
+        // remove it from its group first, then see if the whole group can be removed
+        troopContract.getContractGroup().removeCompletedContract(troopContract);
+        this.removeContractGroupIfEmpty(troopContract.getContractGroup());
     }
 }

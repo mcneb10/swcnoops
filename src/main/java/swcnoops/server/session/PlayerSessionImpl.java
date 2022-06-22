@@ -12,13 +12,14 @@ import java.util.*;
 
 public class PlayerSessionImpl implements PlayerSession {
     final private Player player;
-    private Starport starport = new Starport();
+    final private Starport starport;
 
-    final private Map<String, ContractConstructor> contractConstructors = new HashMap<>();
-    final private List<AbstractBuildContract> troopContracts = new ArrayList<>();
+    final private ContractManager contractManager;
 
     public PlayerSessionImpl(Player player) {
         this.player = player;
+        this.starport = new Starport();
+        this.contractManager = new ContractManagerImpl(this.starport);
 
         // TODO
         //initialiseStartport(this.player.getPlayerSettings().getTroopsOnTransport());
@@ -36,77 +37,18 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
-        moveCompletedTroopsToStarport(startTime);
-
-        // create contracts for the things that we want to build
-        ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
-        List<AbstractBuildContract> troopBuildContracts = new ArrayList<>(quantity);
-        for (int i = 0; i < quantity; i++) {
-            TroopBuildContract troopBuildContract = new TroopBuildContract(buildingId, unitTypeId, contractConstructor);
-            troopBuildContracts.add(troopBuildContract);
-        }
-
-        contractConstructor.addContracts(troopBuildContracts, startTime);
-        this.troopContracts.addAll(troopBuildContracts);
-        this.troopContracts.sort((a,b) -> a.compareEndTime(b) );
-        contractConstructor.recalculateContractEndTimes(startTime);
+        this.contractManager.trainTroops(buildingId, unitTypeId, quantity, startTime);
     }
 
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        // we move completed troops last because if they managed to remove contracts
-        // at the head of the queue, then they must of got there before it was completed
-        ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
-        contractConstructor.cancelContract(unitTypeId, quantity);
-        contractConstructor.recalculateContractEndTimes(time);
-        moveCompletedTroopsToStarport(time);
-    }
-
-    @Override
-    public void moveCompletedTroopsToStarport(long clientTime) {
-        Iterator<AbstractBuildContract> troopContractIterator = this.troopContracts.iterator();
-        while(troopContractIterator.hasNext()) {
-            AbstractBuildContract troopContract = troopContractIterator.next();
-            if (troopContract.getEndTime() > clientTime) {
-                break;
-            }
-
-            if (troopContract.getContractGroup().getBuildableData().getSize() < this.starport.getAvailableCapacity()) {
-                troopContract.getContractGroup().removeCompletedContract(troopContract);
-                this.starport.addTroopContract(troopContract);
-                troopContract.getParent().removeContractGroupIfEmpty(troopContract.getContractGroup());
-                troopContractIterator.remove();
-            }
-        }
-    }
-
-    private ContractConstructor getOrCreateContractConstructor(String buildingId) {
-        ContractConstructor contractConstructor = this.contractConstructors.get(buildingId);
-        if (contractConstructor == null) {
-            contractConstructor = new ContractConstructor(buildingId);
-            this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
-        }
-        return contractConstructor;
+        this.contractManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
     }
 
     // TODO
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        // we move completed troops last because if they managed to buy out contracts
-        //then they must of got there before it was completed
-        ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
-        List<AbstractBuildContract> boughtOutContracts = contractConstructor.buyOutContract(unitTypeId, quantity, time);
-        if (boughtOutContracts != null)
-            moveBoughtOutContractsToStarport(boughtOutContracts);
-        contractConstructor.recalculateContractEndTimes(time);
-        moveCompletedTroopsToStarport(time);
-    }
-
-    private void moveBoughtOutContractsToStarport(List<AbstractBuildContract> boughtOutContracts) {
-        for (AbstractBuildContract buildContract : boughtOutContracts) {
-            this.troopContracts.remove(buildContract);
-            this.starport.addTroopContract(buildContract);
-        }
+        this.contractManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
     }
 
     @Override
@@ -126,8 +68,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void loadContracts(List<Contract> contracts, long time) {
         contracts.clear();
-        for (AbstractBuildContract buildContract : this.troopContracts) {
-
+        for (AbstractBuildContract buildContract : this.contractManager.getAllTroopContracts()) {
             Contract contract = new Contract();
             contract.contractType = buildContract.getContractType();
             contract.buildingId = buildContract.getBuildingId();
