@@ -11,7 +11,7 @@ public class PlayerStoreOffersGet extends AbstractCommandAction<PlayerStoreOffer
     }
 
     @Override
-    protected PlayerStoreOffersGetCommandResult execute(PlayerStoreOffersGet arguments) throws Exception {
+    protected PlayerStoreOffersGetCommandResult execute(PlayerStoreOffersGet arguments, long time) throws Exception {
         PlayerStoreOffersGetCommandResult response = new PlayerStoreOffersGetCommandResult();
         return response;
     }

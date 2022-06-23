@@ -6,7 +6,7 @@ import swcnoops.server.json.JsonParser;
 
 public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildWarStatusCommandResult> {
     @Override
-    protected GuildWarStatusCommandResult execute(GuildWarStatus arguments) throws Exception {
+    protected GuildWarStatusCommandResult execute(GuildWarStatus arguments, long time) throws Exception {
         GuildWarStatusCommandResult guildWarStatusResponse =
                 parseJsonFile("templates/GuildWarStatus.json", GuildWarStatusCommandResult.class);
 

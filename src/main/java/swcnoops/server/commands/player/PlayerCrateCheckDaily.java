@@ -6,7 +6,7 @@ import swcnoops.server.json.JsonParser;
 
 public class PlayerCrateCheckDaily extends AbstractCommandAction<PlayerCrateCheckDaily, PlayerCrateCheckDailyCommandResult> {
     @Override
-    protected PlayerCrateCheckDailyCommandResult execute(PlayerCrateCheckDaily arguments) throws Exception {
+    protected PlayerCrateCheckDailyCommandResult execute(PlayerCrateCheckDaily arguments, long time) throws Exception {
         return new PlayerCrateCheckDailyCommandResult();
     }
 

@@ -5,8 +5,8 @@ import swcnoops.server.requests.CommandResult;
 public class Command {
     private String action;
     private Object args;
-    private Long requestId;
-    private Long time;
+    private long requestId;
+    private long time;
     private String token;
     private CommandAction commandAction;
     private CommandResult commandResult;
@@ -19,7 +19,7 @@ public class Command {
         return args;
     }
 
-    public Long getRequestId() {
+    public long getRequestId() {
         return requestId;
     }
 
@@ -27,11 +27,11 @@ public class Command {
         this.requestId = requestId;
     }
 
-    public Long getTime() {
+    public long getTime() {
         return time;
     }
 
-    public void setTime(Long time) {
+    public void setTime(long time) {
         this.time = time;
     }
 

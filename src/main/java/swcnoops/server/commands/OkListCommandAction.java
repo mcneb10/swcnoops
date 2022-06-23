@@ -11,7 +11,7 @@ public class OkListCommandAction extends OkCommandAction {
     }
 
     @Override
-    protected CommandResult execute(CommandArguments arguments) throws Exception {
+    protected CommandResult execute(CommandArguments arguments, long time) throws Exception {
         CommandResult listDataCommandResult = new CommandResult() {
             @JsonIgnore
             @Override

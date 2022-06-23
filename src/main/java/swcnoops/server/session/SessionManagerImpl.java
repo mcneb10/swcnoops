@@ -3,12 +3,13 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerDataSource;
+import swcnoops.server.datasource.PlayerSettings;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class SessionManagerImpl implements SessionManager {
-    private Map<String, PlayerSession> sessions = new HashMap<>();
+    final private Map<String, PlayerSession> sessions = new HashMap<>();
 
     @Override
     public PlayerSession getPlayerSession(String playerId) {
@@ -34,10 +35,15 @@ public class SessionManagerImpl implements SessionManager {
         PlayerDataSource playerDataSource = ServiceFactory.instance().getPlayerDatasource();
         Player player = playerDataSource.loadPlayer(playerId);
 
-        if (player == null)
+        if (player == null) {
+            // TODO - for now we create unknown players and default them some data
+            //player = new Player(ServiceFactory.createRandomUUID());
             throw new RuntimeException("Unknown user id " + playerId);
+        }
 
-        PlayerSession playerSession = new PlayerSessionImpl(player);
+        PlayerSettings playerSettings = playerDataSource.loadPlayerSettings(playerId);
+        player.setPlayerSettings(playerSettings);
+        PlayerSession playerSession = new PlayerSessionImpl(player, playerSettings);
         return playerSession;
     }
 }

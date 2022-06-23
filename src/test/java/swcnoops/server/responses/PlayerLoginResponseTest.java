@@ -10,6 +10,9 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseData;
 import org.junit.Test;
 
+import java.util.List;
+import java.util.Map;
+
 public class PlayerLoginResponseTest {
     static {
         ServiceFactory.instance(new Config());
@@ -22,13 +25,18 @@ public class PlayerLoginResponseTest {
     }
 
     @Test
+    public void testFileParse() throws Exception {
+
+    }
+
+    @Test
     public void test() throws Exception {
         CommandAction commandAction = new PlayerStoreShardOffersGet();
         Command command = new Command();
         command.setRequestId(1L);
         command.setTime(2L);
 
-        CommandResult result = commandAction.execute(new PlayerStoreShardOffersGet());
+        CommandResult result = commandAction.execute(new PlayerStoreShardOffersGet(), command.getTime());
         ResponseData responseData = commandAction.createResponse(command, result);
         String resultJson = ServiceFactory.instance().getJsonParser().toJson(responseData);
         System.out.println(resultJson);

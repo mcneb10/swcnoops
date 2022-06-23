@@ -17,7 +17,7 @@ public class PlayerDeviceRegister extends AbstractCommandAction<PlayerDeviceRegi
     }
 
     @Override
-    protected PlayerDeviceRegisterResult execute(PlayerDeviceRegister arguments) throws Exception {
+    protected PlayerDeviceRegisterResult execute(PlayerDeviceRegister arguments, long time) throws Exception {
         PlayerDeviceRegisterResult commandResult = new PlayerDeviceRegisterResult();
         return commandResult;
     }

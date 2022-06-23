@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class CommandFactory {
-    private Map<String, CommandAction> commandMap = new HashMap<>();
+    final private Map<String, CommandAction> commandMap = new HashMap<>();
 
     public CommandFactory() {
         this.add(new AuthPreauthGeneratePlayerWithFacebook());
@@ -33,12 +33,22 @@ public class CommandFactory {
         this.add(new PlayerStoreOffersGet());
         this.add(new PlayerStoreShardOffersGet());
         this.add(new PlayerCrateCheckDaily());
-        this.add(new PlayerPveStart());
         this.add(new PlayerMissionsMissionMap());
         this.add(new PlayerFueComplete());
         this.add(new PlayerNameSet());
+        this.add(new PlayerDeployableTrain());
+        this.add(new PlayerDeployableCancel());
+        this.add(new PlayerDeployableBuyout());
+        this.add(new PlayerDeployableRemove());
+        this.add(new PlayerDeployableSpend());
+
+        //this.add(new PlayerPveStart());
+        this.add(new PlayerPvpBattleStart());
+
+        //this.add(new OkCommandAction("player.deployable.upgrade.start"));
 
         // these are unsure at the moment and needs to be looked at again
+        this.add(new OkCommandAction("player.building.capture"));
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
         this.add(new OkCommandAction("player.building.multimove"));
@@ -65,23 +75,18 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.building.move"));
         this.add(new OkCommandAction("player.building.cancel"));
         this.add(new OkCommandAction("player.building.clear"));
-        this.add(new OkCommandAction("player.deployable.train"));
-        this.add(new OkCommandAction("player.deployable.buyout"));
-        this.add(new OkCommandAction("player.deployable.cancel"));
-        this.add(new OkCommandAction("player.deployable.spend"));
-        this.add(new OkCommandAction("player.deployable.upgrade.start"));
+
         this.add(new OkCommandAction("player.fue.setQuest"));
         this.add(new OkCommandAction("player.building.collect.all"));
         this.add(new OkCommandAction("player.planet.relocate"));
         this.add(new OkCommandAction("player.raids.update"));
         this.add(new PlayerPvpGetNextTarget());
-        this.add(new OkCommandAction("player.pvp.battle.start"));
         this.add(new PlayerPvpBattleComplete());
         this.add(new PlayerEpisodesProgressGet());
         this.add(new OkCommandAction("player.pvp.releaseTarget"));
     }
 
-    final private void add(CommandAction commandAction) {
+    private void add(CommandAction commandAction) {
         commandMap.put(commandAction.getAction(), commandAction);
     }
 

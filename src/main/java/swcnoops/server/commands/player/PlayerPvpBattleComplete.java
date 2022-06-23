@@ -7,7 +7,7 @@ import swcnoops.server.json.JsonParser;
 
 public class PlayerPvpBattleComplete extends AbstractCommandAction<PlayerPvpBattleComplete, PlayerPvpBattleCompleteCommandResult> {
     @Override
-    protected PlayerPvpBattleCompleteCommandResult execute(PlayerPvpBattleComplete arguments) throws Exception {
+    protected PlayerPvpBattleCompleteCommandResult execute(PlayerPvpBattleComplete arguments, long time) throws Exception {
         PlayerPvpBattleCompleteCommandResult response =
                 ServiceFactory.instance().getJsonParser()
                         .toObjectFromResource("templates/playerPvpBattleComplete.json", PlayerPvpBattleCompleteCommandResult.class);

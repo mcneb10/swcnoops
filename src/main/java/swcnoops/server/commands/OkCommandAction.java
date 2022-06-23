@@ -5,7 +5,7 @@ import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 
-public class OkCommandAction extends AbstractCommandAction {
+public class OkCommandAction extends AbstractCommandAction<CommandArguments, CommandResult> {
     @JsonIgnore
     private final String action;
 
@@ -14,7 +14,7 @@ public class OkCommandAction extends AbstractCommandAction {
     }
 
     @Override
-    protected CommandResult execute(CommandArguments arguments) throws Exception {
+    protected CommandResult execute(CommandArguments arguments, long time) throws Exception {
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

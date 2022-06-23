@@ -20,7 +20,7 @@ public class ConfigEndpointsGet extends AbstractCommandAction<ConfigEndpointsGet
     }
 
     @Override
-    protected ConfigEndpointsGetCommandResult execute(ConfigEndpointsGet arguments) throws Exception {
+    protected ConfigEndpointsGetCommandResult execute(ConfigEndpointsGet arguments, long time) throws Exception {
         ConfigEndpointsGetCommandResult configEndpointsGetResponse = new ConfigEndpointsGetCommandResult();
 
         String ipAddress = ServiceFactory.instance().getConfig().event2BiLoggingIpAddress;

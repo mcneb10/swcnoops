@@ -8,7 +8,7 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseData;
 
 abstract public class AbstractCommandAction<A extends CommandArguments, R extends CommandResult>
-        implements CommandArguments, CommandAction<A>
+        implements CommandArguments, CommandAction
 {
     private String playerId;
 
@@ -17,13 +17,13 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     }
 
     @Override
-    public R execute(Object args) throws Exception {
+    public R execute(Object args, long time) throws Exception {
         JsonParser jsonParser = ServiceFactory.instance().getJsonParser();
         A parsedArgument = this.parseArgument(jsonParser, args);
-        return this.execute(parsedArgument);
+        return this.execute(parsedArgument, time);
     }
 
-    protected abstract R execute(A arguments) throws Exception;
+    protected abstract R execute(A arguments, long time) throws Exception;
 
     protected abstract A parseArgument(JsonParser jsonParser, Object argumentObject);
 
@@ -45,7 +45,7 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         return new CommandMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(), ServiceFactory.createRandomUUID());
     }
 
-    static final public <T extends CommandResult> T parseJsonFile(String filename, Class<T> clazz) {
+    static public <T extends CommandResult> T parseJsonFile(String filename, Class<T> clazz) {
         T response;
 
         try {

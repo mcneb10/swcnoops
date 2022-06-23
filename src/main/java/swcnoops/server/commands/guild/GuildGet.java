@@ -12,7 +12,7 @@ import swcnoops.server.requests.ResponseHelper;
 public class GuildGet extends AbstractCommandAction<GuildGet, GuildGetCommandResult> {
 
     @Override
-    protected GuildGetCommandResult execute(GuildGet arguments) throws Exception {
+    protected GuildGetCommandResult execute(GuildGet arguments, long time) throws Exception {
         GuildGetCommandResult guildGetResult =
                 parseJsonFile(ServiceFactory.instance().getConfig().guildGetTemplate, GuildGetCommandResult.class);
 

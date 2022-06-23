@@ -21,7 +21,7 @@ public class PlayerEpisodesProgressGetTest {
     @Test
     public void test() throws Exception {
         PlayerEpisodesProgressGet action = new PlayerEpisodesProgressGet();
-        PlayerEpisodesProgressGetCommandResult response = action.execute(null);
+        PlayerEpisodesProgressGetCommandResult response = action.execute(null, 1);
         assertNotNull(response);
         String a = ServiceFactory.instance().getJsonParser().toJson(response);
         Timestamp timestamp = new Timestamp(1560645318L*1000L);
@@ -36,7 +36,7 @@ public class PlayerEpisodesProgressGetTest {
     @Test
     public void prefer() throws Exception {
         PlayerPreferencesSet playerPreferencesSet = new PlayerPreferencesSet();
-        CommandResult o = playerPreferencesSet.execute(null);
+        CommandResult o = playerPreferencesSet.execute(null, 1);
         ResponseData responseData = new ResponseData();
         responseData.result = o.getResult();
         String a = ServiceFactory.instance().getJsonParser().toJson(responseData);

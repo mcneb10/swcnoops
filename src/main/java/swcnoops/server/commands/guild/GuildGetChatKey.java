@@ -11,7 +11,7 @@ public class GuildGetChatKey extends AbstractCommandAction<GuildGetChatKey, Guil
     }
 
     @Override
-    protected GuildGetChatKeyCommandResult execute(GuildGetChatKey arguments) throws Exception {
+    protected GuildGetChatKeyCommandResult execute(GuildGetChatKey arguments, long time) throws Exception {
         GuildGetChatKeyCommandResult guildGetChatKeyResponse = new GuildGetChatKeyCommandResult();
         guildGetChatKeyResponse.chatMessageEncryptionKey = "/F4yaDCcWABQFpEZf7aVqIGE1KzdZql4WGNT671Sraw=";
         return guildGetChatKeyResponse;

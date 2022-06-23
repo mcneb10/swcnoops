@@ -6,7 +6,7 @@ import swcnoops.server.json.JsonParser;
 
 public class PlayerStoreShardOffersGet extends AbstractCommandAction<PlayerStoreOffersGet, PlayerStoreShardOffersGetResult> {
     @Override
-    protected PlayerStoreShardOffersGetResult execute(PlayerStoreOffersGet arguments) throws Exception {
+    protected PlayerStoreShardOffersGetResult execute(PlayerStoreOffersGet arguments, long time) throws Exception {
         PlayerStoreShardOffersGetResult playerStoreShardOffersGetResult = new PlayerStoreShardOffersGetResult();
 
         // empty string to turn off "Shard Shop Active Series not found!"

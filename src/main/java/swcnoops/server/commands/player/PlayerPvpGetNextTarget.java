@@ -17,7 +17,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     private Random rand = new Random();
 
     @Override
-    protected PlayerPvpGetNextTargetCommandResult execute(PlayerPvpGetNextTarget arguments) throws Exception {
+    protected PlayerPvpGetNextTargetCommandResult execute(PlayerPvpGetNextTarget arguments, long time) throws Exception {
         PlayerPvpGetNextTargetCommandResult response =
                 parseJsonFile("templates/playerPvpGetNextTarget.json", PlayerPvpGetNextTargetCommandResult.class);
         response.battleId = ServiceFactory.createRandomUUID();

@@ -1,0 +1,1862 @@
+{
+  "next": 820,
+  "planet": "planet1",
+  "buildings": [
+    {
+      "key": "bld_26",
+      "x": 17,
+      "z": 17,
+      "uid": "empireDroidHut2",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_141",
+      "x": 0,
+      "z": -9,
+      "uid": "empireFleetCommand11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_25",
+      "x": 4,
+      "z": -11,
+      "uid": "empireStarport11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_140",
+      "x": 8,
+      "z": 17,
+      "uid": "empireMaterialsGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_265",
+      "x": -3,
+      "z": -8,
+      "uid": "empireContrabandCantina10",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_20",
+      "x": 20,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_24",
+      "x": 11,
+      "z": 17,
+      "uid": "empireCreditGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_260",
+      "x": 12,
+      "z": -2,
+      "uid": "empireTrapStrikeHeavy11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_23",
+      "x": 14,
+      "z": 11,
+      "uid": "empireCreditStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_22",
+      "x": 6,
+      "z": 12,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_21",
+      "x": 20,
+      "z": 19,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_159",
+      "x": 20,
+      "z": 18,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_274",
+      "x": 10,
+      "z": -7,
+      "uid": "empireContrabandGenerator10",
+      "lastCollectTime": 1588273848,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_158",
+      "x": 20,
+      "z": 17,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_157",
+      "x": -3,
+      "z": 13,
+      "uid": "empireTrapStrikeGeneric11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_156",
+      "x": -3,
+      "z": 19,
+      "uid": "empireTrapStrikeGeneric11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_165",
+      "x": 20,
+      "z": 16,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_164",
+      "x": 20,
+      "z": 15,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_163",
+      "x": 20,
+      "z": 14,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_162",
+      "x": 20,
+      "z": 13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_169",
+      "x": 17,
+      "z": 5,
+      "uid": "empireMaterialsGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_168",
+      "x": 5,
+      "z": 17,
+      "uid": "empireCreditGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_167",
+      "x": 20,
+      "z": 1,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_166",
+      "x": 20,
+      "z": -1,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_161",
+      "x": 20,
+      "z": 12,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_160",
+      "x": 20,
+      "z": 11,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_17",
+      "x": 3,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_16",
+      "x": 1,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_15",
+      "x": 0,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_14",
+      "x": -3,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_173",
+      "x": 18,
+      "z": -8,
+      "uid": "empireArmory7",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_19",
+      "x": 18,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_18",
+      "x": 20,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_13",
+      "x": 19,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_172",
+      "x": -11,
+      "z": 0,
+      "uid": "empireStarport11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_12",
+      "x": 18,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_171",
+      "x": 8,
+      "z": -1,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_11",
+      "x": 16,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_170",
+      "x": 1,
+      "z": 2,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_10",
+      "x": 14,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_71",
+      "x": -9,
+      "z": 18,
+      "uid": "empireFactory11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_70",
+      "x": 20,
+      "z": 10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_69",
+      "x": 20,
+      "z": 9,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_64",
+      "x": -5,
+      "z": 6,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_63",
+      "x": -5,
+      "z": 7,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_62",
+      "x": -5,
+      "z": 8,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_61",
+      "x": -5,
+      "z": 5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_68",
+      "x": 20,
+      "z": 8,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_67",
+      "x": -5,
+      "z": 4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_66",
+      "x": -5,
+      "z": 3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_181",
+      "x": 10,
+      "z": 4,
+      "uid": "empireShieldGenerator10",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_65",
+      "x": -5,
+      "z": 2,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_82",
+      "x": -5,
+      "z": 1,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_81",
+      "x": 10,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_80",
+      "x": 20,
+      "z": 7,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_514",
+      "x": -11,
+      "z": -11,
+      "uid": "empireAlpha1",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_513",
+      "x": -19,
+      "z": -19,
+      "uid": "empireAlpha1",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_512",
+      "x": 13,
+      "z": -18,
+      "uid": "empireAlpha1",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_511",
+      "x": -17,
+      "z": 10,
+      "uid": "empireAlpha1",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_75",
+      "x": 20,
+      "z": 6,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_74",
+      "x": 20,
+      "z": 5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_73",
+      "x": 20,
+      "z": 4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_72",
+      "x": 5,
+      "z": 1,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_79",
+      "x": 20,
+      "z": 3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_78",
+      "x": 20,
+      "z": 2,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_77",
+      "x": 20,
+      "z": 0,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_76",
+      "x": 20,
+      "z": -2,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_60",
+      "x": 14,
+      "z": 17,
+      "uid": "empireMaterialsGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_415",
+      "x": 19,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_778",
+      "x": 18,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_414",
+      "x": 17,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_777",
+      "x": 16,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_413",
+      "x": 15,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_776",
+      "x": 14,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_775",
+      "x": 13,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_419",
+      "x": 12,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_418",
+      "x": 11,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_417",
+      "x": 10,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_416",
+      "x": 9,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_779",
+      "x": 8,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_59",
+      "x": 1,
+      "z": 6,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_58",
+      "x": 17,
+      "z": 8,
+      "uid": "empireCreditGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_774",
+      "x": -4,
+      "z": 2,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_773",
+      "x": 10,
+      "z": 12,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_772",
+      "x": 2,
+      "z": 8,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_53",
+      "x": 2,
+      "z": 17,
+      "uid": "empireMaterialsGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_52",
+      "x": 8,
+      "z": 12,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_57",
+      "x": 12,
+      "z": 8,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_56",
+      "x": -2,
+      "z": 1,
+      "uid": "empireBarracks11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_55",
+      "x": 8,
+      "z": 8,
+      "uid": "empireSquadBuilding11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_54",
+      "x": 8,
+      "z": 14,
+      "uid": "empireMaterialsStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_9",
+      "x": 7,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_8",
+      "x": 8,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_7",
+      "x": 5,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_6",
+      "x": 4,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_5",
+      "x": 3,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_547",
+      "x": 7,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_426",
+      "x": 14,
+      "z": 8,
+      "uid": "empireMaterialsStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_305",
+      "x": -3,
+      "z": 16,
+      "uid": "empireTrapStrikeGeneric11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_789",
+      "x": 6,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_425",
+      "x": 14,
+      "z": 5,
+      "uid": "empireCreditStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_546",
+      "x": 5,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_788",
+      "x": 4,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_304",
+      "x": 19,
+      "z": 19,
+      "uid": "empireTrapStrikeHeavy11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_545",
+      "x": 2,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_424",
+      "x": 2,
+      "z": 12,
+      "uid": "empireSonicTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_787",
+      "x": -1,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_544",
+      "x": -2,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_423",
+      "x": 10,
+      "z": -1,
+      "uid": "empireSonicTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_786",
+      "x": -4,
+      "z": 20,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_309",
+      "x": 20,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_308",
+      "x": -1,
+      "z": 11,
+      "uid": "empireMaterialsStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_429",
+      "x": -3,
+      "z": 4,
+      "uid": "empirePlatformHeavyDroideka50",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_428",
+      "x": 17,
+      "z": -3,
+      "uid": "empireTrapDropship11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_549",
+      "x": 17,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_307",
+      "x": 5,
+      "z": 14,
+      "uid": "empireCreditStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_427",
+      "x": -4,
+      "z": 1,
+      "uid": "empireTrapDropship11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_548",
+      "x": 15,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_306",
+      "x": -3,
+      "z": 10,
+      "uid": "empireTrapStrikeGeneric11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_781",
+      "x": 13,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_780",
+      "x": 12,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_422",
+      "x": 11,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_543",
+      "x": 10,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_785",
+      "x": 9,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_421",
+      "x": 8,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_784",
+      "x": -4,
+      "z": 19,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_420",
+      "x": -4,
+      "z": 18,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_783",
+      "x": -4,
+      "z": 17,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_782",
+      "x": -4,
+      "z": 16,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_4",
+      "x": 2,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_3",
+      "x": 1,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_2",
+      "x": 0,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_1",
+      "x": 3,
+      "z": 3,
+      "uid": "empireHQ11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_558",
+      "x": -4,
+      "z": 15,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_316",
+      "x": -4,
+      "z": 14,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_557",
+      "x": -4,
+      "z": 13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_315",
+      "x": -4,
+      "z": 12,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_556",
+      "x": -4,
+      "z": 11,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_314",
+      "x": -4,
+      "z": 10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_555",
+      "x": -4,
+      "z": 9,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_434",
+      "x": -7,
+      "z": 14,
+      "uid": "empireContrabandGenerator10",
+      "lastCollectTime": 1588273848,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_313",
+      "x": 10,
+      "z": -11,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_319",
+      "x": 12,
+      "z": 0,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_318",
+      "x": -4,
+      "z": 8,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_559",
+      "x": -3,
+      "z": 8,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_317",
+      "x": -5,
+      "z": 0,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_550",
+      "x": -5,
+      "z": -1,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_792",
+      "x": -5,
+      "z": -2,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_791",
+      "x": 6,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_790",
+      "x": -1,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_554",
+      "x": -2,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_312",
+      "x": -3,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_311",
+      "x": -4,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_553",
+      "x": -5,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_310",
+      "x": -5,
+      "z": -4,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_552",
+      "x": -5,
+      "z": -5,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_431",
+      "x": 8,
+      "z": 4,
+      "uid": "empireShieldGenerator11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_794",
+      "x": 1,
+      "z": 0,
+      "uid": "empireTrapDropshipCreature10",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_551",
+      "x": 18,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_430",
+      "x": -14,
+      "z": 6,
+      "uid": "empireTrapStrikeAOE11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_793",
+      "x": 16,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_91",
+      "x": -11,
+      "z": 7,
+      "uid": "empireStarport11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_90",
+      "x": -1,
+      "z": 14,
+      "uid": "empireBarracks11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_326",
+      "x": -6,
+      "z": -8,
+      "uid": "empireContrabandGenerator10",
+      "lastCollectTime": 1588273848,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_561",
+      "x": 14,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_560",
+      "x": 12,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_565",
+      "x": 1,
+      "z": 4,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_564",
+      "x": 12,
+      "z": 2,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_200",
+      "x": 9,
+      "z": 1,
+      "uid": "empireContrabandStorage17",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_563",
+      "x": 13,
+      "z": -8,
+      "uid": "empireFactory11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_562",
+      "x": 10,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_320",
+      "x": 12,
+      "z": 4,
+      "uid": "empireSonicTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_86",
+      "x": 4,
+      "z": 12,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_85",
+      "x": 20,
+      "z": -12,
+      "uid": "empireTrapStrikeGeneric11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_84",
+      "x": 11,
+      "z": 14,
+      "uid": "empireCreditStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_83",
+      "x": 2,
+      "z": 14,
+      "uid": "empireMaterialsStorage11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_89",
+      "x": -1,
+      "z": 17,
+      "uid": "empireCreditGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_88",
+      "x": 17,
+      "z": 11,
+      "uid": "empireMaterialsGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_87",
+      "x": 1,
+      "z": -3,
+      "uid": "empireOffenseLab11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_97",
+      "x": -16,
+      "z": -16,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_96",
+      "x": -2,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_95",
+      "x": 16,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_99",
+      "x": 12,
+      "z": 10,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_98",
+      "x": 9,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_107",
+      "x": 20,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_106",
+      "x": 17,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_105",
+      "x": 14,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_104",
+      "x": 11,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_109",
+      "x": 17,
+      "z": 14,
+      "uid": "empireCreditGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_108",
+      "x": 6,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_103",
+      "x": 4,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_224",
+      "x": 4,
+      "z": -3,
+      "uid": "empirePlatformDroideka50",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_102",
+      "x": 8,
+      "z": -3,
+      "uid": "empireTrapStrikeGeneric11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_101",
+      "x": -3,
+      "z": -3,
+      "uid": "empireTacticalCommand11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_100",
+      "x": 12,
+      "z": 12,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_110",
+      "x": 17,
+      "z": -1,
+      "uid": "empireMaterialsGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_114",
+      "x": 4,
+      "z": 8,
+      "uid": "empireShieldGenerator10",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_113",
+      "x": -1,
+      "z": 8,
+      "uid": "empireScoutTower1",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_112",
+      "x": 6,
+      "z": 8,
+      "uid": "empireShieldGenerator11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_111",
+      "x": 14,
+      "z": 2,
+      "uid": "empireBarracks11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_129",
+      "x": -3,
+      "z": 12,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_128",
+      "x": 12,
+      "z": 6,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_249",
+      "x": 14,
+      "z": 14,
+      "uid": "empireBarracks11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_127",
+      "x": 3,
+      "z": 1,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_248",
+      "x": 2,
+      "z": 10,
+      "uid": "empireBurstTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_247",
+      "x": 7,
+      "z": 1,
+      "uid": "empireRocketTurret11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_125",
+      "x": -14,
+      "z": 18,
+      "uid": "empireTrapStrikeAOE11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_246",
+      "x": -14,
+      "z": 12,
+      "uid": "empireTrapStrikeAOE11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_124",
+      "x": -13,
+      "z": -13,
+      "uid": "empireTrapStrikeAOE11",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    },
+    {
+      "key": "bld_123",
+      "x": 14,
+      "z": -1,
+      "uid": "empireNavigationCenter5",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_122",
+      "x": -10,
+      "z": -5,
+      "uid": "empireFactory11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_139",
+      "x": 17,
+      "z": 2,
+      "uid": "empireCreditGenerator11",
+      "lastCollectTime": 1588273773,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_259",
+      "x": 19,
+      "z": -3,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_138",
+      "x": -3,
+      "z": 18,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_137",
+      "x": -3,
+      "z": 15,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_258",
+      "x": -3,
+      "z": 9,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_132",
+      "x": 1,
+      "z": -11,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_253",
+      "x": 15,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_131",
+      "x": 0,
+      "z": -11,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_252",
+      "x": 12,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_130",
+      "x": -1,
+      "z": -11,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_251",
+      "x": 5,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_250",
+      "x": 19,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_136",
+      "x": 13,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_257",
+      "x": 7,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_135",
+      "x": 8,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_256",
+      "x": 3,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_134",
+      "x": 2,
+      "z": -12,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_255",
+      "x": 2,
+      "z": -13,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_133",
+      "x": 10,
+      "z": -12,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_254",
+      "x": -3,
+      "z": -10,
+      "uid": "empireWall11",
+      "lastCollectTime": null,
+      "currentStorage": 0
+    },
+    {
+      "key": "bld_819",
+      "x": 17,
+      "z": -18,
+      "uid": "junkMedium1",
+      "lastCollectTime": null,
+      "currentStorage": 1
+    }
+  ]
+}
