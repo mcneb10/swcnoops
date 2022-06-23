@@ -1,7 +1,6 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.model.PlayerMap;
-import swcnoops.server.model.SubStorage;
 import swcnoops.server.model.Upgrades;
 import swcnoops.server.session.training.BuildUnits;
 
@@ -11,7 +10,7 @@ public class PlayerSettings {
     private String name;
     private String faction;
     private PlayerMap baseMap;
-    private SubStorage troopsOnTransport;
+    private Deployables deployableTroops;
     private BuildUnits buildUnits;
 
     public PlayerSettings(String playerId) {
@@ -50,15 +49,15 @@ public class PlayerSettings {
         return baseMap;
     }
 
-    public SubStorage getTroopsOnTransport() {
-        if (this.troopsOnTransport == null)
-            this.troopsOnTransport = new SubStorage();
+    public Deployables getDeployableTroops() {
+        if (this.deployableTroops == null)
+            this.deployableTroops = new Deployables();
 
-        return this.troopsOnTransport;
+        return this.deployableTroops;
     }
 
-    public void setTroopsOnTransport(SubStorage troopsOnTransport) {
-        this.troopsOnTransport = troopsOnTransport;
+    public void setDeployableTroops(Deployables deployableTroops) {
+        this.deployableTroops = deployableTroops;
     }
 
     public BuildUnits getBuildContracts() {

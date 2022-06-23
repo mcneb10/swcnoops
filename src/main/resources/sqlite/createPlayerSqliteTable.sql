@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS PlayerSettings
      baseMap json,
      upgrades json
      creatureUid text,
+     deployables json,
      contracts json);
 
 insert into PlayerSettings (id, upgrades) values ('2c2d4aea-7f38-11e5-a29f-069096004f69', '{}')

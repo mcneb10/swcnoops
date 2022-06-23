@@ -4,12 +4,16 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.UtilsHelper;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
+import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.PlayerSessionImpl;
+import swcnoops.server.session.training.DeployableQueue;
+import swcnoops.server.session.training.TrainingManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
@@ -96,7 +100,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
-        final String sql = "SELECT id, name, faction, baseMap, upgrades, contracts " +
+        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -128,9 +132,22 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             upgrades = new Upgrades();
                         playerSettings.setUpgrades(upgrades);
 
+                        String deployablesJson = rs.getString("deployables");
+                        Deployables deployables;
+                        if (deployablesJson != null)
+                            deployables = ServiceFactory.instance().getJsonParser()
+                                .fromJsonString(deployablesJson, Deployables.class);
+                        else
+                            deployables = new Deployables();
+                        playerSettings.setDeployableTroops(deployables);
+
                         String contractsJson = rs.getString("contracts");
-                        BuildUnits buildUnits = ServiceFactory.instance().getJsonParser()
+                        BuildUnits buildUnits;
+                        if (contractsJson != null)
+                            buildUnits = ServiceFactory.instance().getJsonParser()
                                     .fromJsonString(contractsJson, BuildUnits.class);
+                        else
+                            buildUnits = new BuildUnits();
                         playerSettings.setBuildContracts(buildUnits);
                     }
                 }
@@ -162,19 +179,37 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         allContracts.addAll(playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         String json = ServiceFactory.instance().getJsonParser().toJson(allContracts);
 
-        savePlayerSettings(playerSession.getPlayerId(), json);
+        Deployables deployables = playerSettings.getDeployableTroops();
+        mapDeployableTroops(playerSession, deployables);
+        String deployablesJson = ServiceFactory.instance().getJsonParser().toJson(deployables);
+
+        savePlayerSettings(playerSession.getPlayerId(), deployablesJson, json);
     }
 
-    private void savePlayerSettings(String playerId, String contracts) {
+    private void mapDeployableTroops(PlayerSession playerSession, Deployables deployables) {
+        TrainingManager trainingManager = playerSession.getTrainingManager();
+        mapDeployableTroops(trainingManager.getDeployableTroops(), deployables.troop);
+        mapDeployableTroops(trainingManager.getDeployableChampion(), deployables.champion);
+        mapDeployableTroops(trainingManager.getDeployableHero(), deployables.hero);
+        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
+    }
+
+    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, Integer> storage) {
+        storage.clear();
+        storage.putAll(deployableQueue.getDeployableUnits());
+    }
+
+    private void savePlayerSettings(String playerId, String deployables, String contracts) {
         final String sql = "update PlayerSettings " +
-                "set contracts = ? " +
+                "set deployables = ?, contracts = ? " +
                 "WHERE id = ?";
 
         try {
             try (Connection con = getConnection()) {
                 try (PreparedStatement stmt = con.prepareStatement(sql)) {
-                    stmt.setString(1, contracts);
-                    stmt.setString(2, playerId);
+                    stmt.setString(1, deployables);
+                    stmt.setString(2, contracts);
+                    stmt.setString(3, playerId);
                     stmt.executeUpdate();
                 }
             }

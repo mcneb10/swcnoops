@@ -1,28 +1,28 @@
 package swcnoops.server.session.training;
 
+import swcnoops.server.datasource.Deployables;
 import swcnoops.server.game.BuildingData;
-import swcnoops.server.model.Building;
-import swcnoops.server.model.DeploymentRecord;
+import swcnoops.server.model.*;
 
 import java.util.*;
 
 public class TrainingManagerImpl implements TrainingManager {
     final private Map<String, Builder> builders = new HashMap<>();
-    final private DeployableQueue deployableQueue;
+    final private DeployableQueue troopTransport;
     final private DeployableQueue specialAttackTransport;
     final private DeployableQueue heroTransport;
     final private DeployableQueue championTransport;
 
     protected TrainingManagerImpl()
     {
-        this.deployableQueue = new DeployableQueue();
+        this.troopTransport = new DeployableQueue();
         this.specialAttackTransport = new DeployableQueue();
         this.heroTransport = new DeployableQueue();
         this.championTransport = new DeployableQueue();
     }
 
     public DeployableQueue getDeployableTroops() {
-        return deployableQueue;
+        return troopTransport;
     }
 
     @Override
@@ -108,7 +108,7 @@ public class TrainingManagerImpl implements TrainingManager {
 
     @Override
     public void moveCompletedBuildUnits(long clientTime) {
-        this.deployableQueue.findAndMoveCompletedUnitsToDeployable(clientTime);
+        this.troopTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
         this.specialAttackTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
         this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
         this.championTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
@@ -116,7 +116,7 @@ public class TrainingManagerImpl implements TrainingManager {
 
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove) {
-        this.deployableQueue.removeDeployable(deployablesToRemove);
+        this.troopTransport.removeDeployable(deployablesToRemove);
         this.specialAttackTransport.removeDeployable(deployablesToRemove);
         this.heroTransport.removeDeployable(deployablesToRemove);
         this.championTransport.removeDeployable(deployablesToRemove);
@@ -130,7 +130,7 @@ public class TrainingManagerImpl implements TrainingManager {
                     this.heroTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
                     break;
                 case "TroopPlaced":
-                    this.deployableQueue.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
+                    this.troopTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
                     break;
                 case "SpecialAttackDeployed":
                     this.specialAttackTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
@@ -163,5 +163,22 @@ public class TrainingManagerImpl implements TrainingManager {
         builder.load(buildUnit);
         DeployableQueue transport = builder.getDeployableQueue();
         transport.addUnitsToQueue(buildUnit);
+    }
+
+    @Override
+    public void initialiseDeployables(Deployables deployables) {
+        mapDeployableTroops(this, deployables);
+    }
+
+    private void mapDeployableTroops(TrainingManager trainingManager, Deployables deployables) {
+        mapDeployableTroops(trainingManager.getDeployableTroops(), deployables.troop);
+        mapDeployableTroops(trainingManager.getDeployableChampion(), deployables.champion);
+        mapDeployableTroops(trainingManager.getDeployableHero(), deployables.hero);
+        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
+    }
+
+    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, Integer> storage) {
+        deployableQueue.getDeployableUnits().clear();
+        deployableQueue.getDeployableUnits().putAll(storage);
     }
 }

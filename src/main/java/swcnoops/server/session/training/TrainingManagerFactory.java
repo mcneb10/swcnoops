@@ -1,12 +1,12 @@
 package swcnoops.server.session.training;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.datasource.Deployables;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
-import swcnoops.server.model.SubStorage;
 
 /**
  * A separate class that creates, configures and loads a players TrainingManager.
@@ -68,9 +68,8 @@ public class TrainingManagerFactory {
 
     private void initialiseFromPlayerSettings(TrainingManager trainingManager, PlayerSettings playerSettings) {
         initialiseBuildContracts(trainingManager, playerSettings.getBuildContracts());
-
-        // TODO - load troops that are ready
-        SubStorage subStorage = playerSettings.getTroopsOnTransport();
+        Deployables deployables = playerSettings.getDeployableTroops();
+        trainingManager.initialiseDeployables(deployables);
     }
 
     private void initialiseBuildContracts(TrainingManager trainingManager, BuildUnits buildUnits) {

@@ -53,6 +53,7 @@ public class BuildUnit {
         return buildSlot;
     }
 
+    @JsonIgnore
     public Builder getBuilder() {
         return parent;
     }
