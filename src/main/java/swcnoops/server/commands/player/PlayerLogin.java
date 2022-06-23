@@ -49,7 +49,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void configureLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId) {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
 
-        setupBaseMap(playerLoginResponse.playerModel, playerSession.getBaseMap());
+        playerLoginResponse.playerModel.map = playerSession.getBaseMap();
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
         //playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
@@ -75,10 +75,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
-    }
-
-    private void setupBaseMap(PlayerModel playerModel, PlayerMap playerMap) {
-        playerModel.map = playerMap;
     }
 
     private void setupInventory(PlayerModel playerModel, PlayerSession playerSession) {

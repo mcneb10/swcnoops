@@ -15,8 +15,8 @@ public class ContractManagerImpl implements ContractManager {
     {
         this.troopsTransport = new TroopsTransport();
         this.specialAttackTransport = new TroopsTransport();
-        this.heroTransport = new TroopsTransport(3);
-        this.championTransport = new TroopsTransport(2);
+        this.heroTransport = new TroopsTransport();
+        this.championTransport = new TroopsTransport();
     }
 
     public TroopsTransport getTroopsTransport() {
@@ -51,31 +51,11 @@ public class ContractManagerImpl implements ContractManager {
         }
 
         contractConstructor.addContracts(troopBuildContracts, startTime);
-        TroopsTransport transport = getTransport(troopBuildContracts.get(0));
+        TroopsTransport transport = contractConstructor.getTransport();
         if (transport != null) {
             transport.addTroopsToQueue(troopBuildContracts);
             transport.sortTroopsInQueue();
         }
-    }
-
-    private TroopsTransport getTransport(List<BuildContract> buildContracts) {
-        if (buildContracts == null || buildContracts.size() == 0)
-            return null;
-
-        return getTransport(buildContracts.get(0));
-    }
-
-    private TroopsTransport getTransport(BuildContract buildContract) {
-        if (buildContract.getContractGroup().getBuildableData().isSpecialAttack())
-            return this.specialAttackTransport;
-
-        if (buildContract.getContractGroup().getBuildableData().getType().equals("hero"))
-            return this.heroTransport;
-
-        if (buildContract.getContractGroup().getBuildableData().getType().equals("champion"))
-            return this.championTransport;
-
-        return this.troopsTransport;
     }
 
     @Override
@@ -85,7 +65,7 @@ public class ContractManagerImpl implements ContractManager {
         ContractConstructor contractConstructor = getContractConstructor(buildingId);
         List<BuildContract> cancelledContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, true);
-        TroopsTransport transport = this.getTransport(cancelledContracts);
+        TroopsTransport transport = contractConstructor.getTransport();
         if (transport != null) {
             transport.removeTroopsFromQueue(cancelledContracts);
             transport.sortTroopsInQueue();
@@ -100,7 +80,7 @@ public class ContractManagerImpl implements ContractManager {
         ContractConstructor contractConstructor = getContractConstructor(buildingId);
         List<BuildContract> boughtOutContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, false);
-        TroopsTransport transport = this.getTransport(boughtOutContracts);
+        TroopsTransport transport = contractConstructor.getTransport();
         if (transport != null) {
             transport.moveToStarport(boughtOutContracts);
             transport.sortTroopsInQueue();
@@ -126,14 +106,6 @@ public class ContractManagerImpl implements ContractManager {
         return allContracts;
     }
 
-    @Override
-    public void addContractConstructor(Building building, BuildingData buildingData) {
-        if (!this.contractConstructors.containsKey(building.key)) {
-            ContractConstructor contractConstructor = new ContractConstructor(building.key, buildingData);
-            this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
-        }
-    }
-
     private ContractConstructor getContractConstructor(String buildingId) {
         ContractConstructor contractConstructor = this.contractConstructors.get(buildingId);
         if (contractConstructor == null)
@@ -141,12 +113,19 @@ public class ContractManagerImpl implements ContractManager {
         return contractConstructor;
     }
 
+    @Override
+    public void initialiseContractConstructor(Building building, BuildingData buildingData, TroopsTransport transport) {
+        if (!this.contractConstructors.containsKey(building.key)) {
+            ContractConstructor contractConstructor = new ContractConstructor(building.key, buildingData, transport);
+            this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
+        }
+    }
 
     @Override
-    public void loadBuildContract(BuildContract buildContract) {
+    public void initialiseBuildContract(BuildContract buildContract) {
         ContractConstructor contractConstructor = this.getContractConstructor(buildContract.getBuildingId());
         contractConstructor.loadContract(buildContract);
-        TroopsTransport transport = this.getTransport(buildContract);
+        TroopsTransport transport = contractConstructor.getTransport();
         transport.addTroopsToQueue(buildContract);
     }
 }

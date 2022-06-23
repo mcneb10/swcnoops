@@ -39,19 +39,22 @@ public class ContractManagerLoader {
         switch (buildingData.getType()) {
             case "factory":
             case "barracks":
-                contractManager.addContractConstructor(building, buildingData);
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getTroopsTransport());
                 break;
             case "hero_mobilizer":
+                contractManager.getHeroTransport().addStorage(buildingData.getStorage());
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getHeroTransport());
+                break;
             case "champion_platform":
-                contractManager.addContractConstructor(building, buildingData);
+                contractManager.getChampionTransport().addStorage(buildingData.getStorage());
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getChampionTransport());
                 break;
             case "starport":
                 contractManager.getTroopsTransport().addStorage(buildingData.getStorage());
-                contractManager.addContractConstructor(building, buildingData);
                 break;
             case "fleet_command":
                 contractManager.getSpecialAttackTransport().addStorage(buildingData.getStorage());
-                contractManager.addContractConstructor(building, buildingData);
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getSpecialAttackTransport());
                 break;
         }
     }
@@ -74,6 +77,6 @@ public class ContractManagerLoader {
     }
 
     private void loadContract(ContractManager contractManager, BuildContract buildContract) {
-        contractManager.loadBuildContract(buildContract);
+        contractManager.initialiseBuildContract(buildContract);
     }
 }

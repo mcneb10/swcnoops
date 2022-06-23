@@ -17,10 +17,12 @@ public class ContractConstructor {
     final private ContractBuildQueue contractBuildQueue = new ContractBuildQueue();
     private long startTime;
     final private BuildingData buildingData;
+    private TroopsTransport transport;
 
-    public ContractConstructor(String buildingId, BuildingData buildingData) {
+    public ContractConstructor(String buildingId, BuildingData buildingData, TroopsTransport transport) {
         this.buildingId = buildingId;
         this.buildingData = buildingData;
+        this.transport = transport;
     }
 
     public String getBuildingId() {
@@ -94,5 +96,9 @@ public class ContractConstructor {
     protected void loadContract(BuildContract buildContract) {
         buildContract.setParent(this);
         this.contractBuildQueue.loadToBuildQueue(buildContract);
+    }
+
+    public TroopsTransport getTransport() {
+        return transport;
     }
 }
