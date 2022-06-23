@@ -64,7 +64,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapShards(playerLoginResponse.playerModel);
         mapDonatedTroops(playerLoginResponse.playerModel);
 
-        playerSession.onboardTransports(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        playerSession.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         mapContracts(playerLoginResponse.playerModel, playerSession);
         mapInventory(playerLoginResponse.playerModel, playerSession);
 
@@ -91,7 +91,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private SubStorage mapDeployableTroops(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
-        TrainingManager trainingManager = playerSession.getContractManager();
+        TrainingManager trainingManager = playerSession.getTrainingManager();
         mapDeployableTroops(trainingManager.getDeployableTroops(), subStorage.troop.storage);
         mapDeployableTroops(trainingManager.getDeployableChampion(), subStorage.champion.storage);
         mapDeployableTroops(trainingManager.getDeployableHero(), subStorage.hero.storage);
@@ -168,10 +168,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
      */
     private void mapContracts(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.contracts.clear();
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableTroops().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableChampion().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableHero().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableSpecialAttack().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
     }
 
     private void mapContracts(List<Contract> contracts, List<BuildUnit> troopsInQueue) {

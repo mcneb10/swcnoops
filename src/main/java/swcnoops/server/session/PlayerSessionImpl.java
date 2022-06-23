@@ -14,12 +14,12 @@ public class PlayerSessionImpl implements PlayerSession {
     final private PlayerSettings playerSettings;
     final private TrainingManager trainingManager;
 
-    static final private TrainingManagerFactory contractManagerLoader = new TrainingManagerFactory();
+    static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
         this.playerSettings = playerSettings;
-        this.trainingManager = this.contractManagerLoader.createForPlayer(this.getPlayerSettings());
+        this.trainingManager = this.trainingManagerFactory.createForPlayer(this.getPlayerSettings());
     }
 
     @Override
@@ -35,16 +35,19 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
         this.trainingManager.trainTroops(buildingId, unitTypeId, quantity, startTime);
+        saveSession();
     }
 
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
+        saveSession();
     }
 
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
+        saveSession();
     }
 
     /**
@@ -56,6 +59,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
+            saveSession();
         }
     }
 
@@ -69,6 +73,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
+            saveSession();
         }
     }
 
@@ -89,7 +94,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void onboardTransports(long time) {
+    public void processCompletedContracts(long time) {
         this.trainingManager.moveCompletedBuildUnits(time);
     }
 
@@ -99,7 +104,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public TrainingManager getContractManager() {
+    public TrainingManager getTrainingManager() {
         return trainingManager;
     }
 

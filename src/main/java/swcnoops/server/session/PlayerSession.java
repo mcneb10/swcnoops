@@ -24,10 +24,10 @@ public interface PlayerSession {
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     void playerBattleStart(long time);
-    void onboardTransports(long time);
+    void processCompletedContracts(long time);
 
     PlayerMap getBaseMap();
 
-    TrainingManager getContractManager();
+    TrainingManager getTrainingManager();
     PlayerSettings getPlayerSettings();
 }

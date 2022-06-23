@@ -156,10 +156,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         BuildUnits allContracts = playerSettings.getBuildContracts();
         allContracts.clear();
-        allContracts.addAll(playerSession.getContractManager().getDeployableTroops().getUnitsInQueue());
-        allContracts.addAll(playerSession.getContractManager().getDeployableChampion().getUnitsInQueue());
-        allContracts.addAll(playerSession.getContractManager().getDeployableHero().getUnitsInQueue());
-        allContracts.addAll(playerSession.getContractManager().getDeployableSpecialAttack().getUnitsInQueue());
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         String json = ServiceFactory.instance().getJsonParser().toJson(allContracts);
 
         savePlayerSettings(playerSession.getPlayerId(), json);
