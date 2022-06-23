@@ -17,20 +17,16 @@ public class ContractConstructor {
     final private ContractBuildQueue contractBuildQueue = new ContractBuildQueue();
     private long startTime;
     final private BuildingData buildingData;
-    private TroopsTransport transport;
+    private DeployableQueue deployableQueue;
 
-    public ContractConstructor(String buildingId, BuildingData buildingData, TroopsTransport transport) {
+    public ContractConstructor(String buildingId, BuildingData buildingData, DeployableQueue deployableQueue) {
         this.buildingId = buildingId;
         this.buildingData = buildingData;
-        this.transport = transport;
+        this.deployableQueue = deployableQueue;
     }
 
     public String getBuildingId() {
         return this.buildingId;
-    }
-
-    public BuildingData getBuildingData() {
-        return buildingData;
     }
 
     protected void addContracts(List<BuildContract> buildContracts, long startTime) {
@@ -98,7 +94,7 @@ public class ContractConstructor {
         this.contractBuildQueue.loadToBuildQueue(buildContract);
     }
 
-    public TroopsTransport getTransport() {
-        return transport;
+    public DeployableQueue getDeployableQueue() {
+        return deployableQueue;
     }
 }

@@ -13,12 +13,12 @@ public interface ContractManager {
     void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time);
     void moveCompletedTroops(long clientTime);
 
-    TroopsTransport getTroopsTransport();
-    TroopsTransport getSpecialAttackTransport();
-    TroopsTransport getHeroTransport();
-    TroopsTransport getChampionTransport();
+    DeployableQueue getTroopsTransport();
+    DeployableQueue getSpecialAttackTransport();
+    DeployableQueue getHeroTransport();
+    DeployableQueue getChampionTransport();
 
-    void initialiseContractConstructor(Building building, BuildingData buildingData, TroopsTransport troopsTransport);
+    void initialiseContractConstructor(Building building, BuildingData buildingData, DeployableQueue deployableQueue);
     void initialiseBuildContract(BuildContract buildContract);
 
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove);

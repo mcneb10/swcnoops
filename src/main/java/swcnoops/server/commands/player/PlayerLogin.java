@@ -12,7 +12,7 @@ import swcnoops.server.requests.Messages;
 import swcnoops.server.session.BuildContract;
 import swcnoops.server.session.ContractManager;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.TroopsTransport;
+import swcnoops.server.session.DeployableQueue;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -99,9 +99,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         return subStorage;
     }
 
-    private void mapDeployableTroops(TroopsTransport transport, Map<String, StorageAmount> storage) {
+    private void mapDeployableTroops(DeployableQueue transport, Map<String, StorageAmount> storage) {
         storage.clear();
-        Iterator<Map.Entry<String,Integer>> troopIterator = transport.getTroopsOnBoard().entrySet().iterator();
+        Iterator<Map.Entry<String,Integer>> troopIterator = transport.getDeployableUnits().entrySet().iterator();
         while(troopIterator.hasNext()) {
             Map.Entry<String,Integer> entry = troopIterator.next();
             StorageAmount storageAmount = new StorageAmount();
@@ -168,10 +168,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
      */
     private void mapContracts(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.contracts.clear();
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getTroopsTransport().getTroopsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getChampionTransport().getTroopsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getHeroTransport().getTroopsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getSpecialAttackTransport().getTroopsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getTroopsTransport().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getChampionTransport().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getHeroTransport().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getSpecialAttackTransport().getUnitsInQueue());
     }
 
     private void mapContracts(List<Contract> contracts, List<BuildContract> troopsInQueue) {

@@ -8,35 +8,35 @@ import java.util.*;
 
 public class ContractManagerImpl implements ContractManager {
     final private Map<String, ContractConstructor> contractConstructors = new HashMap<>();
-    final private TroopsTransport troopsTransport;
-    final private TroopsTransport specialAttackTransport;
-    final private TroopsTransport heroTransport;
-    final private TroopsTransport championTransport;
+    final private DeployableQueue deployableQueue;
+    final private DeployableQueue specialAttackTransport;
+    final private DeployableQueue heroTransport;
+    final private DeployableQueue championTransport;
 
     public ContractManagerImpl()
     {
-        this.troopsTransport = new TroopsTransport();
-        this.specialAttackTransport = new TroopsTransport();
-        this.heroTransport = new TroopsTransport();
-        this.championTransport = new TroopsTransport();
+        this.deployableQueue = new DeployableQueue();
+        this.specialAttackTransport = new DeployableQueue();
+        this.heroTransport = new DeployableQueue();
+        this.championTransport = new DeployableQueue();
     }
 
-    public TroopsTransport getTroopsTransport() {
-        return troopsTransport;
+    public DeployableQueue getTroopsTransport() {
+        return deployableQueue;
     }
 
     @Override
-    public TroopsTransport getSpecialAttackTransport() {
+    public DeployableQueue getSpecialAttackTransport() {
         return specialAttackTransport;
     }
 
     @Override
-    public TroopsTransport getHeroTransport() {
+    public DeployableQueue getHeroTransport() {
         return heroTransport;
     }
 
     @Override
-    public TroopsTransport getChampionTransport() {
+    public DeployableQueue getChampionTransport() {
         return championTransport;
     }
 
@@ -53,10 +53,10 @@ public class ContractManagerImpl implements ContractManager {
         }
 
         contractConstructor.addContracts(troopBuildContracts, startTime);
-        TroopsTransport transport = contractConstructor.getTransport();
+        DeployableQueue transport = contractConstructor.getDeployableQueue();
         if (transport != null) {
-            transport.addTroopsToQueue(troopBuildContracts);
-            transport.sortTroopsInQueue();
+            transport.addUnitsToQueue(troopBuildContracts);
+            transport.sortUnitsInQueue();
         }
     }
 
@@ -67,11 +67,11 @@ public class ContractManagerImpl implements ContractManager {
         ContractConstructor contractConstructor = getContractConstructor(buildingId);
         List<BuildContract> cancelledContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, true);
-        TroopsTransport transport = contractConstructor.getTransport();
+        DeployableQueue transport = contractConstructor.getDeployableQueue();
         if (transport != null) {
-            transport.removeTroopsFromQueue(cancelledContracts);
-            transport.sortTroopsInQueue();
-            transport.onBoardCompletedTroops(time);
+            transport.removeUnitsFromQueue(cancelledContracts);
+            transport.sortUnitsInQueue();
+            transport.findAndMoveCompletedUnitsToDeployable(time);
         }
     }
 
@@ -82,28 +82,28 @@ public class ContractManagerImpl implements ContractManager {
         ContractConstructor contractConstructor = getContractConstructor(buildingId);
         List<BuildContract> boughtOutContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, false);
-        TroopsTransport transport = contractConstructor.getTransport();
+        DeployableQueue transport = contractConstructor.getDeployableQueue();
         if (transport != null) {
-            transport.moveToStarport(boughtOutContracts);
-            transport.sortTroopsInQueue();
-            transport.onBoardCompletedTroops(time);
+            transport.moveUnitToDeployable(boughtOutContracts);
+            transport.sortUnitsInQueue();
+            transport.findAndMoveCompletedUnitsToDeployable(time);
         }
     }
 
     @Override
     public void moveCompletedTroops(long clientTime) {
-        this.troopsTransport.onBoardCompletedTroops(clientTime);
-        this.specialAttackTransport.onBoardCompletedTroops(clientTime);
-        this.heroTransport.onBoardCompletedTroops(clientTime);
-        this.championTransport.onBoardCompletedTroops(clientTime);
+        this.deployableQueue.findAndMoveCompletedUnitsToDeployable(clientTime);
+        this.specialAttackTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        this.championTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
     }
 
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove) {
-        this.troopsTransport.removeTroopsOnBoard(deployablesToRemove);
-        this.specialAttackTransport.removeTroopsOnBoard(deployablesToRemove);
-        this.heroTransport.removeTroopsOnBoard(deployablesToRemove);
-        this.championTransport.removeTroopsOnBoard(deployablesToRemove);
+        this.deployableQueue.removeDeployable(deployablesToRemove);
+        this.specialAttackTransport.removeDeployable(deployablesToRemove);
+        this.heroTransport.removeDeployable(deployablesToRemove);
+        this.championTransport.removeDeployable(deployablesToRemove);
     }
 
     @Override
@@ -111,16 +111,16 @@ public class ContractManagerImpl implements ContractManager {
         for (DeploymentRecord deploymentRecord : deployablesToRemove) {
             switch (deploymentRecord.getAction()) {
                 case "HeroDeployed":
-                    this.heroTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    this.heroTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
                     break;
                 case "TroopPlaced":
-                    this.troopsTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    this.deployableQueue.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
                     break;
                 case "SpecialAttackDeployed":
-                    this.specialAttackTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    this.specialAttackTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
                     break;
                 case "ChampionDeployed":
-                    this.championTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    this.championTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
                     break;
             }
         }
@@ -134,7 +134,7 @@ public class ContractManagerImpl implements ContractManager {
     }
 
     @Override
-    public void initialiseContractConstructor(Building building, BuildingData buildingData, TroopsTransport transport) {
+    public void initialiseContractConstructor(Building building, BuildingData buildingData, DeployableQueue transport) {
         if (!this.contractConstructors.containsKey(building.key)) {
             ContractConstructor contractConstructor = new ContractConstructor(building.key, buildingData, transport);
             this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
@@ -145,7 +145,7 @@ public class ContractManagerImpl implements ContractManager {
     public void initialiseBuildContract(BuildContract buildContract) {
         ContractConstructor contractConstructor = this.getContractConstructor(buildContract.getBuildingId());
         contractConstructor.loadContract(buildContract);
-        TroopsTransport transport = contractConstructor.getTransport();
-        transport.addTroopsToQueue(buildContract);
+        DeployableQueue transport = contractConstructor.getDeployableQueue();
+        transport.addUnitsToQueue(buildContract);
     }
 }
