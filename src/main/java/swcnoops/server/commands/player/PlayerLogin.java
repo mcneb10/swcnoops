@@ -9,10 +9,10 @@ import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.LoginMessages;
 import swcnoops.server.requests.Messages;
-import swcnoops.server.session.BuildContract;
-import swcnoops.server.session.ContractManager;
+import swcnoops.server.session.training.BuildUnit;
+import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.DeployableQueue;
+import swcnoops.server.session.training.DeployableQueue;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -91,11 +91,11 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private SubStorage mapDeployableTroops(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
-        ContractManager contractManager = playerSession.getContractManager();
-        mapDeployableTroops(contractManager.getDeployableTroops(), subStorage.troop.storage);
-        mapDeployableTroops(contractManager.getDeployableChampion(), subStorage.champion.storage);
-        mapDeployableTroops(contractManager.getDeployableHero(), subStorage.hero.storage);
-        mapDeployableTroops(contractManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
+        TrainingManager trainingManager = playerSession.getContractManager();
+        mapDeployableTroops(trainingManager.getDeployableTroops(), subStorage.troop.storage);
+        mapDeployableTroops(trainingManager.getDeployableChampion(), subStorage.champion.storage);
+        mapDeployableTroops(trainingManager.getDeployableHero(), subStorage.hero.storage);
+        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
         return subStorage;
     }
 
@@ -174,13 +174,13 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableSpecialAttack().getUnitsInQueue());
     }
 
-    private void mapContracts(List<Contract> contracts, List<BuildContract> troopsInQueue) {
-        for (BuildContract buildContract : troopsInQueue) {
+    private void mapContracts(List<Contract> contracts, List<BuildUnit> troopsInQueue) {
+        for (BuildUnit buildUnit : troopsInQueue) {
             Contract contract = new Contract();
-            contract.contractType = buildContract.getContractGroup().getBuildableData().getContractType();
-            contract.buildingId = buildContract.getBuildingId();
-            contract.uid = buildContract.getUnitTypeId();
-            contract.endTime = buildContract.getEndTime();
+            contract.contractType = buildUnit.getBuildSlot().getBuildableData().getContractType();
+            contract.buildingId = buildUnit.getBuildingId();
+            contract.uid = buildUnit.getUnitTypeId();
+            contract.endTime = buildUnit.getEndTime();
             contracts.add(contract);
         }
     }

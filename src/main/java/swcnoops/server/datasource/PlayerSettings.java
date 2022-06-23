@@ -3,10 +3,7 @@ package swcnoops.server.datasource;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.SubStorage;
 import swcnoops.server.model.Upgrades;
-import swcnoops.server.session.BuildContract;
-import swcnoops.server.session.BuildContracts;
-
-import java.util.List;
+import swcnoops.server.session.training.BuildUnits;
 
 public class PlayerSettings {
     private final String playerId;
@@ -15,7 +12,7 @@ public class PlayerSettings {
     private String faction;
     private PlayerMap baseMap;
     private SubStorage troopsOnTransport;
-    private BuildContracts buildContracts;
+    private BuildUnits buildUnits;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -64,11 +61,11 @@ public class PlayerSettings {
         this.troopsOnTransport = troopsOnTransport;
     }
 
-    public BuildContracts getBuildContracts() {
-        return this.buildContracts;
+    public BuildUnits getBuildContracts() {
+        return this.buildUnits;
     }
 
-    public void setBuildContracts(BuildContracts buildContracts) {
-        this.buildContracts = buildContracts;
+    public void setBuildContracts(BuildUnits buildUnits) {
+        this.buildUnits = buildUnits;
     }
 }

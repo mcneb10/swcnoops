@@ -1,4 +1,4 @@
-package swcnoops.server.session;
+package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildableData;
 
@@ -12,7 +12,7 @@ public class DeployableQueue {
     private int storage;
     private int totalDeployable;
     final private Map<String, Integer> deployableUnits = new HashMap<>();
-    final private List<BuildContract> unitsInQueue = new ArrayList<>();
+    final private List<BuildUnit> unitsInQueue = new ArrayList<>();
 
     public DeployableQueue() {
         this(0);
@@ -30,15 +30,15 @@ public class DeployableQueue {
         return this.storage - this.totalDeployable;
     }
 
-    private void moveToDeployable(BuildContract buildContract) {
-        BuildableData buildableData = buildContract.getContractGroup().getBuildableData();
+    private void moveToDeployable(BuildUnit buildUnit) {
+        BuildableData buildableData = buildUnit.getBuildSlot().getBuildableData();
         this.totalDeployable += buildableData.getSize();
-        Integer numberOfUnits = this.deployableUnits.get(buildContract.getUnitTypeId());
+        Integer numberOfUnits = this.deployableUnits.get(buildUnit.getUnitTypeId());
         if (numberOfUnits == null)
             numberOfUnits = Integer.valueOf(0);
 
         numberOfUnits = Integer.valueOf(numberOfUnits.intValue() + 1);
-        this.deployableUnits.put(buildContract.getUnitTypeId(), numberOfUnits);
+        this.deployableUnits.put(buildUnit.getUnitTypeId(), numberOfUnits);
     }
 
     public Map<String, Integer> getDeployableUnits() {
@@ -75,54 +75,54 @@ public class DeployableQueue {
     }
 
     public void findAndMoveCompletedUnitsToDeployable(long clientTime) {
-        Iterator<BuildContract> buildContractIterator = this.unitsInQueue.iterator();
-        while(buildContractIterator.hasNext()) {
-            BuildContract buildContract = buildContractIterator.next();
-            // troopContracts are sorted in endTime order
-            if (buildContract.getEndTime() > clientTime) {
+        Iterator<BuildUnit> buildUnitsIterator = this.unitsInQueue.iterator();
+        while(buildUnitsIterator.hasNext()) {
+            BuildUnit buildUnit = buildUnitsIterator.next();
+            // units are sorted by endTime
+            if (buildUnit.getEndTime() > clientTime) {
                 break;
             }
 
             // is there enough space to move this completed troop to the transport
-            if (buildContract.getContractGroup().getBuildableData().getSize() < this.getAvailableCapacity()) {
-                buildContractIterator.remove();
-                buildContract.getParent().removeCompletedContract(buildContract);
-                this.moveUnitToDeployable(buildContract);
+            if (buildUnit.getBuildSlot().getBuildableData().getSize() < this.getAvailableCapacity()) {
+                buildUnitsIterator.remove();
+                buildUnit.getBuilder().removeCompletedBuildUnit(buildUnit);
+                this.moveUnitToDeployable(buildUnit);
             }
         }
     }
 
-    public void moveUnitToDeployable(List<BuildContract> buildContracts) {
-        if (buildContracts != null) {
-            for (BuildContract buildContract : buildContracts) {
-                moveUnitToDeployable(buildContract);
+    public void moveUnitToDeployable(List<BuildUnit> buildUnits) {
+        if (buildUnits != null) {
+            for (BuildUnit buildUnit : buildUnits) {
+                moveUnitToDeployable(buildUnit);
             }
         }
     }
 
-    private void moveUnitToDeployable(BuildContract buildContract) {
-        this.unitsInQueue.remove(buildContract);
-        this.moveToDeployable(buildContract);
+    private void moveUnitToDeployable(BuildUnit buildUnit) {
+        this.unitsInQueue.remove(buildUnit);
+        this.moveToDeployable(buildUnit);
     }
 
     protected void sortUnitsInQueue() {
         this.unitsInQueue.sort((a, b) -> a.compareEndTime(b));
     }
 
-    public List<BuildContract> getUnitsInQueue() {
+    public List<BuildUnit> getUnitsInQueue() {
         return this.unitsInQueue;
     }
 
-    public void addUnitsToQueue(List<BuildContract> buildContracts) {
-        this.unitsInQueue.addAll(buildContracts);
+    public void addUnitsToQueue(List<BuildUnit> buildUnits) {
+        this.unitsInQueue.addAll(buildUnits);
     }
 
-    public void addUnitsToQueue(BuildContract buildContract) {
-        this.unitsInQueue.add(buildContract);
+    public void addUnitsToQueue(BuildUnit buildUnit) {
+        this.unitsInQueue.add(buildUnit);
     }
 
-    public void removeUnitsFromQueue(List<BuildContract> buildContracts) {
-        if (buildContracts != null)
-            this.unitsInQueue.removeAll(buildContracts);
+    public void removeUnitsFromQueue(List<BuildUnit> buildUnits) {
+        if (buildUnits != null)
+            this.unitsInQueue.removeAll(buildUnits);
     }
 }

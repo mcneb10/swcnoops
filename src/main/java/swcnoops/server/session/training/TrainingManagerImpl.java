@@ -1,4 +1,4 @@
-package swcnoops.server.session;
+package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
@@ -6,14 +6,14 @@ import swcnoops.server.model.DeploymentRecord;
 
 import java.util.*;
 
-public class ContractManagerImpl implements ContractManager {
-    final private Map<String, ContractConstructor> contractConstructors = new HashMap<>();
+public class TrainingManagerImpl implements TrainingManager {
+    final private Map<String, Builder> builders = new HashMap<>();
     final private DeployableQueue deployableQueue;
     final private DeployableQueue specialAttackTransport;
     final private DeployableQueue heroTransport;
     final private DeployableQueue championTransport;
 
-    public ContractManagerImpl()
+    protected TrainingManagerImpl()
     {
         this.deployableQueue = new DeployableQueue();
         this.specialAttackTransport = new DeployableQueue();
@@ -42,32 +42,39 @@ public class ContractManagerImpl implements ContractManager {
 
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
-        moveCompletedTroops(startTime);
+        moveCompletedBuildUnits(startTime);
 
-        // create contracts for the things that we want to build
-        ContractConstructor contractConstructor = getContractConstructor(buildingId);
-        List<BuildContract> troopBuildContracts = new ArrayList<>(quantity);
+        // create build units
+        Builder builder = getBuilder(buildingId);
+        List<BuildUnit> buildUnits = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
-            BuildContract buildContract = new BuildContract(contractConstructor, buildingId, unitTypeId);
-            troopBuildContracts.add(buildContract);
+            BuildUnit buildUnit = new BuildUnit(builder, buildingId, unitTypeId);
+            buildUnits.add(buildUnit);
         }
 
-        contractConstructor.addContracts(troopBuildContracts, startTime);
-        DeployableQueue transport = contractConstructor.getDeployableQueue();
+        builder.train(buildUnits, startTime);
+        DeployableQueue transport = builder.getDeployableQueue();
         if (transport != null) {
-            transport.addUnitsToQueue(troopBuildContracts);
+            transport.addUnitsToQueue(buildUnits);
             transport.sortUnitsInQueue();
         }
     }
 
+    /**
+     * we move completed troops last because its possible they managed to remove it
+     * while we think it had completed and already moved to be a deployable
+     * troops are cancelled from the back of their slot.
+     * @param buildingId
+     * @param unitTypeId
+     * @param quantity
+     * @param time
+     */
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        // we move completed troops last because if they managed to remove contracts
-        // at the head of the queue, then they must of got there before it was completed
-        ContractConstructor contractConstructor = getContractConstructor(buildingId);
-        List<BuildContract> cancelledContracts =
-                contractConstructor.removeContracts(unitTypeId, quantity, time, true);
-        DeployableQueue transport = contractConstructor.getDeployableQueue();
+        Builder builder = getBuilder(buildingId);
+        List<BuildUnit> cancelledContracts =
+                builder.remove(unitTypeId, quantity, time, true);
+        DeployableQueue transport = builder.getDeployableQueue();
         if (transport != null) {
             transport.removeUnitsFromQueue(cancelledContracts);
             transport.sortUnitsInQueue();
@@ -75,14 +82,23 @@ public class ContractManagerImpl implements ContractManager {
         }
     }
 
+    /**
+     * we move completed troops last because its possible they managed to buy it out
+     * while we think it had completed and already moved to be a deployable
+     * troops bought out are from the front of the slot
+     * @param buildingId
+     * @param unitTypeId
+     * @param quantity
+     * @param time
+     */
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        //we move completed troops last because if they managed to buy out contracts
-        //then they must of got there before it was completed
-        ContractConstructor contractConstructor = getContractConstructor(buildingId);
-        List<BuildContract> boughtOutContracts =
-                contractConstructor.removeContracts(unitTypeId, quantity, time, false);
-        DeployableQueue transport = contractConstructor.getDeployableQueue();
+        // we move completed troops last because its possible they managed to buy it out
+        // while we think it had completed and already moved to be a deployable
+        Builder builder = getBuilder(buildingId);
+        List<BuildUnit> boughtOutContracts =
+                builder.remove(unitTypeId, quantity, time, false);
+        DeployableQueue transport = builder.getDeployableQueue();
         if (transport != null) {
             transport.moveUnitToDeployable(boughtOutContracts);
             transport.sortUnitsInQueue();
@@ -91,7 +107,7 @@ public class ContractManagerImpl implements ContractManager {
     }
 
     @Override
-    public void moveCompletedTroops(long clientTime) {
+    public void moveCompletedBuildUnits(long clientTime) {
         this.deployableQueue.findAndMoveCompletedUnitsToDeployable(clientTime);
         this.specialAttackTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
         this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
@@ -126,26 +142,26 @@ public class ContractManagerImpl implements ContractManager {
         }
     }
 
-    private ContractConstructor getContractConstructor(String buildingId) {
-        ContractConstructor contractConstructor = this.contractConstructors.get(buildingId);
-        if (contractConstructor == null)
+    private Builder getBuilder(String buildingId) {
+        Builder builder = this.builders.get(buildingId);
+        if (builder == null)
             throw new RuntimeException("Constructor for building has not been initialised " + buildingId);
-        return contractConstructor;
+        return builder;
     }
 
     @Override
-    public void initialiseContractConstructor(Building building, BuildingData buildingData, DeployableQueue deployableQueue) {
-        if (!this.contractConstructors.containsKey(building.key)) {
-            ContractConstructor contractConstructor = new ContractConstructor(building.key, buildingData, deployableQueue);
-            this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
+    public void initialiseBuilder(Building building, BuildingData buildingData, DeployableQueue deployableQueue) {
+        if (!this.builders.containsKey(building.key)) {
+            Builder builder = new Builder(building.key, buildingData, deployableQueue);
+            this.builders.put(builder.getBuildingId(), builder);
         }
     }
 
     @Override
-    public void initialiseBuildContract(BuildContract buildContract) {
-        ContractConstructor contractConstructor = this.getContractConstructor(buildContract.getBuildingId());
-        contractConstructor.loadContract(buildContract);
-        DeployableQueue transport = contractConstructor.getDeployableQueue();
-        transport.addUnitsToQueue(buildContract);
+    public void initialiseBuildUnit(BuildUnit buildUnit) {
+        Builder builder = this.getBuilder(buildUnit.getBuildingId());
+        builder.load(buildUnit);
+        DeployableQueue transport = builder.getDeployableQueue();
+        transport.addUnitsToQueue(buildUnit);
     }
 }

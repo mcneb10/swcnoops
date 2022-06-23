@@ -4,6 +4,7 @@ import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.model.PlayerMap;
+import swcnoops.server.session.training.TrainingManager;
 
 import java.util.List;
 import java.util.Map;
@@ -27,6 +28,6 @@ public interface PlayerSession {
 
     PlayerMap getBaseMap();
 
-    ContractManager getContractManager();
+    TrainingManager getContractManager();
     PlayerSettings getPlayerSettings();
 }

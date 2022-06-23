@@ -4,7 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.UtilsHelper;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
-import swcnoops.server.session.BuildContracts;
+import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.PlayerSessionImpl;
 
 import java.io.*;
@@ -129,9 +129,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         playerSettings.setUpgrades(upgrades);
 
                         String contractsJson = rs.getString("contracts");
-                        BuildContracts buildContracts = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(contractsJson, BuildContracts.class);
-                        playerSettings.setBuildContracts(buildContracts);
+                        BuildUnits buildUnits = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(contractsJson, BuildUnits.class);
+                        playerSettings.setBuildContracts(buildUnits);
                     }
                 }
             }
@@ -154,7 +154,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void savePlayerSession(PlayerSessionImpl playerSession) {
         // replace the players settings with new data before saving
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
-        BuildContracts allContracts = playerSettings.getBuildContracts();
+        BuildUnits allContracts = playerSettings.getBuildContracts();
         allContracts.clear();
         allContracts.addAll(playerSession.getContractManager().getDeployableTroops().getUnitsInQueue());
         allContracts.addAll(playerSession.getContractManager().getDeployableChampion().getUnitsInQueue());

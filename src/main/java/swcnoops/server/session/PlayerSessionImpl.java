@@ -4,20 +4,22 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
+import swcnoops.server.session.training.TrainingManager;
+import swcnoops.server.session.training.TrainingManagerFactory;
 
 import java.util.*;
 
 public class PlayerSessionImpl implements PlayerSession {
     final private Player player;
     final private PlayerSettings playerSettings;
-    final private ContractManager contractManager;
+    final private TrainingManager trainingManager;
 
-    static final private ContractManagerLoader contractManagerLoader = new ContractManagerLoader();
+    static final private TrainingManagerFactory contractManagerLoader = new TrainingManagerFactory();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
         this.playerSettings = playerSettings;
-        this.contractManager = this.contractManagerLoader.createForPlayer(this.getPlayerSettings());
+        this.trainingManager = this.contractManagerLoader.createForPlayer(this.getPlayerSettings());
     }
 
     @Override
@@ -32,17 +34,17 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
-        this.contractManager.trainTroops(buildingId, unitTypeId, quantity, startTime);
+        this.trainingManager.trainTroops(buildingId, unitTypeId, quantity, startTime);
     }
 
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        this.contractManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
+        this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
     }
 
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        this.contractManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
+        this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
     }
 
     /**
@@ -53,7 +55,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
-            this.contractManager.removeDeployedTroops(deployablesToRemove);
+            this.trainingManager.removeDeployedTroops(deployablesToRemove);
         }
     }
 
@@ -66,7 +68,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
-            this.contractManager.removeDeployedTroops(deployablesToRemove);
+            this.trainingManager.removeDeployedTroops(deployablesToRemove);
         }
     }
 
@@ -78,7 +80,7 @@ public class PlayerSessionImpl implements PlayerSession {
      */
     @Override
     public void playerBattleStart(long time) {
-        this.contractManager.moveCompletedTroops(time);
+        this.trainingManager.moveCompletedBuildUnits(time);
         saveSession();
     }
 
@@ -88,7 +90,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void onboardTransports(long time) {
-        this.contractManager.moveCompletedTroops(time);
+        this.trainingManager.moveCompletedBuildUnits(time);
     }
 
     @Override
@@ -97,8 +99,8 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public ContractManager getContractManager() {
-        return contractManager;
+    public TrainingManager getContractManager() {
+        return trainingManager;
     }
 
     @Override

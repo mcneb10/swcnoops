@@ -1,26 +1,31 @@
-package swcnoops.server.session;
+package swcnoops.server.session.training;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-public class BuildContract {
+/**
+ * Unit build details, equivalent to the Contracts model in the game.
+ * This has references to the builder/building that is building it, as well
+ * as the build slot it was put in.
+ */
+public class BuildUnit {
     @JsonIgnore
-    private ContractConstructor parent;
+    private Builder parent;
     private String buildingId;
     private String unitTypeId;
     private long endTime;
     @JsonIgnore
-    private ContractGroup contractGroup;
+    private BuildSlot buildSlot;
 
-    public BuildContract() {
+    public BuildUnit() {
     }
 
-    public BuildContract(ContractConstructor parent, String buildingId, String unitTypeId) {
+    public BuildUnit(Builder parent, String buildingId, String unitTypeId) {
         this.buildingId = buildingId;
         this.unitTypeId = unitTypeId;
         this.parent = parent;
     }
 
-    protected void setParent(ContractConstructor parent) {
+    protected void setParent(Builder parent) {
         this.parent = parent;
     }
 
@@ -40,19 +45,19 @@ public class BuildContract {
         this.endTime = endTime;
     }
 
-    public void setContractGroup(ContractGroup contractGroup) {
-        this.contractGroup = contractGroup;
+    public void setBuildSlot(BuildSlot buildSlot) {
+        this.buildSlot = buildSlot;
     }
 
-    public ContractGroup getContractGroup() {
-        return contractGroup;
+    public BuildSlot getBuildSlot() {
+        return buildSlot;
     }
 
-    public ContractConstructor getParent() {
+    public Builder getBuilder() {
         return parent;
     }
 
-    public int compareEndTime(BuildContract b) {
+    public int compareEndTime(BuildUnit b) {
         if (this.getEndTime() < b.getEndTime())
             return -1;
 
