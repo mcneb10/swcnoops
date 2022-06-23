@@ -22,5 +22,5 @@ public interface ContractManager {
 
     TroopsTransport getChampionTransport();
 
-    void initialise(PlayerSettings playerSettings);
+    void loadBuildContract(BuildContract buildContract);
 }

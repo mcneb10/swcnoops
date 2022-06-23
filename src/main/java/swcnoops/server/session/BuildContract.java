@@ -18,7 +18,6 @@ public class BuildContract {
         this.buildingId = buildingId;
         this.unitTypeId = unitTypeId;
         this.parent = parent;
-        this.endTime = endTime;
     }
 
     protected void setParent(ContractConstructor parent) {

@@ -23,7 +23,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.playerSettings = playerSettings;
 
         this.contractManager = this.contractManagerLoader.createForMap(this.getBaseMap());
-        this.contractManager.initialise(playerSettings);
+        this.contractManagerLoader.loadPlayerSettings(this.contractManager, this.playerSettings);
 
         this.troopsTransport = this.contractManager.getTroopsTransport();
         this.specialAttackTransport = this.contractManager.getSpecialAttackTransport();

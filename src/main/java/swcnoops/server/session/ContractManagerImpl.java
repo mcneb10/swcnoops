@@ -1,10 +1,7 @@
 package swcnoops.server.session;
 
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
-import swcnoops.server.model.SubStorage;
-
 import java.util.*;
 
 public class ContractManagerImpl implements ContractManager {
@@ -144,23 +141,9 @@ public class ContractManagerImpl implements ContractManager {
         return contractConstructor;
     }
 
+
     @Override
-    public void initialise(PlayerSettings playerSettings) {
-        // TODO
-        SubStorage subStorage = playerSettings.getTroopsOnTransport();
-        initialise(playerSettings.getBuildContracts());
-    }
-
-    private void initialise(BuildContracts buildContracts) {
-        if (buildContracts != null) {
-            buildContracts.stream().sorted((a,b) -> a.compareEndTime(b));
-            for (BuildContract buildContract : buildContracts) {
-                this.loadContract(buildContract);
-            }
-        }
-    }
-
-    private void loadContract(BuildContract buildContract) {
+    public void loadBuildContract(BuildContract buildContract) {
         ContractConstructor contractConstructor = this.getContractConstructor(buildContract.getBuildingId());
         contractConstructor.loadContract(buildContract);
         TroopsTransport transport = this.getTransport(buildContract);

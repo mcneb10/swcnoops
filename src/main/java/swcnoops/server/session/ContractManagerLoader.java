@@ -1,13 +1,19 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
+import swcnoops.server.model.SubStorage;
 
+/**
+ * A separate class that configures and loads a players contractManager.
+ * This is to keep the contractManager smaller as it was getting too big.
+ */
 public class ContractManagerLoader {
-    public ContractManager createForMap(PlayerMap baseMap) {
+    protected ContractManager createForMap(PlayerMap baseMap) {
         ContractManager  contractManager = new ContractManagerImpl();
         initialiseContractManager(contractManager, baseMap);
         return contractManager;
@@ -48,5 +54,26 @@ public class ContractManagerLoader {
                 contractManager.addContractConstructor(building, buildingData);
                 break;
         }
+    }
+
+    protected void loadPlayerSettings(ContractManager contractManager, PlayerSettings playerSettings) {
+        loadContracts(contractManager, playerSettings.getBuildContracts());
+
+        // TODO - load troops that are ready
+        SubStorage subStorage = playerSettings.getTroopsOnTransport();
+    }
+
+    private void loadContracts(ContractManager contractManager, BuildContracts buildContracts) {
+        if (buildContracts != null) {
+            // we sort it by endTime as that would of been the order in each transports queue
+            buildContracts.stream().sorted((a,b) -> a.compareEndTime(b));
+            for (BuildContract buildContract : buildContracts) {
+                this.loadContract(contractManager, buildContract);
+            }
+        }
+    }
+
+    private void loadContract(ContractManager contractManager, BuildContract buildContract) {
+        contractManager.loadBuildContract(buildContract);
     }
 }
