@@ -21,22 +21,22 @@ public class ContractManagerImpl implements ContractManager {
         this.championTransport = new DeployableQueue();
     }
 
-    public DeployableQueue getTroopsTransport() {
+    public DeployableQueue getDeployableTroops() {
         return deployableQueue;
     }
 
     @Override
-    public DeployableQueue getSpecialAttackTransport() {
+    public DeployableQueue getDeployableSpecialAttack() {
         return specialAttackTransport;
     }
 
     @Override
-    public DeployableQueue getHeroTransport() {
+    public DeployableQueue getDeployableHero() {
         return heroTransport;
     }
 
     @Override
-    public DeployableQueue getChampionTransport() {
+    public DeployableQueue getDeployableChampion() {
         return championTransport;
     }
 
@@ -134,9 +134,9 @@ public class ContractManagerImpl implements ContractManager {
     }
 
     @Override
-    public void initialiseContractConstructor(Building building, BuildingData buildingData, DeployableQueue transport) {
+    public void initialiseContractConstructor(Building building, BuildingData buildingData, DeployableQueue deployableQueue) {
         if (!this.contractConstructors.containsKey(building.key)) {
-            ContractConstructor contractConstructor = new ContractConstructor(building.key, buildingData, transport);
+            ContractConstructor contractConstructor = new ContractConstructor(building.key, buildingData, deployableQueue);
             this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
         }
     }

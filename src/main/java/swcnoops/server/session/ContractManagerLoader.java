@@ -46,22 +46,22 @@ public class ContractManagerLoader {
             case "factory":
             case "barracks":
             case "cantina":
-                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getTroopsTransport());
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getDeployableTroops());
                 break;
             case "hero_mobilizer":
-                contractManager.getHeroTransport().addStorage(buildingData.getStorage());
-                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getHeroTransport());
+                contractManager.getDeployableHero().addStorage(buildingData.getStorage());
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getDeployableHero());
                 break;
             case "champion_platform":
-                contractManager.getChampionTransport().addStorage(buildingData.getStorage());
-                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getChampionTransport());
+                contractManager.getDeployableChampion().addStorage(buildingData.getStorage());
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getDeployableChampion());
                 break;
             case "starport":
-                contractManager.getTroopsTransport().addStorage(buildingData.getStorage());
+                contractManager.getDeployableTroops().addStorage(buildingData.getStorage());
                 break;
             case "fleet_command":
-                contractManager.getSpecialAttackTransport().addStorage(buildingData.getStorage());
-                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getSpecialAttackTransport());
+                contractManager.getDeployableSpecialAttack().addStorage(buildingData.getStorage());
+                contractManager.initialiseContractConstructor(building, buildingData, contractManager.getDeployableSpecialAttack());
                 break;
         }
     }

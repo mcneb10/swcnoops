@@ -92,16 +92,16 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private SubStorage mapDeployableTroops(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
         ContractManager contractManager = playerSession.getContractManager();
-        mapDeployableTroops(contractManager.getTroopsTransport(), subStorage.troop.storage);
-        mapDeployableTroops(contractManager.getChampionTransport(), subStorage.champion.storage);
-        mapDeployableTroops(contractManager.getHeroTransport(), subStorage.hero.storage);
-        mapDeployableTroops(contractManager.getSpecialAttackTransport(), subStorage.specialAttack.storage);
+        mapDeployableTroops(contractManager.getDeployableTroops(), subStorage.troop.storage);
+        mapDeployableTroops(contractManager.getDeployableChampion(), subStorage.champion.storage);
+        mapDeployableTroops(contractManager.getDeployableHero(), subStorage.hero.storage);
+        mapDeployableTroops(contractManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
         return subStorage;
     }
 
-    private void mapDeployableTroops(DeployableQueue transport, Map<String, StorageAmount> storage) {
+    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
         storage.clear();
-        Iterator<Map.Entry<String,Integer>> troopIterator = transport.getDeployableUnits().entrySet().iterator();
+        Iterator<Map.Entry<String,Integer>> troopIterator = deployableQueue.getDeployableUnits().entrySet().iterator();
         while(troopIterator.hasNext()) {
             Map.Entry<String,Integer> entry = troopIterator.next();
             StorageAmount storageAmount = new StorageAmount();
@@ -168,10 +168,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
      */
     private void mapContracts(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.contracts.clear();
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getTroopsTransport().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getChampionTransport().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getHeroTransport().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getContractManager().getSpecialAttackTransport().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableTroops().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableChampion().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableHero().getUnitsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getDeployableSpecialAttack().getUnitsInQueue());
     }
 
     private void mapContracts(List<Contract> contracts, List<BuildContract> troopsInQueue) {
