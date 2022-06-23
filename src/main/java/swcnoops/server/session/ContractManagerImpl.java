@@ -1,7 +1,9 @@
 package swcnoops.server.session;
 
+import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
+import swcnoops.server.model.SubStorage;
 
 import java.util.*;
 
@@ -12,13 +14,31 @@ public class ContractManagerImpl implements ContractManager {
     final private TroopsTransport heroTransport;
     final private TroopsTransport championTransport;
 
-    public ContractManagerImpl(TroopsTransport troopsTransport, TroopsTransport specialAttackTransport,
-                               TroopsTransport heroTransport, TroopsTransport championTransport)
+    public ContractManagerImpl()
     {
-        this.troopsTransport = troopsTransport;
-        this.specialAttackTransport = specialAttackTransport;
-        this.heroTransport = heroTransport;
-        this.championTransport = championTransport;
+        this.troopsTransport = new TroopsTransport();
+        this.specialAttackTransport = new TroopsTransport();
+        this.heroTransport = new TroopsTransport(3);
+        this.championTransport = new TroopsTransport(2);
+    }
+
+    public TroopsTransport getTroopsTransport() {
+        return troopsTransport;
+    }
+
+    @Override
+    public TroopsTransport getSpecialAttackTransport() {
+        return specialAttackTransport;
+    }
+
+    @Override
+    public TroopsTransport getHeroTransport() {
+        return heroTransport;
+    }
+
+    @Override
+    public TroopsTransport getChampionTransport() {
+        return championTransport;
     }
 
     @Override
@@ -29,7 +49,7 @@ public class ContractManagerImpl implements ContractManager {
         ContractConstructor contractConstructor = getContractConstructor(buildingId);
         List<BuildContract> troopBuildContracts = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
-            BuildContract buildContract = new BuildContract(buildingId, unitTypeId, contractConstructor);
+            BuildContract buildContract = new BuildContract(contractConstructor, buildingId, unitTypeId);
             troopBuildContracts.add(buildContract);
         }
 
@@ -122,5 +142,28 @@ public class ContractManagerImpl implements ContractManager {
         if (contractConstructor == null)
             throw new RuntimeException("Constructor for building has not been initialised " + buildingId);
         return contractConstructor;
+    }
+
+    @Override
+    public void initialise(PlayerSettings playerSettings) {
+        // TODO
+        SubStorage subStorage = playerSettings.getTroopsOnTransport();
+        initialise(playerSettings.getBuildContracts());
+    }
+
+    private void initialise(BuildContracts buildContracts) {
+        if (buildContracts != null) {
+            buildContracts.stream().sorted((a,b) -> a.compareEndTime(b));
+            for (BuildContract buildContract : buildContracts) {
+                this.loadContract(buildContract);
+            }
+        }
+    }
+
+    private void loadContract(BuildContract buildContract) {
+        ContractConstructor contractConstructor = this.getContractConstructor(buildContract.getBuildingId());
+        contractConstructor.loadContract(buildContract);
+        TroopsTransport transport = this.getTransport(buildContract);
+        transport.addTroopsToQueue(buildContract);
     }
 }

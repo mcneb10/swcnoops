@@ -122,6 +122,10 @@ public class TroopsTransport {
         this.troopsInQueue.addAll(troopBuildContracts);
     }
 
+    public void addTroopsToQueue(BuildContract buildContract) {
+        this.troopsInQueue.add(buildContract);
+    }
+
     public void removeTroopsFromQueue(List<BuildContract> buildContracts) {
         if (buildContracts != null)
             this.troopsInQueue.removeAll(buildContracts);

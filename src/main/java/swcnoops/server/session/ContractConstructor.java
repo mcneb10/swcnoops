@@ -90,4 +90,9 @@ public class ContractConstructor {
 
         return startTimeForQueue;
     }
+
+    protected void loadContract(BuildContract buildContract) {
+        buildContract.setParent(this);
+        this.contractBuildQueue.loadToBuildQueue(buildContract);
+    }
 }

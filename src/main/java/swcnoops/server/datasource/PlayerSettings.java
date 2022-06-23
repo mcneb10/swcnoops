@@ -64,8 +64,8 @@ public class PlayerSettings {
         this.troopsOnTransport = troopsOnTransport;
     }
 
-    public List<BuildContract> getBuildContracts() {
-        return buildContracts;
+    public BuildContracts getBuildContracts() {
+        return this.buildContracts;
     }
 
     public void setBuildContracts(BuildContracts buildContracts) {

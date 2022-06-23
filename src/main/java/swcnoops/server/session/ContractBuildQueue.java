@@ -32,6 +32,16 @@ public class ContractBuildQueue {
         contractGroup.addContractsToGroup(buildContracts);
     }
 
+    protected void loadToBuildQueue(BuildContract buildContract) {
+        ContractGroup contractGroup = this.buildQueueMap.get(buildContract.getUnitTypeId());
+        if (contractGroup == null) {
+            contractGroup = createContractGroup(buildContract);
+            this.buildQueueMap.put(contractGroup.getUnitTypeId(), contractGroup);
+            this.buildQueue.add(contractGroup);
+        }
+        contractGroup.addContractToGroup(buildContract);
+    }
+
     private ContractGroup createContractGroup(BuildContract buildContract) {
         BuildableData buildableData = getBuildableData(buildContract.getUnitTypeId());
         return new ContractGroup(buildContract.getUnitTypeId(), buildableData);

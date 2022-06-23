@@ -22,9 +22,13 @@ public class ContractGroup {
 
     protected void addContractsToGroup(List<BuildContract> buildContracts) {
         for (BuildContract buildContract : buildContracts) {
-            buildContract.setContractGroup(this);
-            this.contracts.add(buildContract);
+            addContractToGroup(buildContract);
         }
+    }
+
+    protected void addContractToGroup(BuildContract buildContract) {
+        buildContract.setContractGroup(this);
+        this.contracts.add(buildContract);
     }
 
     protected List<BuildContract> removeContracts(int quantity, boolean fromBack) {

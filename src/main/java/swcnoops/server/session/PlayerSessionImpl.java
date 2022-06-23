@@ -3,36 +3,32 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
-import swcnoops.server.game.BuildingData;
-import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.*;
 
 import java.util.*;
 
 public class PlayerSessionImpl implements PlayerSession {
     final private Player player;
-    final private TroopsTransport troopsTransport;
-    final private TroopsTransport specialAttackTransport;
-    final private TroopsTransport heroTransport;
-    final private TroopsTransport championTransport;
-    final private ContractManager contractManager;
+    private TroopsTransport troopsTransport;
+    private TroopsTransport specialAttackTransport;
+    private TroopsTransport heroTransport;
+    private TroopsTransport championTransport;
+    private ContractManager contractManager;
     final private PlayerSettings playerSettings;
+
+    static final private ContractManagerLoader contractManagerLoader = new ContractManagerLoader();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
         this.playerSettings = playerSettings;
-        this.troopsTransport = new TroopsTransport();
-        this.specialAttackTransport = new TroopsTransport();
-        this.heroTransport = new TroopsTransport(3);
-        this.championTransport = new TroopsTransport(2);
-        this.contractManager = new ContractManagerImpl(this.troopsTransport,
-                this.specialAttackTransport, this.heroTransport, this.championTransport);
 
-        initialiseSession();
-    }
+        this.contractManager = this.contractManagerLoader.createForMap(this.getBaseMap());
+        this.contractManager.initialise(playerSettings);
 
-    private void initialiseSession() {
-        this.setupTransports(this.getBaseMap());
+        this.troopsTransport = this.contractManager.getTroopsTransport();
+        this.specialAttackTransport = this.contractManager.getSpecialAttackTransport();
+        this.heroTransport = this.contractManager.getHeroTransport();
+        this.championTransport = this.contractManager.getChampionTransport();
     }
 
     @Override
@@ -60,6 +56,11 @@ public class PlayerSessionImpl implements PlayerSession {
         this.contractManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
     }
 
+    /**
+     * Removing completed contracts during base building
+     * @param deployablesToRemove
+     * @param time
+     */
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
@@ -69,7 +70,13 @@ public class PlayerSessionImpl implements PlayerSession {
             this.championTransport.removeTroopsOnBoard(deployablesToRemove);
         }
     }
-//CreatureDeployed
+
+    /**
+     * This is removal during a battle to remove troops that were used.
+     * TODO - CreatureDeployed
+     * @param deployablesToRemove
+     * @param time
+     */
     @Override
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
@@ -92,6 +99,12 @@ public class PlayerSessionImpl implements PlayerSession {
         }
     }
 
+    /**
+     * Before a battle we move all completed troops to their transport, as those are the troops going to war.
+     * We do this as during the battle deployment records are sent which we used to remove what are in the
+     * transports.
+     * @param time
+     */
     @Override
     public void playerBattleStart(long time) {
         this.contractManager.moveCompletedTroops(time);
@@ -144,56 +157,6 @@ public class PlayerSessionImpl implements PlayerSession {
 
     public List<BuildContract> getAllBuildContracts() {
         return this.contractManager.getAllTroopContracts();
-    }
-
-    /**
-     * Transports are the queues and contracts for items that can be built
-     * @param map
-     */
-    private void setupTransports(PlayerMap map) {
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        for (Building building : map.buildings) {
-            BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-            if (buildingData != null) {
-                configureForBuilding(building, buildingData);
-            }
-        }
-
-        setupContracts();
-    }
-
-    private void setupContracts() {
-//        this.loadTroopsForTransport(this.troopsTransport, subStorage.troop.storage);
-//        this.loadTroopsForTransport(this.specialAttackTransport, subStorage.specialAttack.storage);
-//        this.loadTroopsForTransport(this.heroTransport, subStorage.hero.storage);
-//        this.loadTroopsForTransport(this.championTransport, subStorage.champion.storage);
-        List<BuildContract> emptyContracts = new ArrayList<>();
-        Map<String, Integer> emptyOnBoard = new HashMap<>();
-        this.troopsTransport.getTroopsInQueue().clear();
-        this.troopsTransport.getTroopsInQueue().addAll(emptyContracts);
-        this.troopsTransport.getTroopsOnBoard().clear();
-        this.troopsTransport.getTroopsOnBoard().putAll(emptyOnBoard);
-    }
-
-    private void configureForBuilding(Building building, BuildingData buildingData) {
-        switch (buildingData.getType()) {
-            case "factory":
-            case "barracks":
-                this.contractManager.addContractConstructor(building, buildingData);
-                break;
-            case "hero_mobilizer":
-            case "champion_platform":
-                this.contractManager.addContractConstructor(building, buildingData);
-                break;
-            case "starport":
-                this.troopsTransport.addStorage(buildingData.getStorage());
-                this.contractManager.addContractConstructor(building, buildingData);
-                break;
-            case "fleet_command":
-                this.specialAttackTransport.addStorage(buildingData.getStorage());
-                this.contractManager.addContractConstructor(building, buildingData);
-                break;
-        }
     }
 
     @Override

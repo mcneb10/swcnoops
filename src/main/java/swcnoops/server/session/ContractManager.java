@@ -1,5 +1,6 @@
 package swcnoops.server.session;
 
+import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
 
@@ -12,4 +13,14 @@ public interface ContractManager {
     void moveCompletedTroops(long clientTime);
     List<BuildContract> getAllTroopContracts();
     void addContractConstructor(Building building, BuildingData buildingData);
+
+    TroopsTransport getTroopsTransport();
+
+    TroopsTransport getSpecialAttackTransport();
+
+    TroopsTransport getHeroTransport();
+
+    TroopsTransport getChampionTransport();
+
+    void initialise(PlayerSettings playerSettings);
 }

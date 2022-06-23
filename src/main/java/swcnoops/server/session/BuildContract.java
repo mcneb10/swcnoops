@@ -14,9 +14,14 @@ public class BuildContract {
     public BuildContract() {
     }
 
-    public BuildContract(String buildingId, String unitTypeId, ContractConstructor parent) {
+    public BuildContract(ContractConstructor parent, String buildingId, String unitTypeId) {
         this.buildingId = buildingId;
         this.unitTypeId = unitTypeId;
+        this.parent = parent;
+        this.endTime = endTime;
+    }
+
+    protected void setParent(ContractConstructor parent) {
         this.parent = parent;
     }
 
