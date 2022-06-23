@@ -1,12 +1,17 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.UtilsHelper;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
+import swcnoops.server.session.BuildContract;
+import swcnoops.server.session.BuildContracts;
+import swcnoops.server.session.PlayerSessionImpl;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
@@ -93,7 +98,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
-        final String sql = "SELECT id, name, faction, baseMap, upgrades " +
+        final String sql = "SELECT id, name, faction, baseMap, upgrades, contracts " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -109,11 +114,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         playerSettings.setFaction(rs.getString("faction"));
 
                         String baseMap = rs.getString("baseMap");
-                        PlayerMap playerMap = null;
-                        if (baseMap != null) {
-                            playerMap = ServiceFactory.instance().getJsonParser()
+                        if (baseMap == null || baseMap.isEmpty())
+                            baseMap = loadDefaultMap(playerSettings.getFaction());
+
+                        PlayerMap playerMap = ServiceFactory.instance().getJsonParser()
                                     .fromJsonString(baseMap, PlayerMap.class);
-                        }
                         playerSettings.setBaseMap(playerMap);
 
                         String upgradesJson = rs.getString("upgrades");
@@ -124,6 +129,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         else
                             upgrades = new Upgrades();
                         playerSettings.setUpgrades(upgrades);
+
+                        String contractsJson = rs.getString("contracts");
+                        BuildContracts buildContracts = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(contractsJson, BuildContracts.class);
+                        playerSettings.setBuildContracts(buildContracts);
                     }
                 }
             }
@@ -132,5 +142,38 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return playerSettings;
+    }
+
+    private String loadDefaultMap(String faction) {
+        try {
+            return UtilsHelper.loadStringFromResource("defaultMap/empire.json");
+        } catch (IOException ex) {
+            throw new RuntimeException("Failed to load default map", ex);
+        }
+    }
+
+    @Override
+    public void savePlayerSession(PlayerSessionImpl playerSession) {
+        List<BuildContract> buildContracts = playerSession.getAllBuildContracts();
+        String json = ServiceFactory.instance().getJsonParser().toJson(buildContracts);
+        savePlayerSettings(playerSession.getPlayerId(), json);
+    }
+
+    private void savePlayerSettings(String playerId, String contracts) {
+        final String sql = "update PlayerSettings " +
+                "set contracts = ? " +
+                "WHERE id = ?";
+
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                    stmt.setString(1, contracts);
+                    stmt.setString(2, playerId);
+                    stmt.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player name id=" + playerId, ex);
+        }
     }
 }

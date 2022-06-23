@@ -1,13 +1,20 @@
 package swcnoops.server.session;
 
-abstract public class AbstractBuildContract {
-    final private ContractConstructor parent;
-    final private String buildingId;
-    final private String unitTypeId;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+public class BuildContract {
+    @JsonIgnore
+    private ContractConstructor parent;
+    private String buildingId;
+    private String unitTypeId;
     private long endTime;
+    @JsonIgnore
     private ContractGroup contractGroup;
 
-    public AbstractBuildContract(String buildingId, String unitTypeId, ContractConstructor parent) {
+    public BuildContract() {
+    }
+
+    public BuildContract(String buildingId, String unitTypeId, ContractConstructor parent) {
         this.buildingId = buildingId;
         this.unitTypeId = unitTypeId;
         this.parent = parent;
@@ -20,8 +27,6 @@ abstract public class AbstractBuildContract {
     public String getUnitTypeId() {
         return unitTypeId;
     }
-
-    abstract public String getContractType();
 
     public long getEndTime() {
         return endTime;
@@ -43,7 +48,7 @@ abstract public class AbstractBuildContract {
         return parent;
     }
 
-    public int compareEndTime(AbstractBuildContract b) {
+    public int compareEndTime(BuildContract b) {
         if (this.getEndTime() < b.getEndTime())
             return -1;
 

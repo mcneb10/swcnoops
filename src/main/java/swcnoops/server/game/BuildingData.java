@@ -82,4 +82,9 @@ public class BuildingData implements BuildableData {
     public boolean isSpecialAttack() {
         return false;
     }
+
+    @Override
+    public String getContractType() {
+        return "Building";
+    }
 }

@@ -22,8 +22,6 @@ public interface PlayerSession {
 
     void loadContracts(List<Contract> contracts, long time);
 
-    void configureForMap(PlayerMap map);
-
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
@@ -32,4 +30,5 @@ public interface PlayerSession {
 
     void loadTransports(SubStorage subStorage);
 
+    PlayerMap getBaseMap();
 }

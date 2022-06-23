@@ -8,4 +8,5 @@ public interface BuildableData {
     boolean isSpecialAttack();
 
     String getType();
+    String getContractType();
 }

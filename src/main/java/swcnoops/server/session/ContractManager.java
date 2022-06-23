@@ -1,5 +1,8 @@
 package swcnoops.server.session;
 
+import swcnoops.server.game.BuildingData;
+import swcnoops.server.model.Building;
+
 import java.util.List;
 
 public interface ContractManager {
@@ -7,5 +10,6 @@ public interface ContractManager {
     void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time);
     void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time);
     void moveCompletedTroops(long clientTime);
-    List<AbstractBuildContract> getAllTroopContracts();
+    List<BuildContract> getAllTroopContracts();
+    void addContractConstructor(Building building, BuildingData buildingData);
 }

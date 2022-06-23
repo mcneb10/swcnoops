@@ -13,9 +13,13 @@ public class GameDataManagerImplTest {
 
     @Test
     public void test() {
-        GameDataManagerImpl gameDataManager = new GameDataManagerImpl();
+        GameDataManager gameDataManager = new GameDataManagerImpl();
         gameDataManager.initOnStartup();
-        TroopData troopData = gameDataManager.getTroopDataByUid("troopHeroATMP1");
+        TroopData troopData = gameDataManager.getTroopDataByUid("troopEmpireRageRancorCreature10");
+        assertNotNull(troopData);
+        BuildingData buildingData = gameDataManager.getBuildingDataByUid("empireTrapDropshipCreature10");
+        assertNotNull(buildingData);
+        troopData = gameDataManager.getTroopDataByUid("specialAttackEmpireCreatureDropship10");
         assertNotNull(troopData);
     }
 }

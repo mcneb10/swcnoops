@@ -29,8 +29,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
         PlayerLoginCommandResult response;
         try {
-            response = loadPlayerTemplate(arguments.getPlayerId());
-            configureLoginForPlayer(response, arguments.getPlayerId(), time);
+            response = loadPlayerTemplate();
+            configureLoginForPlayer(response, arguments.getPlayerId());
         } catch (Exception ex) {
             // TODO
             response = new PlayerLoginCommandResult();
@@ -39,19 +39,17 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         return response;
     }
 
-    private PlayerLoginCommandResult loadPlayerTemplate(String playerId) throws Exception {
+    private PlayerLoginCommandResult loadPlayerTemplate() throws Exception {
         PlayerLoginCommandResult response = ServiceFactory.instance().getJsonParser()
                 .toObjectFromResource(ServiceFactory.instance().getConfig().playerLoginTemplate, PlayerLoginCommandResult.class);
         return response;
     }
 
     // TODO - setup map and troops
-    private void configureLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId, long time) {
+    private void configureLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId) {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
 
-        setupBaseMap(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
-        playerSession.configureForMap(playerLoginResponse.playerModel.map);
-
+        setupBaseMap(playerLoginResponse.playerModel, playerSession.getBaseMap());
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
         //playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
@@ -60,8 +58,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         setupShards(playerLoginResponse.playerModel);
         setupDonatedTroops(playerLoginResponse.playerModel);
 
+        long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();
         playerSession.onboardTransports(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        setupContracts(playerLoginResponse.playerModel, playerSession, time);
+        setupContracts(playerLoginResponse.playerModel, playerSession, timeNow);
         setupInventory(playerLoginResponse.playerModel, playerSession);
 
         // turn off conflicts
@@ -78,13 +77,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
     }
 
-    private void setupBaseMap(PlayerModel playerModel, PlayerSettings playerSettings) {
-        // if settings does not have a map then we take our template one
-        if (playerSettings.getBaseMap() == null) {
-            playerSettings.setBaseMap(playerModel.map);
-        }
-
-        playerModel.map = playerSettings.getBaseMap();
+    private void setupBaseMap(PlayerModel playerModel, PlayerMap playerMap) {
+        playerModel.map = playerMap;
     }
 
     private void setupInventory(PlayerModel playerModel, PlayerSession playerSession) {

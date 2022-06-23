@@ -43,7 +43,7 @@ public class SessionManagerImpl implements SessionManager {
 
         PlayerSettings playerSettings = playerDataSource.loadPlayerSettings(playerId);
         player.setPlayerSettings(playerSettings);
-        PlayerSession playerSession = new PlayerSessionImpl(player);
+        PlayerSession playerSession = new PlayerSessionImpl(player, playerSettings);
         return playerSession;
     }
 }

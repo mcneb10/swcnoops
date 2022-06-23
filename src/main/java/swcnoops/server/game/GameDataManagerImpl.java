@@ -22,7 +22,12 @@ public class GameDataManagerImpl implements GameDataManager {
 
     @Override
     public TroopData getTroopDataByUid(String uid) {
-        return troops.get(uid);
+        return this.troops.get(uid);
+    }
+
+    @Override
+    public BuildingData getBuildingDataByUid(String uid) {
+        return this.buildings.get(uid);
     }
 
     private Map<String, TroopData> loadTroops() throws Exception {
@@ -98,10 +103,5 @@ public class GameDataManagerImpl implements GameDataManager {
         }
 
         return map;
-    }
-
-    @Override
-    public BuildingData getBuildingDataByUid(String uid) {
-        return this.buildings.get(uid);
     }
 }

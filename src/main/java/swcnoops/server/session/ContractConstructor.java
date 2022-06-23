@@ -1,6 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.game.BuildableData;
+import swcnoops.server.game.BuildingData;
 
 import java.util.*;
 
@@ -15,16 +16,22 @@ public class ContractConstructor {
     final private String buildingId;
     final private ContractBuildQueue contractBuildQueue = new ContractBuildQueue();
     private long startTime;
+    final private BuildingData buildingData;
 
-    public ContractConstructor(String buildingId) {
+    public ContractConstructor(String buildingId, BuildingData buildingData) {
         this.buildingId = buildingId;
+        this.buildingData = buildingData;
     }
 
     public String getBuildingId() {
         return this.buildingId;
     }
 
-    protected void addContracts(List<AbstractBuildContract> buildContracts, long startTime) {
+    public BuildingData getBuildingData() {
+        return buildingData;
+    }
+
+    protected void addContracts(List<BuildContract> buildContracts, long startTime) {
         // if first item in the queue, then we set the startTime
         if (this.contractBuildQueue.isEmpty())
             this.startTime = startTime;
@@ -33,14 +40,14 @@ public class ContractConstructor {
         this.recalculateContractEndTimes(startTime);
     }
 
-    protected List<AbstractBuildContract> removeContracts(String unitTypeId, int quantity, long time, boolean fromBack) {
-        List<AbstractBuildContract> removeContracts =
+    protected List<BuildContract> removeContracts(String unitTypeId, int quantity, long time, boolean fromBack) {
+        List<BuildContract> removeContracts =
                 this.contractBuildQueue.removeContracts(unitTypeId, quantity, fromBack);
         this.recalculateContractEndTimes(time);
         return removeContracts;
     }
 
-    protected void removeCompletedContract(AbstractBuildContract troopContract) {
+    protected void removeCompletedContract(BuildContract troopContract) {
         // remove it from its group first, then see if the whole group can be removed
         troopContract.getContractGroup().removeCompletedContract(troopContract);
         this.contractBuildQueue.removeContractGroupIfEmpty(troopContract.getContractGroup());
@@ -48,6 +55,11 @@ public class ContractConstructor {
 
     private void recalculateContractEndTimes(long timeFromClient) {
         this.startTime = determineStartTime(timeFromClient);
+        // TODO - might need to change this for 2nd in the queue if the head
+        // is blocked and has not moved to complete yet.
+        // this can be detected by looking to see if there is enough space
+        // and if the the clients time is after the heads endTime.
+        // if no room, then from 2nd contract its endTime starts from the clients time
         this.contractBuildQueue.recalculateContractEndTimes(this.startTime);
     }
 
@@ -55,11 +67,11 @@ public class ContractConstructor {
         long startTimeForQueue = this.startTime;
 
         // we work out if the start time has changed for this queue
-        // done by looking at what is in the queue and if it adds up
+        // done by looking at the head of the queue to see if its end time needs to be adjusted
         if (this.contractBuildQueue.getBuildQueue().size() > 0) {
             ContractGroup firstContractGroup = this.contractBuildQueue.getBuildQueue().getFirst();
             BuildableData buildableData = firstContractGroup.getBuildableData();
-            List<AbstractBuildContract> buildContracts = firstContractGroup.getFirstEndTime();
+            List<BuildContract> buildContracts = firstContractGroup.getFirstEndTime();
             if (buildContracts.size() > 0) {
                 long firstEndTime = buildContracts.get(0).getEndTime();
                 if (firstEndTime != 0) {

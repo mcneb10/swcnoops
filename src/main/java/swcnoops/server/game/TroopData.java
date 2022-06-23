@@ -96,4 +96,9 @@ public class TroopData implements BuildableData {
     public long getBuildingTime() {
         return this.getTrainingTime();
     }
+
+    @Override
+    public String getContractType() {
+        return "Troop";
+    }
 }

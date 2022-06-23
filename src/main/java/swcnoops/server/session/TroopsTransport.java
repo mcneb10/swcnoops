@@ -13,7 +13,7 @@ public class TroopsTransport {
     private int storage;
     private int seatsTaken;
     final private Map<String, Integer> troopsOnBoard = new HashMap<>();
-    final private List<AbstractBuildContract> troopsInQueue = new ArrayList<>();
+    final private List<BuildContract> troopsInQueue = new ArrayList<>();
 
     public TroopsTransport() {
         this(0);
@@ -27,10 +27,6 @@ public class TroopsTransport {
         return storage;
     }
 
-    public void resetStorage() {
-        this.storage = 0;
-    }
-
     public void addStorage(int storage) {
         this.storage += storage;
     }
@@ -39,7 +35,7 @@ public class TroopsTransport {
         return this.storage - this.seatsTaken;
     }
 
-    public void onBoardTroop(AbstractBuildContract troopContract) {
+    public void onBoardTroop(BuildContract troopContract) {
         BuildableData buildableData = troopContract.getContractGroup().getBuildableData();
         this.seatsTaken += buildableData.getSize();
         Integer numberOfTroops = this.troopsOnBoard.get(troopContract.getUnitTypeId());
@@ -84,9 +80,9 @@ public class TroopsTransport {
     }
 
     public void onBoardCompletedTroops(long clientTime) {
-        Iterator<AbstractBuildContract> troopContractIterator = this.troopsInQueue.iterator();
+        Iterator<BuildContract> troopContractIterator = this.troopsInQueue.iterator();
         while(troopContractIterator.hasNext()) {
-            AbstractBuildContract troopContract = troopContractIterator.next();
+            BuildContract troopContract = troopContractIterator.next();
             // troopContracts are sorted in endTime order
             if (troopContract.getEndTime() > clientTime) {
                 break;
@@ -101,15 +97,15 @@ public class TroopsTransport {
         }
     }
 
-    public void moveToStarport(List<AbstractBuildContract> buildContracts) {
+    public void moveToStarport(List<BuildContract> buildContracts) {
         if (buildContracts != null) {
-            for (AbstractBuildContract buildContract : buildContracts) {
+            for (BuildContract buildContract : buildContracts) {
                 moveToStarport(buildContract);
             }
         }
     }
 
-    private void moveToStarport(AbstractBuildContract buildContract) {
+    private void moveToStarport(BuildContract buildContract) {
         this.troopsInQueue.remove(buildContract);
         this.onBoardTroop(buildContract);
     }
@@ -118,15 +114,15 @@ public class TroopsTransport {
         this.troopsInQueue.sort((a, b) -> a.compareEndTime(b));
     }
 
-    public List<AbstractBuildContract> getTroopsInQueue() {
+    public List<BuildContract> getTroopsInQueue() {
         return this.troopsInQueue;
     }
 
-    public void addTroopsToQueue(List<AbstractBuildContract> troopBuildContracts) {
+    public void addTroopsToQueue(List<BuildContract> troopBuildContracts) {
         this.troopsInQueue.addAll(troopBuildContracts);
     }
 
-    public void removeTroopsFromQueue(List<AbstractBuildContract> buildContracts) {
+    public void removeTroopsFromQueue(List<BuildContract> buildContracts) {
         if (buildContracts != null)
             this.troopsInQueue.removeAll(buildContracts);
     }

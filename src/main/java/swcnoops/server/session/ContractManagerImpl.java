@@ -1,5 +1,8 @@
 package swcnoops.server.session;
 
+import swcnoops.server.game.BuildingData;
+import swcnoops.server.model.Building;
+
 import java.util.*;
 
 public class ContractManagerImpl implements ContractManager {
@@ -23,11 +26,11 @@ public class ContractManagerImpl implements ContractManager {
         moveCompletedTroops(startTime);
 
         // create contracts for the things that we want to build
-        ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
-        List<AbstractBuildContract> troopBuildContracts = new ArrayList<>(quantity);
+        ContractConstructor contractConstructor = getContractConstructor(buildingId);
+        List<BuildContract> troopBuildContracts = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
-            TroopBuildContract troopBuildContract = new TroopBuildContract(buildingId, unitTypeId, contractConstructor);
-            troopBuildContracts.add(troopBuildContract);
+            BuildContract buildContract = new BuildContract(buildingId, unitTypeId, contractConstructor);
+            troopBuildContracts.add(buildContract);
         }
 
         contractConstructor.addContracts(troopBuildContracts, startTime);
@@ -38,14 +41,14 @@ public class ContractManagerImpl implements ContractManager {
         }
     }
 
-    private TroopsTransport getTransport(List<AbstractBuildContract> buildContracts) {
+    private TroopsTransport getTransport(List<BuildContract> buildContracts) {
         if (buildContracts == null || buildContracts.size() == 0)
             return null;
 
         return getTransport(buildContracts.get(0));
     }
 
-    private TroopsTransport getTransport(AbstractBuildContract buildContract) {
+    private TroopsTransport getTransport(BuildContract buildContract) {
         if (buildContract.getContractGroup().getBuildableData().isSpecialAttack())
             return this.specialAttackTransport;
 
@@ -62,8 +65,8 @@ public class ContractManagerImpl implements ContractManager {
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         // we move completed troops last because if they managed to remove contracts
         // at the head of the queue, then they must of got there before it was completed
-        ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
-        List<AbstractBuildContract> cancelledContracts =
+        ContractConstructor contractConstructor = getContractConstructor(buildingId);
+        List<BuildContract> cancelledContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, true);
         TroopsTransport transport = this.getTransport(cancelledContracts);
         if (transport != null) {
@@ -77,8 +80,8 @@ public class ContractManagerImpl implements ContractManager {
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         //we move completed troops last because if they managed to buy out contracts
         //then they must of got there before it was completed
-        ContractConstructor contractConstructor = getOrCreateContractConstructor(buildingId);
-        List<AbstractBuildContract> boughtOutContracts =
+        ContractConstructor contractConstructor = getContractConstructor(buildingId);
+        List<BuildContract> boughtOutContracts =
                 contractConstructor.removeContracts(unitTypeId, quantity, time, false);
         TroopsTransport transport = this.getTransport(boughtOutContracts);
         if (transport != null) {
@@ -96,22 +99,28 @@ public class ContractManagerImpl implements ContractManager {
         this.championTransport.onBoardCompletedTroops(clientTime);
     }
 
-    private ContractConstructor getOrCreateContractConstructor(String buildingId) {
-        ContractConstructor contractConstructor = this.contractConstructors.get(buildingId);
-        if (contractConstructor == null) {
-            contractConstructor = new ContractConstructor(buildingId);
-            this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
-        }
-        return contractConstructor;
-    }
-
     @Override
-    public List<AbstractBuildContract> getAllTroopContracts() {
-        List<AbstractBuildContract> allContracts = new ArrayList<>();
+    public List<BuildContract> getAllTroopContracts() {
+        List<BuildContract> allContracts = new ArrayList<>();
         allContracts.addAll(this.troopsTransport.getTroopsInQueue());
         allContracts.addAll(this.specialAttackTransport.getTroopsInQueue());
         allContracts.addAll(this.heroTransport.getTroopsInQueue());
         allContracts.addAll(this.championTransport.getTroopsInQueue());
         return allContracts;
+    }
+
+    @Override
+    public void addContractConstructor(Building building, BuildingData buildingData) {
+        if (!this.contractConstructors.containsKey(building.key)) {
+            ContractConstructor contractConstructor = new ContractConstructor(building.key, buildingData);
+            this.contractConstructors.put(contractConstructor.getBuildingId(), contractConstructor);
+        }
+    }
+
+    private ContractConstructor getContractConstructor(String buildingId) {
+        ContractConstructor contractConstructor = this.contractConstructors.get(buildingId);
+        if (contractConstructor == null)
+            throw new RuntimeException("Constructor for building has not been initialised " + buildingId);
+        return contractConstructor;
     }
 }

@@ -21,8 +21,8 @@ public class ContractBuildQueue {
         return this.buildQueue.size() == 0;
     }
 
-    protected void addToBuildQueue(List<AbstractBuildContract> buildContracts) {
-        AbstractBuildContract buildContract = buildContracts.get(0);
+    protected void addToBuildQueue(List<BuildContract> buildContracts) {
+        BuildContract buildContract = buildContracts.get(0);
         ContractGroup contractGroup = this.buildQueueMap.get(buildContract.getUnitTypeId());
         if (contractGroup == null) {
             contractGroup = createContractGroup(buildContract);
@@ -32,20 +32,16 @@ public class ContractBuildQueue {
         contractGroup.addContractsToGroup(buildContracts);
     }
 
-    private ContractGroup createContractGroup(AbstractBuildContract abstractBuildContract) {
-        BuildableData buildableData = getBuildableData(abstractBuildContract.getContractType(),
-                abstractBuildContract.getUnitTypeId());
-        return new ContractGroup(abstractBuildContract.getUnitTypeId(), buildableData);
+    private ContractGroup createContractGroup(BuildContract buildContract) {
+        BuildableData buildableData = getBuildableData(buildContract.getUnitTypeId());
+        return new ContractGroup(buildContract.getUnitTypeId(), buildableData);
     }
 
-    private BuildableData getBuildableData(String contractType, String unitTypeId) {
+    private BuildableData getBuildableData(String unitTypeId) {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-
-        BuildableData buildableData;
-        if ("Troop".equals(contractType))
-            buildableData = gameDataManager.getTroopDataByUid(unitTypeId);
-        else
-            throw new RuntimeException("Failed to get buildTime for " + unitTypeId);
+        BuildableData buildableData = gameDataManager.getTroopDataByUid(unitTypeId);
+        if (buildableData == null)
+            throw new RuntimeException("Failed to get TroopData for " + unitTypeId);
 
         return buildableData;
     }
@@ -63,8 +59,8 @@ public class ContractBuildQueue {
         }
     }
 
-    protected List<AbstractBuildContract> removeContracts(String unitTypeId, int quantity, boolean fromBack) {
-        List<AbstractBuildContract> removedContracts = null;
+    protected List<BuildContract> removeContracts(String unitTypeId, int quantity, boolean fromBack) {
+        List<BuildContract> removedContracts = null;
         ContractGroup contractGroup = this.buildQueueMap.get(unitTypeId);
         if (contractGroup != null) {
             removedContracts = contractGroup.removeContracts(quantity, fromBack);

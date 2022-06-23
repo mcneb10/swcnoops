@@ -9,7 +9,7 @@ import java.util.List;
 public class ContractGroup {
     final private String unitTypeId;
     final private BuildableData buildableData;
-    final private LinkedList<AbstractBuildContract> contracts = new LinkedList<>();
+    final private LinkedList<BuildContract> contracts = new LinkedList<>();
 
     public ContractGroup(String unitTypeId, BuildableData buildableData) {
         this.unitTypeId = unitTypeId;
@@ -20,15 +20,15 @@ public class ContractGroup {
         return unitTypeId;
     }
 
-    protected void addContractsToGroup(List<AbstractBuildContract> buildContracts) {
-        for (AbstractBuildContract buildContract : buildContracts) {
+    protected void addContractsToGroup(List<BuildContract> buildContracts) {
+        for (BuildContract buildContract : buildContracts) {
             buildContract.setContractGroup(this);
             this.contracts.add(buildContract);
         }
     }
 
-    protected List<AbstractBuildContract> removeContracts(int quantity, boolean fromBack) {
-        List<AbstractBuildContract> contractsRemoved = new ArrayList<>(quantity);
+    protected List<BuildContract> removeContracts(int quantity, boolean fromBack) {
+        List<BuildContract> contractsRemoved = new ArrayList<>(quantity);
         if (quantity > this.contracts.size()) {
             quantity = this.contracts.size();
         }
@@ -49,7 +49,7 @@ public class ContractGroup {
 
     protected long recalculateContractEndTimes(long time) {
         long startTime = time;
-        for (AbstractBuildContract contract : contracts) {
+        for (BuildContract contract : this.contracts) {
             startTime = startTime + this.buildableData.getBuildingTime();
             contract.setEndTime(startTime);
         }
@@ -61,11 +61,11 @@ public class ContractGroup {
         return buildableData;
     }
 
-    protected void removeCompletedContract(AbstractBuildContract troopContract) {
+    protected void removeCompletedContract(BuildContract troopContract) {
         this.contracts.remove(troopContract);
     }
 
-    protected List<AbstractBuildContract> getFirstEndTime() {
+    protected List<BuildContract> getFirstEndTime() {
         return this.contracts;
     }
 }

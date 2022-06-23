@@ -2,6 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
+import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.*;
@@ -14,17 +15,24 @@ public class PlayerSessionImpl implements PlayerSession {
     final private TroopsTransport specialAttackTransport;
     final private TroopsTransport heroTransport;
     final private TroopsTransport championTransport;
-
     final private ContractManager contractManager;
+    final private PlayerSettings playerSettings;
 
-    public PlayerSessionImpl(Player player) {
+    public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
+        this.playerSettings = playerSettings;
         this.troopsTransport = new TroopsTransport();
         this.specialAttackTransport = new TroopsTransport();
         this.heroTransport = new TroopsTransport(3);
         this.championTransport = new TroopsTransport(2);
         this.contractManager = new ContractManagerImpl(this.troopsTransport,
                 this.specialAttackTransport, this.heroTransport, this.championTransport);
+
+        initialiseSession();
+    }
+
+    private void initialiseSession() {
+        this.setupTransports(this.getBaseMap());
     }
 
     @Override
@@ -87,6 +95,11 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void playerBattleStart(long time) {
         this.contractManager.moveCompletedTroops(time);
+        saveSession();
+    }
+
+    private void saveSession() {
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this);
     }
 
     @Override
@@ -110,7 +123,8 @@ public class PlayerSessionImpl implements PlayerSession {
             StorageAmount storageAmount = new StorageAmount();
             storageAmount.amount = entry.getValue().intValue();
             storageAmount.capacity = -1;
-            storageAmount.scale = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(entry.getKey()).getSize();
+            storageAmount.scale = ServiceFactory.instance().getGameDataManager()
+                    .getTroopDataByUid(entry.getKey()).getSize();
             storage.put(entry.getKey(), storageAmount);
         }
     }
@@ -118,9 +132,9 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void loadContracts(List<Contract> contracts, long time) {
         contracts.clear();
-        for (AbstractBuildContract buildContract : this.contractManager.getAllTroopContracts()) {
+        for (BuildContract buildContract : this.contractManager.getAllTroopContracts()) {
             Contract contract = new Contract();
-            contract.contractType = buildContract.getContractType();
+            contract.contractType = buildContract.getContractGroup().getBuildableData().getContractType();
             contract.buildingId = buildContract.getBuildingId();
             contract.uid = buildContract.getUnitTypeId();
             contract.endTime = buildContract.getEndTime();
@@ -128,32 +142,62 @@ public class PlayerSessionImpl implements PlayerSession {
         }
     }
 
-    @Override
-    public void configureForMap(PlayerMap map) {
-        // TODO - redo this as at the moment no nice way of knowing when
-        // to initialise the players session
-        this.troopsTransport.resetStorage();
-        this.specialAttackTransport.resetStorage();
+    public List<BuildContract> getAllBuildContracts() {
+        return this.contractManager.getAllTroopContracts();
+    }
 
+    /**
+     * Transports are the queues and contracts for items that can be built
+     * @param map
+     */
+    private void setupTransports(PlayerMap map) {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         for (Building building : map.buildings) {
             BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
             if (buildingData != null) {
-                configureTransports(buildingData);
-            } else {
-                throw new RuntimeException("Failed to find building data for " + building.uid);
+                configureForBuilding(building, buildingData);
             }
         }
+
+        setupContracts();
     }
 
-    private void configureTransports(BuildingData buildingData) {
+    private void setupContracts() {
+//        this.loadTroopsForTransport(this.troopsTransport, subStorage.troop.storage);
+//        this.loadTroopsForTransport(this.specialAttackTransport, subStorage.specialAttack.storage);
+//        this.loadTroopsForTransport(this.heroTransport, subStorage.hero.storage);
+//        this.loadTroopsForTransport(this.championTransport, subStorage.champion.storage);
+        List<BuildContract> emptyContracts = new ArrayList<>();
+        Map<String, Integer> emptyOnBoard = new HashMap<>();
+        this.troopsTransport.getTroopsInQueue().clear();
+        this.troopsTransport.getTroopsInQueue().addAll(emptyContracts);
+        this.troopsTransport.getTroopsOnBoard().clear();
+        this.troopsTransport.getTroopsOnBoard().putAll(emptyOnBoard);
+    }
+
+    private void configureForBuilding(Building building, BuildingData buildingData) {
         switch (buildingData.getType()) {
+            case "factory":
+            case "barracks":
+                this.contractManager.addContractConstructor(building, buildingData);
+                break;
+            case "hero_mobilizer":
+            case "champion_platform":
+                this.contractManager.addContractConstructor(building, buildingData);
+                break;
             case "starport":
                 this.troopsTransport.addStorage(buildingData.getStorage());
+                this.contractManager.addContractConstructor(building, buildingData);
                 break;
             case "fleet_command":
                 this.specialAttackTransport.addStorage(buildingData.getStorage());
+                this.contractManager.addContractConstructor(building, buildingData);
                 break;
         }
+    }
+
+    @Override
+    public PlayerMap getBaseMap() {
+        return playerSettings.getBaseMap();
     }
 }
