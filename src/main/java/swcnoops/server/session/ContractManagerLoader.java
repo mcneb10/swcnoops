@@ -13,7 +13,13 @@ import swcnoops.server.model.SubStorage;
  * This is to keep the contractManager smaller as it was getting too big.
  */
 public class ContractManagerLoader {
-    protected ContractManager createForMap(PlayerMap baseMap) {
+    public ContractManager createForPlayer(PlayerSettings playerSettings) {
+        ContractManager contractManager = this.createForMap(playerSettings.getBaseMap());
+        initialiseFromPlayerSettings(contractManager, playerSettings);
+        return contractManager;
+    }
+
+    private ContractManager createForMap(PlayerMap baseMap) {
         ContractManager  contractManager = new ContractManagerImpl();
         initialiseContractManager(contractManager, baseMap);
         return contractManager;
@@ -39,6 +45,7 @@ public class ContractManagerLoader {
         switch (buildingData.getType()) {
             case "factory":
             case "barracks":
+            case "cantina":
                 contractManager.initialiseContractConstructor(building, buildingData, contractManager.getTroopsTransport());
                 break;
             case "hero_mobilizer":
@@ -59,24 +66,24 @@ public class ContractManagerLoader {
         }
     }
 
-    protected void loadPlayerSettings(ContractManager contractManager, PlayerSettings playerSettings) {
-        loadContracts(contractManager, playerSettings.getBuildContracts());
+    private void initialiseFromPlayerSettings(ContractManager contractManager, PlayerSettings playerSettings) {
+        initialiseContracts(contractManager, playerSettings.getBuildContracts());
 
         // TODO - load troops that are ready
         SubStorage subStorage = playerSettings.getTroopsOnTransport();
     }
 
-    private void loadContracts(ContractManager contractManager, BuildContracts buildContracts) {
+    private void initialiseContracts(ContractManager contractManager, BuildContracts buildContracts) {
         if (buildContracts != null) {
             // we sort it by endTime as that would of been the order in each transports queue
             buildContracts.stream().sorted((a,b) -> a.compareEndTime(b));
             for (BuildContract buildContract : buildContracts) {
-                this.loadContract(contractManager, buildContract);
+                this.initialiseContract(contractManager, buildContract);
             }
         }
     }
 
-    private void loadContract(ContractManager contractManager, BuildContract buildContract) {
+    private void initialiseContract(ContractManager contractManager, BuildContract buildContract) {
         contractManager.initialiseBuildContract(buildContract);
     }
 }

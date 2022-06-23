@@ -61,7 +61,7 @@ public class ContractGroup {
         return startTime;
     }
 
-    protected BuildableData getBuildableData() {
+    public BuildableData getBuildableData() {
         return buildableData;
     }
 

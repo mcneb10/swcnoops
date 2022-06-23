@@ -9,9 +9,15 @@ import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.LoginMessages;
 import swcnoops.server.requests.Messages;
+import swcnoops.server.session.BuildContract;
+import swcnoops.server.session.ContractManager;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.TroopsTransport;
 
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginCommandResult> {
     @Override
@@ -30,7 +36,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         PlayerLoginCommandResult response;
         try {
             response = loadPlayerTemplate();
-            configureLoginForPlayer(response, arguments.getPlayerId());
+            mapLoginForPlayer(response, arguments.getPlayerId());
         } catch (Exception ex) {
             // TODO
             response = new PlayerLoginCommandResult();
@@ -46,7 +52,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     // TODO - setup map and troops
-    private void configureLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId) {
+    private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId) {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
 
         playerLoginResponse.playerModel.map = playerSession.getBaseMap();
@@ -54,14 +60,13 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
         //playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
 
-        setupBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
-        setupShards(playerLoginResponse.playerModel);
-        setupDonatedTroops(playerLoginResponse.playerModel);
+        mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
+        mapShards(playerLoginResponse.playerModel);
+        mapDonatedTroops(playerLoginResponse.playerModel);
 
-        long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();
         playerSession.onboardTransports(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        setupContracts(playerLoginResponse.playerModel, playerSession, timeNow);
-        setupInventory(playerLoginResponse.playerModel, playerSession);
+        mapContracts(playerLoginResponse.playerModel, playerSession);
+        mapInventory(playerLoginResponse.playerModel, playerSession);
 
         // turn off conflicts
         playerLoginResponse.sharedPrefs.put("tv", null);
@@ -77,22 +82,39 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
     }
 
-    private void setupInventory(PlayerModel playerModel, PlayerSession playerSession) {
+    private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory = new Inventory();
         playerModel.inventory.capacity = -1;
-        playerModel.inventory.storage = loadInventoryStorage();
-        playerModel.inventory.subStorage = loadTroopsInTransport(playerSession);
+        playerModel.inventory.storage = mapInventoryStorage();
+        playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 
-    private SubStorage loadTroopsInTransport(PlayerSession playerSession) {
+    private SubStorage mapDeployableTroops(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
-        playerSession.loadTransports(subStorage);
+        ContractManager contractManager = playerSession.getContractManager();
+        mapDeployableTroops(contractManager.getTroopsTransport(), subStorage.troop.storage);
+        mapDeployableTroops(contractManager.getChampionTransport(), subStorage.champion.storage);
+        mapDeployableTroops(contractManager.getHeroTransport(), subStorage.hero.storage);
+        mapDeployableTroops(contractManager.getSpecialAttackTransport(), subStorage.specialAttack.storage);
         return subStorage;
     }
 
-    private InventoryStorage loadInventoryStorage() {
-        InventoryStorage inventoryStorage = new InventoryStorage();
+    private void mapDeployableTroops(TroopsTransport transport, Map<String, StorageAmount> storage) {
+        storage.clear();
+        Iterator<Map.Entry<String,Integer>> troopIterator = transport.getTroopsOnBoard().entrySet().iterator();
+        while(troopIterator.hasNext()) {
+            Map.Entry<String,Integer> entry = troopIterator.next();
+            StorageAmount storageAmount = new StorageAmount();
+            storageAmount.amount = entry.getValue().intValue();
+            storageAmount.capacity = -1;
+            storageAmount.scale = ServiceFactory.instance().getGameDataManager()
+                    .getTroopDataByUid(entry.getKey()).getSize();
+            storage.put(entry.getKey(), storageAmount);
+        }
+    }
 
+    private InventoryStorage mapInventoryStorage() {
+        InventoryStorage inventoryStorage = new InventoryStorage();
         inventoryStorage.crystals.capacity = 7200000;
         inventoryStorage.crystals.amount = 7200000;
         inventoryStorage.crystals.scale = 1;
@@ -132,20 +154,39 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     // TODO - set the troops for the SC
-    private void setupDonatedTroops(PlayerModel playerModel) {
+    private void mapDonatedTroops(PlayerModel playerModel) {
         if (playerModel.donatedTroops == null)
             playerModel.donatedTroops = new HashMap<>();
         else
             playerModel.donatedTroops.clear();
     }
 
-    // TODO - this is to set the contracts which represents the things that are currently being built
-    private void setupContracts(PlayerModel playerModel, PlayerSession playerSession, long time) {
-        playerSession.loadContracts(playerModel.contracts, time);
+    /**
+     * Contracts are things that are still being built
+     * @param playerModel
+     * @param playerSession
+     */
+    private void mapContracts(PlayerModel playerModel, PlayerSession playerSession) {
+        playerModel.contracts.clear();
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getTroopsTransport().getTroopsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getChampionTransport().getTroopsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getHeroTransport().getTroopsInQueue());
+        mapContracts(playerModel.contracts, playerSession.getContractManager().getSpecialAttackTransport().getTroopsInQueue());
+    }
+
+    private void mapContracts(List<Contract> contracts, List<BuildContract> troopsInQueue) {
+        for (BuildContract buildContract : troopsInQueue) {
+            Contract contract = new Contract();
+            contract.contractType = buildContract.getContractGroup().getBuildableData().getContractType();
+            contract.buildingId = buildContract.getBuildingId();
+            contract.uid = buildContract.getUnitTypeId();
+            contract.endTime = buildContract.getEndTime();
+            contracts.add(contract);
+        }
     }
 
     // TODO
-    private void setupBuildableTroops(PlayerModel playerModel, PlayerSettings playerSettings) {
+    private void mapBuildableTroops(PlayerModel playerModel, PlayerSettings playerSettings) {
         playerModel.upgrades = playerSettings.getUpgrades();
 
         // samples
@@ -153,7 +194,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     // TODO - no shards for now but may need to populate as some troops needs shards to be able to build them
-    private void setupShards(PlayerModel playerModel) {
+    private void mapShards(PlayerModel playerModel) {
         playerModel.shards.clear();
     }
 

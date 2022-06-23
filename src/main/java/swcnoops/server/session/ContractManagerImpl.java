@@ -2,6 +2,8 @@ package swcnoops.server.session;
 
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
+import swcnoops.server.model.DeploymentRecord;
+
 import java.util.*;
 
 public class ContractManagerImpl implements ContractManager {
@@ -97,13 +99,31 @@ public class ContractManagerImpl implements ContractManager {
     }
 
     @Override
-    public List<BuildContract> getAllTroopContracts() {
-        List<BuildContract> allContracts = new ArrayList<>();
-        allContracts.addAll(this.troopsTransport.getTroopsInQueue());
-        allContracts.addAll(this.specialAttackTransport.getTroopsInQueue());
-        allContracts.addAll(this.heroTransport.getTroopsInQueue());
-        allContracts.addAll(this.championTransport.getTroopsInQueue());
-        return allContracts;
+    public void removeDeployedTroops(Map<String, Integer> deployablesToRemove) {
+        this.troopsTransport.removeTroopsOnBoard(deployablesToRemove);
+        this.specialAttackTransport.removeTroopsOnBoard(deployablesToRemove);
+        this.heroTransport.removeTroopsOnBoard(deployablesToRemove);
+        this.championTransport.removeTroopsOnBoard(deployablesToRemove);
+    }
+
+    @Override
+    public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove) {
+        for (DeploymentRecord deploymentRecord : deployablesToRemove) {
+            switch (deploymentRecord.getAction()) {
+                case "HeroDeployed":
+                    this.heroTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    break;
+                case "TroopPlaced":
+                    this.troopsTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    break;
+                case "SpecialAttackDeployed":
+                    this.specialAttackTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    break;
+                case "ChampionDeployed":
+                    this.championTransport.removeTroopsOnBoard(deploymentRecord.getUid(), Integer.valueOf(1));
+                    break;
+            }
+        }
     }
 
     private ContractConstructor getContractConstructor(String buildingId) {

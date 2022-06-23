@@ -4,14 +4,12 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.UtilsHelper;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
-import swcnoops.server.session.BuildContract;
 import swcnoops.server.session.BuildContracts;
 import swcnoops.server.session.PlayerSessionImpl;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.List;
 import java.util.stream.Collectors;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
@@ -154,8 +152,16 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void savePlayerSession(PlayerSessionImpl playerSession) {
-        List<BuildContract> buildContracts = playerSession.getAllBuildContracts();
-        String json = ServiceFactory.instance().getJsonParser().toJson(buildContracts);
+        // replace the players settings with new data before saving
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        BuildContracts allContracts = playerSettings.getBuildContracts();
+        allContracts.clear();
+        allContracts.addAll(playerSession.getContractManager().getTroopsTransport().getTroopsInQueue());
+        allContracts.addAll(playerSession.getContractManager().getChampionTransport().getTroopsInQueue());
+        allContracts.addAll(playerSession.getContractManager().getHeroTransport().getTroopsInQueue());
+        allContracts.addAll(playerSession.getContractManager().getSpecialAttackTransport().getTroopsInQueue());
+        String json = ServiceFactory.instance().getJsonParser().toJson(allContracts);
+
         savePlayerSettings(playerSession.getPlayerId(), json);
     }
 
