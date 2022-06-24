@@ -6,7 +6,7 @@ public class BuildingData implements BuildableData {
     final private String uid;
     private String faction;
     private int level;
-    private String type;
+    private BuildingType type;
     private int storage;
     private int time;
     private String buildingID;
@@ -32,12 +32,11 @@ public class BuildingData implements BuildableData {
         return level;
     }
 
-    public void setType(String type) {
+    public void setType(BuildingType type) {
         this.type = type;
     }
 
-    @Override
-    public String getType() {
+    public BuildingType getType() {
         return type;
     }
 
@@ -77,11 +76,6 @@ public class BuildingData implements BuildableData {
     @Override
     public int getSize() {
         throw new NotImplementedException();
-    }
-
-    @Override
-    public ContractType getContractType() {
-        return ContractType.Build;
     }
 
     public void setTrapId(String trapId) {

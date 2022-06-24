@@ -25,5 +25,16 @@ public class GameDataManagerImplTest {
         assertNotNull(troopData);
         TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
         assertNotNull(trapData);
+        buildingData = gameDataManager.getBuildingDataByUid("rebelPlatformDroideka50");
+        assertNotNull(buildingData);
+        troopData = gameDataManager.getTroopDataByUid("troopChampionRebelDroideka50");
+        assertNotNull(troopData);
+
+        buildingData = gameDataManager.getBuildingDataByUid("rebelPlatformHeavyDroideka47");
+        assertNotNull(buildingData);
+        troopData = gameDataManager.getTroopDataByUid("troopChampionRebelHeavyDroideka47");
+        assertNotNull(troopData);
+
+
     }
 }

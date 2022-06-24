@@ -44,19 +44,6 @@ public class TrapData implements BuildableData {
         return 0;
     }
 
-    @Override
-    public String getType() {
-        return null;
-    }
-
-    @Override
-    public ContractType getContractType() {
-        if (TrapEventType.CreatureSpecialAttack == this.getEventType())
-            return ContractType.Creature;
-
-        return ContractType.Build;
-    }
-
     public String getEventData() {
         return eventData;
     }

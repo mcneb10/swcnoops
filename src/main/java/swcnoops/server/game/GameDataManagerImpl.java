@@ -127,7 +127,7 @@ public class GameDataManagerImpl implements GameDataManager {
             BuildingData buildingData = new BuildingData(uid);
             buildingData.setFaction(faction);
             buildingData.setLevel(lvl);
-            buildingData.setType(type);
+            buildingData.setType(BuildingType.valueOf(type));
             buildingData.setStorage(storage);
             buildingData.setTime(time);
             buildingData.setBuildingID(buildingID);

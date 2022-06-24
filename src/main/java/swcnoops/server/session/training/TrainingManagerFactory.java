@@ -41,26 +41,26 @@ public class TrainingManagerFactory {
 
     private void configureForBuilding(TrainingManager trainingManager, Building building, BuildingData buildingData) {
         switch (buildingData.getType()) {
-            case "factory":
-            case "barracks":
-            case "cantina":
+            case factory:
+            case barracks:
+            case cantina:
                 trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableTroops(),
                         ContractType.Troop);
                 break;
-            case "hero_mobilizer":
+            case hero_mobilizer:
                 trainingManager.getDeployableHero().addStorage(buildingData.getStorage());
                 trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableHero(),
                         ContractType.Hero);
                 break;
-            case "champion_platform":
+            case champion_platform:
                 trainingManager.getDeployableChampion().addStorage(buildingData.getStorage());
                 trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableChampion(),
                         ContractType.Champion);
                 break;
-            case "starport":
+            case starport:
                 trainingManager.getDeployableTroops().addStorage(buildingData.getStorage());
                 break;
-            case "fleet_command":
+            case fleet_command:
                 trainingManager.getDeployableSpecialAttack().addStorage(buildingData.getStorage());
                 trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableSpecialAttack(),
                         ContractType.SpecialAttack);
