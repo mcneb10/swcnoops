@@ -180,21 +180,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         String json = ServiceFactory.instance().getJsonParser().toJson(allContracts);
 
         Deployables deployables = playerSettings.getDeployableTroops();
-        mapDeployableTroops(playerSession, deployables);
+        mapToPlayerSetting(playerSession, deployables);
         String deployablesJson = ServiceFactory.instance().getJsonParser().toJson(deployables);
 
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, json);
     }
 
-    private void mapDeployableTroops(PlayerSession playerSession, Deployables deployables) {
+    private void mapToPlayerSetting(PlayerSession playerSession, Deployables deployables) {
         TrainingManager trainingManager = playerSession.getTrainingManager();
-        mapDeployableTroops(trainingManager.getDeployableTroops(), deployables.troop);
-        mapDeployableTroops(trainingManager.getDeployableChampion(), deployables.champion);
-        mapDeployableTroops(trainingManager.getDeployableHero(), deployables.hero);
-        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
+        mapToPlayerSetting(trainingManager.getDeployableTroops(), deployables.troop);
+        mapToPlayerSetting(trainingManager.getDeployableChampion(), deployables.champion);
+        mapToPlayerSetting(trainingManager.getDeployableHero(), deployables.hero);
+        mapToPlayerSetting(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
     }
 
-    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, Integer> storage) {
+    private void mapToPlayerSetting(DeployableQueue deployableQueue, Map<String, Integer> storage) {
         storage.clear();
         storage.putAll(deployableQueue.getDeployableUnits());
     }

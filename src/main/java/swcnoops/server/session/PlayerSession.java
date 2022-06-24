@@ -30,4 +30,6 @@ public interface PlayerSession {
 
     TrainingManager getTrainingManager();
     PlayerSettings getPlayerSettings();
+
+    void captureCreature(String instanceId, String creatureTroopUid, long time);
 }

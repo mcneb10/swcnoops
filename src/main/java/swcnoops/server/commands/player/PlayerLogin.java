@@ -172,12 +172,18 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
         mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
         mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
+//        Contract contract = new Contract();
+//        contract.contractType = ContractType.Creature.name();
+//        contract.buildingId = "bld_794";
+//        contract.uid = "empireTrapDropshipCreature10";
+//        contract.endTime = ServiceFactory.getSystemTimeSecondsFromEpoch() + (60*30);
+//        playerModel.contracts.add(contract);
     }
 
     private void mapContracts(List<Contract> contracts, List<BuildUnit> troopsInQueue) {
         for (BuildUnit buildUnit : troopsInQueue) {
             Contract contract = new Contract();
-            contract.contractType = buildUnit.getBuildSlot().getBuildableData().getContractType();
+            contract.contractType = buildUnit.getBuilder().getContractType().name();
             contract.buildingId = buildUnit.getBuildingId();
             contract.uid = buildUnit.getUnitTypeId();
             contract.endTime = buildUnit.getEndTime();

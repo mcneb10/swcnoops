@@ -41,14 +41,13 @@ public class CommandFactory {
         this.add(new PlayerDeployableBuyout());
         this.add(new PlayerDeployableRemove());
         this.add(new PlayerDeployableSpend());
+        this.add(new PlayerBuildingCapture());
 
         //this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
 
         //this.add(new OkCommandAction("player.deployable.upgrade.start"));
 
-        // these are unsure at the moment and needs to be looked at again
-        this.add(new OkCommandAction("player.building.capture"));
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
         this.add(new OkCommandAction("player.building.multimove"));

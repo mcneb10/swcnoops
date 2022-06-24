@@ -6,4 +6,6 @@ public interface GameDataManager {
     TroopData getTroopDataByUid(String uid);
 
     BuildingData getBuildingDataByUid(String uid);
+
+    TrapData getTrapDataByUid(String uid);
 }

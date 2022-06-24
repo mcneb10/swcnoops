@@ -112,4 +112,9 @@ public class PlayerSessionImpl implements PlayerSession {
     public PlayerSettings getPlayerSettings() {
         return playerSettings;
     }
+
+    @Override
+    public void captureCreature(String instanceId, String creatureTroopUid, long time) {
+        // TODO -
+    }
 }

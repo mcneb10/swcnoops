@@ -10,18 +10,11 @@ public class TroopData implements BuildableData {
     private int trainingTime;
     private String upgradeShardUid;
     private int upgradeShards;
-    final private boolean isSpecialAttack;
 
-    public TroopData(String uid, boolean isSpecialAttack) {
+    public TroopData(String uid) {
         this.uid = uid;
-        this.isSpecialAttack = isSpecialAttack;
     }
-
     @Override
-    public boolean isSpecialAttack() {
-        return isSpecialAttack;
-    }
-
     public String getUid() {
         return uid;
     }
@@ -98,7 +91,7 @@ public class TroopData implements BuildableData {
     }
 
     @Override
-    public String getContractType() {
-        return "Troop";
+    public ContractType getContractType() {
+        return ContractType.Troop;
     }
 }

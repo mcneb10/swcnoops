@@ -1,10 +1,8 @@
 package swcnoops.server.session.training;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.datasource.Deployables;
 import swcnoops.server.datasource.PlayerSettings;
-import swcnoops.server.game.BuildingData;
-import swcnoops.server.game.GameDataManager;
+import swcnoops.server.game.*;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 
@@ -46,43 +44,41 @@ public class TrainingManagerFactory {
             case "factory":
             case "barracks":
             case "cantina":
-                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableTroops());
+                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableTroops(),
+                        ContractType.Troop);
                 break;
             case "hero_mobilizer":
                 trainingManager.getDeployableHero().addStorage(buildingData.getStorage());
-                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableHero());
+                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableHero(),
+                        ContractType.Hero);
                 break;
             case "champion_platform":
                 trainingManager.getDeployableChampion().addStorage(buildingData.getStorage());
-                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableChampion());
+                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableChampion(),
+                        ContractType.Champion);
                 break;
             case "starport":
                 trainingManager.getDeployableTroops().addStorage(buildingData.getStorage());
                 break;
             case "fleet_command":
                 trainingManager.getDeployableSpecialAttack().addStorage(buildingData.getStorage());
-                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableSpecialAttack());
+                trainingManager.initialiseBuilder(building, buildingData, trainingManager.getDeployableSpecialAttack(),
+                        ContractType.SpecialAttack);
                 break;
         }
     }
 
     private void initialiseFromPlayerSettings(TrainingManager trainingManager, PlayerSettings playerSettings) {
         initialiseBuildContracts(trainingManager, playerSettings.getBuildContracts());
-        Deployables deployables = playerSettings.getDeployableTroops();
-        trainingManager.initialiseDeployables(deployables);
+        trainingManager.initialiseDeployables(playerSettings.getDeployableTroops());
     }
 
     private void initialiseBuildContracts(TrainingManager trainingManager, BuildUnits buildUnits) {
         if (buildUnits != null) {
-            // we sort it by endTime as that would of been the order in each transports queue
             buildUnits.stream().sorted((a, b) -> a.compareEndTime(b));
             for (BuildUnit buildUnit : buildUnits) {
-                this.initialiseContract(trainingManager, buildUnit);
+                trainingManager.initialiseBuildUnit(buildUnit);
             }
         }
-    }
-
-    private void initialiseContract(TrainingManager trainingManager, BuildUnit buildUnit) {
-        trainingManager.initialiseBuildUnit(buildUnit);
     }
 }

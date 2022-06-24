@@ -2,6 +2,7 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.datasource.Deployables;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.ContractType;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.DeploymentRecord;
 
@@ -19,7 +20,8 @@ public interface TrainingManager {
     DeployableQueue getDeployableHero();
     DeployableQueue getDeployableChampion();
 
-    void initialiseBuilder(Building building, BuildingData buildingData, DeployableQueue deployableQueue);
+    void initialiseBuilder(Building building, BuildingData buildingData, DeployableQueue deployableQueue,
+                           ContractType contractType);
     void initialiseBuildUnit(BuildUnit buildUnit);
 
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove);

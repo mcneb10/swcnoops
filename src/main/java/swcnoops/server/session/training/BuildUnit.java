@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class BuildUnit {
     @JsonIgnore
-    private Builder parent;
+    private Builder builder;
     private String buildingId;
     private String unitTypeId;
     private long endTime;
@@ -19,14 +19,14 @@ public class BuildUnit {
     public BuildUnit() {
     }
 
-    public BuildUnit(Builder parent, String buildingId, String unitTypeId) {
+    public BuildUnit(Builder builder, String buildingId, String unitTypeId) {
         this.buildingId = buildingId;
         this.unitTypeId = unitTypeId;
-        this.parent = parent;
+        this.builder = builder;
     }
 
-    protected void setParent(Builder parent) {
-        this.parent = parent;
+    protected void setBuilder(Builder builder) {
+        this.builder = builder;
     }
 
     public String getBuildingId() {
@@ -53,9 +53,8 @@ public class BuildUnit {
         return buildSlot;
     }
 
-    @JsonIgnore
     public Builder getBuilder() {
-        return parent;
+        return builder;
     }
 
     public int compareEndTime(BuildUnit b) {
