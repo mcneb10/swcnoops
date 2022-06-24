@@ -2,7 +2,7 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildableData;
 import swcnoops.server.game.BuildingData;
-
+import swcnoops.server.game.ContractType;
 import java.util.*;
 
 /**
@@ -17,11 +17,17 @@ public class Builder {
     private long startTime;
     final private BuildingData buildingData;
     private DeployableQueue deployableQueue;
+    final private ContractType contractType;
 
-    public Builder(String buildingId, BuildingData buildingData, DeployableQueue deployableQueue) {
+    public Builder(String buildingId, BuildingData buildingData, DeployableQueue deployableQueue, ContractType contractType) {
         this.buildingId = buildingId;
         this.buildingData = buildingData;
         this.deployableQueue = deployableQueue;
+        this.contractType = contractType;
+    }
+
+    public BuildingData getBuildingData() {
+        return buildingData;
     }
 
     public String getBuildingId() {
@@ -88,11 +94,15 @@ public class Builder {
     }
 
     protected void load(BuildUnit buildUnit) {
-        buildUnit.setParent(this);
+        buildUnit.setBuilder(this);
         this.buildQueue.add(buildUnit);
     }
 
     public DeployableQueue getDeployableQueue() {
         return deployableQueue;
+    }
+
+    public ContractType getContractType() {
+        return this.contractType;
     }
 }

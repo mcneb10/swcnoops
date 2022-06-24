@@ -5,6 +5,7 @@ import swcnoops.server.UtilsHelper;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.PlayerSessionImpl;
 import swcnoops.server.session.training.DeployableQueue;
@@ -100,7 +101,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
-        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts " +
+        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creatureSettings " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -149,6 +150,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         else
                             buildUnits = new BuildUnits();
                         playerSettings.setBuildContracts(buildUnits);
+
+                        String creatureSettingsJson = rs.getString("creatureSettings");
+                        CreatureSettings creatureSettings = null;
+                        if (contractsJson != null) {
+                            creatureSettings = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(creatureSettingsJson, CreatureSettings.class);
+                        }
+                        playerSettings.setCreatureSettings(creatureSettings);
                     }
                 }
             }
@@ -180,21 +189,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         String json = ServiceFactory.instance().getJsonParser().toJson(allContracts);
 
         Deployables deployables = playerSettings.getDeployableTroops();
-        mapDeployableTroops(playerSession, deployables);
+        mapToPlayerSetting(playerSession, deployables);
         String deployablesJson = ServiceFactory.instance().getJsonParser().toJson(deployables);
 
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, json);
     }
 
-    private void mapDeployableTroops(PlayerSession playerSession, Deployables deployables) {
+    private void mapToPlayerSetting(PlayerSession playerSession, Deployables deployables) {
         TrainingManager trainingManager = playerSession.getTrainingManager();
-        mapDeployableTroops(trainingManager.getDeployableTroops(), deployables.troop);
-        mapDeployableTroops(trainingManager.getDeployableChampion(), deployables.champion);
-        mapDeployableTroops(trainingManager.getDeployableHero(), deployables.hero);
-        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
+        mapToPlayerSetting(trainingManager.getDeployableTroops(), deployables.troop);
+        mapToPlayerSetting(trainingManager.getDeployableChampion(), deployables.champion);
+        mapToPlayerSetting(trainingManager.getDeployableHero(), deployables.hero);
+        mapToPlayerSetting(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
     }
 
-    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, Integer> storage) {
+    private void mapToPlayerSetting(DeployableQueue deployableQueue, Map<String, Integer> storage) {
         storage.clear();
         storage.putAll(deployableQueue.getDeployableUnits());
     }
@@ -214,7 +223,35 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 }
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player name id=" + playerId, ex);
+            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
+        }
+    }
+
+    @Override
+    public void savePlayerSessionCreature(PlayerSessionImpl playerSession) {
+        // replace the players settings with new data before saving
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        CreatureManager creatureManager = playerSession.getCreatureManager();
+        playerSettings.setCreatureSettings(creatureManager.getCreatureSettings());
+        String json = ServiceFactory.instance().getJsonParser().toJson(playerSettings.getCreatureSettings());
+        savePlayerSettingsCreature(playerSession.getPlayerId(), json);
+    }
+
+    private void savePlayerSettingsCreature(String playerId, String creatureSettings) {
+        final String sql = "update PlayerSettings " +
+                "set creatureSettings = ? " +
+                "WHERE id = ?";
+
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                    stmt.setString(1, creatureSettings);
+                    stmt.setString(2, playerId);
+                    stmt.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save creature settings id=" + playerId, ex);
         }
     }
 }

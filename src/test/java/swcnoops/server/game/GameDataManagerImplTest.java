@@ -4,6 +4,8 @@ import org.junit.Test;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 
+import java.sql.Timestamp;
+
 import static org.junit.Assert.assertNotNull;
 
 public class GameDataManagerImplTest {
@@ -21,5 +23,7 @@ public class GameDataManagerImplTest {
         assertNotNull(buildingData);
         troopData = gameDataManager.getTroopDataByUid("specialAttackEmpireCreatureDropship10");
         assertNotNull(troopData);
+        TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
+        assertNotNull(trapData);
     }
 }

@@ -10,6 +10,7 @@ public class BuildingData implements BuildableData {
     private int storage;
     private int time;
     private String buildingID;
+    private String trapId;
 
     public BuildingData(String uid) {
         this.uid = uid;
@@ -63,7 +64,7 @@ public class BuildingData implements BuildableData {
     protected void setBuildingID(String buildingID) {
         this.buildingID = buildingID;
     }
-
+    @Override
     public String getUid() {
         return this.uid;
     }
@@ -79,12 +80,15 @@ public class BuildingData implements BuildableData {
     }
 
     @Override
-    public boolean isSpecialAttack() {
-        return false;
+    public ContractType getContractType() {
+        return ContractType.Build;
     }
 
-    @Override
-    public String getContractType() {
-        return "Building";
+    public void setTrapId(String trapId) {
+        this.trapId = trapId;
+    }
+
+    public String getTrapId() {
+        return trapId;
     }
 }

@@ -4,6 +4,8 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
+import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
@@ -13,13 +15,16 @@ public class PlayerSessionImpl implements PlayerSession {
     final private Player player;
     final private PlayerSettings playerSettings;
     final private TrainingManager trainingManager;
+    final private CreatureManager creatureManager;
 
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
+    static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
         this.playerSettings = playerSettings;
-        this.trainingManager = this.trainingManagerFactory.createForPlayer(this.getPlayerSettings());
+        this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this.getPlayerSettings());
+        this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this.getPlayerSettings());
     }
 
     @Override
@@ -65,7 +70,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     /**
      * This is removal during a battle to remove troops that were used.
-     * TODO - CreatureDeployed
+     * Creatures if they stay alive during a battle seem to stay active
      * @param deployablesToRemove
      * @param time
      */
@@ -111,5 +116,28 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public PlayerSettings getPlayerSettings() {
         return playerSettings;
+    }
+
+    @Override
+    public void recaptureCreature(String instanceId, String creatureTroopUid, long time) {
+        this.creatureManager.recaptureCreature(creatureTroopUid, time);
+        saveCreatureSession();
+    }
+
+    private void saveCreatureSession() {
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSessionCreature(this);
+    }
+
+    @Override
+    public void buildingBuyout(String instanceId, String tag, long time) {
+        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(instanceId)) {
+            this.creatureManager.creatureBuyout();
+            saveCreatureSession();
+        }
+    }
+
+    @Override
+    public CreatureManager getCreatureManager() {
+        return creatureManager;
     }
 }

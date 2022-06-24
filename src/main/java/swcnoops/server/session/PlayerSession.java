@@ -4,6 +4,7 @@ import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.model.PlayerMap;
+import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.training.TrainingManager;
 
 import java.util.List;
@@ -30,4 +31,10 @@ public interface PlayerSession {
 
     TrainingManager getTrainingManager();
     PlayerSettings getPlayerSettings();
+
+    void recaptureCreature(String instanceId, String creatureTroopUid, long time);
+
+    CreatureManager getCreatureManager();
+
+    void buildingBuyout(String instanceId, String tag, long time);
 }

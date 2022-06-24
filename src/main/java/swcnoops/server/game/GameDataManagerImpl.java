@@ -9,12 +9,14 @@ import java.util.Map;
 public class GameDataManagerImpl implements GameDataManager {
     private Map<String, TroopData> troops = new HashMap<>();
     private Map<String, BuildingData> buildings = new HashMap<>();
+    private Map<String, TrapData> traps = new HashMap<>();
 
     @Override
     public void initOnStartup() {
         try {
             this.troops = loadTroops();
             this.buildings = loadBuildings();
+            this.traps = loadTraps();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
         }
@@ -28,6 +30,11 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public BuildingData getBuildingDataByUid(String uid) {
         return this.buildings.get(uid);
+    }
+
+    @Override
+    public TrapData getTrapDataByUid(String uid) {
+        return this.traps.get(uid);
     }
 
     private Map<String, TroopData> loadTroops() throws Exception {
@@ -56,9 +63,8 @@ public class GameDataManagerImpl implements GameDataManager {
             int trainingTime = Integer.valueOf(troop.get("trainingTime")).intValue();
             String upgradeShardUid = troop.get("upgradeShardUid");
             int upgradeShards = Integer.valueOf(troop.get("upgradeShards") == null ? "0" : troop.get("upgradeShards")).intValue();
-            boolean isSpecialAttack = troop.containsKey("specialAttackID");
 
-            TroopData troopData = new TroopData(uid, isSpecialAttack);
+            TroopData troopData = new TroopData(uid);
             troopData.setFaction(faction);
             troopData.setLevel(lvl);
             troopData.setUnitId(unitId);
@@ -69,6 +75,32 @@ public class GameDataManagerImpl implements GameDataManager {
             troopData.setUpgradeShards(upgradeShards);
 
             map.put(troopData.getUid(), troopData);
+        }
+    }
+
+    private Map<String, TrapData> loadTraps() throws Exception {
+        Map<String, TrapData> map = new HashMap<>();
+        Map result = ServiceFactory.instance().getJsonParser()
+                .toObjectFromResource(ServiceFactory.instance().getConfig().baseJson, Map.class);
+        Map<String, Map> jsonSpreadSheet = (Map<String, Map>) result;
+        Map<String, Map> contentMap = jsonSpreadSheet.get("content");
+        Map<String, Map> objectsMap = contentMap.get("objects");
+        List<Map<String,String>> trapDataMap = (List<Map<String,String>>) objectsMap.get("TrapData");
+        addTrapsToMap(map, trapDataMap);
+        return map;
+    }
+
+    private void addTrapsToMap(Map<String, TrapData> map, List<Map<String, String>> trapDataMap) {
+        for (Map<String,String> trap : trapDataMap) {
+            String uid = trap.get("uid");
+            TrapEventType trapEventType = TrapEventType.valueOf(trap.get("eventType"));
+            Long rearmTime = trap.get("rearmTime") != null ? new Long(trap.get("rearmTime")) : null;
+            String eventData = trap.get("eventData");
+            TrapData trapData = new TrapData(uid);
+            trapData.setEventType(trapEventType);
+            trapData.setRearmTime(rearmTime);
+            trapData.setEventData(eventData);
+            map.put(trapData.getUid(), trapData);
         }
     }
 
@@ -87,6 +119,7 @@ public class GameDataManagerImpl implements GameDataManager {
             String uid = building.get("uid");
             String buildingID = building.get("buildingID");
             String type = building.get("type");
+            String trapId = building.get("trapID");
             int lvl = Integer.valueOf(building.get("lvl"));
             int storage = Integer.valueOf(building.get("storage") == null ? "0" : building.get("storage")).intValue();
             int time = Integer.valueOf(building.get("time")).intValue();
@@ -98,6 +131,7 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setStorage(storage);
             buildingData.setTime(time);
             buildingData.setBuildingID(buildingID);
+            buildingData.setTrapId(trapId);
 
             map.put(buildingData.getUid(), buildingData);
         }

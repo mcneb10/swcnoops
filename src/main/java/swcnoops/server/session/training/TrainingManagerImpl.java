@@ -2,6 +2,7 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.datasource.Deployables;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.ContractType;
 import swcnoops.server.model.*;
 
 import java.util.*;
@@ -21,6 +22,7 @@ public class TrainingManagerImpl implements TrainingManager {
         this.championTransport = new DeployableQueue();
     }
 
+    @Override
     public DeployableQueue getDeployableTroops() {
         return troopTransport;
     }
@@ -150,9 +152,10 @@ public class TrainingManagerImpl implements TrainingManager {
     }
 
     @Override
-    public void initialiseBuilder(Building building, BuildingData buildingData, DeployableQueue deployableQueue) {
+    public void initialiseBuilder(Building building, BuildingData buildingData, DeployableQueue deployableQueue,
+                                  ContractType contractType) {
         if (!this.builders.containsKey(building.key)) {
-            Builder builder = new Builder(building.key, buildingData, deployableQueue);
+            Builder builder = new Builder(building.key, buildingData, deployableQueue, contractType);
             this.builders.put(builder.getBuildingId(), builder);
         }
     }
@@ -167,17 +170,13 @@ public class TrainingManagerImpl implements TrainingManager {
 
     @Override
     public void initialiseDeployables(Deployables deployables) {
-        mapDeployableTroops(this, deployables);
+        initialiseDeployables(this.getDeployableTroops(), deployables.troop);
+        initialiseDeployables(this.getDeployableChampion(), deployables.champion);
+        initialiseDeployables(this.getDeployableHero(), deployables.hero);
+        initialiseDeployables(this.getDeployableSpecialAttack(), deployables.specialAttack);
     }
 
-    private void mapDeployableTroops(TrainingManager trainingManager, Deployables deployables) {
-        mapDeployableTroops(trainingManager.getDeployableTroops(), deployables.troop);
-        mapDeployableTroops(trainingManager.getDeployableChampion(), deployables.champion);
-        mapDeployableTroops(trainingManager.getDeployableHero(), deployables.hero);
-        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
-    }
-
-    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, Integer> storage) {
+    private void initialiseDeployables(DeployableQueue deployableQueue, Map<String, Integer> storage) {
         deployableQueue.getDeployableUnits().clear();
         deployableQueue.getDeployableUnits().putAll(storage);
     }
