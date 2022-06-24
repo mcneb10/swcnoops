@@ -1,7 +1,11 @@
 package swcnoops.server.commands.player.response;
 
+import swcnoops.server.model.CreatureTrapData;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.requests.AbstractCommandResult;
+
+import java.util.List;
+import java.util.Map;
 
 public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
     public String battleId;
@@ -17,7 +21,8 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
     public String guildId;
     public String guildName;
     public Object guildDonatedTroops;
-    public Object champions;
+    public Map<String,Integer> champions;
+    public List<CreatureTrapData> creatureTrapData;
     public int potentialMedalsToGain;
     public int potentialMedalsToLose;
     public int potentialTournamentRatingDeltaWin;

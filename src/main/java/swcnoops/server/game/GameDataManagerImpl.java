@@ -123,15 +123,17 @@ public class GameDataManagerImpl implements GameDataManager {
             int lvl = Integer.valueOf(building.get("lvl"));
             int storage = Integer.valueOf(building.get("storage") == null ? "0" : building.get("storage")).intValue();
             int time = Integer.valueOf(building.get("time")).intValue();
+            String linkedUnit = building.get("linkedUnit");
 
             BuildingData buildingData = new BuildingData(uid);
             buildingData.setFaction(faction);
             buildingData.setLevel(lvl);
-            buildingData.setType(type);
+            buildingData.setType(BuildingType.valueOf(type));
             buildingData.setStorage(storage);
             buildingData.setTime(time);
             buildingData.setBuildingID(buildingID);
             buildingData.setTrapId(trapId);
+            buildingData.setLinkedUnit(linkedUnit);
 
             map.put(buildingData.getUid(), buildingData);
         }

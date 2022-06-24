@@ -47,11 +47,6 @@ public class TroopData implements BuildableData {
         this.type = type;
     }
 
-    @Override
-    public String getType() {
-        return type;
-    }
-
     protected void setSize(int size) {
         this.size = size;
     }
@@ -88,10 +83,5 @@ public class TroopData implements BuildableData {
     @Override
     public long getBuildingTime() {
         return this.getTrainingTime();
-    }
-
-    @Override
-    public ContractType getContractType() {
-        return ContractType.Troop;
     }
 }
