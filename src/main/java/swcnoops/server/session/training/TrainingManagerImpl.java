@@ -124,6 +124,12 @@ public class TrainingManagerImpl implements TrainingManager {
         this.championTransport.removeDeployable(deployablesToRemove);
     }
 
+    /**
+     * Removal during a battle.
+     * TODO - We do not remove champions because if they stay alive then we want to keep them.
+     * need to remove them only when they have been killed.
+     * @param deployablesToRemove - list of deployment records from client
+     */
     @Override
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove) {
         for (DeploymentRecord deploymentRecord : deployablesToRemove) {
@@ -136,9 +142,6 @@ public class TrainingManagerImpl implements TrainingManager {
                     break;
                 case "SpecialAttackDeployed":
                     this.specialAttackTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
-                    break;
-                case "ChampionDeployed":
-                    this.championTransport.removeDeployable(deploymentRecord.getUid(), Integer.valueOf(1));
                     break;
             }
         }
