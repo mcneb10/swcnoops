@@ -3,8 +3,14 @@ package swcnoops.server.commands.player;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandResult;
+import swcnoops.server.game.BuildingData;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.Building;
 import swcnoops.server.model.Buildings;
+import swcnoops.server.model.CreatureTrapData;
+import swcnoops.server.model.PlayerMap;
+import swcnoops.server.session.creature.CreatureDataMap;
+import swcnoops.server.session.creature.CreatureManagerFactory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -22,7 +28,35 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
                 parseJsonFile("templates/playerPvpGetNextTarget.json", PlayerPvpGetNextTargetCommandResult.class);
         response.battleId = ServiceFactory.createRandomUUID();
         response.map.buildings = getNextLayout();
+        setupDefenseTroops(response, response.map);
         return response;
+    }
+
+    private void setupDefenseTroops(PlayerPvpGetNextTargetCommandResult response, PlayerMap map) {
+        response.champions.clear();
+        for (Building building : map.buildings) {
+            BuildingData buildingData =
+                    ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+            if (buildingData != null) {
+                switch (buildingData.getType()) {
+                    case champion_platform:
+                        response.champions.put(buildingData.getLinkedUnit(), Integer.valueOf(1));
+                        break;
+                }
+            }
+        }
+
+        // TODO - change to have a random creature
+        CreatureDataMap creatureDataMap = CreatureManagerFactory.findCreatureTrap(map);
+        if (creatureDataMap != null && creatureDataMap.building != null) {
+            response.creatureTrapData = new ArrayList<>();
+            CreatureTrapData creatureTrapData = new CreatureTrapData();
+            creatureTrapData.ready = true;
+            creatureTrapData.buildingId = creatureDataMap.building.key;
+            creatureTrapData.specialAttackUid = creatureDataMap.trapData.getEventData();
+            creatureTrapData.championUid = "troopRebelRancorCreature10";
+            response.creatureTrapData.add(creatureTrapData);
+        }
     }
 
     private Buildings getNextLayout() {

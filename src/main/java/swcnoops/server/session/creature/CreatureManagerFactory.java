@@ -34,7 +34,7 @@ public class CreatureManagerFactory {
         return new CreatureManagerImpl(creatureDataMap, playerCreatureSettings);
     }
 
-    private CreatureDataMap findCreatureTrap(PlayerMap map) {
+    static public CreatureDataMap findCreatureTrap(PlayerMap map) {
         CreatureDataMap creatureDataMap = null;
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         for (Building building : map.buildings) {

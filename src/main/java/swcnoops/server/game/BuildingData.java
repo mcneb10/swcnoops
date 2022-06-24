@@ -11,7 +11,7 @@ public class BuildingData implements BuildableData {
     private int time;
     private String buildingID;
     private String trapId;
-
+    private String linkedUnit;
     public BuildingData(String uid) {
         this.uid = uid;
     }
@@ -84,5 +84,13 @@ public class BuildingData implements BuildableData {
 
     public String getTrapId() {
         return trapId;
+    }
+
+    public String getLinkedUnit() {
+        return linkedUnit;
+    }
+
+    public void setLinkedUnit(String linkedUnit) {
+        this.linkedUnit = linkedUnit;
     }
 }

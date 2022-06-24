@@ -5,9 +5,9 @@ import swcnoops.server.game.TrapData;
 import swcnoops.server.model.Building;
 
 public class CreatureDataMap {
-    final protected Building building;
-    final protected BuildingData buildingData;
-    final protected TrapData trapData;
+    final public Building building;
+    final public BuildingData buildingData;
+    final public TrapData trapData;
 
     protected CreatureDataMap(Building building, BuildingData buildingData, TrapData trapData) {
         this.building = building;
