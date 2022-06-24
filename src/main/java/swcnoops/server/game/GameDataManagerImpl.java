@@ -95,9 +95,11 @@ public class GameDataManagerImpl implements GameDataManager {
             String uid = trap.get("uid");
             TrapEventType trapEventType = TrapEventType.valueOf(trap.get("eventType"));
             Long rearmTime = trap.get("rearmTime") != null ? new Long(trap.get("rearmTime")) : null;
+            String eventData = trap.get("eventData");
             TrapData trapData = new TrapData(uid);
             trapData.setEventType(trapEventType);
             trapData.setRearmTime(rearmTime);
+            trapData.setEventData(eventData);
             map.put(trapData.getUid(), trapData);
         }
     }

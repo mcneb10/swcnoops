@@ -4,20 +4,19 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.game.ContractType;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.LoginMessages;
 import swcnoops.server.requests.Messages;
+import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.training.DeployableQueue;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginCommandResult> {
     @Override
@@ -67,6 +66,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerSession.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         mapContracts(playerLoginResponse.playerModel, playerSession);
         mapInventory(playerLoginResponse.playerModel, playerSession);
+        mapCreatureTrapData(playerLoginResponse.playerModel, playerSession);
 
         // turn off conflicts
         playerLoginResponse.sharedPrefs.put("tv", null);
@@ -80,6 +80,18 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+    }
+
+    private void mapCreatureTrapData(PlayerModel playerModel, PlayerSession playerSession) {
+        playerModel.creatureTrapData = new ArrayList<>();
+        if (playerSession.getCreatureManager().hasCreature()) {
+            CreatureTrapData creatureTrapData = new CreatureTrapData();
+            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingKey();
+            creatureTrapData.specialAttackUid = playerSession.getCreatureManager().getSpecialAttackUid();
+            creatureTrapData.ready = playerSession.getCreatureManager().isCreatureAlive();
+            creatureTrapData.championUid = playerSession.getCreatureManager().getCreatureUid();
+            playerModel.creatureTrapData.add(creatureTrapData);
+        }
     }
 
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
@@ -172,12 +184,21 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
         mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
         mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
-//        Contract contract = new Contract();
-//        contract.contractType = ContractType.Creature.name();
-//        contract.buildingId = "bld_794";
-//        contract.uid = "empireTrapDropshipCreature10";
-//        contract.endTime = ServiceFactory.getSystemTimeSecondsFromEpoch() + (60*30);
-//        playerModel.contracts.add(contract);
+
+        mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
+    }
+
+    private void mapCreatureContract(List<Contract> contracts, CreatureManager creatureManager) {
+        if (creatureManager.hasCreature()) {
+            if (creatureManager.isRecapturing()) {
+                Contract contract = new Contract();
+                contract.contractType = ContractType.Creature.name();
+                contract.buildingId = creatureManager.getBuildingKey();
+                contract.uid = creatureManager.getBuildingUid();
+                contract.endTime = creatureManager.getRecaptureEndTime();
+                contracts.add(contract);
+            }
+        }
     }
 
     private void mapContracts(List<Contract> contracts, List<BuildUnit> troopsInQueue) {

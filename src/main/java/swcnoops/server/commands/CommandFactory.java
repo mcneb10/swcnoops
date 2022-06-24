@@ -42,6 +42,7 @@ public class CommandFactory {
         this.add(new PlayerDeployableRemove());
         this.add(new PlayerDeployableSpend());
         this.add(new PlayerBuildingCapture());
+        this.add(new PlayerBuildingBuyout());
 
         //this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
@@ -56,7 +57,6 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.missions.activateMission"));
         this.add(new OkCommandAction("player.building.collect"));
         this.add(new OkCommandAction("player.building.construct"));
-        this.add(new OkCommandAction("player.building.buyout"));
         this.add(new OkCommandAction("player.pve.complete"));
         this.add(new OkCommandAction("player.store.buy"));
         this.add(new OkCommandAction("player.pve.collect"));

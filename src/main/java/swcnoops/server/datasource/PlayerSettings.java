@@ -12,6 +12,7 @@ public class PlayerSettings {
     private PlayerMap baseMap;
     private Deployables deployableTroops;
     private BuildUnits buildUnits;
+    private CreatureSettings creatureSettings;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -66,5 +67,13 @@ public class PlayerSettings {
 
     public void setBuildContracts(BuildUnits buildUnits) {
         this.buildUnits = buildUnits;
+    }
+
+    public void setCreatureSettings(CreatureSettings creatureSettings) {
+        this.creatureSettings = creatureSettings;
+    }
+
+    public CreatureSettings getCreatureSettings() {
+        return creatureSettings;
     }
 }

@@ -7,38 +7,34 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerBuildingCapture extends AbstractCommandAction<PlayerBuildingCapture, CommandResult> {
-
-    /**
-     * This is the building ID of the creature trap
-     */
+public class PlayerBuildingBuyout extends AbstractCommandAction<PlayerBuildingBuyout, CommandResult> {
     private String instanceId;
-    private String creatureTroopUid;
+    private String tag;
 
     @Override
-    protected CommandResult execute(PlayerBuildingCapture arguments, long time) throws Exception {
+    protected CommandResult execute(PlayerBuildingBuyout arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.recaptureCreature(arguments.getInstanceId(), arguments.getCreatureTroopUid(), time);
+        playerSession.buildingBuyout(arguments.getInstanceId(), arguments.getTag(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 
     @Override
-    protected PlayerBuildingCapture parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return jsonParser.fromJsonObject(argumentObject, PlayerBuildingCapture.class);
+    protected PlayerBuildingBuyout parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, PlayerBuildingBuyout.class);
     }
 
     @Override
     public String getAction() {
-        return "player.building.capture";
+        return "player.building.buyout";
     }
 
     public String getInstanceId() {
         return instanceId;
     }
 
-    public String getCreatureTroopUid() {
-        return creatureTroopUid;
+    public String getTag() {
+        return tag;
     }
 }

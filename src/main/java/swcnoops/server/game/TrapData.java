@@ -4,6 +4,7 @@ public class TrapData implements BuildableData {
     final String uid;
     private Long rearmTime;
     private TrapEventType eventType;
+    private String eventData;
 
     public TrapData(String uid) {
         this.uid = uid;
@@ -54,5 +55,13 @@ public class TrapData implements BuildableData {
             return ContractType.Creature;
 
         return ContractType.Build;
+    }
+
+    public String getEventData() {
+        return eventData;
+    }
+
+    public void setEventData(String eventData) {
+        this.eventData = eventData;
     }
 }
