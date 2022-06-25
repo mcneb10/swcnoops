@@ -9,10 +9,11 @@ import swcnoops.server.game.TrapData;
 import swcnoops.server.game.TrapEventType;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
+import swcnoops.server.session.PlayerSession;
 
 public class CreatureManagerFactory {
-    public CreatureManager createForPlayer(PlayerSettings playerSettings) {
-        CreatureManagerImpl creatureManager = this.createForMap(playerSettings);
+    public CreatureManager createForPlayer(PlayerSession playerSession) {
+        CreatureManagerImpl creatureManager = this.createForMap(playerSession.getPlayerSettings());
         return creatureManager;
     }
 

@@ -5,6 +5,7 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.training.TrainingManager;
 
 import java.util.List;
@@ -14,6 +15,8 @@ public interface PlayerSession {
     Player getPlayer();
 
     String getPlayerId();
+
+    TroopInventory getTroopInventory();
 
     void trainTroops(String constructor, String unitTypeId, int quantity, long time);
 

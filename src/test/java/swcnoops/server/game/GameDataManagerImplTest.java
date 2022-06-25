@@ -40,5 +40,8 @@ public class GameDataManagerImplTest {
         troopData = gameDataManager.getTroopDataByUid("troopSniper1");
         assertNotNull(troopData);
         assertNotNull(troopData.getUnitId());
+        troopData = gameDataManager.getTroopDataByUid("troopHeroATAT1");
+        assertNotNull(troopData);
+        assertNotNull(troopData.getUnitId());
     }
 }

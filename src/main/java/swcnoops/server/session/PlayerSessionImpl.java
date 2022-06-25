@@ -6,6 +6,9 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.creature.CreatureManagerFactory;
+import swcnoops.server.session.inventory.TroopInventory;
+import swcnoops.server.session.inventory.TroopInventoryFactory;
+import swcnoops.server.session.inventory.TroopInventoryImpl;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
@@ -16,20 +19,28 @@ public class PlayerSessionImpl implements PlayerSession {
     final private PlayerSettings playerSettings;
     final private TrainingManager trainingManager;
     final private CreatureManager creatureManager;
+    final private TroopInventory troopInventory;
 
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
     static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
+    static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
         this.playerSettings = playerSettings;
-        this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this.getPlayerSettings());
-        this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this.getPlayerSettings());
+        this.troopInventory = PlayerSessionImpl.troopInventoryFactory.createForPlayer(this);
+        this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this);
+        this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
     }
 
     @Override
     public String getPlayerId() {
         return this.player.getPlayerId();
+    }
+
+    @Override
+    public TroopInventory getTroopInventory() {
+        return troopInventory;
     }
 
     @Override

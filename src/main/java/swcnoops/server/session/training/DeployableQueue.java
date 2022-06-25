@@ -33,12 +33,12 @@ public class DeployableQueue {
     private void moveToDeployable(BuildUnit buildUnit) {
         TroopData troopData = buildUnit.getBuildSlot().getTroopData();
         this.totalDeployable += troopData.getSize();
-        Integer numberOfUnits = this.deployableUnits.get(buildUnit.getUnitTypeId());
+        Integer numberOfUnits = this.deployableUnits.get(buildUnit.getUnitId());
         if (numberOfUnits == null)
             numberOfUnits = Integer.valueOf(0);
 
         numberOfUnits = Integer.valueOf(numberOfUnits.intValue() + 1);
-        this.deployableUnits.put(buildUnit.getUnitTypeId(), numberOfUnits);
+        this.deployableUnits.put(buildUnit.getUnitId(), numberOfUnits);
     }
 
     public Map<String, Integer> getDeployableUnits() {

@@ -5,21 +5,22 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.*;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
+import swcnoops.server.session.PlayerSession;
 
 /**
  * A separate class that creates, configures and loads a players TrainingManager.
  * This is to keep the contractManager smaller as it was getting too big.
  */
 public class TrainingManagerFactory {
-    public TrainingManager createForPlayer(PlayerSettings playerSettings) {
-        TrainingManager trainingManager = this.createForMap(playerSettings.getBaseMap());
-        initialiseFromPlayerSettings(trainingManager, playerSettings);
+    public TrainingManager createForPlayer(PlayerSession playerSession) {
+        TrainingManager trainingManager = this.create(playerSession);
+        initialiseFromPlayerSettings(trainingManager, playerSession.getPlayerSettings());
         return trainingManager;
     }
 
-    private TrainingManager createForMap(PlayerMap baseMap) {
-        TrainingManager trainingManager = new TrainingManagerImpl();
-        initialise(trainingManager, baseMap);
+    private TrainingManager create(PlayerSession playerSession) {
+        TrainingManager trainingManager = new TrainingManagerImpl(playerSession);
+        initialise(trainingManager, playerSession.getBaseMap());
         return trainingManager;
     }
 

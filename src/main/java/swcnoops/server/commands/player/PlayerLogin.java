@@ -5,6 +5,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
 import swcnoops.server.model.*;
@@ -32,15 +33,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     // TODO - need to fix this to log in properly for the player
     @Override
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
-        PlayerLoginCommandResult response;
-        try {
-            response = loadPlayerTemplate();
-            mapLoginForPlayer(response, arguments.getPlayerId());
-        } catch (Exception ex) {
-            // TODO
-            response = new PlayerLoginCommandResult();
-        }
-
+        PlayerLoginCommandResult response = loadPlayerTemplate();
+        mapLoginForPlayer(response, arguments.getPlayerId());
         return response;
     }
 
@@ -104,24 +98,24 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private SubStorage mapDeployableTroops(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
         TrainingManager trainingManager = playerSession.getTrainingManager();
-        mapDeployableTroops(trainingManager.getDeployableTroops(), subStorage.troop.storage);
-        mapDeployableTroops(trainingManager.getDeployableChampion(), subStorage.champion.storage);
-        mapDeployableTroops(trainingManager.getDeployableHero(), subStorage.hero.storage);
-        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableTroops(), subStorage.troop.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableChampion(), subStorage.champion.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableHero(), subStorage.hero.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
         return subStorage;
     }
 
-    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
+    private void mapDeployableTroops(PlayerSession playerSession, DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
         storage.clear();
         Iterator<Map.Entry<String,Integer>> troopIterator = deployableQueue.getDeployableUnits().entrySet().iterator();
         while(troopIterator.hasNext()) {
             Map.Entry<String,Integer> entry = troopIterator.next();
+            TroopData troopData = this.getTroopForPlayerByUnitId(playerSession, entry.getKey());
             StorageAmount storageAmount = new StorageAmount();
             storageAmount.amount = entry.getValue().intValue();
             storageAmount.capacity = -1;
-            storageAmount.scale = ServiceFactory.instance().getGameDataManager()
-                    .getTroopDataByUid(entry.getKey()).getSize();
-            storage.put(entry.getKey(), storageAmount);
+            storageAmount.scale = troopData.getSize();
+            storage.put(troopData.getUid(), storageAmount);
         }
     }
 
@@ -180,11 +174,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
      */
     private void mapContracts(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.contracts.clear();
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
-
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
     }
 
@@ -201,15 +194,20 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
     }
 
-    private void mapContracts(List<Contract> contracts, List<BuildUnit> troopsInQueue) {
+    private void mapContracts(PlayerSession playerSession, List<Contract> contracts, List<BuildUnit> troopsInQueue) {
         for (BuildUnit buildUnit : troopsInQueue) {
             Contract contract = new Contract();
             contract.contractType = buildUnit.getBuilder().getContractType().name();
             contract.buildingId = buildUnit.getBuildingId();
-            contract.uid = buildUnit.getUnitTypeId();
+            TroopData troopData = getTroopForPlayerByUnitId(playerSession, buildUnit.getUnitId());
+            contract.uid = troopData.getUid();
             contract.endTime = buildUnit.getEndTime();
             contracts.add(contract);
         }
+    }
+
+    private TroopData getTroopForPlayerByUnitId(PlayerSession playerSession, String unitId) {
+        return playerSession.getTroopInventory().getTroopByUnitId(unitId);
     }
 
     // TODO

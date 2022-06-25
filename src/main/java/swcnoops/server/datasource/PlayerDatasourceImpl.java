@@ -101,7 +101,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
-        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creatureSettings " +
+        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creatureSettings, troops " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -153,11 +153,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                         String creatureSettingsJson = rs.getString("creatureSettings");
                         CreatureSettings creatureSettings = null;
-                        if (contractsJson != null) {
+                        if (creatureSettingsJson != null) {
                             creatureSettings = ServiceFactory.instance().getJsonParser()
                                     .fromJsonString(creatureSettingsJson, CreatureSettings.class);
                         }
                         playerSettings.setCreatureSettings(creatureSettings);
+
+                        String troopsJson = rs.getString("troops");
+                        Troops troops;
+                        if (troopsJson != null)
+                            troops = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(troopsJson, Troops.class);
+                        else
+                            troops = new Troops();
+                        playerSettings.setTroops(troops);
                     }
                 }
             }
@@ -252,6 +261,24 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save creature settings id=" + playerId, ex);
+        }
+    }
+
+    private void savePlayerSettingsTroops(String playerId, String troops) {
+        final String sql = "update PlayerSettings " +
+                "set troops = ? " +
+                "WHERE id = ?";
+
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement stmt = con.prepareStatement(sql)) {
+                    stmt.setString(1, troops);
+                    stmt.setString(2, playerId);
+                    stmt.executeUpdate();
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save troops settings id=" + playerId, ex);
         }
     }
 }

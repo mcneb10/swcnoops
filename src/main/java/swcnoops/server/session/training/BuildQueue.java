@@ -1,8 +1,7 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.ServiceFactory;
-import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -26,6 +25,11 @@ public class BuildQueue {
         return this.buildQueue.size() == 0;
     }
 
+    final private PlayerSession playerSession;
+    public BuildQueue(PlayerSession playerSession) {
+        this.playerSession = playerSession;
+    }
+
     protected void add(List<BuildUnit> buildUnits) {
         BuildUnit buildUnit = buildUnits.get(0);
         BuildSlot buildSlot = this.getOrCreateBuildSlot(buildUnit);
@@ -33,10 +37,10 @@ public class BuildQueue {
     }
 
     private BuildSlot getOrCreateBuildSlot(BuildUnit buildUnit) {
-        BuildSlot buildSlot = this.buildQueueMap.get(buildUnit.getUnitTypeId());
+        BuildSlot buildSlot = this.buildQueueMap.get(buildUnit.getUnitId());
         if (buildSlot == null) {
             buildSlot = createBuildSlot(buildUnit);
-            this.buildQueueMap.put(buildSlot.getUnitTypeId(), buildSlot);
+            this.buildQueueMap.put(buildSlot.getUnitId(), buildSlot);
             this.buildQueue.add(buildSlot);
         }
         return buildSlot;
@@ -48,17 +52,17 @@ public class BuildQueue {
     }
 
     private BuildSlot createBuildSlot(BuildUnit buildUnit) {
-        TroopData buildableData = getBuildableData(buildUnit.getUnitTypeId());
-        return new BuildSlot(buildUnit.getUnitTypeId(), buildableData);
+        TroopData troopData = getPlayersTroop(buildUnit.getUnitId());
+        return new BuildSlot(buildUnit.getUnitId(), troopData);
     }
 
-    private TroopData getBuildableData(String unitTypeId) {
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        TroopData buildableData = gameDataManager.getTroopDataByUid(unitTypeId);
-        if (buildableData == null)
-            throw new RuntimeException("Failed to get TroopData for " + unitTypeId);
+    private TroopData getPlayersTroop(String unitId) {
+        TroopData troopData = this.playerSession.getTroopInventory().getTroopByUnitId(unitId);
 
-        return buildableData;
+        if (troopData == null)
+            throw new RuntimeException("Failed to get TroopData for " + unitId);
+
+        return troopData;
     }
 
     protected void recalculateEndTimes(long startTime) {
@@ -70,7 +74,7 @@ public class BuildQueue {
     protected void removeBuildSlotIfEmpty(BuildSlot buildSlot) {
         if (buildSlot.isEmpty()) {
             this.buildQueue.remove(buildSlot);
-            this.buildQueueMap.remove(buildSlot.getUnitTypeId());
+            this.buildQueueMap.remove(buildSlot.getUnitId());
         }
     }
 

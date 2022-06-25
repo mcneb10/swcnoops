@@ -10,17 +10,17 @@ import java.util.List;
  * This models a group of units of the same type to be built.
  */
 public class BuildSlot {
-    final private String unitTypeId;
+    final private String unitId;
     final private TroopData troopData;
     final private LinkedList<BuildUnit> buildUnits = new LinkedList<>();
 
-    public BuildSlot(String unitTypeId, TroopData troopData) {
-        this.unitTypeId = unitTypeId;
+    public BuildSlot(String unitId, TroopData troopData) {
+        this.unitId = unitId;
         this.troopData = troopData;
     }
 
-    protected String getUnitTypeId() {
-        return unitTypeId;
+    protected String getUnitId() {
+        return unitId;
     }
 
     protected void addBuildUnits(List<BuildUnit> buildUnits) {
