@@ -95,13 +95,12 @@ public class PlayerSessionImpl implements PlayerSession {
 
     /**
      * Before a battle we move all completed troops to their transport, as those are the troops going to war.
-     * We do this as during the battle deployment records are sent which we used to remove what are in the
-     * transports.
+     * We do this as during the battle, deployment records are sent which we use to remove from deployables
      * @param time
      */
     @Override
     public void playerBattleStart(long time) {
-        this.trainingManager.moveCompletedBuildUnits(time);
+        this.processCompletedContracts(time);
         saveSession();
     }
 

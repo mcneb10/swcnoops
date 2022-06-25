@@ -52,17 +52,8 @@ public class BuildQueue {
     }
 
     private BuildSlot createBuildSlot(BuildUnit buildUnit) {
-        TroopData troopData = getPlayersTroop(buildUnit.getUnitId());
-        return new BuildSlot(buildUnit.getUnitId(), troopData);
-    }
-
-    private TroopData getPlayersTroop(String unitId) {
-        TroopData troopData = this.playerSession.getTroopInventory().getTroopByUnitId(unitId);
-
-        if (troopData == null)
-            throw new RuntimeException("Failed to get TroopData for " + unitId);
-
-        return troopData;
+        // TODO - maybe register to the players session that they want to listen for upgrade events
+        return new BuildSlot(buildUnit.getUnitId(), this.playerSession);
     }
 
     protected void recalculateEndTimes(long startTime) {
@@ -73,6 +64,7 @@ public class BuildQueue {
 
     protected void removeBuildSlotIfEmpty(BuildSlot buildSlot) {
         if (buildSlot.isEmpty()) {
+            // TODO - maybe unregister to the players session that they want to listen for upgrade events
             this.buildQueue.remove(buildSlot);
             this.buildQueueMap.remove(buildSlot.getUnitId());
         }

@@ -53,11 +53,11 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
         //playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
 
+        playerSession.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
         mapShards(playerLoginResponse.playerModel);
         mapDonatedTroops(playerLoginResponse.playerModel);
 
-        playerSession.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         mapContracts(playerLoginResponse.playerModel, playerSession);
         mapInventory(playerLoginResponse.playerModel, playerSession);
         mapCreatureTrapData(playerLoginResponse.playerModel, playerSession);
