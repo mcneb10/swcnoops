@@ -40,4 +40,6 @@ public interface PlayerSession {
     CreatureManager getCreatureManager();
 
     void buildingBuyout(String instanceId, String tag, long time);
+
+    void deployableUpgradeStart(String buildingId, String troopUid, long time);
 }

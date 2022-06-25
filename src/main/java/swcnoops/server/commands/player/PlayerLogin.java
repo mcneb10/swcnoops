@@ -12,6 +12,8 @@ import swcnoops.server.model.*;
 import swcnoops.server.requests.LoginMessages;
 import swcnoops.server.requests.Messages;
 import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.inventory.TroopUpgrade;
+import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.PlayerSession;
@@ -179,6 +181,20 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
+        mapTroopUpgradeContract(playerModel.contracts, playerSession.getTroopInventory().getTroops());
+    }
+
+    private void mapTroopUpgradeContract(List<Contract> contracts, Troops troops) {
+        if (troops.getUpgrades().size() > 0) {
+            for (TroopUpgrade troopUpgrade: troops.getUpgrades()) {
+                Contract contract = new Contract();
+                contract.contractType = ContractType.Research.name();
+                contract.buildingId = troopUpgrade.getBuildingKey();
+                contract.uid = troopUpgrade.getTroopUnitId();
+                contract.endTime = troopUpgrade.getEndTime();
+                contracts.add(contract);
+            }
+        }
     }
 
     private void mapCreatureContract(List<Contract> contracts, CreatureManager creatureManager) {

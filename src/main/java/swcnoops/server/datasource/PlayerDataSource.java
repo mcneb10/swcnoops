@@ -12,4 +12,6 @@ public interface PlayerDataSource {
     void savePlayerSession(PlayerSessionImpl playerSession);
 
     void savePlayerSessionCreature(PlayerSessionImpl playerSession);
+
+    void savePlayerTroopsSession(PlayerSessionImpl playerSession);
 }

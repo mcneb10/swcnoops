@@ -2,6 +2,7 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
+import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
 public class PlayerSettings {

@@ -11,6 +11,7 @@ import java.util.Map;
 public class TroopInventoryImpl implements TroopInventory {
     private Map<String,TroopData> playersTroopsByUnitId = new HashMap<>();
     final private PlayerSession playerSession;
+    private Troops troops;
 
     public TroopInventoryImpl(PlayerSession playerSession) {
         this.playerSession = playerSession;
@@ -40,5 +41,25 @@ public class TroopInventoryImpl implements TroopInventory {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUnitId(unitId, level);
         if (troopData != null)
             this.playersTroopsByUnitId.put(unitId, troopData);
+    }
+
+    @Override
+    public void upgradeStart(String buildingId, String troopUid, long time) {
+        if (this.troops != null) {
+            TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(troopUid);
+            long endTime = time + troopData.getUpgradeTime();
+            TroopUpgrade troopUpgrade = new TroopUpgrade(buildingId, troopUid, endTime);
+            this.troops.getUpgrades().add(troopUpgrade);
+        }
+    }
+
+    @Override
+    public Troops getTroops() {
+        return troops;
+    }
+
+    @Override
+    public void setTroops(Troops troops) {
+        this.troops = troops;
     }
 }

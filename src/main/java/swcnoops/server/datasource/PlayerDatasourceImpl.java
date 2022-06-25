@@ -6,6 +6,8 @@ import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.inventory.TroopInventory;
+import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.PlayerSessionImpl;
 import swcnoops.server.session.training.DeployableQueue;
@@ -279,6 +281,19 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save troops settings id=" + playerId, ex);
+        }
+    }
+
+    @Override
+    public void savePlayerTroopsSession(PlayerSessionImpl playerSession) {
+        // replace the players troops with new data before saving
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        TroopInventory troopInventory = playerSession.getTroopInventory();
+        Troops troops = troopInventory.getTroops();
+        if (troops != null) {
+            playerSettings.setTroops(troops);
+            String json = ServiceFactory.instance().getJsonParser().toJson(playerSettings.getTroops());
+            savePlayerSettingsTroops(playerSession.getPlayerId(), json);
         }
     }
 }

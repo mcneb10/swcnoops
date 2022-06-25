@@ -10,6 +10,7 @@ public class TroopData implements GameData {
     private long trainingTime;
     private String upgradeShardUid;
     private int upgradeShards;
+    private long upgradeTime;
 
     public TroopData(String uid) {
         this.uid = uid;
@@ -77,5 +78,13 @@ public class TroopData implements GameData {
 
     public int getUpgradeShards() {
         return upgradeShards;
+    }
+
+    public void setUpgradeTime(long upgradeTime) {
+        this.upgradeTime = upgradeTime;
+    }
+
+    public long getUpgradeTime() {
+        return upgradeTime;
     }
 }

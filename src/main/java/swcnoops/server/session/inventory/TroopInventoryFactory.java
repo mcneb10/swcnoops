@@ -2,7 +2,6 @@ package swcnoops.server.session.inventory;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.PlayerSettings;
-import swcnoops.server.datasource.Troops;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
@@ -30,8 +29,10 @@ public class TroopInventoryFactory {
 
     private void initialiseFromPlayerSettings(TroopInventory troopInventory, PlayerSettings playerSettings) {
         Troops troops = playerSettings.getTroops();
-        if (troops != null) {
-            troops.forEach((a,b) -> troopInventory.addTroopByUnitIdAndLevel(a,b));
-        }
+        if (troops == null)
+            troops = new Troops();
+
+        troopInventory.setTroops(troops);
+        troops.getTroops().forEach((a,b) -> troopInventory.addTroopByUnitIdAndLevel(a,b));
     }
 }

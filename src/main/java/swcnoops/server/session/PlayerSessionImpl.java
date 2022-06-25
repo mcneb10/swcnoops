@@ -150,4 +150,14 @@ public class PlayerSessionImpl implements PlayerSession {
     public CreatureManager getCreatureManager() {
         return creatureManager;
     }
+
+    @Override
+    public void deployableUpgradeStart(String buildingId, String troopUid, long time) {
+        this.troopInventory.upgradeStart(buildingId, troopUid, time);
+        saveTroopsSession();
+    }
+
+    private void saveTroopsSession() {
+        ServiceFactory.instance().getPlayerDatasource().savePlayerTroopsSession(this);
+    }
 }

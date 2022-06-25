@@ -61,6 +61,7 @@ public class GameDataManagerImpl implements GameDataManager {
             String type = troop.get("type");
             int size = Integer.valueOf(troop.get("size")).intValue();
             long trainingTime = Long.valueOf(troop.get("trainingTime")).longValue();
+            long upgradeTime = Long.valueOf(troop.get("upgradeTime")).longValue();
             String upgradeShardUid = troop.get("upgradeShardUid");
             int upgradeShards = Integer.valueOf(troop.get("upgradeShards") == null ? "0" : troop.get("upgradeShards")).intValue();
             String specialAttackID = troop.get("specialAttackID");
@@ -72,6 +73,7 @@ public class GameDataManagerImpl implements GameDataManager {
             troopData.setType(type);
             troopData.setSize(size);
             troopData.setTrainingTime(trainingTime);
+            troopData.setUpgradeTime(upgradeTime);
             troopData.setUpgradeShardUid(upgradeShardUid);
             troopData.setUpgradeShards(upgradeShards);
 
