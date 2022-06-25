@@ -60,7 +60,7 @@ public class GameDataManagerImpl implements GameDataManager {
             String unitId = troop.get("unitID");        //EmpireChicken
             String type = troop.get("type");
             int size = Integer.valueOf(troop.get("size")).intValue();
-            int trainingTime = Integer.valueOf(troop.get("trainingTime")).intValue();
+            long trainingTime = Long.valueOf(troop.get("trainingTime")).longValue();
             String upgradeShardUid = troop.get("upgradeShardUid");
             int upgradeShards = Integer.valueOf(troop.get("upgradeShards") == null ? "0" : troop.get("upgradeShards")).intValue();
 

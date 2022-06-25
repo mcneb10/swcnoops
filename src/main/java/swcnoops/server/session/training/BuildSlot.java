@@ -1,6 +1,6 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.game.BuildableData;
+import swcnoops.server.game.TroopData;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -11,12 +11,12 @@ import java.util.List;
  */
 public class BuildSlot {
     final private String unitTypeId;
-    final private BuildableData buildableData;
+    final private TroopData troopData;
     final private LinkedList<BuildUnit> buildUnits = new LinkedList<>();
 
-    public BuildSlot(String unitTypeId, BuildableData buildableData) {
+    public BuildSlot(String unitTypeId, TroopData troopData) {
         this.unitTypeId = unitTypeId;
-        this.buildableData = buildableData;
+        this.troopData = troopData;
     }
 
     protected String getUnitTypeId() {
@@ -57,15 +57,15 @@ public class BuildSlot {
     protected long recalculateEndTimes(long time) {
         long startTime = time;
         for (BuildUnit buildUnit : this.buildUnits) {
-            startTime = startTime + this.buildableData.getBuildingTime();
+            startTime = startTime + this.troopData.getTrainingTime();
             buildUnit.setEndTime(startTime);
         }
 
         return startTime;
     }
 
-    public BuildableData getBuildableData() {
-        return buildableData;
+    public TroopData getTroopData() {
+        return troopData;
     }
 
     protected void removeBuildUnit(BuildUnit buildUnit) {

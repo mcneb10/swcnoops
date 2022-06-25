@@ -1,8 +1,8 @@
 package swcnoops.server.session.training;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.game.BuildableData;
 import swcnoops.server.game.GameDataManager;
+import swcnoops.server.game.TroopData;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -48,13 +48,13 @@ public class BuildQueue {
     }
 
     private BuildSlot createBuildSlot(BuildUnit buildUnit) {
-        BuildableData buildableData = getBuildableData(buildUnit.getUnitTypeId());
+        TroopData buildableData = getBuildableData(buildUnit.getUnitTypeId());
         return new BuildSlot(buildUnit.getUnitTypeId(), buildableData);
     }
 
-    private BuildableData getBuildableData(String unitTypeId) {
+    private TroopData getBuildableData(String unitTypeId) {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        BuildableData buildableData = gameDataManager.getTroopDataByUid(unitTypeId);
+        TroopData buildableData = gameDataManager.getTroopDataByUid(unitTypeId);
         if (buildableData == null)
             throw new RuntimeException("Failed to get TroopData for " + unitTypeId);
 

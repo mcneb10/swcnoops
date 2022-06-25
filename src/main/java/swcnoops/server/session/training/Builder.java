@@ -1,8 +1,9 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.game.BuildableData;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.game.TroopData;
+
 import java.util.*;
 
 /**
@@ -72,12 +73,12 @@ public class Builder {
         // done by looking at the head of the queue to see if its end time needs to be adjusted
         if (this.buildQueue.getBuildQueue().size() > 0) {
             BuildSlot firstBuildSlot = this.buildQueue.getBuildQueue().getFirst();
-            BuildableData buildableData = firstBuildSlot.getBuildableData();
+            TroopData troopData = firstBuildSlot.getTroopData();
             List<BuildUnit> buildUnits = firstBuildSlot.getFirstEndTime();
             if (buildUnits.size() > 0) {
                 long firstUnitEndTime = buildUnits.get(0).getEndTime();
                 if (firstUnitEndTime != 0) {
-                    long startTimeForUnit = firstUnitEndTime - buildableData.getBuildingTime();
+                    long startTimeForUnit = firstUnitEndTime - troopData.getTrainingTime();
 
                     // this means the head was removed earlier so all contracts should also start earlier
                     if (timeFromClient < startTimeForUnit) {
