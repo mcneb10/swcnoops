@@ -28,7 +28,6 @@ public interface PlayerSession {
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     void playerBattleStart(long time);
-    void processCompletedContracts(long time);
 
     PlayerMap getBaseMap();
 
@@ -42,4 +41,6 @@ public interface PlayerSession {
     void buildingBuyout(String instanceId, String tag, long time);
 
     void deployableUpgradeStart(String buildingId, String troopUid, long time);
+
+    void playerLogin(long time);
 }

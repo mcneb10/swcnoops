@@ -76,6 +76,7 @@ public class GameDataManagerImpl implements GameDataManager {
             troopData.setUpgradeTime(upgradeTime);
             troopData.setUpgradeShardUid(upgradeShardUid);
             troopData.setUpgradeShards(upgradeShards);
+            troopData.setSpecialAttackID(specialAttackID);
 
             this.troops.put(troopData.getUid(), troopData);
             addToLowestLevelTroopUnitId(troopData);

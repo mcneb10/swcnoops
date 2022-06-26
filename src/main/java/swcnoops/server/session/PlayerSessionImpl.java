@@ -8,7 +8,6 @@ import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.TroopInventoryFactory;
-import swcnoops.server.session.inventory.TroopInventoryImpl;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
@@ -51,19 +50,19 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
         this.trainingManager.trainTroops(buildingId, unitTypeId, quantity, startTime);
-        saveSession();
+        savePlayerSession();
     }
 
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
-        saveSession();
+        savePlayerSession();
     }
 
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
-        saveSession();
+        this.savePlayerSession();
     }
 
     /**
@@ -75,7 +74,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
-            saveSession();
+            this.savePlayerSession();
         }
     }
 
@@ -89,7 +88,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
-            saveSession();
+            this.savePlayerSession();
         }
     }
 
@@ -101,15 +100,15 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void playerBattleStart(long time) {
         this.processCompletedContracts(time);
-        saveSession();
+        this.savePlayerSession();
     }
 
-    private void saveSession() {
+    private void savePlayerSession() {
         ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this);
     }
 
-    @Override
-    public void processCompletedContracts(long time) {
+    private void processCompletedContracts(long time) {
+        this.troopInventory.processCompletedUpgrades(time);
         this.trainingManager.moveCompletedBuildUnits(time);
     }
 
@@ -131,18 +130,14 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void recaptureCreature(String instanceId, String creatureTroopUid, long time) {
         this.creatureManager.recaptureCreature(creatureTroopUid, time);
-        saveCreatureSession();
-    }
-
-    private void saveCreatureSession() {
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSessionCreature(this);
+        this.savePlayerSession();
     }
 
     @Override
     public void buildingBuyout(String instanceId, String tag, long time) {
         if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(instanceId)) {
             this.creatureManager.creatureBuyout();
-            saveCreatureSession();
+            this.savePlayerSession();
         }
     }
 
@@ -154,10 +149,12 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void deployableUpgradeStart(String buildingId, String troopUid, long time) {
         this.troopInventory.upgradeStart(buildingId, troopUid, time);
-        saveTroopsSession();
+        this.savePlayerSession();
     }
 
-    private void saveTroopsSession() {
-        ServiceFactory.instance().getPlayerDatasource().savePlayerTroopsSession(this);
+    @Override
+    public void playerLogin(long time) {
+        this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        this.savePlayerSession();
     }
 }

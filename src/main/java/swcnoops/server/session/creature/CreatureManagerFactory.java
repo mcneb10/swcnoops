@@ -1,7 +1,7 @@
 package swcnoops.server.session.creature;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.datasource.CreatureSettings;
+import swcnoops.server.datasource.Creature;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
@@ -19,20 +19,20 @@ public class CreatureManagerFactory {
 
     private CreatureManagerImpl createForMap(PlayerSettings playerSettings) {
         CreatureDataMap creatureDataMap = findCreatureTrap(playerSettings.getBaseMap());
-        CreatureSettings playerCreatureSettings = playerSettings.getCreatureSettings();
-        if (playerCreatureSettings == null) {
-            playerCreatureSettings = new CreatureSettings();
+        Creature playerCreature = playerSettings.getCreature();
+        if (playerCreature == null) {
+            playerCreature = new Creature();
 
             if (creatureDataMap != null && creatureDataMap.building != null) {
-                playerCreatureSettings.setCreatureStatus(CreatureStatus.Alive);
+                playerCreature.setCreatureStatus(CreatureStatus.Alive);
                 // TODO - set this to what the player has
-                playerCreatureSettings.setCreatureUid("troopEmpireRageRancorCreature10");
-                playerCreatureSettings.setSpecialAttack(creatureDataMap.trapData.getEventData());
+                playerCreature.setCreatureUid("troopEmpireRageRancorCreature10");
+                playerCreature.setSpecialAttack(creatureDataMap.trapData.getEventData());
             } else {
-                playerCreatureSettings.setCreatureStatus(CreatureStatus.Invalid);
+                playerCreature.setCreatureStatus(CreatureStatus.Invalid);
             }
         }
-        return new CreatureManagerImpl(creatureDataMap, playerCreatureSettings);
+        return new CreatureManagerImpl(creatureDataMap, playerCreature);
     }
 
     static public CreatureDataMap findCreatureTrap(PlayerMap map) {

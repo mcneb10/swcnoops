@@ -14,4 +14,6 @@ public interface TroopInventory {
     Troops getTroops();
 
     void setTroops(Troops troops);
+
+    void processCompletedUpgrades(long time);
 }

@@ -36,7 +36,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     @Override
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
         PlayerLoginCommandResult response = loadPlayerTemplate();
-        mapLoginForPlayer(response, arguments.getPlayerId());
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+        playerSession.playerLogin(time);
+        mapLoginForPlayer(response, playerSession);
         return response;
     }
 
@@ -47,15 +50,12 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     // TODO - setup map and troops
-    private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId) {
-        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
-
+    private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, PlayerSession playerSession) {
         playerLoginResponse.playerModel.map = playerSession.getBaseMap();
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
         //playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
 
-        playerSession.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
         mapShards(playerLoginResponse.playerModel);
         mapDonatedTroops(playerLoginResponse.playerModel);
@@ -229,6 +229,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     // TODO
     private void mapBuildableTroops(PlayerModel playerModel, PlayerSettings playerSettings) {
         playerModel.upgrades = playerSettings.getUpgrades();
+        playerModel.upgrades.troop = playerSettings.getTroops().getTroops();
+        playerModel.upgrades.specialAttack = playerSettings.getTroops().getSpecialAttacks();
 
         // samples
         playerModel.prizes = new Upgrades();

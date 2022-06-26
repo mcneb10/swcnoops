@@ -1,6 +1,6 @@
 package swcnoops.server.session.creature;
 
-import swcnoops.server.datasource.CreatureSettings;
+import swcnoops.server.datasource.Creature;
 
 public interface CreatureManager {
     void recaptureCreature(String creatureTroopUid, long time);
@@ -25,5 +25,5 @@ public interface CreatureManager {
 
     CreatureStatus getCreatureStatus();
 
-    CreatureSettings getCreatureSettings();
+    Creature getCreature();
 }

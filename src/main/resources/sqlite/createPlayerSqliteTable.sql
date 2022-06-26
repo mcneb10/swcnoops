@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS PlayerSettings
      upgrades json,
      deployables json,
      contracts json,
-     creatureSettings json,
+     creature json,
      troops json);
 
 insert into PlayerSettings (id, upgrades) values ('2c2d4aea-7f38-11e5-a29f-069096004f69', '{}')

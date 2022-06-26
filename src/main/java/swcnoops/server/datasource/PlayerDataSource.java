@@ -10,8 +10,4 @@ public interface PlayerDataSource {
     PlayerSettings loadPlayerSettings(String playerId);
 
     void savePlayerSession(PlayerSessionImpl playerSession);
-
-    void savePlayerSessionCreature(PlayerSessionImpl playerSession);
-
-    void savePlayerTroopsSession(PlayerSessionImpl playerSession);
 }

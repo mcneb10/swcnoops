@@ -3,7 +3,7 @@ package swcnoops.server.datasource;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.session.creature.CreatureStatus;
 
-public class CreatureSettings {
+public class Creature {
     private CreatureStatus creatureStatus;
     private String specialAttack;
     private long recaptureEndTime;

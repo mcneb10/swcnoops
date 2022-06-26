@@ -11,6 +11,7 @@ public class TroopData implements GameData {
     private String upgradeShardUid;
     private int upgradeShards;
     private long upgradeTime;
+    private String specialAttackID;
 
     public TroopData(String uid) {
         this.uid = uid;
@@ -86,5 +87,21 @@ public class TroopData implements GameData {
 
     public long getUpgradeTime() {
         return upgradeTime;
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public void setSpecialAttackID(String specialAttackID) {
+        this.specialAttackID = specialAttackID;
+    }
+
+    public String getSpecialAttackID() {
+        return specialAttackID;
+    }
+
+    public boolean isSpecialAttack() {
+        return this.getSpecialAttackID() != null;
     }
 }

@@ -6,6 +6,7 @@ import swcnoops.server.game.TroopData;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 public class TroopInventoryImpl implements TroopInventory {
@@ -61,5 +62,27 @@ public class TroopInventoryImpl implements TroopInventory {
     @Override
     public void setTroops(Troops troops) {
         this.troops = troops;
+    }
+
+    @Override
+    public void processCompletedUpgrades(long time) {
+        this.getTroops().getUpgrades().sort((a,b) -> Long.compare(a.getEndTime(), b.getEndTime()));
+        Iterator<TroopUpgrade> troopUpgradeIterator = this.getTroops().getUpgrades().iterator();
+        while(troopUpgradeIterator.hasNext()) {
+            TroopUpgrade troopUpgrade = troopUpgradeIterator.next();
+            if (troopUpgrade.getEndTime() <= time) {
+                troopUpgradeIterator.remove();
+                TroopData troopData = ServiceFactory.instance().getGameDataManager()
+                        .getTroopDataByUid(troopUpgrade.getTroopUnitId());
+
+                // TODO - I feel something has to be done before this for this to work properly for all scenarios
+                // will need to update all the builds to properly reflect this upgrade
+                // just not sure what, needs to work on playerLogin, as well as normal running
+                if (troopData.isSpecialAttack())
+                    this.troops.getSpecialAttacks().put(troopData.getUnitId(), Integer.valueOf(troopData.getLevel()));
+                else
+                    this.troops.getTroops().put(troopData.getUnitId(), Integer.valueOf(troopData.getLevel()));
+            }
+        }
     }
 }

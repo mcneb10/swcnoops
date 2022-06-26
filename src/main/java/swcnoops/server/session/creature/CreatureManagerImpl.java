@@ -1,20 +1,20 @@
 package swcnoops.server.session.creature;
 
-import swcnoops.server.datasource.CreatureSettings;
+import swcnoops.server.datasource.Creature;
 
 public class CreatureManagerImpl implements CreatureManager {
     final private CreatureDataMap creatureDataMap;
-    final private CreatureSettings creatureSettings;
+    final private Creature creature;
 
-    protected CreatureManagerImpl(CreatureDataMap creatureDataMap, CreatureSettings creatureSettings) {
+    protected CreatureManagerImpl(CreatureDataMap creatureDataMap, Creature creature) {
         this.creatureDataMap = creatureDataMap;
-        this.creatureSettings = creatureSettings;
+        this.creature = creature;
     }
 
     @Override
     public void recaptureCreature(String creatureTroopUid, long time) {
         if (hasCreature()) {
-            this.creatureSettings.recapture(time + creatureDataMap.trapData.getRearmTime());
+            this.creature.recapture(time + creatureDataMap.trapData.getRearmTime());
         }
     }
 
@@ -35,13 +35,13 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public long getRecaptureEndTime() {
-        return this.creatureSettings.getRecaptureEndTime();
+        return this.creature.getRecaptureEndTime();
     }
 
     @Override
     public boolean isCreatureAlive() {
         if (this.getCreatureStatus() != CreatureStatus.Alive) {
-            if (this.creatureSettings.hasBeenRecaptured()) {
+            if (this.creature.hasBeenRecaptured()) {
                 this.creatureBuyout();
             }
         }
@@ -56,7 +56,7 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public String getCreatureUid() {
-        return this.getCreatureSettings().getCreatureUid();
+        return this.getCreature().getCreatureUid();
     }
 
     @Override
@@ -66,16 +66,16 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public void creatureBuyout() {
-        this.creatureSettings.setCreatureStatus(CreatureStatus.Alive);
+        this.creature.setCreatureStatus(CreatureStatus.Alive);
     }
 
     @Override
     public CreatureStatus getCreatureStatus() {
-        return this.creatureSettings.getCreatureStatus();
+        return this.creature.getCreatureStatus();
     }
 
     @Override
-    public CreatureSettings getCreatureSettings() {
-        return this.creatureSettings;
+    public Creature getCreature() {
+        return this.creature;
     }
 }

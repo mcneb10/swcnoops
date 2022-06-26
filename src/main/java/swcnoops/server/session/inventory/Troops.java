@@ -6,11 +6,16 @@ import java.util.List;
 
 public class Troops {
     private HashMap<String,Integer> troops = new HashMap<>();
+    private HashMap<String,Integer> specialAttacks = new HashMap<>();
     private List<TroopUpgrade> upgrades = new LinkedList<>();
     private long time;
 
     public HashMap<String, Integer> getTroops() {
         return troops;
+    }
+
+    public HashMap<String, Integer> getSpecialAttacks() {
+        return specialAttacks;
     }
 
     public List<TroopUpgrade> getUpgrades() {
