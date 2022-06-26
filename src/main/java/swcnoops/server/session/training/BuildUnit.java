@@ -12,6 +12,7 @@ public class BuildUnit {
     private Builder builder;
     private String buildingId;
     private String unitId;
+    private long startTime;
     private long endTime;
     @JsonIgnore
     private BuildSlot buildSlot;
@@ -45,6 +46,14 @@ public class BuildUnit {
         this.endTime = endTime;
     }
 
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
     public void setBuildSlot(BuildSlot buildSlot) {
         this.buildSlot = buildSlot;
     }
@@ -58,12 +67,6 @@ public class BuildUnit {
     }
 
     public int compareEndTime(BuildUnit b) {
-        if (this.getEndTime() < b.getEndTime())
-            return -1;
-
-        if (this.getEndTime() == b.getEndTime())
-            return 0;
-
-        return 1;
+        return Long.compare(this.getEndTime(), b.getEndTime());
     }
 }

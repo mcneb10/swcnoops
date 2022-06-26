@@ -1,6 +1,5 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.game.TroopData;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.HashMap;
@@ -16,6 +15,7 @@ import java.util.Map;
 public class BuildQueue {
     final private LinkedList<BuildSlot> buildQueue = new LinkedList<>();
     final private Map<String, BuildSlot> buildQueueMap = new HashMap<>();
+    final private PlayerSession playerSession;
 
     protected LinkedList<BuildSlot> getBuildQueue() {
         return buildQueue;
@@ -25,7 +25,6 @@ public class BuildQueue {
         return this.buildQueue.size() == 0;
     }
 
-    final private PlayerSession playerSession;
     public BuildQueue(PlayerSession playerSession) {
         this.playerSession = playerSession;
     }
@@ -56,9 +55,9 @@ public class BuildQueue {
         return new BuildSlot(buildUnit.getUnitId(), this.playerSession);
     }
 
-    protected void recalculateEndTimes(long startTime) {
+    protected void recalculateBuildUnitTimes(long startTime) {
         for (BuildSlot buildSlot : this.buildQueue) {
-            startTime = buildSlot.recalculateEndTimes(startTime);
+            startTime = buildSlot.recalculateBuildUnitTimes(startTime);
         }
     }
 

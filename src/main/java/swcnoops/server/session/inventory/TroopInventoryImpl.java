@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TroopInventoryImpl implements TroopInventory {
-    private Map<String,TroopData> playersTroopsByUnitId = new HashMap<>();
+    final private Map<String,TroopData> playersTroopsByUnitId = new HashMap<>();
     final private PlayerSession playerSession;
     private Troops troops;
 
@@ -30,6 +30,28 @@ public class TroopInventoryImpl implements TroopInventory {
     }
 
     @Override
+    public TroopData getTroopByUnitIdEffectiveFrom(String unitId, long fromTime) {
+        TroopData troopData = getTroopByUnitId(unitId);
+
+        // see when was this troop was effective for this player
+        TroopRecord troopRecord = this.getTroops().getTroopRecords().get(unitId);
+        if (troopRecord != null) {
+            if (troopRecord.getEffectiveTime() <= fromTime) {
+                if (troopData.getLevel() != troopRecord.getLevel()) {
+                    int previousLevel = troopRecord.getLevel() - 1;
+                    if (previousLevel <= 0)
+                        previousLevel = 1;
+
+                    troopData = ServiceFactory.instance().getGameDataManager()
+                            .getTroopDataByUnitId(unitId, previousLevel);
+                }
+            }
+        }
+
+        return troopData;
+    }
+
+    @Override
     public void addTroopUid(String uId) {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(uId);
         if (troopData != null)
@@ -39,8 +61,7 @@ public class TroopInventoryImpl implements TroopInventory {
     @Override
     public void addTroopByUnitIdAndLevel(String unitId, int level) {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUnitId(unitId, level);
-        if (troopData != null)
-            this.playersTroopsByUnitId.put(unitId, troopData);
+        upgradeTroop(troopData);
     }
 
     @Override
@@ -51,5 +72,11 @@ public class TroopInventoryImpl implements TroopInventory {
     @Override
     public void setTroops(Troops troops) {
         this.troops = troops;
+    }
+
+    @Override
+    public void upgradeTroop(TroopData troopData) {
+        if (troopData != null)
+            this.playersTroopsByUnitId.put(troopData.getUnitId(), troopData);
     }
 }

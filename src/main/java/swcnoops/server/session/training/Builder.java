@@ -2,7 +2,6 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
-import swcnoops.server.game.TroopData;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.*;
@@ -18,7 +17,7 @@ public class Builder {
     final private BuildQueue buildQueue;
     private long startTime;
     final private BuildingData buildingData;
-    private DeployableQueue deployableQueue;
+    final private DeployableQueue deployableQueue;
     final private ContractType contractType;
 
     public Builder(PlayerSession playerSession, String buildingId, BuildingData buildingData,
@@ -45,12 +44,12 @@ public class Builder {
             this.startTime = startTime;
 
         this.buildQueue.add(buildUnits);
-        this.recalculateEndTimes(startTime);
+        this.recalculateBuildUnitTimes(startTime);
     }
 
     protected List<BuildUnit> remove(String unitTypeId, int quantity, long time, boolean fromBack) {
         List<BuildUnit> removed = this.buildQueue.remove(unitTypeId, quantity, fromBack);
-        this.recalculateEndTimes(time);
+        this.recalculateBuildUnitTimes(time);
         return removed;
     }
 
@@ -60,14 +59,14 @@ public class Builder {
         this.buildQueue.removeBuildSlotIfEmpty(buildUnit.getBuildSlot());
     }
 
-    private void recalculateEndTimes(long timeFromClient) {
+    protected void recalculateBuildUnitTimes(long timeFromClient) {
         this.startTime = determineStartTime(timeFromClient);
         // TODO - might need to change this for 2nd in the queue if the head
         // is blocked and has not moved to complete yet.
         // this can be detected by looking to see if there is enough space
         // and if the the clients time is after the heads endTime.
         // if no room, then from 2nd unit its endTime starts from the clients time
-        this.buildQueue.recalculateEndTimes(this.startTime);
+        this.buildQueue.recalculateBuildUnitTimes(this.startTime);
     }
 
     private long determineStartTime(long timeFromClient) {
@@ -77,20 +76,14 @@ public class Builder {
         // done by looking at the head of the queue to see if its end time needs to be adjusted
         if (this.buildQueue.getBuildQueue().size() > 0) {
             BuildSlot firstBuildSlot = this.buildQueue.getBuildQueue().getFirst();
-            TroopData troopData = firstBuildSlot.getTroopData();
-            List<BuildUnit> buildUnits = firstBuildSlot.getFirstEndTime();
-            if (buildUnits.size() > 0) {
-                long firstUnitEndTime = buildUnits.get(0).getEndTime();
-                if (firstUnitEndTime != 0) {
-                    long startTimeForUnit = firstUnitEndTime - troopData.getTrainingTime();
-
-                    // this means the head was removed earlier so all contracts should also start earlier
-                    if (timeFromClient < startTimeForUnit) {
-                        startTimeForBuilder = timeFromClient;
-                    } else if (timeFromClient > startTimeForUnit) {
-                        // was in the middle of building we adjust our start to match the first contract
-                        startTimeForBuilder = startTimeForUnit;
-                    }
+            BuildUnit buildUnit = firstBuildSlot.getFirstBuildUnit();
+            if (buildUnit != null && buildUnit.getStartTime() != 0) {
+                // this means the head was removed earlier so all contracts should also start earlier
+                if (timeFromClient < buildUnit.getStartTime()) {
+                    startTimeForBuilder = timeFromClient;
+                } else if (timeFromClient > buildUnit.getStartTime()) {
+                    // was in the middle of building we adjust our start to match the first contract
+                    startTimeForBuilder = buildUnit.getStartTime();
                 }
             }
         }

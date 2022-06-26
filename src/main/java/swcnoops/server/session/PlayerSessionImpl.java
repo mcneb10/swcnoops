@@ -124,7 +124,8 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void processCompletedContracts(long time) {
-        this.offenseLab.processCompletedUpgrades(time);
+        if (this.offenseLab.processCompletedUpgrades(time))
+            this.trainingManager.recalculateContracts(time);
         this.trainingManager.moveCompletedBuildUnits(time);
     }
 
@@ -157,6 +158,7 @@ public class PlayerSessionImpl implements PlayerSession {
             this.savePlayerSession();
         } else if (this.offenseLab.getBuildingId().equals(instanceId)) {
             this.offenseLab.buyout(time);
+            this.trainingManager.recalculateContracts(time);
             this.savePlayerSession();
         }
     }

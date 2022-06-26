@@ -196,4 +196,11 @@ public class TrainingManagerImpl implements TrainingManager {
         deployableQueue.getDeployableUnits().clear();
         deployableQueue.getDeployableUnits().putAll(storage);
     }
+
+    @Override
+    public void recalculateContracts(long time) {
+        for (Builder builder : this.builders.values()) {
+           builder.recalculateBuildUnitTimes(time);
+        }
+    }
 }

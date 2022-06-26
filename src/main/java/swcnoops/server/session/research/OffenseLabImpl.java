@@ -42,7 +42,6 @@ public class OffenseLabImpl implements OffenseLab {
         if (troops.getUpgrades().size() > 0) {
             List<TroopUpgrade> buyoutList = new ArrayList<>(troops.getUpgrades());
             for (TroopUpgrade troopUpgrade : buyoutList) {
-                // TODO - might have to do something before this for recalc of buildUnits endTime to be correct
                 troopUpgrade.buyout(time);
                 this.processCompletedUpgrades(time);
             }
@@ -60,7 +59,9 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void processCompletedUpgrades(long time) {
+    public boolean processCompletedUpgrades(long time) {
+        boolean hasUpgrade = false;
+
         Troops troops = this.playerSession.getTroopInventory().getTroops();
         Iterator<TroopUpgrade> troopUpgradeIterator = troops.getUpgrades().iterator();
         while(troopUpgradeIterator.hasNext()) {
@@ -74,7 +75,14 @@ public class OffenseLabImpl implements OffenseLab {
                     troops.getSpecialAttacks().put(troopData.getUnitId(), troopRecord);
                 else
                     troops.getTroops().put(troopData.getUnitId(), troopRecord);
+
+                // upgrade the players inventory, and our record of when the upgrade becomes effective
+                troops.getTroopRecords().put(troopData.getUnitId(), troopRecord);
+                this.playerSession.getTroopInventory().upgradeTroop(troopData);
+                hasUpgrade = true;
             }
         }
+
+        return hasUpgrade;
     }
 }

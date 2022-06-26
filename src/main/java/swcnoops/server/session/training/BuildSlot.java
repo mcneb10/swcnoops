@@ -55,14 +55,29 @@ public class BuildSlot {
         return (this.buildUnits.size() == 0);
     }
 
-    protected long recalculateEndTimes(long time) {
-        long startTime = time;
+    /**
+     * Works out the build time for the troops in this slot.
+     * Handles if an upgrade happens for a troop by seeing when that upgrade is effective.
+     * @param startFromTime
+     * @return
+     */
+    protected long recalculateBuildUnitTimes(long startFromTime) {
+        long startTime = startFromTime;
         for (BuildUnit buildUnit : this.buildUnits) {
-            startTime = startTime + this.getTroopData().getTrainingTime();
-            buildUnit.setEndTime(startTime);
+            buildUnit.setStartTime(startTime);
+            TroopData troopDataEffectiveAtStart = this.getTroopDataEffectiveAt(startTime);
+            long endTime = startTime + troopDataEffectiveAtStart.getTrainingTime();
+            TroopData troopDataEffectiveAtEnd = this.getTroopDataEffectiveAt(endTime);
+            endTime = endTime + (troopDataEffectiveAtEnd.getTrainingTime() - troopDataEffectiveAtStart.getTrainingTime());
+            buildUnit.setEndTime(endTime);
+            startTime = endTime;
         }
 
         return startTime;
+    }
+
+    private TroopData getTroopDataEffectiveAt(long fromTime) {
+        return this.playerSession.getTroopInventory().getTroopByUnitIdEffectiveFrom(this.unitId, fromTime);
     }
 
     public TroopData getTroopData() {
@@ -73,7 +88,11 @@ public class BuildSlot {
         this.buildUnits.remove(buildUnit);
     }
 
-    protected List<BuildUnit> getFirstEndTime() {
-        return this.buildUnits;
+    protected BuildUnit getFirstBuildUnit() {
+        BuildUnit buildUnit = null;
+        if (buildUnits.size() > 0) {
+            buildUnit = buildUnits.get(0);
+        }
+        return buildUnit;
     }
 }
