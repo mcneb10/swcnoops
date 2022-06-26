@@ -69,3 +69,16 @@ Things that may never work.
 
 Who knows where this will lead to, not really thought that far.
 I program all day as a day job and to be honest I dont enjoy it when I stop work. However I find reverse engineering different and currently learning new things is a lot of fun. Maybe one day I will do a remake of a version of this game, but I cant see attempting that any time soon and certainly not to do that on my own.
+
+## Simple build instructions with IntelliJ with a zip of the code
+
+1. Download ZIP code for main branch in Github.
+2. Unzip the file swcnoops-main.zip to the root of C drive
+3. Rename the folder that is in C drive from swcnoops-main to swcnoops so you have a folder C:\swcnoops
+4. Start IntelliJ 2022.1 (latest community version) and click on Open button
+5. Select folder "c:\swcnoops" and click on Ok button
+6. A dialog pops up to say Maven build scripts found, click on Load Maven Project.
+7. IntelliJ will sync and download all the maven dependencies, wait for this to finish, takes about a minute
+8. Click on Build->Rebuild Project to build
+9. Find main class by ctrl+n and type in "Main", select it and it will jump to the source
+10. Right mouse anywhere in the main classes code, select Debug Main.main() to start the server
