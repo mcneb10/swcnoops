@@ -33,6 +33,6 @@ public class TroopInventoryFactory {
             troops = new Troops();
 
         troopInventory.setTroops(troops);
-        troops.getTroops().forEach((a,b) -> troopInventory.addTroopByUnitIdAndLevel(a,b));
+        troops.getTroops().forEach((a,b) -> troopInventory.addTroopByUnitIdAndLevel(a,b.getLevel()));
     }
 }

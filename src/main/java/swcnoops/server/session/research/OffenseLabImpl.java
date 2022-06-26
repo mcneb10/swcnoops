@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.inventory.TroopRecord;
 import swcnoops.server.session.inventory.TroopUpgrade;
 import swcnoops.server.session.inventory.Troops;
 
@@ -61,7 +62,6 @@ public class OffenseLabImpl implements OffenseLab {
     @Override
     public void processCompletedUpgrades(long time) {
         Troops troops = this.playerSession.getTroopInventory().getTroops();
-        //troops.getUpgrades().sort((a,b) -> Long.compare(a.getEndTime(), b.getEndTime()));
         Iterator<TroopUpgrade> troopUpgradeIterator = troops.getUpgrades().iterator();
         while(troopUpgradeIterator.hasNext()) {
             TroopUpgrade troopUpgrade = troopUpgradeIterator.next();
@@ -69,11 +69,11 @@ public class OffenseLabImpl implements OffenseLab {
                 troopUpgradeIterator.remove();
                 TroopData troopData = ServiceFactory.instance().getGameDataManager()
                         .getTroopDataByUid(troopUpgrade.getTroopUnitId());
-
+                TroopRecord troopRecord = new TroopRecord(troopData.getLevel(), time);
                 if (troopData.isSpecialAttack())
-                    troops.getSpecialAttacks().put(troopData.getUnitId(), Integer.valueOf(troopData.getLevel()));
+                    troops.getSpecialAttacks().put(troopData.getUnitId(), troopRecord);
                 else
-                    troops.getTroops().put(troopData.getUnitId(), Integer.valueOf(troopData.getLevel()));
+                    troops.getTroops().put(troopData.getUnitId(), troopRecord);
             }
         }
     }

@@ -5,16 +5,16 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Troops {
-    private HashMap<String,Integer> troops = new HashMap<>();
-    private HashMap<String,Integer> specialAttacks = new HashMap<>();
-    private List<TroopUpgrade> upgrades = new LinkedList<>();
+    private HashMap<String,TroopRecord> troops = new HashMap<>();
+    final private HashMap<String,TroopRecord> specialAttacks = new HashMap<>();
+    final private List<TroopUpgrade> upgrades = new LinkedList<>();
     private long time;
 
-    public HashMap<String, Integer> getTroops() {
+    public HashMap<String, TroopRecord> getTroops() {
         return troops;
     }
 
-    public HashMap<String, Integer> getSpecialAttacks() {
+    public HashMap<String, TroopRecord> getSpecialAttacks() {
         return specialAttacks;
     }
 
@@ -22,7 +22,7 @@ public class Troops {
         return upgrades;
     }
 
-    public void setTroops(HashMap<String, Integer> troops) {
+    public void setTroops(HashMap<String, TroopRecord> troops) {
         this.troops = troops;
     }
 

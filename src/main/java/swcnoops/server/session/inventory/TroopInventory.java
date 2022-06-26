@@ -7,7 +7,7 @@ public interface TroopInventory {
 
     void addTroopUid(String uId);
 
-    void addTroopByUnitIdAndLevel(String unitId, int valueOf);
+    void addTroopByUnitIdAndLevel(String unitId, int level);
 
     Troops getTroops();
 

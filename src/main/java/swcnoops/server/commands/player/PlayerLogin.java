@@ -12,6 +12,7 @@ import swcnoops.server.model.*;
 import swcnoops.server.requests.LoginMessages;
 import swcnoops.server.requests.Messages;
 import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.inventory.TroopRecord;
 import swcnoops.server.session.inventory.TroopUpgrade;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnit;
@@ -109,12 +110,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private void mapDeployableTroops(PlayerSession playerSession, DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
         storage.clear();
-        Iterator<Map.Entry<String,Integer>> troopIterator = deployableQueue.getDeployableUnits().entrySet().iterator();
-        while(troopIterator.hasNext()) {
-            Map.Entry<String,Integer> entry = troopIterator.next();
+        for (Map.Entry<String,Integer> entry : deployableQueue.getDeployableUnits().entrySet()) {
             TroopData troopData = this.getTroopForPlayerByUnitId(playerSession, entry.getKey());
             StorageAmount storageAmount = new StorageAmount();
-            storageAmount.amount = entry.getValue().intValue();
+            storageAmount.amount = entry.getValue().longValue();
             storageAmount.capacity = -1;
             storageAmount.scale = troopData.getSize();
             storage.put(troopData.getUid(), storageAmount);
@@ -229,11 +228,18 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     // TODO
     private void mapBuildableTroops(PlayerModel playerModel, PlayerSettings playerSettings) {
         playerModel.upgrades = playerSettings.getUpgrades();
-        playerModel.upgrades.troop = playerSettings.getTroops().getTroops();
-        playerModel.upgrades.specialAttack = playerSettings.getTroops().getSpecialAttacks();
+        playerModel.upgrades.troop = map(playerSettings.getTroops().getTroops());
+        playerModel.upgrades.specialAttack = map(playerSettings.getTroops().getSpecialAttacks());
 
         // samples
         playerModel.prizes = new Upgrades();
+    }
+
+    private Map<String, Integer> map(HashMap<String, TroopRecord> troops) {
+        Map<String,Integer> map = new HashMap<>();
+        if (troops != null)
+            troops.forEach((a,b) -> map.put(a, b.getLevel()));
+        return map;
     }
 
     // TODO - no shards for now but may need to populate as some troops needs shards to be able to build them
