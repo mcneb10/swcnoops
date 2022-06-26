@@ -5,12 +5,16 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.LoginMessages;
 import swcnoops.server.requests.Messages;
 import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.inventory.TroopRecord;
+import swcnoops.server.session.inventory.TroopUpgrade;
+import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.PlayerSession;
@@ -32,15 +36,11 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     // TODO - need to fix this to log in properly for the player
     @Override
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
-        PlayerLoginCommandResult response;
-        try {
-            response = loadPlayerTemplate();
-            mapLoginForPlayer(response, arguments.getPlayerId());
-        } catch (Exception ex) {
-            // TODO
-            response = new PlayerLoginCommandResult();
-        }
-
+        PlayerLoginCommandResult response = loadPlayerTemplate();
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+        playerSession.playerLogin(time);
+        mapLoginForPlayer(response, playerSession);
         return response;
     }
 
@@ -51,9 +51,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     // TODO - setup map and troops
-    private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, String playerId) {
-        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
-
+    private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, PlayerSession playerSession) {
         playerLoginResponse.playerModel.map = playerSession.getBaseMap();
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
@@ -63,7 +61,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapShards(playerLoginResponse.playerModel);
         mapDonatedTroops(playerLoginResponse.playerModel);
 
-        playerSession.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         mapContracts(playerLoginResponse.playerModel, playerSession);
         mapInventory(playerLoginResponse.playerModel, playerSession);
         mapCreatureTrapData(playerLoginResponse.playerModel, playerSession);
@@ -86,7 +83,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerModel.creatureTrapData = new ArrayList<>();
         if (playerSession.getCreatureManager().hasCreature()) {
             CreatureTrapData creatureTrapData = new CreatureTrapData();
-            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingKey();
+            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingId();
             creatureTrapData.specialAttackUid = playerSession.getCreatureManager().getSpecialAttackUid();
             creatureTrapData.ready = playerSession.getCreatureManager().isCreatureAlive();
             creatureTrapData.championUid = playerSession.getCreatureManager().getCreatureUid();
@@ -104,24 +101,22 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private SubStorage mapDeployableTroops(PlayerSession playerSession) {
         SubStorage subStorage = new SubStorage();
         TrainingManager trainingManager = playerSession.getTrainingManager();
-        mapDeployableTroops(trainingManager.getDeployableTroops(), subStorage.troop.storage);
-        mapDeployableTroops(trainingManager.getDeployableChampion(), subStorage.champion.storage);
-        mapDeployableTroops(trainingManager.getDeployableHero(), subStorage.hero.storage);
-        mapDeployableTroops(trainingManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableTroops(), subStorage.troop.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableChampion(), subStorage.champion.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableHero(), subStorage.hero.storage);
+        mapDeployableTroops(playerSession, trainingManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
         return subStorage;
     }
 
-    private void mapDeployableTroops(DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
+    private void mapDeployableTroops(PlayerSession playerSession, DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
         storage.clear();
-        Iterator<Map.Entry<String,Integer>> troopIterator = deployableQueue.getDeployableUnits().entrySet().iterator();
-        while(troopIterator.hasNext()) {
-            Map.Entry<String,Integer> entry = troopIterator.next();
+        for (Map.Entry<String,Integer> entry : deployableQueue.getDeployableUnits().entrySet()) {
+            TroopData troopData = this.getTroopForPlayerByUnitId(playerSession, entry.getKey());
             StorageAmount storageAmount = new StorageAmount();
-            storageAmount.amount = entry.getValue().intValue();
+            storageAmount.amount = entry.getValue().longValue();
             storageAmount.capacity = -1;
-            storageAmount.scale = ServiceFactory.instance().getGameDataManager()
-                    .getTroopDataByUid(entry.getKey()).getSize();
-            storage.put(entry.getKey(), storageAmount);
+            storageAmount.scale = troopData.getSize();
+            storage.put(troopData.getUid(), storageAmount);
         }
     }
 
@@ -180,12 +175,25 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
      */
     private void mapContracts(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.contracts.clear();
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
-        mapContracts(playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
-
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
+        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
+        mapTroopUpgradeContract(playerModel.contracts, playerSession.getTroopInventory().getTroops());
+    }
+
+    private void mapTroopUpgradeContract(List<Contract> contracts, Troops troops) {
+        if (troops.getUpgrades().size() > 0) {
+            for (TroopUpgrade troopUpgrade: troops.getUpgrades()) {
+                Contract contract = new Contract();
+                contract.contractType = ContractType.Research.name();
+                contract.buildingId = troopUpgrade.getBuildingKey();
+                contract.uid = troopUpgrade.getTroopUnitId();
+                contract.endTime = troopUpgrade.getEndTime();
+                contracts.add(contract);
+            }
+        }
     }
 
     private void mapCreatureContract(List<Contract> contracts, CreatureManager creatureManager) {
@@ -193,7 +201,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             if (creatureManager.isRecapturing()) {
                 Contract contract = new Contract();
                 contract.contractType = ContractType.Creature.name();
-                contract.buildingId = creatureManager.getBuildingKey();
+                contract.buildingId = creatureManager.getBuildingId();
                 contract.uid = creatureManager.getBuildingUid();
                 contract.endTime = creatureManager.getRecaptureEndTime();
                 contracts.add(contract);
@@ -201,23 +209,37 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
     }
 
-    private void mapContracts(List<Contract> contracts, List<BuildUnit> troopsInQueue) {
+    private void mapContracts(PlayerSession playerSession, List<Contract> contracts, List<BuildUnit> troopsInQueue) {
         for (BuildUnit buildUnit : troopsInQueue) {
             Contract contract = new Contract();
             contract.contractType = buildUnit.getBuilder().getContractType().name();
             contract.buildingId = buildUnit.getBuildingId();
-            contract.uid = buildUnit.getUnitTypeId();
+            TroopData troopData = getTroopForPlayerByUnitId(playerSession, buildUnit.getUnitId());
+            contract.uid = troopData.getUid();
             contract.endTime = buildUnit.getEndTime();
             contracts.add(contract);
         }
     }
 
+    private TroopData getTroopForPlayerByUnitId(PlayerSession playerSession, String unitId) {
+        return playerSession.getTroopInventory().getTroopByUnitId(unitId);
+    }
+
     // TODO
     private void mapBuildableTroops(PlayerModel playerModel, PlayerSettings playerSettings) {
         playerModel.upgrades = playerSettings.getUpgrades();
+        playerModel.upgrades.troop = map(playerSettings.getTroops().getTroops());
+        playerModel.upgrades.specialAttack = map(playerSettings.getTroops().getSpecialAttacks());
 
         // samples
         playerModel.prizes = new Upgrades();
+    }
+
+    private Map<String, Integer> map(HashMap<String, TroopRecord> troops) {
+        Map<String,Integer> map = new HashMap<>();
+        if (troops != null)
+            troops.forEach((a,b) -> map.put(a, b.getLevel()));
+        return map;
     }
 
     // TODO - no shards for now but may need to populate as some troops needs shards to be able to build them

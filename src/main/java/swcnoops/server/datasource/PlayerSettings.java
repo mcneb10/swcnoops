@@ -2,6 +2,7 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
+import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
 public class PlayerSettings {
@@ -12,7 +13,8 @@ public class PlayerSettings {
     private PlayerMap baseMap;
     private Deployables deployableTroops;
     private BuildUnits buildUnits;
-    private CreatureSettings creatureSettings;
+    private Creature creature;
+    private Troops troops;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -69,11 +71,19 @@ public class PlayerSettings {
         this.buildUnits = buildUnits;
     }
 
-    public void setCreatureSettings(CreatureSettings creatureSettings) {
-        this.creatureSettings = creatureSettings;
+    public void setCreature(Creature creature) {
+        this.creature = creature;
     }
 
-    public CreatureSettings getCreatureSettings() {
-        return creatureSettings;
+    public Creature getCreature() {
+        return creature;
+    }
+
+    public Troops getTroops() {
+        return troops;
+    }
+
+    public void setTroops(Troops troops) {
+        this.troops = troops;
     }
 }

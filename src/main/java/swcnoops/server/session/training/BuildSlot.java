@@ -1,6 +1,7 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.game.BuildableData;
+import swcnoops.server.game.TroopData;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -10,17 +11,17 @@ import java.util.List;
  * This models a group of units of the same type to be built.
  */
 public class BuildSlot {
-    final private String unitTypeId;
-    final private BuildableData buildableData;
+    final private String unitId;
+    final private PlayerSession playerSession;
     final private LinkedList<BuildUnit> buildUnits = new LinkedList<>();
 
-    public BuildSlot(String unitTypeId, BuildableData buildableData) {
-        this.unitTypeId = unitTypeId;
-        this.buildableData = buildableData;
+    public BuildSlot(String unitId, PlayerSession playerSession) {
+        this.unitId = unitId;
+        this.playerSession = playerSession;
     }
 
-    protected String getUnitTypeId() {
-        return unitTypeId;
+    protected String getUnitId() {
+        return unitId;
     }
 
     protected void addBuildUnits(List<BuildUnit> buildUnits) {
@@ -54,25 +55,44 @@ public class BuildSlot {
         return (this.buildUnits.size() == 0);
     }
 
-    protected long recalculateEndTimes(long time) {
-        long startTime = time;
+    /**
+     * Works out the build time for the troops in this slot.
+     * Handles if an upgrade happens for a troop by seeing when that upgrade is effective.
+     * @param startFromTime
+     * @return
+     */
+    protected long recalculateBuildUnitTimes(long startFromTime) {
+        long startTime = startFromTime;
         for (BuildUnit buildUnit : this.buildUnits) {
-            startTime = startTime + this.buildableData.getBuildingTime();
-            buildUnit.setEndTime(startTime);
+            buildUnit.setStartTime(startTime);
+            TroopData troopDataEffectiveAtStart = this.getTroopDataEffectiveAt(startTime);
+            long endTime = startTime + troopDataEffectiveAtStart.getTrainingTime();
+            TroopData troopDataEffectiveAtEnd = this.getTroopDataEffectiveAt(endTime);
+            endTime = endTime + (troopDataEffectiveAtEnd.getTrainingTime() - troopDataEffectiveAtStart.getTrainingTime());
+            buildUnit.setEndTime(endTime);
+            startTime = endTime;
         }
 
         return startTime;
     }
 
-    public BuildableData getBuildableData() {
-        return buildableData;
+    private TroopData getTroopDataEffectiveAt(long fromTime) {
+        return this.playerSession.getTroopInventory().getTroopByUnitIdEffectiveFrom(this.unitId, fromTime);
+    }
+
+    public TroopData getTroopData() {
+        return this.playerSession.getTroopInventory().getTroopByUnitId(this.unitId);
     }
 
     protected void removeBuildUnit(BuildUnit buildUnit) {
         this.buildUnits.remove(buildUnit);
     }
 
-    protected List<BuildUnit> getFirstEndTime() {
-        return this.buildUnits;
+    protected BuildUnit getFirstBuildUnit() {
+        BuildUnit buildUnit = null;
+        if (buildUnits.size() > 0) {
+            buildUnit = buildUnits.get(0);
+        }
+        return buildUnit;
     }
 }

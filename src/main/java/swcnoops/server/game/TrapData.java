@@ -1,6 +1,6 @@
 package swcnoops.server.game;
 
-public class TrapData implements BuildableData {
+public class TrapData implements GameData {
     final String uid;
     private Long rearmTime;
     private TrapEventType eventType;
@@ -31,18 +31,6 @@ public class TrapData implements BuildableData {
         this.eventType = eventType;
     }
 
-    @Override
-    public long getBuildingTime() {
-        if (getRearmTime() != null)
-            return getRearmTime().longValue();
-
-        return 0;
-    }
-
-    @Override
-    public int getSize() {
-        return 0;
-    }
 
     public String getEventData() {
         return eventData;

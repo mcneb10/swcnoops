@@ -2,19 +2,19 @@ package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class GameDataManagerImpl implements GameDataManager {
     private Map<String, TroopData> troops = new HashMap<>();
+    private Map<String, TroopData> lowestLevelTroopByUnitId = new HashMap<>();
+    private Map<String, List<TroopData>> levelsByUnitId = new HashMap<>();
     private Map<String, BuildingData> buildings = new HashMap<>();
     private Map<String, TrapData> traps = new HashMap<>();
 
     @Override
     public void initOnStartup() {
         try {
-            this.troops = loadTroops();
+            loadTroops();
             this.buildings = loadBuildings();
             this.traps = loadTraps();
         } catch (Exception ex) {
@@ -37,8 +37,8 @@ public class GameDataManagerImpl implements GameDataManager {
         return this.traps.get(uid);
     }
 
-    private Map<String, TroopData> loadTroops() throws Exception {
-        Map<String, TroopData> map = new HashMap<>();
+    private void loadTroops() throws Exception {
+        this.troops.clear();
 
         Map result = ServiceFactory.instance().getJsonParser()
                 .toObjectFromResource(ServiceFactory.instance().getConfig().troopJson, Map.class);
@@ -46,13 +46,13 @@ public class GameDataManagerImpl implements GameDataManager {
         Map<String, Map> contentMap = jsonSpreadSheet.get("content");
         Map<String, Map> objectsMap = contentMap.get("objects");
         List<Map<String,String>> troopDataMap = (List<Map<String,String>>) objectsMap.get("TroopData");
-        addToMap(map, troopDataMap);
+        addTroopsToMap(troopDataMap);
         List<Map<String,String>> specialAttackDataMap = (List<Map<String,String>>) objectsMap.get("SpecialAttackData");
-        addToMap(map, specialAttackDataMap);
-        return map;
+        addTroopsToMap(specialAttackDataMap);
     }
 
-    private void addToMap(Map<String, TroopData> map, List<Map<String, String>> troopDataMap) {
+    private void addTroopsToMap(List<Map<String, String>> troopDataMap) {
+        Set<String> unitIdsNeedsSorting = new HashSet<>();
         for (Map<String,String> troop : troopDataMap) {
             String faction = troop.get("faction");
             int lvl = Integer.valueOf(troop.get("lvl"));
@@ -60,21 +60,60 @@ public class GameDataManagerImpl implements GameDataManager {
             String unitId = troop.get("unitID");        //EmpireChicken
             String type = troop.get("type");
             int size = Integer.valueOf(troop.get("size")).intValue();
-            int trainingTime = Integer.valueOf(troop.get("trainingTime")).intValue();
+            long trainingTime = Long.valueOf(troop.get("trainingTime")).longValue();
+            long upgradeTime = Long.valueOf(troop.get("upgradeTime")).longValue();
             String upgradeShardUid = troop.get("upgradeShardUid");
             int upgradeShards = Integer.valueOf(troop.get("upgradeShards") == null ? "0" : troop.get("upgradeShards")).intValue();
+            String specialAttackID = troop.get("specialAttackID");
 
             TroopData troopData = new TroopData(uid);
             troopData.setFaction(faction);
             troopData.setLevel(lvl);
-            troopData.setUnitId(unitId);
+            troopData.setUnitId(unitId != null ? unitId : specialAttackID);
             troopData.setType(type);
             troopData.setSize(size);
             troopData.setTrainingTime(trainingTime);
+            troopData.setUpgradeTime(upgradeTime);
             troopData.setUpgradeShardUid(upgradeShardUid);
             troopData.setUpgradeShards(upgradeShards);
+            troopData.setSpecialAttackID(specialAttackID);
 
-            map.put(troopData.getUid(), troopData);
+            this.troops.put(troopData.getUid(), troopData);
+            addToLowestLevelTroopUnitId(troopData);
+
+            String needToSort = addToLevelsByUnitId(troopData);
+            if (needToSort != null)
+                unitIdsNeedsSorting.add(needToSort);
+        }
+
+        unitIdsNeedsSorting.forEach(a -> this.levelsByUnitId.get(a)
+                .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
+    }
+
+    private String addToLevelsByUnitId(TroopData troopData) {
+        String unitId = troopData.getUnitId();
+        if (troopData.getUnitId() != null) {
+            List<TroopData> levels = this.levelsByUnitId.get(troopData.getUnitId());
+            if (levels == null) {
+                levels = new ArrayList<>();
+                this.levelsByUnitId.put(troopData.getUnitId(), levels);
+            }
+
+            // this list will be sorted later before it can be used
+            levels.add(troopData);
+        }
+
+        return unitId;
+    }
+
+    private void addToLowestLevelTroopUnitId(TroopData troopData) {
+        TroopData currentLowest = this.lowestLevelTroopByUnitId.get(troopData.getUnitId());
+        if (currentLowest == null) {
+            this.lowestLevelTroopByUnitId.put(troopData.getUnitId(), troopData);
+        } else {
+            if (troopData.getLevel() < currentLowest.getLevel()) {
+                this.lowestLevelTroopByUnitId.put(troopData.getUnitId(), troopData);
+            }
         }
     }
 
@@ -139,5 +178,15 @@ public class GameDataManagerImpl implements GameDataManager {
         }
 
         return map;
+    }
+
+    @Override
+    public TroopData getLowestLevelTroopDataByUnitId(String unitId) {
+        return this.lowestLevelTroopByUnitId.get(unitId);
+    }
+
+    @Override
+    public TroopData getTroopDataByUnitId(String unitId, int level) {
+        return this.levelsByUnitId.get(unitId).get(level - 1);
     }
 }

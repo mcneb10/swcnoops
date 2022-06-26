@@ -29,4 +29,6 @@ public interface TrainingManager {
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove);
 
     void initialiseDeployables(Deployables deployables);
+
+    void recalculateContracts(long time);
 }

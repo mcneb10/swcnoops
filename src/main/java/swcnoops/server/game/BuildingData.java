@@ -1,8 +1,6 @@
 package swcnoops.server.game;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
-public class BuildingData implements BuildableData {
+public class BuildingData implements GameData {
     final private String uid;
     private String faction;
     private int level;
@@ -66,16 +64,6 @@ public class BuildingData implements BuildableData {
     @Override
     public String getUid() {
         return this.uid;
-    }
-
-    @Override
-    public long getBuildingTime() {
-        return this.getTime();
-    }
-
-    @Override
-    public int getSize() {
-        throw new NotImplementedException();
     }
 
     public void setTrapId(String trapId) {

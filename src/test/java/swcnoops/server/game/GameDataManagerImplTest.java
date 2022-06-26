@@ -31,7 +31,17 @@ public class GameDataManagerImplTest {
         assertNotNull(troopData);
         buildingData = gameDataManager.getBuildingDataByUid("rebelPlatformHeavyDroideka47");
         assertNotNull(buildingData);
-        troopData = gameDataManager.getTroopDataByUid("troopChampionRebelHeavyDroideka47");
+        troopData = gameDataManager.getTroopDataByUid("specialAttackEmpireHauler11");
         assertNotNull(troopData);
+        assertNotNull(troopData.getUnitId());
+        troopData = gameDataManager.getTroopDataByUid("troopMercenaryEmpireRider1");
+        assertNotNull(troopData);
+        assertNotNull(troopData.getUnitId());
+        troopData = gameDataManager.getTroopDataByUid("troopSniper1");
+        assertNotNull(troopData);
+        assertNotNull(troopData.getUnitId());
+        troopData = gameDataManager.getTroopDataByUid("troopHeroATAT1");
+        assertNotNull(troopData);
+        assertNotNull(troopData.getUnitId());
     }
 }

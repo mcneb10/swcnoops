@@ -1,15 +1,17 @@
 package swcnoops.server.game;
 
-public class TroopData implements BuildableData {
+public class TroopData implements GameData {
     final private String uid;
     private String faction;
     private int level;
     private String unitId;
     private String type;
     private int size;
-    private int trainingTime;
+    private long trainingTime;
     private String upgradeShardUid;
     private int upgradeShards;
+    private long upgradeTime;
+    private String specialAttackID;
 
     public TroopData(String uid) {
         this.uid = uid;
@@ -51,16 +53,15 @@ public class TroopData implements BuildableData {
         this.size = size;
     }
 
-    @Override
     public int getSize() {
         return size;
     }
 
-    protected void setTrainingTime(int trainingTime) {
+    protected void setTrainingTime(long trainingTime) {
         this.trainingTime = trainingTime;
     }
 
-    public int getTrainingTime() {
+    public long getTrainingTime() {
         return trainingTime;
     }
 
@@ -80,8 +81,27 @@ public class TroopData implements BuildableData {
         return upgradeShards;
     }
 
-    @Override
-    public long getBuildingTime() {
-        return this.getTrainingTime();
+    public void setUpgradeTime(long upgradeTime) {
+        this.upgradeTime = upgradeTime;
+    }
+
+    public long getUpgradeTime() {
+        return upgradeTime;
+    }
+
+    public String getType() {
+        return this.type;
+    }
+
+    public void setSpecialAttackID(String specialAttackID) {
+        this.specialAttackID = specialAttackID;
+    }
+
+    public String getSpecialAttackID() {
+        return specialAttackID;
+    }
+
+    public boolean isSpecialAttack() {
+        return this.getSpecialAttackID() != null;
     }
 }

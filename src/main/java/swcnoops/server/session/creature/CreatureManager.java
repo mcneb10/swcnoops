@@ -1,13 +1,12 @@
 package swcnoops.server.session.creature;
 
-import swcnoops.server.datasource.CreatureSettings;
+import swcnoops.server.datasource.Creature;
+import swcnoops.server.session.commands.BuildingCommands;
 
-public interface CreatureManager {
+public interface CreatureManager extends BuildingCommands {
     void recaptureCreature(String creatureTroopUid, long time);
 
     boolean hasCreature();
-
-    String getBuildingKey();
 
     String getBuildingUid();
 
@@ -21,9 +20,7 @@ public interface CreatureManager {
 
     String getSpecialAttackUid();
 
-    void creatureBuyout();
-
     CreatureStatus getCreatureStatus();
 
-    CreatureSettings getCreatureSettings();
+    Creature getCreature();
 }

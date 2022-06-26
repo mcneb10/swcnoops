@@ -5,6 +5,7 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.training.TrainingManager;
 
 import java.util.List;
@@ -14,6 +15,8 @@ public interface PlayerSession {
     Player getPlayer();
 
     String getPlayerId();
+
+    TroopInventory getTroopInventory();
 
     void trainTroops(String constructor, String unitTypeId, int quantity, long time);
 
@@ -25,7 +28,6 @@ public interface PlayerSession {
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     void playerBattleStart(long time);
-    void processCompletedContracts(long time);
 
     PlayerMap getBaseMap();
 
@@ -37,4 +39,10 @@ public interface PlayerSession {
     CreatureManager getCreatureManager();
 
     void buildingBuyout(String instanceId, String tag, long time);
+
+    void deployableUpgradeStart(String buildingId, String troopUid, long time);
+
+    void playerLogin(long time);
+
+    void buildingCancel(String buildingId, String tag, long time);
 }

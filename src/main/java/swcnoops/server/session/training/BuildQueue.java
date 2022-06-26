@@ -1,8 +1,6 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.ServiceFactory;
-import swcnoops.server.game.BuildableData;
-import swcnoops.server.game.GameDataManager;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -17,6 +15,7 @@ import java.util.Map;
 public class BuildQueue {
     final private LinkedList<BuildSlot> buildQueue = new LinkedList<>();
     final private Map<String, BuildSlot> buildQueueMap = new HashMap<>();
+    final private PlayerSession playerSession;
 
     protected LinkedList<BuildSlot> getBuildQueue() {
         return buildQueue;
@@ -26,6 +25,10 @@ public class BuildQueue {
         return this.buildQueue.size() == 0;
     }
 
+    public BuildQueue(PlayerSession playerSession) {
+        this.playerSession = playerSession;
+    }
+
     protected void add(List<BuildUnit> buildUnits) {
         BuildUnit buildUnit = buildUnits.get(0);
         BuildSlot buildSlot = this.getOrCreateBuildSlot(buildUnit);
@@ -33,10 +36,10 @@ public class BuildQueue {
     }
 
     private BuildSlot getOrCreateBuildSlot(BuildUnit buildUnit) {
-        BuildSlot buildSlot = this.buildQueueMap.get(buildUnit.getUnitTypeId());
+        BuildSlot buildSlot = this.buildQueueMap.get(buildUnit.getUnitId());
         if (buildSlot == null) {
             buildSlot = createBuildSlot(buildUnit);
-            this.buildQueueMap.put(buildSlot.getUnitTypeId(), buildSlot);
+            this.buildQueueMap.put(buildSlot.getUnitId(), buildSlot);
             this.buildQueue.add(buildSlot);
         }
         return buildSlot;
@@ -48,29 +51,21 @@ public class BuildQueue {
     }
 
     private BuildSlot createBuildSlot(BuildUnit buildUnit) {
-        BuildableData buildableData = getBuildableData(buildUnit.getUnitTypeId());
-        return new BuildSlot(buildUnit.getUnitTypeId(), buildableData);
+        // TODO - maybe register to the players session that they want to listen for upgrade events
+        return new BuildSlot(buildUnit.getUnitId(), this.playerSession);
     }
 
-    private BuildableData getBuildableData(String unitTypeId) {
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        BuildableData buildableData = gameDataManager.getTroopDataByUid(unitTypeId);
-        if (buildableData == null)
-            throw new RuntimeException("Failed to get TroopData for " + unitTypeId);
-
-        return buildableData;
-    }
-
-    protected void recalculateEndTimes(long startTime) {
+    protected void recalculateBuildUnitTimes(long startTime) {
         for (BuildSlot buildSlot : this.buildQueue) {
-            startTime = buildSlot.recalculateEndTimes(startTime);
+            startTime = buildSlot.recalculateBuildUnitTimes(startTime);
         }
     }
 
     protected void removeBuildSlotIfEmpty(BuildSlot buildSlot) {
         if (buildSlot.isEmpty()) {
+            // TODO - maybe unregister to the players session that they want to listen for upgrade events
             this.buildQueue.remove(buildSlot);
-            this.buildQueueMap.remove(buildSlot.getUnitTypeId());
+            this.buildQueueMap.remove(buildSlot.getUnitId());
         }
     }
 

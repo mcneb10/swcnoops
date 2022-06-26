@@ -1,6 +1,6 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.game.BuildableData;
+import swcnoops.server.game.TroopData;
 
 import java.util.*;
 
@@ -31,14 +31,14 @@ public class DeployableQueue {
     }
 
     private void moveToDeployable(BuildUnit buildUnit) {
-        BuildableData buildableData = buildUnit.getBuildSlot().getBuildableData();
-        this.totalDeployable += buildableData.getSize();
-        Integer numberOfUnits = this.deployableUnits.get(buildUnit.getUnitTypeId());
+        TroopData troopData = buildUnit.getBuildSlot().getTroopData();
+        this.totalDeployable += troopData.getSize();
+        Integer numberOfUnits = this.deployableUnits.get(buildUnit.getUnitId());
         if (numberOfUnits == null)
             numberOfUnits = Integer.valueOf(0);
 
         numberOfUnits = Integer.valueOf(numberOfUnits.intValue() + 1);
-        this.deployableUnits.put(buildUnit.getUnitTypeId(), numberOfUnits);
+        this.deployableUnits.put(buildUnit.getUnitId(), numberOfUnits);
     }
 
     public Map<String, Integer> getDeployableUnits() {
@@ -84,7 +84,7 @@ public class DeployableQueue {
             }
 
             // is there enough space to move this completed troop to the transport
-            if (buildUnit.getBuildSlot().getBuildableData().getSize() < this.getAvailableCapacity()) {
+            if (buildUnit.getBuildSlot().getTroopData().getSize() < this.getAvailableCapacity()) {
                 buildUnitsIterator.remove();
                 buildUnit.getBuilder().removeCompletedBuildUnit(buildUnit);
                 this.moveUnitToDeployable(buildUnit);

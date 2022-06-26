@@ -11,7 +11,8 @@ public class BuildUnit {
     @JsonIgnore
     private Builder builder;
     private String buildingId;
-    private String unitTypeId;
+    private String unitId;
+    private long startTime;
     private long endTime;
     @JsonIgnore
     private BuildSlot buildSlot;
@@ -19,9 +20,9 @@ public class BuildUnit {
     public BuildUnit() {
     }
 
-    public BuildUnit(Builder builder, String buildingId, String unitTypeId) {
+    public BuildUnit(Builder builder, String buildingId, String unitId) {
         this.buildingId = buildingId;
-        this.unitTypeId = unitTypeId;
+        this.unitId = unitId;
         this.builder = builder;
     }
 
@@ -33,8 +34,8 @@ public class BuildUnit {
         return buildingId;
     }
 
-    public String getUnitTypeId() {
-        return unitTypeId;
+    public String getUnitId() {
+        return unitId;
     }
 
     public long getEndTime() {
@@ -43,6 +44,14 @@ public class BuildUnit {
 
     public void setEndTime(long endTime) {
         this.endTime = endTime;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
     }
 
     public void setBuildSlot(BuildSlot buildSlot) {
@@ -58,12 +67,6 @@ public class BuildUnit {
     }
 
     public int compareEndTime(BuildUnit b) {
-        if (this.getEndTime() < b.getEndTime())
-            return -1;
-
-        if (this.getEndTime() == b.getEndTime())
-            return 0;
-
-        return 1;
+        return Long.compare(this.getEndTime(), b.getEndTime());
     }
 }
