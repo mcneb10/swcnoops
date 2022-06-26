@@ -36,15 +36,20 @@ public class TroopInventoryImpl implements TroopInventory {
         // see when was this troop was effective for this player
         TroopRecord troopRecord = this.getTroops().getTroopRecords().get(unitId);
         if (troopRecord != null) {
+            // if this version has the effect then we want this one
             if (troopRecord.getEffectiveTime() <= fromTime) {
                 if (troopData.getLevel() != troopRecord.getLevel()) {
-                    int previousLevel = troopRecord.getLevel() - 1;
-                    if (previousLevel <= 0)
-                        previousLevel = 1;
-
                     troopData = ServiceFactory.instance().getGameDataManager()
-                            .getTroopDataByUnitId(unitId, previousLevel);
+                            .getTroopDataByUnitId(unitId, troopRecord.getLevel());
                 }
+            } else {
+                // if this version is not the effective one then we want the previous version
+                int previousLevel = troopRecord.getLevel() - 1;
+                if (previousLevel <= 0)
+                    previousLevel = 1;
+
+                troopData = ServiceFactory.instance().getGameDataManager()
+                        .getTroopDataByUnitId(unitId, previousLevel);
             }
         }
 

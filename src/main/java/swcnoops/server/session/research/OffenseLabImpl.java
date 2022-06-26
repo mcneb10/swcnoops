@@ -49,6 +49,14 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
+    public void cancel(long time) {
+        Troops troops = this.playerSession.getTroopInventory().getTroops();
+        if (troops.getUpgrades().size() > 0) {
+            troops.getUpgrades().clear();
+        }
+    }
+
+    @Override
     public void upgradeStart(String buildingId, String troopUid, long time) {
         if (this.playerSession.getTroopInventory().getTroops() != null) {
             TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(troopUid);

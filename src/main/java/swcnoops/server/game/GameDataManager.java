@@ -23,5 +23,5 @@ public interface GameDataManager {
      */
     TroopData getLowestLevelTroopDataByUnitId(String unitId);
 
-    TroopData getTroopDataByUnitId(String unitId, int intValue);
+    TroopData getTroopDataByUnitId(String unitId, int level);
 }

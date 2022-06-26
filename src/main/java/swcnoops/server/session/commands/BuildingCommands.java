@@ -7,4 +7,6 @@ public interface BuildingCommands {
      */
     String getBuildingId();
     void buyout(long time);
+
+    void cancel(long time);
 }

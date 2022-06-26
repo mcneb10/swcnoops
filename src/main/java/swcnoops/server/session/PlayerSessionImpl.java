@@ -151,14 +151,23 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void buildingBuyout(String instanceId, String tag, long time) {
+    public void buildingBuyout(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingId().equals(instanceId)) {
+        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingId().equals(buildingId)) {
             this.creatureManager.buyout(time);
             this.savePlayerSession();
-        } else if (this.offenseLab.getBuildingId().equals(instanceId)) {
+        } else if (this.offenseLab.getBuildingId().equals(buildingId)) {
             this.offenseLab.buyout(time);
             this.trainingManager.recalculateContracts(time);
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
+    public void buildingCancel(String buildingId, String tag, long time) {
+        this.processCompletedContracts(time);
+        if (this.offenseLab.getBuildingId().equals(buildingId)) {
+            this.offenseLab.cancel(time);
             this.savePlayerSession();
         }
     }

@@ -70,6 +70,11 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
+    public void cancel(long time) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public CreatureStatus getCreatureStatus() {
         return this.creature.getCreatureStatus();
     }

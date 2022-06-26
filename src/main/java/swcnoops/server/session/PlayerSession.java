@@ -43,4 +43,6 @@ public interface PlayerSession {
     void deployableUpgradeStart(String buildingId, String troopUid, long time);
 
     void playerLogin(long time);
+
+    void buildingCancel(String buildingId, String tag, long time);
 }
