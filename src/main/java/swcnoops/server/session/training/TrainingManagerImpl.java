@@ -49,8 +49,6 @@ public class TrainingManagerImpl implements TrainingManager {
 
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
-        moveCompletedBuildUnits(startTime);
-
         // we create build units using the unitId and not the uid of the troop
         // this is to handle upgrades done in the middle of training
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
@@ -88,7 +86,6 @@ public class TrainingManagerImpl implements TrainingManager {
         if (transport != null) {
             transport.removeUnitsFromQueue(cancelledContracts);
             transport.sortUnitsInQueue();
-            transport.findAndMoveCompletedUnitsToDeployable(time);
         }
     }
 
@@ -103,8 +100,6 @@ public class TrainingManagerImpl implements TrainingManager {
      */
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        // we move completed troops last because its possible they managed to buy it out
-        // while we think it had completed and already moved to be a deployable
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> boughtOutContracts =
@@ -113,7 +108,6 @@ public class TrainingManagerImpl implements TrainingManager {
         if (transport != null) {
             transport.moveUnitToDeployable(boughtOutContracts);
             transport.sortUnitsInQueue();
-            transport.findAndMoveCompletedUnitsToDeployable(time);
         }
     }
 

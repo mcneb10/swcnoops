@@ -82,7 +82,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerModel.creatureTrapData = new ArrayList<>();
         if (playerSession.getCreatureManager().hasCreature()) {
             CreatureTrapData creatureTrapData = new CreatureTrapData();
-            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingKey();
+            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingId();
             creatureTrapData.specialAttackUid = playerSession.getCreatureManager().getSpecialAttackUid();
             creatureTrapData.ready = playerSession.getCreatureManager().isCreatureAlive();
             creatureTrapData.championUid = playerSession.getCreatureManager().getCreatureUid();
@@ -202,7 +202,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             if (creatureManager.isRecapturing()) {
                 Contract contract = new Contract();
                 contract.contractType = ContractType.Creature.name();
-                contract.buildingId = creatureManager.getBuildingKey();
+                contract.buildingId = creatureManager.getBuildingId();
                 contract.uid = creatureManager.getBuildingUid();
                 contract.endTime = creatureManager.getRecaptureEndTime();
                 contracts.add(contract);

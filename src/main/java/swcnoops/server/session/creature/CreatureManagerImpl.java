@@ -24,7 +24,7 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public String getBuildingKey() {
+    public String getBuildingId() {
         return this.creatureDataMap.building.key;
     }
 
@@ -42,7 +42,7 @@ public class CreatureManagerImpl implements CreatureManager {
     public boolean isCreatureAlive() {
         if (this.getCreatureStatus() != CreatureStatus.Alive) {
             if (this.creature.hasBeenRecaptured()) {
-                this.creatureBuyout();
+                this.buyout(0);
             }
         }
 
@@ -65,7 +65,7 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public void creatureBuyout() {
+    public void buyout(long time) {
         this.creature.setCreatureStatus(CreatureStatus.Alive);
     }
 

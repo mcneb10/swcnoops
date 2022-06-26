@@ -25,4 +25,8 @@ public class TroopUpgrade {
     public long getEndTime() {
         return endTime;
     }
+
+    public void buyout(long time) {
+        this.endTime = time;
+    }
 }

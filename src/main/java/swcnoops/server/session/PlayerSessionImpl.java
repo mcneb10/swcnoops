@@ -8,21 +8,30 @@ import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.TroopInventoryFactory;
+import swcnoops.server.session.research.OffenseLab;
+import swcnoops.server.session.research.OffenseLabFactory;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
 import java.util.*;
 
+/**
+ * This represents the actions/commands that the game client can do for a player.
+ * There should be no player state processing in the commands themselves, all those should be is mapping
+ * to the response. Player State changes should be done in classes of package sessions.
+ */
 public class PlayerSessionImpl implements PlayerSession {
     final private Player player;
     final private PlayerSettings playerSettings;
     final private TrainingManager trainingManager;
     final private CreatureManager creatureManager;
     final private TroopInventory troopInventory;
+    final private OffenseLab offenseLab;
 
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
     static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
     static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
+    static final private OffenseLabFactory offenseLabFactory = new OffenseLabFactory();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
@@ -30,6 +39,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.troopInventory = PlayerSessionImpl.troopInventoryFactory.createForPlayer(this);
         this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this);
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
+        this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
     }
 
     @Override
@@ -49,6 +59,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
+        this.processCompletedContracts(startTime);
         this.trainingManager.trainTroops(buildingId, unitTypeId, quantity, startTime);
         savePlayerSession();
     }
@@ -56,12 +67,16 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
         this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
+        this.processCompletedContracts(time);
         savePlayerSession();
     }
 
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
+        // we move completed troops last because its possible they managed to buy it out
+        // while we think it had completed and already moved to be a deployable
         this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
+        this.processCompletedContracts(time);
         this.savePlayerSession();
     }
 
@@ -73,6 +88,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
+            this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
             this.savePlayerSession();
         }
@@ -108,7 +124,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void processCompletedContracts(long time) {
-        this.troopInventory.processCompletedUpgrades(time);
+        this.offenseLab.processCompletedUpgrades(time);
         this.trainingManager.moveCompletedBuildUnits(time);
     }
 
@@ -135,8 +151,12 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingBuyout(String instanceId, String tag, long time) {
-        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(instanceId)) {
-            this.creatureManager.creatureBuyout();
+        this.processCompletedContracts(time);
+        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingId().equals(instanceId)) {
+            this.creatureManager.buyout(time);
+            this.savePlayerSession();
+        } else if (this.offenseLab.getBuildingId().equals(instanceId)) {
+            this.offenseLab.buyout(time);
             this.savePlayerSession();
         }
     }
@@ -148,7 +168,8 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void deployableUpgradeStart(String buildingId, String troopUid, long time) {
-        this.troopInventory.upgradeStart(buildingId, troopUid, time);
+        this.processCompletedContracts(time);
+        this.offenseLab.upgradeStart(buildingId, troopUid, time);
         this.savePlayerSession();
     }
 
