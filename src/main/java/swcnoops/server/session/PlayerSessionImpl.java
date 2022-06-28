@@ -211,7 +211,7 @@ public class PlayerSessionImpl implements PlayerSession {
         return false;
     }
 
-    private GuildSession getGuildSession() {
+    public GuildSession getGuildSession() {
         return guildSession;
     }
 

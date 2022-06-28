@@ -21,8 +21,9 @@ public class GuildGet extends AbstractCommandAction<GuildGet, GuildGetCommandRes
 
         // TODO - get guild for the player
         String guildId = guildGetResult.id;
+        String guildName = guildGetResult.name;
 
-        GuildSession guildSession = ServiceFactory.instance().getSessionManager().getGuildSession(guildId);
+        GuildSession guildSession = ServiceFactory.instance().getSessionManager().getGuildSession(guildId, guildName);
         if (guildSession == null)
             throw new RuntimeException("Unknown guild " + guildId);
 

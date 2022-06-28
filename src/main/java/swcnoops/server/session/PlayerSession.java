@@ -51,4 +51,6 @@ public interface PlayerSession {
     boolean isInGuild(String guildId);
 
     void setGuildSession(GuildSession guildSession);
+
+    GuildSession getGuildSession();
 }

@@ -248,7 +248,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     @Override
-    protected Messages createMessage(Command command) {
+    protected Messages createMessage(Command command, PlayerLoginCommandResult commandResult) {
         return new LoginMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(),
                 ServiceFactory.createRandomUUID());
     }

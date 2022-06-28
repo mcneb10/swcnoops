@@ -2,10 +2,7 @@ package swcnoops.server.commands;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.json.JsonParser;
-import swcnoops.server.requests.CommandMessages;
-import swcnoops.server.requests.Messages;
-import swcnoops.server.requests.CommandResult;
-import swcnoops.server.requests.ResponseData;
+import swcnoops.server.requests.*;
 
 abstract public class AbstractCommandAction<A extends CommandArguments, R extends CommandResult>
         implements CommandArguments, CommandAction<R>
@@ -37,12 +34,14 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
             responseData.status = commandResult.getStatus();
         }
 
-        responseData.messages = createMessage(command);
+        responseData.messages = createMessage(command, commandResult);
         return responseData;
     }
 
-    protected Messages createMessage(Command command) {
-        return new CommandMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(), ServiceFactory.createRandomUUID());
+    protected Messages createMessage(Command command, R commandResult) {
+        Messages messages = new CommandMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(),
+                ServiceFactory.createRandomUUID());;
+        return messages;
     }
 
     static public <T extends CommandResult> T parseJsonFile(String filename, Class<T> clazz) {

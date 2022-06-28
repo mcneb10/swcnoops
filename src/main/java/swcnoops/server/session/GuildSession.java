@@ -6,4 +6,6 @@ public interface GuildSession {
     void join(PlayerSession playerSession);
 
     void troopsRequest(String playerId, String message, long time);
+
+    String getGuildName();
 }

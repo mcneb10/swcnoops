@@ -32,7 +32,7 @@ public class ConfigEndpointsGet extends AbstractCommandAction<ConfigEndpointsGet
     }
 
     @Override
-    protected Messages createMessage(Command command) {
+    protected Messages createMessage(Command command, ConfigEndpointsGetCommandResult commandResult) {
         return EmptyMessage.instance;
     }
 }

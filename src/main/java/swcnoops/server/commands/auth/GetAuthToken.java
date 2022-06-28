@@ -46,7 +46,7 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
     }
 
     @Override
-    protected Messages createMessage(Command command) {
+    protected Messages createMessage(Command command, CommandResult commandResult) {
         return EmptyMessage.instance;
     }
 }

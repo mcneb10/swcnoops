@@ -52,15 +52,16 @@ public class SessionManagerImpl implements SessionManager {
     }
 
     //TODO - make it load and minimise blocking
+    //should not be taking the name from being passed in, need to fix
     @Override
-    public GuildSession getGuildSession(String guildId) {
+    public GuildSession getGuildSession(String guildId, String guildName) {
         GuildSession guildSession = this.guilds.get(guildId);
         if (guildSession == null) {
             try {
                 guildLock.lock();
                 guildSession = this.guilds.get(guildId);
                 if (guildSession == null) {
-                    guildSession = createGuildSession(guildId);
+                    guildSession = createGuildSession(guildId, guildName);
                     this.guilds.put(guildSession.getGuildId(), guildSession);
                 }
             } finally {
@@ -71,8 +72,8 @@ public class SessionManagerImpl implements SessionManager {
         return guildSession;
     }
 
-    private GuildSession createGuildSession(String guildId) {
-        GuildSession guildSession = new GuildSessionImpl(guildId);
+    private GuildSession createGuildSession(String guildId, String guildName) {
+        GuildSession guildSession = new GuildSessionImpl(guildId, guildName);
         return guildSession;
     }
 }
