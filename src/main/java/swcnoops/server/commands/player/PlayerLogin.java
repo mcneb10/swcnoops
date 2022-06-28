@@ -59,7 +59,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
         mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
         mapShards(playerLoginResponse.playerModel);
-        mapDonatedTroops(playerLoginResponse.playerModel);
+        mapDonatedTroops(playerLoginResponse.playerModel, playerSession);
 
         mapContracts(playerLoginResponse.playerModel, playerSession);
         mapInventory(playerLoginResponse.playerModel, playerSession);
@@ -161,11 +161,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     // TODO - set the troops for the SC
-    private void mapDonatedTroops(PlayerModel playerModel) {
-        if (playerModel.donatedTroops == null)
-            playerModel.donatedTroops = new HashMap<>();
-        else
-            playerModel.donatedTroops.clear();
+    private void mapDonatedTroops(PlayerModel playerModel, PlayerSession playerSession) {
+        playerModel.donatedTroops = playerSession.getDonatedTroops();
     }
 
     /**

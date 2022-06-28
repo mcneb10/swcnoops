@@ -25,7 +25,15 @@ public class GuildTroopsDonate extends AbstractCommandAction<GuildTroopsDonate, 
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        String playerId = arguments.getPlayerId();
+        // TODO - when we do it for real, we use the real recipientId
+        String recipientPlayerId = arguments.getPlayerId();
+
+        playerSession.getGuildSession().processDonations(arguments.getTroopsDonated(), arguments.getRequestId(),
+                playerSession, recipientPlayerId, time);
+
+
+        // TODO - do we need to deal with any race conditions when multiple players
+        // are trying to donate to the same player, a problem to be solved when doing squad support
 
         // not sure about this yet, this probably controls the SC space that the client has on screen
         TroopDonationProgress troopDonationProgress = null;
@@ -33,7 +41,7 @@ public class GuildTroopsDonate extends AbstractCommandAction<GuildTroopsDonate, 
                 new GuildTroopsDonateCommandResult(arguments.getTroopsDonated(),
                         false, troopDonationProgress);
 
-        guildTroopsDonateCommandResult.setPlayerId(playerId);
+        guildTroopsDonateCommandResult.setPlayerId(recipientPlayerId);
         guildTroopsDonateCommandResult.setName(playerSession.getPlayer().getPlayerSettings().getName());
         guildTroopsDonateCommandResult.setRequestId(requestId);
 
@@ -41,7 +49,7 @@ public class GuildTroopsDonate extends AbstractCommandAction<GuildTroopsDonate, 
         troopDonationData.troopsDonated = arguments.getTroopsDonated();
         troopDonationData.amount = arguments.getTroopsDonated().size();
         troopDonationData.requestId = arguments.getRequestId();
-        troopDonationData.recipientId = playerId;
+        troopDonationData.recipientId = recipientPlayerId;
 
         guildTroopsDonateCommandResult.setTroopDonationData(troopDonationData);
         guildTroopsDonateCommandResult.setGuildSession(playerSession.getGuildSession());

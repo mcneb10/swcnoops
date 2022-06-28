@@ -27,6 +27,7 @@ public class PlayerSessionImpl implements PlayerSession {
     final private CreatureManager creatureManager;
     final private TroopInventory troopInventory;
     final private OffenseLab offenseLab;
+    final private DonatedTroops donatedTroops;
 
     private GuildSession guildSession;
 
@@ -42,6 +43,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this);
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
         this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
+        this.donatedTroops = playerSettings.getDonatedTroops();
     }
 
     @Override
@@ -218,5 +220,36 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void setGuildSession(GuildSession guildSession) {
         this.guildSession = guildSession;
+    }
+
+    @Override
+    public DonatedTroops getDonatedTroops() {
+        return donatedTroops;
+    }
+
+    @Override
+    public void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId) {
+        troopsDonated.forEach((a,b) -> addDonatedTroop(a,b,playerId));
+    }
+
+    /**
+     * TODO - Need to make this thread safe for squad support
+     * @param troopUid
+     * @param numberOf
+     * @param fromPlayerId
+     */
+    private void addDonatedTroop(String troopUid, Integer numberOf, String fromPlayerId) {
+        GuildDonatedTroops guildDonatedTroops = this.donatedTroops.get(troopUid);
+        if (guildDonatedTroops == null) {
+            guildDonatedTroops = new GuildDonatedTroops();
+            this.donatedTroops.put(troopUid, guildDonatedTroops);
+        }
+
+        Integer troopsGivenByPlayer = guildDonatedTroops.get(fromPlayerId);
+        if (troopsGivenByPlayer == null)
+            troopsGivenByPlayer = new Integer(0);
+
+        troopsGivenByPlayer = troopsGivenByPlayer + numberOf;
+        guildDonatedTroops.put(fromPlayerId, troopsGivenByPlayer);
     }
 }

@@ -1,5 +1,7 @@
 package swcnoops.server.session;
 
+import swcnoops.server.ServiceFactory;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -33,5 +35,18 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public void troopsRequest(String playerId, String message, long time) {
         // TODO
+    }
+
+    @Override
+    public void processDonations(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession,
+                                 String recipientPlayerId, long time)
+    {
+        // remove from the donor
+        playerSession.removeDeployedTroops(troopsDonated, time);
+        // move to recipient
+        PlayerSession recipientPlayerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(recipientPlayerId);
+        recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId());
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession, recipientPlayerSession);
     }
 }

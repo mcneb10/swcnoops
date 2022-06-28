@@ -24,6 +24,8 @@ public class GuildTroopsRequest extends AbstractCommandAction<GuildTroopsRequest
 
         playerSession.troopsRequest(arguments.isPayToSkip(), arguments.getMessage(), time);
         TroopRequestData troopRequestData = new TroopRequestData();
+
+        // TODO - populate these properly for the player based on what is in their SC
         troopRequestData.totalCapacity = 42;
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
         troopRequestData.amount = 42;

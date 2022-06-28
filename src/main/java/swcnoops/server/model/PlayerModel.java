@@ -7,7 +7,7 @@ public class PlayerModel {
     public GuildInfo guildInfo;
     public Upgrades upgrades;
     public Upgrades prizes;
-    public Map<String, Map<String, Long>> donatedTroops;
+    public DonatedTroops donatedTroops;
     public Object buildingsUnderConstruction;
     public PlayerMap map;
     public Inventory inventory;
