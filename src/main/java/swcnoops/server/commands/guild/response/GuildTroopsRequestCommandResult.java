@@ -4,15 +4,15 @@ import swcnoops.server.model.TroopRequestData;
 import swcnoops.server.requests.AbstractCommandResult;
 import swcnoops.server.session.GuildSession;
 
-public class GuildTroopsCommandResult extends AbstractCommandResult {
+public class GuildTroopsRequestCommandResult extends AbstractCommandResult {
     final private String message;
     final private String playerId;
     final private String name;
     final private TroopRequestData troopRequestData;
     final private GuildSession guildSession;
 
-    public GuildTroopsCommandResult(String message, String playerId, String name, TroopRequestData troopRequestData,
-                                    GuildSession guildSession) {
+    public GuildTroopsRequestCommandResult(String message, String playerId, String name, TroopRequestData troopRequestData,
+                                           GuildSession guildSession) {
         this.message = message;
         this.playerId = playerId;
         this.name = name;
