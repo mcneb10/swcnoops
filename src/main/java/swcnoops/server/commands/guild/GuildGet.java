@@ -2,12 +2,12 @@ package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
-import swcnoops.server.commands.Command;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.guild.response.GuildGetCommandResult;
-import swcnoops.server.requests.CommandResult;
-import swcnoops.server.requests.ResponseData;
-import swcnoops.server.requests.ResponseHelper;
+import swcnoops.server.session.GuildSession;
+import swcnoops.server.session.PlayerSession;
+
+import java.util.ArrayList;
 
 public class GuildGet extends AbstractCommandAction<GuildGet, GuildGetCommandResult> {
 
@@ -15,6 +15,19 @@ public class GuildGet extends AbstractCommandAction<GuildGet, GuildGetCommandRes
     protected GuildGetCommandResult execute(GuildGet arguments, long time) throws Exception {
         GuildGetCommandResult guildGetResult =
                 parseJsonFile(ServiceFactory.instance().getConfig().guildGetTemplate, GuildGetCommandResult.class);
+
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+
+        // TODO - get guild for the player
+        String guildId = guildGetResult.id;
+
+        GuildSession guildSession = ServiceFactory.instance().getSessionManager().getGuildSession(guildId);
+        if (guildSession == null)
+            throw new RuntimeException("Unknown guild " + guildId);
+
+        guildSession.join(playerSession);
+        mapToResponse(guildGetResult, playerSession);
 
         // TODO
 //        swcSession.warId = swcSession.getPlayerSettings().currentRivalWarSquadId;
@@ -26,14 +39,11 @@ public class GuildGet extends AbstractCommandAction<GuildGet, GuildGetCommandRes
         return guildGetResult;
     }
 
-    @Override
-    public ResponseData createResponse(Command command, CommandResult commandResult) {
-        GuildGetCommandResult guildGetCommandResult = (GuildGetCommandResult) commandResult;
-        if (guildGetCommandResult.id == null) {
-            commandResult = ResponseHelper.SUCCESS_NULL_COMMAND_RESULT;
-        }
-
-        return super.createResponse(command, commandResult);
+    private void mapToResponse(GuildGetCommandResult guildGetResult, PlayerSession playerSession) {
+        guildGetResult.warSignUpTime = null;
+        guildGetResult.warRating = null;
+        guildGetResult.warHistory = new ArrayList<>();
+        guildGetResult.lastPerkNotif = 0;
     }
 
     @Override
@@ -45,6 +55,4 @@ public class GuildGet extends AbstractCommandAction<GuildGet, GuildGetCommandRes
     public String getAction() {
         return "guild.get";
     }
-
-
 }

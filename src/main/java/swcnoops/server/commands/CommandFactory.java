@@ -45,6 +45,7 @@ public class CommandFactory {
         this.add(new PlayerBuildingBuyout());
         this.add(new PlayerDeployableUpgradeStart());
         this.add(new PlayerBuildingCancel());
+        this.add(new GuildTroopsRequest());
 
         //this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());

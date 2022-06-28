@@ -25,16 +25,6 @@ public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetPar
     }
 
     @Override
-    public ResponseData createResponse(Command command, CommandResult commandResult) {
-        GuildWarGetParticipantCommandResult result = (GuildWarGetParticipantCommandResult) commandResult;
-
-        if (result.id == null) {
-            commandResult = ResponseHelper.SUCCESS_NULL_COMMAND_RESULT;
-        }
-        return super.createResponse(command, commandResult);
-    }
-
-    @Override
     protected GuildWarGetParticipant parseArgument(JsonParser jsonParser, Object argumentObject) {
         return jsonParser.fromJsonObject(argumentObject, GuildWarGetParticipant.class);
     }

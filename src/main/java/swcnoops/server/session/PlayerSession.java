@@ -45,4 +45,10 @@ public interface PlayerSession {
     void playerLogin(long time);
 
     void buildingCancel(String buildingId, String tag, long time);
+
+    void troopsRequest(boolean payToSkip, String message, long time);
+
+    boolean isInGuild(String guildId);
+
+    void setGuildSession(GuildSession guildSession);
 }

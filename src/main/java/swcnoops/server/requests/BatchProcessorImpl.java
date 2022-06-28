@@ -50,11 +50,6 @@ public class BatchProcessorImpl implements BatchProcessor {
 
             CommandResult commandResult = commandAction.execute(command.getArgs(), command.getTime());
             command.setResponse(commandResult);
-            // TODO - for now we mark it as success without a response
-            if (commandResult == null) {
-                System.err.println(commandAction.getAction() + " did not return a response");
-                commandResult = ResponseHelper.SUCCESS_COMMAND_RESULT;
-            }
             ResponseData responseData = commandAction.createResponse(command, commandResult);
             responseDatums.add(responseData);
         }

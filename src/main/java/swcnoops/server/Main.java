@@ -16,6 +16,7 @@ public class Main extends NanoHTTPD {
         start(NanoHTTPD.SOCKET_READ_TIMEOUT, false);
         System.out.println("\nRunning on port " + ServiceFactory.instance().getConfig().webServicePort);
     }
+
     public static void main(String[] args) {
         try {
             initialise();

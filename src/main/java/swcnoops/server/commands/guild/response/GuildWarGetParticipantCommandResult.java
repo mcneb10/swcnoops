@@ -20,4 +20,12 @@ public class GuildWarGetParticipantCommandResult extends AbstractCommandResult {
     public int victoryPoints;
     public Object warMap;
     public Object warStats;
+
+    @Override
+    public Object getResult() {
+        if (this.id == null)
+            return null;
+
+        return super.getResult();
+    }
 }

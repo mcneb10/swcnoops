@@ -8,7 +8,7 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseData;
 
 abstract public class AbstractCommandAction<A extends CommandArguments, R extends CommandResult>
-        implements CommandArguments, CommandAction
+        implements CommandArguments, CommandAction<R>
 {
     private String playerId;
 
@@ -28,7 +28,7 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     protected abstract A parseArgument(JsonParser jsonParser, Object argumentObject);
 
     @Override
-    public ResponseData createResponse(Command command, CommandResult commandResult) {
+    public ResponseData createResponse(Command command, R commandResult) {
         ResponseData responseData = new ResponseData();
         responseData.requestId = command.getRequestId();
 
