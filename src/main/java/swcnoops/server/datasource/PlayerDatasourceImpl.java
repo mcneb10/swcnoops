@@ -172,7 +172,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                         String donatedTroopsJson = rs.getString("donatedTroops");
                         DonatedTroops donatedTroops;
-                        if (troopsJson != null)
+                        if (donatedTroopsJson != null)
                             donatedTroops = ServiceFactory.instance().getJsonParser()
                                     .fromJsonString(donatedTroopsJson, DonatedTroops.class);
                         else

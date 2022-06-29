@@ -5,6 +5,8 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.model.DonatedTroops;
 import swcnoops.server.model.PlayerMap;
+import swcnoops.server.session.buildings.HeadQuarter;
+import swcnoops.server.session.buildings.SquadBuilding;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.training.TrainingManager;
@@ -14,6 +16,9 @@ import java.util.Map;
 
 public interface PlayerSession {
     Player getPlayer();
+
+    HeadQuarter getHeadQuarter();
+    SquadBuilding getSquadBuilding();
 
     String getPlayerId();
 
@@ -58,4 +63,6 @@ public interface PlayerSession {
     DonatedTroops getDonatedTroops();
 
     void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId);
+
+    int getDonatedTroopsTotalUnits();
 }

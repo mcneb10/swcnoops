@@ -1,11 +1,8 @@
 package swcnoops.server.session.commands;
 
-public interface BuildingCommands {
-    /**
-     * The id of the building on the map
-     * @return
-     */
-    String getBuildingId();
+import swcnoops.server.session.buildings.MapItem;
+
+public interface BuildingCommands extends MapItem {
     void buyout(long time);
 
     void cancel(long time);

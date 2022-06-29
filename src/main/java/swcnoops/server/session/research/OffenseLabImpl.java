@@ -22,10 +22,12 @@ public class OffenseLabImpl implements OffenseLab {
         this.buildingData = buildingData;
     }
 
+    @Override
     public String getBuildingId() {
         return buildingId;
     }
 
+    @Override
     public BuildingData getBuildingData() {
         return buildingData;
     }

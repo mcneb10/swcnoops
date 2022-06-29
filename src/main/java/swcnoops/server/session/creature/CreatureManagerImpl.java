@@ -1,6 +1,7 @@
 package swcnoops.server.session.creature;
 
 import swcnoops.server.datasource.Creature;
+import swcnoops.server.game.BuildingData;
 
 public class CreatureManagerImpl implements CreatureManager {
     final private CreatureDataMap creatureDataMap;
@@ -26,6 +27,11 @@ public class CreatureManagerImpl implements CreatureManager {
     @Override
     public String getBuildingId() {
         return this.creatureDataMap.building.key;
+    }
+
+    @Override
+    public BuildingData getBuildingData() {
+        return this.creatureDataMap.buildingData;
     }
 
     @Override

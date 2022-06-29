@@ -26,9 +26,9 @@ public class GuildTroopsRequest extends AbstractCommandAction<GuildTroopsRequest
         TroopRequestData troopRequestData = new TroopRequestData();
 
         // TODO - populate these properly for the player based on what is in their SC
-        troopRequestData.totalCapacity = 42;
+        troopRequestData.totalCapacity = playerSession.getSquadBuilding().getBuildingData().getStorage();
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
-        troopRequestData.amount = 42;
+        troopRequestData.amount = troopRequestData.totalCapacity - playerSession.getDonatedTroopsTotalUnits();
 
         GuildTroopsRequestCommandResult guildTroopsRequestCommandResult =
                 new GuildTroopsRequestCommandResult(arguments.getMessage(),
