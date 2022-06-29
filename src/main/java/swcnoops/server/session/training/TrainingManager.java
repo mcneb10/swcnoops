@@ -31,4 +31,5 @@ public interface TrainingManager {
     void initialiseDeployables(Deployables deployables);
 
     void recalculateContracts(long time);
+    Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids);
 }

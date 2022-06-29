@@ -128,7 +128,8 @@ public class TrainingManagerImpl implements TrainingManager {
         this.championTransport.removeDeployable(remapped);
     }
 
-    private Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids) {
+    @Override
+    public Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids) {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         Map<String,Integer> remapped = new HashMap<>();
         troopUids.forEach((a,b) -> remapped.put(gameDataManager.getTroopDataByUid(a).getUnitId(), b));

@@ -88,6 +88,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             creatureTrapData.ready = playerSession.getCreatureManager().isCreatureAlive();
             creatureTrapData.championUid = playerSession.getCreatureManager().getCreatureUid();
             playerModel.creatureTrapData.add(creatureTrapData);
+
+            // set the storage to indicate if we have a creature in there or not
+            playerModel.map.buildings.stream().filter(a -> a.key.equals(creatureTrapData.buildingId))
+                    .findFirst().get().currentStorage = creatureTrapData.ready ? 1 : 0;
         }
     }
 
