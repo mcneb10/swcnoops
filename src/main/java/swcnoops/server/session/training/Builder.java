@@ -3,6 +3,7 @@ package swcnoops.server.session.training;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.buildings.MapItem;
 
 import java.util.*;
 
@@ -12,7 +13,7 @@ import java.util.*;
  * When a unit/troop has finished building it gets moved to a shared deployable queue that will only take the troop
  * if there is space available for that troops size.
  */
-public class Builder {
+public class Builder implements MapItem {
     final private String buildingId;
     final private BuildQueue buildQueue;
     private long startTime;
@@ -30,10 +31,12 @@ public class Builder {
         this.buildQueue = new BuildQueue(playerSession);
     }
 
+    @Override
     public BuildingData getBuildingData() {
         return buildingData;
     }
 
+    @Override
     public String getBuildingId() {
         return this.buildingId;
     }

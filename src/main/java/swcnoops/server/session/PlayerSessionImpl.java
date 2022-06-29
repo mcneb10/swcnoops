@@ -3,7 +3,12 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.*;
+import swcnoops.server.session.buildings.HeadQuarter;
+import swcnoops.server.session.buildings.MapItem;
+import swcnoops.server.session.buildings.SquadBuilding;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.inventory.TroopInventory;
@@ -14,6 +19,7 @@ import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This represents the actions/commands that the game client can do for a player.
@@ -28,6 +34,9 @@ public class PlayerSessionImpl implements PlayerSession {
     final private TroopInventory troopInventory;
     final private OffenseLab offenseLab;
     final private DonatedTroops donatedTroops;
+    final private Map<String, MapItem> mapItemsById = new HashMap<>();
+    private SquadBuilding squadBuilding;
+    private HeadQuarter headQuarter;
 
     private GuildSession guildSession;
 
@@ -44,6 +53,47 @@ public class PlayerSessionImpl implements PlayerSession {
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
         this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
         this.donatedTroops = playerSettings.getDonatedTroops();
+        readMapItems(playerSettings.getBaseMap());
+    }
+
+    private void readMapItems(PlayerMap baseMap) {
+        this.mapItemsById.clear();
+        this.squadBuilding = null;
+        this.headQuarter = null;
+
+        for (Building building: baseMap.buildings) {
+            BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+            if (buildingData != null) {
+                MapItem mapItem;
+                switch (buildingData.getType()) {
+                    case squad:
+                        this.squadBuilding = new SquadBuilding(building, buildingData);
+                        mapItem = squadBuilding;
+                        break;
+                    case HQ:
+                        this.headQuarter = new HeadQuarter(building, buildingData);
+                        mapItem = headQuarter;
+                        break;
+                    default:
+                        mapItem = null;
+                        break;
+                }
+
+                if (mapItem != null) {
+                    mapItemsById.put(mapItem.getBuildingId(), mapItem);
+                }
+            }
+        }
+    }
+
+    @Override
+    public SquadBuilding getSquadBuilding() {
+        return squadBuilding;
+    }
+
+    @Override
+    public HeadQuarter getHeadQuarter() {
+        return headQuarter;
     }
 
     @Override
@@ -230,6 +280,15 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId) {
         troopsDonated.forEach((a,b) -> addDonatedTroop(a,b,playerId));
+    }
+
+    @Override
+    public int getDonatedTroopsTotalUnits() {
+        AtomicInteger totalUnits = new AtomicInteger(0);
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        this.getDonatedTroops()
+                .forEach((a,b) -> b.values().forEach(v -> totalUnits.addAndGet(gameDataManager.getTroopDataByUid(a).getSize() * v)));
+        return totalUnits.get();
     }
 
     /**
