@@ -28,7 +28,7 @@ public class GeneratePlayer extends AbstractCommandAction<GeneratePlayer, Genera
     }
 
     @Override
-    protected Messages createMessage(Command command) {
+    protected Messages createMessage(Command command, GeneratePlayerCommandResult commandResult) {
         return EmptyMessage.instance;
     }
 }

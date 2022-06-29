@@ -1,5 +1,6 @@
 package swcnoops.server.datasource;
 
+import swcnoops.server.model.DonatedTroops;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
 import swcnoops.server.session.inventory.Troops;
@@ -15,6 +16,7 @@ public class PlayerSettings {
     private BuildUnits buildUnits;
     private Creature creature;
     private Troops troops;
+    private DonatedTroops donatedTroops;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -85,5 +87,13 @@ public class PlayerSettings {
 
     public void setTroops(Troops troops) {
         this.troops = troops;
+    }
+
+    public DonatedTroops getDonatedTroops() {
+        return donatedTroops;
+    }
+
+    public void setDonatedTroops(DonatedTroops donatedTroops) {
+        this.donatedTroops = donatedTroops;
     }
 }

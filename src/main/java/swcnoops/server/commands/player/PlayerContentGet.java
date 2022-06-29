@@ -33,7 +33,7 @@ public class PlayerContentGet extends AbstractCommandAction<PlayerContentGet, Pl
     }
 
     @Override
-    protected Messages createMessage(Command command) {
+    protected Messages createMessage(Command command, PlayerContentGetCommandResult commandResult) {
         return EmptyMessage.instance;
     }
 }

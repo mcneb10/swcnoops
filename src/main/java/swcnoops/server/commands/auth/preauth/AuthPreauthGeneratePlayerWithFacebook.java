@@ -23,7 +23,7 @@ public class AuthPreauthGeneratePlayerWithFacebook extends AbstractCommandAction
     }
 
     @Override
-    protected Messages createMessage(Command command) {
+    protected Messages createMessage(Command command, AuthPreauthGeneratePlayerWithFacebookResult commandResult) {
         return EmptyMessage.instance;
     }
 

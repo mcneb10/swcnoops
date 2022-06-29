@@ -2,6 +2,7 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.UtilsHelper;
+import swcnoops.server.model.DonatedTroops;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
 import swcnoops.server.session.PlayerSession;
@@ -9,7 +10,6 @@ import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
-import swcnoops.server.session.PlayerSessionImpl;
 import swcnoops.server.session.training.DeployableQueue;
 import swcnoops.server.session.training.TrainingManager;
 
@@ -103,7 +103,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
-        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops " +
+        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -169,6 +169,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         else
                             troops = new Troops();
                         playerSettings.setTroops(troops);
+
+                        String donatedTroopsJson = rs.getString("donatedTroops");
+                        DonatedTroops donatedTroops;
+                        if (troopsJson != null)
+                            donatedTroops = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(donatedTroopsJson, DonatedTroops.class);
+                        else
+                            donatedTroops = new DonatedTroops();
+                        playerSettings.setDonatedTroops(donatedTroops);
                     }
                 }
             }
@@ -188,7 +197,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void savePlayerSession(PlayerSessionImpl playerSession) {
+    public void savePlayerSession(PlayerSession playerSession) {
         BuildUnits allContracts = mapContractsToPlayerSettings(playerSession);
         String contracts = ServiceFactory.instance().getJsonParser().toJson(allContracts);
 
@@ -201,11 +210,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         Troops troops = mapTroopsToPlayerSession(playerSession);
         String troopsJson = ServiceFactory.instance().getJsonParser().toJson(troops);
 
+        DonatedTroops donatedTroops = mapDonatedTroopsToPlayerSession(playerSession);
+        String donatedTroopsJson = ServiceFactory.instance().getJsonParser().toJson(donatedTroops);
+
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contracts,
-                creatureJson, troopsJson);
+                creatureJson, troopsJson, donatedTroopsJson);
     }
 
-    private BuildUnits mapContractsToPlayerSettings(PlayerSessionImpl playerSession) {
+    private BuildUnits mapContractsToPlayerSettings(PlayerSession playerSession) {
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         BuildUnits allContracts = playerSettings.getBuildContracts();
         allContracts.clear();
@@ -226,7 +238,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return deployables;
     }
 
-    private Creature mapCreatureToPlayerSession(PlayerSessionImpl playerSession) {
+    private Creature mapCreatureToPlayerSession(PlayerSession playerSession) {
         // replace the players settings with new data before saving
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         CreatureManager creatureManager = playerSession.getCreatureManager();
@@ -234,7 +246,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return playerSettings.getCreature();
     }
 
-    private Troops mapTroopsToPlayerSession(PlayerSessionImpl playerSession) {
+    private DonatedTroops mapDonatedTroopsToPlayerSession(PlayerSession playerSession) {
+        // replace the players troops with new data before saving
+        DonatedTroops donatedTroops = playerSession.getDonatedTroops();
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        playerSettings.setDonatedTroops(donatedTroops);
+        return donatedTroops;
+    }
+
+    private Troops mapTroopsToPlayerSession(PlayerSession playerSession) {
         // replace the players troops with new data before saving
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         TroopInventory troopInventory = playerSession.getTroopInventory();
@@ -249,10 +269,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
-                                    String troops)
+                                    String troops, String donatedTroops)
     {
         final String sql = "update PlayerSettings " +
-                "set deployables = ?, contracts = ?, creature = ?, troops = ? " +
+                "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ? " +
                 "WHERE id = ?";
 
         try {
@@ -262,12 +282,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     stmt.setString(2, contracts);
                     stmt.setString(3, creature);
                     stmt.setString(4, troops);
-                    stmt.setString(5, playerId);
+                    stmt.setString(5, donatedTroops);
+                    stmt.setString(6, playerId);
                     stmt.executeUpdate();
                 }
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
         }
+    }
+
+    @Override
+    public void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession) {
+        // TODO - need to make this into one transaction
+        savePlayerSession(playerSession);
+        savePlayerSession(recipientPlayerSession);
     }
 }

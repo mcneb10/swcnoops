@@ -5,11 +5,15 @@ import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerDataSource;
 import swcnoops.server.datasource.PlayerSettings;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class SessionManagerImpl implements SessionManager {
-    final private Map<String, PlayerSession> sessions = new HashMap<>();
+    final private Map<String, PlayerSession> players = new ConcurrentHashMap<>();
+    final private Map<String, GuildSession> guilds = new ConcurrentHashMap<>();
+    final private Lock guildLock = new ReentrantLock();
 
     @Override
     public PlayerSession getPlayerSession(String playerId) {
@@ -19,14 +23,14 @@ public class SessionManagerImpl implements SessionManager {
 
     private PlayerSession getOrLoadPlayerSession(String playerId) {
         PlayerSession playerSession;
-        if (!this.sessions.containsKey(playerId)) {
+        if (!this.players.containsKey(playerId)) {
             playerSession = loadPlayer(playerId);
             if (playerSession != null) {
-                sessions.put(playerSession.getPlayerId(), playerSession);
+                players.put(playerSession.getPlayerId(), playerSession);
             }
         }
 
-        playerSession = this.sessions.get(playerId);
+        playerSession = this.players.get(playerId);
 
         return playerSession;
     }
@@ -45,5 +49,31 @@ public class SessionManagerImpl implements SessionManager {
         player.setPlayerSettings(playerSettings);
         PlayerSession playerSession = new PlayerSessionImpl(player, playerSettings);
         return playerSession;
+    }
+
+    //TODO - make it load and minimise blocking
+    //should not be taking the name from being passed in, need to fix
+    @Override
+    public GuildSession getGuildSession(String guildId, String guildName) {
+        GuildSession guildSession = this.guilds.get(guildId);
+        if (guildSession == null) {
+            try {
+                guildLock.lock();
+                guildSession = this.guilds.get(guildId);
+                if (guildSession == null) {
+                    guildSession = createGuildSession(guildId, guildName);
+                    this.guilds.put(guildSession.getGuildId(), guildSession);
+                }
+            } finally {
+                this.guildLock.unlock();
+            }
+        }
+
+        return guildSession;
+    }
+
+    private GuildSession createGuildSession(String guildId, String guildName) {
+        GuildSession guildSession = new GuildSessionImpl(guildId, guildName);
+        return guildSession;
     }
 }

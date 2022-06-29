@@ -1,6 +1,6 @@
 package swcnoops.server.datasource;
 
-import swcnoops.server.session.PlayerSessionImpl;
+import swcnoops.server.session.PlayerSession;
 
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
@@ -9,5 +9,7 @@ public interface PlayerDataSource {
 
     PlayerSettings loadPlayerSettings(String playerId);
 
-    void savePlayerSession(PlayerSessionImpl playerSession);
+    void savePlayerSession(PlayerSession playerSession);
+
+    void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession);
 }
