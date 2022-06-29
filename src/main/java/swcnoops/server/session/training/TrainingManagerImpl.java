@@ -172,8 +172,8 @@ public class TrainingManagerImpl implements TrainingManager {
     public void initialiseBuilder(Building building, BuildingData buildingData, DeployableQueue deployableQueue,
                                   ContractType contractType) {
         if (!this.builders.containsKey(building.key)) {
-            Builder builder = new Builder(this.playerSession, building.key, buildingData, deployableQueue, contractType);
-            this.builders.put(builder.getBuildingId(), builder);
+            Builder builder = new Builder(this.playerSession, building, buildingData, deployableQueue, contractType);
+            this.builders.put(builder.getBuildingKey(), builder);
         }
     }
 

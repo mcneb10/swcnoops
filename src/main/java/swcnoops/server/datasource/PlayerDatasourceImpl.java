@@ -213,8 +213,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         DonatedTroops donatedTroops = mapDonatedTroopsToPlayerSession(playerSession);
         String donatedTroopsJson = ServiceFactory.instance().getJsonParser().toJson(donatedTroops);
 
+        PlayerMap playerMap = playerSession.getBaseMap();
+        String playerMapJson = ServiceFactory.instance().getJsonParser().toJson(playerMap);
+
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contracts,
-                creatureJson, troopsJson, donatedTroopsJson);
+                creatureJson, troopsJson, donatedTroopsJson, playerMapJson);
     }
 
     private BuildUnits mapContractsToPlayerSettings(PlayerSession playerSession) {
@@ -269,10 +272,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
-                                    String troops, String donatedTroops)
+                                    String troops, String donatedTroops, String playerMapJson)
     {
         final String sql = "update PlayerSettings " +
-                "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ? " +
+                "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ? " +
                 "WHERE id = ?";
 
         try {
@@ -283,7 +286,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     stmt.setString(3, creature);
                     stmt.setString(4, troops);
                     stmt.setString(5, donatedTroops);
-                    stmt.setString(6, playerId);
+                    stmt.setString(6, playerMapJson);
+                    stmt.setString(7, playerId);
                     stmt.executeUpdate();
                 }
             }

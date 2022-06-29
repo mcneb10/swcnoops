@@ -5,8 +5,10 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.DeploymentRecord;
 import swcnoops.server.model.DonatedTroops;
 import swcnoops.server.model.PlayerMap;
-import swcnoops.server.session.buildings.HeadQuarter;
-import swcnoops.server.session.buildings.SquadBuilding;
+import swcnoops.server.model.PositionMap;
+import swcnoops.server.session.map.HeadQuarter;
+import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.SquadBuilding;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.training.TrainingManager;
@@ -67,4 +69,8 @@ public interface PlayerSession {
     int getDonatedTroopsTotalUnits();
 
     void pvpBattleComplete(Map<String, Integer> attackingUnitsKilled, long time);
+
+    void buildingMultimove(PositionMap positions, long time);
+
+    MoveableMapItem getMapItemByKey(String key);
 }

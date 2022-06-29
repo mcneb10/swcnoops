@@ -1,12 +1,10 @@
 package swcnoops.server.session.research;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.*;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.PlayerSessionImpl;
 
 public class OffenseLabFactory {
     public OffenseLab createForPlayer(PlayerSession playerSession) {
@@ -21,7 +19,7 @@ public class OffenseLabFactory {
         for (Building building : map.buildings) {
             BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
             if (buildingData != null && buildingData.getType() == BuildingType.troop_research) {
-                offenseLab = new OffenseLabImpl(playerSession, building.key, buildingData);
+                offenseLab = new OffenseLabImpl(playerSession, building, buildingData);
             }
         }
         return offenseLab;

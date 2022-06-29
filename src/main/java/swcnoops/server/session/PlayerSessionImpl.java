@@ -6,9 +6,7 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.*;
-import swcnoops.server.session.buildings.HeadQuarter;
-import swcnoops.server.session.buildings.MapItem;
-import swcnoops.server.session.buildings.SquadBuilding;
+import swcnoops.server.session.map.*;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.creature.CreatureStatus;
@@ -35,7 +33,7 @@ public class PlayerSessionImpl implements PlayerSession {
     final private TroopInventory troopInventory;
     final private OffenseLab offenseLab;
     final private DonatedTroops donatedTroops;
-    final private Map<String, MapItem> mapItemsById = new HashMap<>();
+    final private Map<String, MoveableMapItem> mapItemsByKey = new HashMap<>();
     private SquadBuilding squadBuilding;
     private HeadQuarter headQuarter;
 
@@ -58,14 +56,14 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void readMapItems(PlayerMap baseMap) {
-        this.mapItemsById.clear();
+        this.mapItemsByKey.clear();
         this.squadBuilding = null;
         this.headQuarter = null;
 
         for (Building building: baseMap.buildings) {
             BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
             if (buildingData != null) {
-                MapItem mapItem;
+                MoveableMapItem mapItem;
                 switch (buildingData.getType()) {
                     case squad:
                         this.squadBuilding = new SquadBuilding(building, buildingData);
@@ -76,12 +74,12 @@ public class PlayerSessionImpl implements PlayerSession {
                         mapItem = headQuarter;
                         break;
                     default:
-                        mapItem = null;
+                        mapItem = new MoveableBuilding(building, buildingData);
                         break;
                 }
 
                 if (mapItem != null) {
-                    mapItemsById.put(mapItem.getBuildingId(), mapItem);
+                    mapItemsByKey.put(mapItem.getBuildingKey(), mapItem);
                 }
             }
         }
@@ -212,10 +210,10 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingBuyout(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingId().equals(buildingId)) {
+        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(buildingId)) {
             this.creatureManager.buyout(time);
             this.savePlayerSession();
-        } else if (this.offenseLab.getBuildingId().equals(buildingId)) {
+        } else if (this.offenseLab.getBuildingKey().equals(buildingId)) {
             this.offenseLab.buyout(time);
             this.trainingManager.recalculateContracts(time);
             this.savePlayerSession();
@@ -225,7 +223,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingCancel(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        if (this.offenseLab.getBuildingId().equals(buildingId)) {
+        if (this.offenseLab.getBuildingKey().equals(buildingId)) {
             this.offenseLab.cancel(time);
             this.savePlayerSession();
         }
@@ -302,6 +300,23 @@ public class PlayerSessionImpl implements PlayerSession {
         Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(attackingUnitsKilled);
         this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
         this.savePlayerSession();
+    }
+
+    @Override
+    public void buildingMultimove(PositionMap positions, long time) {
+        positions.forEach((a,b) -> buildingMultimove(a,b));
+        this.savePlayerSession();
+    }
+
+    @Override
+    public MoveableMapItem getMapItemByKey(String key) {
+        return mapItemsByKey.get(key);
+    }
+
+    private void buildingMultimove(String key, Position newPosition) {
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(key);
+        if (moveableMapItem != null)
+            moveableMapItem.moveTo(newPosition);
     }
 
     private void processCreature(Map<String, Integer> attackingUnitsKilled) {

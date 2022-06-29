@@ -48,17 +48,16 @@ public class CommandFactory {
         this.add(new GuildTroopsRequest());
         this.add(new GuildTroopsDonate());
 
+        this.add(new PlayerBuildingMultimove());
+
         //this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
 
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
-        this.add(new OkCommandAction("player.building.multimove"));
         this.add(new OkListCommandAction("guild.notifications.get"));
         this.add(new OkCommandAction("player.planet.stats"));
         this.add(new OkCommandAction("player.missions.activateMission"));
-        this.add(new OkCommandAction("player.building.collect"));
-        this.add(new OkCommandAction("player.building.construct"));
         this.add(new OkCommandAction("player.pve.complete"));
         this.add(new OkCommandAction("player.store.buy"));
         this.add(new OkCommandAction("player.pve.collect"));
@@ -67,14 +66,16 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.missions.startSpecop"));
         this.add(new OkCommandAction("player.missions.claimMission"));
         this.add(new OkCommandAction("player.faction.set"));
-        this.add(new OkCommandAction("player.building.upgrade"));
-        this.add(new OkCommandAction("player.building.upgradeAll"));
-        this.add(new OkCommandAction("player.building.instantUpgrade"));
-        this.add(new OkCommandAction("player.building.swap"));
-        this.add(new OkCommandAction("player.building.rearm"));
-        this.add(new OkCommandAction("player.building.multimove"));
-        this.add(new OkCommandAction("player.building.move"));
-        this.add(new OkCommandAction("player.building.clear"));
+
+//        this.add(new OkCommandAction("player.building.collect"));
+//        this.add(new OkCommandAction("player.building.construct"));
+//        this.add(new OkCommandAction("player.building.upgrade"));
+//        this.add(new OkCommandAction("player.building.upgradeAll"));
+//        this.add(new OkCommandAction("player.building.instantUpgrade"));
+//        this.add(new OkCommandAction("player.building.swap"));
+//        this.add(new OkCommandAction("player.building.rearm"));
+//        this.add(new OkCommandAction("player.building.move"));
+//        this.add(new OkCommandAction("player.building.clear"));
 
         this.add(new OkCommandAction("player.fue.setQuest"));
         this.add(new OkCommandAction("player.building.collect.all"));
