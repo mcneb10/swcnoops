@@ -11,6 +11,7 @@ import swcnoops.server.session.buildings.MapItem;
 import swcnoops.server.session.buildings.SquadBuilding;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.creature.CreatureManagerFactory;
+import swcnoops.server.session.creature.CreatureStatus;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.TroopInventoryFactory;
 import swcnoops.server.session.research.OffenseLab;
@@ -158,6 +159,10 @@ public class PlayerSessionImpl implements PlayerSession {
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
+
+            if (deployablesToRemove.stream().filter(a -> a.getAction().equals("SquadTroopPlaced")).count() > 0)
+                this.getDonatedTroops().clear();
+
             this.savePlayerSession();
         }
     }
@@ -289,6 +294,21 @@ public class PlayerSessionImpl implements PlayerSession {
         this.getDonatedTroops()
                 .forEach((a,b) -> b.values().forEach(v -> totalUnits.addAndGet(gameDataManager.getTroopDataByUid(a).getSize() * v)));
         return totalUnits.get();
+    }
+
+    @Override
+    public void pvpBattleComplete(Map<String, Integer> attackingUnitsKilled, long time) {
+        processCreature(attackingUnitsKilled);
+        Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(attackingUnitsKilled);
+        this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
+        this.savePlayerSession();
+    }
+
+    private void processCreature(Map<String, Integer> attackingUnitsKilled) {
+        if (this.getCreatureManager().hasCreature()) {
+            if (attackingUnitsKilled.containsKey(this.getCreatureManager().getCreatureUid()))
+                this.getCreatureManager().getCreature().setCreatureStatus(CreatureStatus.Dead);
+        }
     }
 
     /**

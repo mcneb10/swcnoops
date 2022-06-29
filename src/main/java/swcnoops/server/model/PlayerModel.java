@@ -21,7 +21,7 @@ public class PlayerModel {
     public Object missions;
     public Object tournaments;
     public Boolean isFueInProgress;
-    public Object DamagedBuildings;
+    public Map<String,Integer> DamagedBuildings;
     public Object deviceInfo;
     public Double timeZoneOffset;
     public List<Contract> contracts;

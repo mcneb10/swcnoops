@@ -65,4 +65,6 @@ public interface PlayerSession {
     void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId);
 
     int getDonatedTroopsTotalUnits();
+
+    void pvpBattleComplete(Map<String, Integer> attackingUnitsKilled, long time);
 }
