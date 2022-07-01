@@ -15,11 +15,13 @@ public class OffenseLabFactory {
     private OffenseLab createForMap(PlayerSession playerSession) {
         OffenseLab offenseLab = null;
         PlayerMap map = playerSession.getBaseMap();
+        if (map != null) {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        for (Building building : map.buildings) {
-            BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-            if (buildingData != null && buildingData.getType() == BuildingType.troop_research) {
-                offenseLab = new OffenseLabImpl(playerSession, building, buildingData);
+            for (Building building : map.buildings) {
+                BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
+                if (buildingData != null && buildingData.getType() == BuildingType.troop_research) {
+                    offenseLab = new OffenseLabImpl(playerSession, building, buildingData);
+                }
             }
         }
         return offenseLab;

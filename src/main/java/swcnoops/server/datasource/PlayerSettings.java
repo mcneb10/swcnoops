@@ -1,6 +1,7 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.model.DonatedTroops;
+import swcnoops.server.model.InventoryStorage;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Upgrades;
 import swcnoops.server.session.inventory.Troops;
@@ -17,6 +18,7 @@ public class PlayerSettings {
     private Creature creature;
     private Troops troops;
     private DonatedTroops donatedTroops;
+    private InventoryStorage inventoryStorage;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -95,5 +97,13 @@ public class PlayerSettings {
 
     public void setDonatedTroops(DonatedTroops donatedTroops) {
         this.donatedTroops = donatedTroops;
+    }
+
+    public InventoryStorage getInventoryStorage() {
+        return inventoryStorage;
+    }
+
+    public void setInventoryStorage(InventoryStorage inventoryStorage) {
+        this.inventoryStorage = inventoryStorage;
     }
 }

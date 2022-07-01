@@ -49,26 +49,27 @@ public class CommandFactory {
         this.add(new GuildTroopsDonate());
 
         this.add(new PlayerBuildingMultimove());
+        this.add(new PlayerChecksumCollect());
+        this.add(new PlayerChecksumConstruct());
 
-        //this.add(new PlayerPveStart());
+        this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
+        this.add(new PlayerChecksumUpgrade());
+        this.add(new PlayerPveComplete());
+        this.add(new PlayerFactionSet());
 
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
         this.add(new OkListCommandAction("guild.notifications.get"));
         this.add(new OkCommandAction("player.planet.stats"));
         this.add(new OkCommandAction("player.missions.activateMission"));
-        this.add(new OkCommandAction("player.pve.complete"));
         this.add(new OkCommandAction("player.store.buy"));
         this.add(new OkCommandAction("player.pve.collect"));
         this.add(new OkCommandAction("player.missions.claimCampaign"));
         this.add(new OkCommandAction("player.missions.showIntro"));
         this.add(new OkCommandAction("player.missions.startSpecop"));
         this.add(new OkCommandAction("player.missions.claimMission"));
-        this.add(new OkCommandAction("player.faction.set"));
 
-//        this.add(new OkCommandAction("player.building.collect"));
-//        this.add(new OkCommandAction("player.building.construct"));
 //        this.add(new OkCommandAction("player.building.upgrade"));
 //        this.add(new OkCommandAction("player.building.upgradeAll"));
 //        this.add(new OkCommandAction("player.building.instantUpgrade"));

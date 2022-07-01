@@ -2,10 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
-import swcnoops.server.model.DeploymentRecord;
-import swcnoops.server.model.DonatedTroops;
-import swcnoops.server.model.PlayerMap;
-import swcnoops.server.model.PositionMap;
+import swcnoops.server.model.*;
 import swcnoops.server.session.map.HeadQuarter;
 import swcnoops.server.session.map.MoveableMapItem;
 import swcnoops.server.session.map.SquadBuilding;
@@ -73,4 +70,12 @@ public interface PlayerSession {
     void buildingMultimove(PositionMap positions, long time);
 
     MoveableMapItem getMapItemByKey(String key);
+
+    void buildingCollect(String buildingId, long time);
+
+    void buildingConstruct(String buildingUid, Position position, long time);
+
+    void buildingUpgrade(String buildingId, long time);
+
+    void factionSet(String faction);
 }

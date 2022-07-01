@@ -31,11 +31,13 @@ public class TrainingManagerFactory {
      * @param map
      */
     private void initialise(TrainingManager trainingManager, PlayerMap map) {
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        for (Building building : map.buildings) {
-            BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-            if (buildingData != null) {
-                configureForBuilding(trainingManager, building, buildingData);
+        if (map != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            for (Building building : map.buildings) {
+                BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
+                if (buildingData != null) {
+                    configureForBuilding(trainingManager, building, buildingData);
+                }
             }
         }
     }

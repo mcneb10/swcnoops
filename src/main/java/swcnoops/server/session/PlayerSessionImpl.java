@@ -33,6 +33,7 @@ public class PlayerSessionImpl implements PlayerSession {
     final private TroopInventory troopInventory;
     final private OffenseLab offenseLab;
     final private DonatedTroops donatedTroops;
+    final private InventoryStorage inventoryStorage;
     final private Map<String, MoveableMapItem> mapItemsByKey = new HashMap<>();
     private SquadBuilding squadBuilding;
     private HeadQuarter headQuarter;
@@ -52,6 +53,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
         this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
         this.donatedTroops = playerSettings.getDonatedTroops();
+        this.inventoryStorage = playerSettings.getInventoryStorage();
         readMapItems(playerSettings.getBaseMap());
     }
 
@@ -60,26 +62,28 @@ public class PlayerSessionImpl implements PlayerSession {
         this.squadBuilding = null;
         this.headQuarter = null;
 
-        for (Building building: baseMap.buildings) {
-            BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
-            if (buildingData != null) {
-                MoveableMapItem mapItem;
-                switch (buildingData.getType()) {
-                    case squad:
-                        this.squadBuilding = new SquadBuilding(building, buildingData);
-                        mapItem = squadBuilding;
-                        break;
-                    case HQ:
-                        this.headQuarter = new HeadQuarter(building, buildingData);
-                        mapItem = headQuarter;
-                        break;
-                    default:
-                        mapItem = new MoveableBuilding(building, buildingData);
-                        break;
-                }
+        if (baseMap != null) {
+            for (Building building : baseMap.buildings) {
+                BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+                if (buildingData != null) {
+                    MoveableMapItem mapItem;
+                    switch (buildingData.getType()) {
+                        case squad:
+                            this.squadBuilding = new SquadBuilding(building, buildingData);
+                            mapItem = squadBuilding;
+                            break;
+                        case HQ:
+                            this.headQuarter = new HeadQuarter(building, buildingData);
+                            mapItem = headQuarter;
+                            break;
+                        default:
+                            mapItem = new MoveableBuilding(building, buildingData);
+                            break;
+                    }
 
-                if (mapItem != null) {
-                    mapItemsByKey.put(mapItem.getBuildingKey(), mapItem);
+                    if (mapItem != null) {
+                        mapItemsByKey.put(mapItem.getBuildingKey(), mapItem);
+                    }
                 }
             }
         }
@@ -181,7 +185,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void processCompletedContracts(long time) {
-        if (this.offenseLab.processCompletedUpgrades(time))
+        if (this.offenseLab != null && this.offenseLab.processCompletedUpgrades(time))
             this.trainingManager.recalculateContracts(time);
         this.trainingManager.moveCompletedBuildUnits(time);
     }
@@ -213,7 +217,7 @@ public class PlayerSessionImpl implements PlayerSession {
         if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(buildingId)) {
             this.creatureManager.buyout(time);
             this.savePlayerSession();
-        } else if (this.offenseLab.getBuildingKey().equals(buildingId)) {
+        } else if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
             this.offenseLab.buyout(time);
             this.trainingManager.recalculateContracts(time);
             this.savePlayerSession();
@@ -305,6 +309,48 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingMultimove(PositionMap positions, long time) {
         positions.forEach((a,b) -> buildingMultimove(a,b));
+        this.savePlayerSession();
+    }
+
+    @Override
+    public void buildingCollect(String buildingId, long time) {
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+        if (moveableMapItem != null) {
+            moveableMapItem.collect(time);
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
+    public void buildingConstruct(String buildingUid, Position position, long time) {
+        BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildingUid);
+        Building building = new Building();
+        building.uid = buildingUid;
+        building.key = "bld_" + this.playerSettings.getBaseMap().next;
+        this.playerSettings.getBaseMap().next++;
+        building.x = position.x;
+        building.z = position.z;
+        building.currentStorage = buildingData.getStorage();
+        MoveableMapItem moveableMapItem = new MoveableBuilding(building, buildingData);
+        this.mapItemsByKey.put(moveableMapItem.getBuildingKey(), moveableMapItem);
+        this.playerSettings.getBaseMap().buildings.add(building);
+        savePlayerSession();
+    }
+
+    @Override
+    public void buildingUpgrade(String buildingId, long time) {
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+        if (moveableMapItem != null) {
+            moveableMapItem.upgrade(time);
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
+    public void factionSet(String faction) {
+        String oldFaction = this.playerSettings.getFaction();
+        this.playerSettings.setFaction(faction);
+        // TODO - change the base to this faction
         this.savePlayerSession();
     }
 

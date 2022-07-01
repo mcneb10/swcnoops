@@ -7,7 +7,9 @@ import java.util.*;
 public class GameDataManagerImpl implements GameDataManager {
     private Map<String, TroopData> troops = new HashMap<>();
     private Map<String, TroopData> lowestLevelTroopByUnitId = new HashMap<>();
-    private Map<String, List<TroopData>> levelsByUnitId = new HashMap<>();
+    private Map<String, List<TroopData>> troopLevelsByUnitId = new HashMap<>();
+    private Map<String, List<BuildingData>> buildingLevelsByBuildingId = new HashMap<>();
+
     private Map<String, BuildingData> buildings = new HashMap<>();
     private Map<String, TrapData> traps = new HashMap<>();
 
@@ -86,17 +88,17 @@ public class GameDataManagerImpl implements GameDataManager {
                 unitIdsNeedsSorting.add(needToSort);
         }
 
-        unitIdsNeedsSorting.forEach(a -> this.levelsByUnitId.get(a)
+        unitIdsNeedsSorting.forEach(a -> this.troopLevelsByUnitId.get(a)
                 .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
     }
 
     private String addToLevelsByUnitId(TroopData troopData) {
         String unitId = troopData.getUnitId();
-        if (troopData.getUnitId() != null) {
-            List<TroopData> levels = this.levelsByUnitId.get(troopData.getUnitId());
+        if (unitId != null) {
+            List<TroopData> levels = this.troopLevelsByUnitId.get(unitId);
             if (levels == null) {
                 levels = new ArrayList<>();
-                this.levelsByUnitId.put(troopData.getUnitId(), levels);
+                this.troopLevelsByUnitId.put(unitId, levels);
             }
 
             // this list will be sorted later before it can be used
@@ -153,6 +155,8 @@ public class GameDataManagerImpl implements GameDataManager {
         Map<String, Map> objectsMap = contentMap.get("objects");
         List<Map<String,String>> buildingDataMap = (List<Map<String,String>>) objectsMap.get("BuildingData");
 
+        Set<String> buildingIdsNeedsSorting = new HashSet<>();
+
         for (Map<String,String> building : buildingDataMap) {
             String faction = building.get("faction");
             String uid = building.get("uid");
@@ -175,9 +179,31 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setLinkedUnit(linkedUnit);
 
             map.put(buildingData.getUid(), buildingData);
+            String needToSort = addToLevelsByUnitId(buildingData);
+            if (needToSort != null)
+                buildingIdsNeedsSorting.add(needToSort);
         }
 
+        buildingIdsNeedsSorting.forEach(a -> this.buildingLevelsByBuildingId.get(a)
+                .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
+
         return map;
+    }
+
+    private String addToLevelsByUnitId(BuildingData buildingData) {
+        String buildingID = buildingData.getBuildingID();
+        if (buildingID != null) {
+            List<BuildingData> levels = this.buildingLevelsByBuildingId.get(buildingID);
+            if (levels == null) {
+                levels = new ArrayList<>();
+                this.buildingLevelsByBuildingId.put(buildingID, levels);
+            }
+
+            // this list will be sorted later before it can be used
+            levels.add(buildingData);
+        }
+
+        return buildingID;
     }
 
     @Override
@@ -187,6 +213,11 @@ public class GameDataManagerImpl implements GameDataManager {
 
     @Override
     public TroopData getTroopDataByUnitId(String unitId, int level) {
-        return this.levelsByUnitId.get(unitId).get(level - 1);
+        return this.troopLevelsByUnitId.get(unitId).get(level - 1);
+    }
+
+    @Override
+    public BuildingData getBuildingDataByBuildingId(String buildingID, int level) {
+        return this.buildingLevelsByBuildingId.get(buildingID).get(level - 1);
     }
 }

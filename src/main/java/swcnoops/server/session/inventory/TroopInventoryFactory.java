@@ -17,11 +17,13 @@ public class TroopInventoryFactory {
     }
 
     private void initialiseFromPlayersMap(TroopInventory troopInventory, PlayerMap map) {
-        for (Building building: map.buildings) {
-            BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
-            if (buildingData != null) {
-                if (buildingData.getType() == BuildingType.champion_platform) {
-                    troopInventory.addTroopUid(buildingData.getLinkedUnit());
+        if (map != null) {
+            for (Building building : map.buildings) {
+                BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+                if (buildingData != null) {
+                    if (buildingData.getType() == BuildingType.champion_platform) {
+                        troopInventory.addTroopUid(buildingData.getLinkedUnit());
+                    }
                 }
             }
         }

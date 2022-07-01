@@ -38,7 +38,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
         PlayerLoginCommandResult response = loadPlayerTemplate();
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
-                .getPlayerSession(arguments.getPlayerId());
+                .getPlayerSession(arguments.getPlayerId(),
+                        response.playerModel);
         playerSession.playerLogin(time);
         mapLoginForPlayer(response, playerSession);
         return response;
@@ -55,7 +56,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.map = playerSession.getBaseMap();
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
-        //playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
+        playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
 
         mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
         mapShards(playerLoginResponse.playerModel);
@@ -96,9 +97,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
-        playerModel.inventory = new Inventory();
         playerModel.inventory.capacity = -1;
-        playerModel.inventory.storage = mapInventoryStorage();
+        playerModel.inventory.storage = playerSession.getPlayerSettings().getInventoryStorage();
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 
@@ -122,46 +122,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             storageAmount.scale = troopData.getSize();
             storage.put(troopData.getUid(), storageAmount);
         }
-    }
-
-    private InventoryStorage mapInventoryStorage() {
-        InventoryStorage inventoryStorage = new InventoryStorage();
-        inventoryStorage.crystals.capacity = 7200000;
-        inventoryStorage.crystals.amount = 7200000;
-        inventoryStorage.crystals.scale = 1;
-
-        inventoryStorage.credits.capacity = 7200000;
-        inventoryStorage.credits.amount = 7200000;
-        inventoryStorage.credits.scale = 1;
-
-        inventoryStorage.materials.capacity = 7200000;
-        inventoryStorage.materials.amount = 7200000;
-        inventoryStorage.materials.scale = 1;
-
-        inventoryStorage.contraband.capacity = 930000;
-        inventoryStorage.contraband.amount = 930000;
-        inventoryStorage.contraband.scale = 1;
-
-        inventoryStorage.droids.capacity = 5;
-        inventoryStorage.droids.amount = 5;
-        inventoryStorage.droids.scale = 1;
-
-        inventoryStorage.droids_prestige.capacity = 1;
-        inventoryStorage.droids_prestige.amount = 51;
-        inventoryStorage.droids_prestige.scale = 1;
-
-        inventoryStorage.troop.capacity = 20;
-        inventoryStorage.troop.amount = 0;
-        inventoryStorage.troop.scale = 1;
-
-        inventoryStorage.hero.capacity = 0;
-        inventoryStorage.hero.amount = 0;
-        inventoryStorage.hero.scale = 1;
-
-        inventoryStorage.champion.capacity = 0;
-        inventoryStorage.champion.amount = 0;
-        inventoryStorage.champion.scale = 1;
-        return inventoryStorage;
     }
 
     // TODO - set the troops for the SC
