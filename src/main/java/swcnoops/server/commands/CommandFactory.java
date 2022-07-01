@@ -49,12 +49,12 @@ public class CommandFactory {
         this.add(new GuildTroopsDonate());
 
         this.add(new PlayerBuildingMultimove());
-        this.add(new PlayerChecksumCollect());
-        this.add(new PlayerChecksumConstruct());
+        this.add(new PlayerBuildingCollect());
+        this.add(new PlayerBuildingConstruct());
 
         this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
-        this.add(new PlayerChecksumUpgrade());
+        this.add(new PlayerBuildingUpgrade());
         this.add(new PlayerPveComplete());
         this.add(new PlayerFactionSet());
 

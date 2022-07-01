@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.ContractType;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.*;
 import swcnoops.server.session.map.*;
@@ -14,6 +15,7 @@ import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.TroopInventoryFactory;
 import swcnoops.server.session.research.OffenseLab;
 import swcnoops.server.session.research.OffenseLabFactory;
+import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
@@ -39,6 +41,7 @@ public class PlayerSessionImpl implements PlayerSession {
     private HeadQuarter headQuarter;
 
     private GuildSession guildSession;
+    private DroidManager droidManager;
 
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
     static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
@@ -54,7 +57,25 @@ public class PlayerSessionImpl implements PlayerSession {
         this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
         this.donatedTroops = playerSettings.getDonatedTroops();
         this.inventoryStorage = playerSettings.getInventoryStorage();
+        this.droidManager = new DroidManager(this);
+        mapBuildingContracts(playerSettings);
         readMapItems(playerSettings.getBaseMap());
+    }
+
+    private void mapBuildingContracts(PlayerSettings playerSettings) {
+        for (BuildUnit buildUnit : playerSettings.getBuildContracts()) {
+            if (isBuilding(buildUnit.getContractType()))
+                this.droidManager.addBuildUnit(buildUnit);
+        }
+    }
+
+    private boolean isBuilding(ContractType contractType) {
+        if (contractType == ContractType.Build)
+            return true;
+        if (contractType == ContractType.Upgrade)
+            return true;
+
+        return false;
     }
 
     private void readMapItems(PlayerMap baseMap) {
@@ -87,6 +108,11 @@ public class PlayerSessionImpl implements PlayerSession {
                 }
             }
         }
+    }
+
+    @Override
+    public DroidManager getDroidManager() {
+        return this.droidManager;
     }
 
     @Override
@@ -188,6 +214,7 @@ public class PlayerSessionImpl implements PlayerSession {
         if (this.offenseLab != null && this.offenseLab.processCompletedUpgrades(time))
             this.trainingManager.recalculateContracts(time);
         this.trainingManager.moveCompletedBuildUnits(time);
+        this.droidManager.moveCompletedBuildUnits(time);
     }
 
     @Override
@@ -220,6 +247,9 @@ public class PlayerSessionImpl implements PlayerSession {
         } else if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
             this.offenseLab.buyout(time);
             this.trainingManager.recalculateContracts(time);
+            this.savePlayerSession();
+        } else {
+            this.droidManager.buyout(buildingId, time);
             this.savePlayerSession();
         }
     }
@@ -323,6 +353,17 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingConstruct(String buildingUid, Position position, long time) {
+        this.processCompletedContracts(time);
+        MoveableMapItem moveableMapItem = createMovableMapItem(buildingUid, position);
+
+        // add the building to the map
+        this.mapItemsByKey.put(moveableMapItem.getBuildingKey(), moveableMapItem);
+        this.playerSettings.getBaseMap().buildings.add(moveableMapItem.getBuilding());
+        this.droidManager.constructBuildUnit(moveableMapItem, time);
+        savePlayerSession();
+    }
+
+    private MoveableMapItem createMovableMapItem(String buildingUid, Position position) {
         BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildingUid);
         Building building = new Building();
         building.uid = buildingUid;
@@ -332,16 +373,15 @@ public class PlayerSessionImpl implements PlayerSession {
         building.z = position.z;
         building.currentStorage = buildingData.getStorage();
         MoveableMapItem moveableMapItem = new MoveableBuilding(building, buildingData);
-        this.mapItemsByKey.put(moveableMapItem.getBuildingKey(), moveableMapItem);
-        this.playerSettings.getBaseMap().buildings.add(building);
-        savePlayerSession();
+        return moveableMapItem;
     }
 
     @Override
     public void buildingUpgrade(String buildingId, long time) {
+        this.processCompletedContracts(time);
         MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
         if (moveableMapItem != null) {
-            moveableMapItem.upgrade(time);
+            this.droidManager.upgradeBuildUnit(moveableMapItem, time);
             this.savePlayerSession();
         }
     }

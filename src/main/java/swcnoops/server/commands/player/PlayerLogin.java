@@ -4,6 +4,7 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
@@ -142,6 +143,22 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
         mapTroopUpgradeContract(playerModel.contracts, playerSession.getTroopInventory().getTroops());
+        mapBuildingContracts(playerSession, playerModel.contracts, playerSession.getDroidManager().getUnitsInQueue());
+    }
+
+    private void mapBuildingContracts(PlayerSession playerSession, List<Contract> contracts, Collection<BuildUnit> unitsInQueue) {
+        for (BuildUnit buildUnit : unitsInQueue) {
+            Contract contract = new Contract();
+            contract.contractType = buildUnit.getContractType().name();
+            contract.buildingId = buildUnit.getBuildingId();
+            contract.uid = playerSession.getMapItemByKey(buildUnit.getBuildingId()).getBuildingUid();
+            contract.endTime = buildUnit.getEndTime();
+            contracts.add(contract);
+        }
+    }
+
+    private BuildingData getBuildingPlayerByUnitId(PlayerSession playerSession, String unitId) {
+        return null;
     }
 
     private void mapTroopUpgradeContract(List<Contract> contracts, Troops troops) {
@@ -173,7 +190,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapContracts(PlayerSession playerSession, List<Contract> contracts, List<BuildUnit> troopsInQueue) {
         for (BuildUnit buildUnit : troopsInQueue) {
             Contract contract = new Contract();
-            contract.contractType = buildUnit.getBuilder().getContractType().name();
+            contract.contractType = buildUnit.getContractType().name();
             contract.buildingId = buildUnit.getBuildingId();
             TroopData troopData = getTroopForPlayerByUnitId(playerSession, buildUnit.getUnitId());
             contract.uid = troopData.getUid();

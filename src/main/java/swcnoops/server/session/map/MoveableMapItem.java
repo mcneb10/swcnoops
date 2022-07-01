@@ -14,6 +14,10 @@ abstract public class MoveableMapItem implements MapItem {
         this.buildingData = buildingData;
     }
 
+    public Building getBuilding() {
+        return building;
+    }
+
     @Override
     public String getBuildingKey() {
         return building.key;
@@ -41,10 +45,9 @@ abstract public class MoveableMapItem implements MapItem {
         // TODO - work out how much to collect and move to inventory
     }
 
-    public void upgrade(long time) {
+    public void upgradeComplete(long time) {
         BuildingData upgradeBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByBuildingId(this.buildingData.getBuildingID(), this.buildingData.getLevel() + 1);
-        System.currentTimeMillis();
-        //this.buildingData = upgradeBuildingData;
+        this.buildingData = upgradeBuildingData;
     }
 }

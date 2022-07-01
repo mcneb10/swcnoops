@@ -6,11 +6,11 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerChecksumCollect extends PlayerChecksum<PlayerChecksumCollect, CommandResult> {
+public class PlayerBuildingCollect extends PlayerChecksum<PlayerBuildingCollect, CommandResult> {
     private String buildingId;
 
     @Override
-    protected CommandResult execute(PlayerChecksumCollect arguments, long time) throws Exception {
+    protected CommandResult execute(PlayerBuildingCollect arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
@@ -19,8 +19,8 @@ public class PlayerChecksumCollect extends PlayerChecksum<PlayerChecksumCollect,
     }
 
     @Override
-    protected PlayerChecksumCollect parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return jsonParser.fromJsonObject(argumentObject, PlayerChecksumCollect.class);
+    protected PlayerBuildingCollect parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, PlayerBuildingCollect.class);
     }
 
     @Override

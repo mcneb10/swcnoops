@@ -78,4 +78,6 @@ public interface PlayerSession {
     void buildingUpgrade(String buildingId, long time);
 
     void factionSet(String faction);
+
+    DroidManager getDroidManager();
 }

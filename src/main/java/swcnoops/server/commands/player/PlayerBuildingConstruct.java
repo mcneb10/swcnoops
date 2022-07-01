@@ -7,14 +7,14 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerChecksumConstruct extends PlayerChecksum<PlayerChecksumConstruct, CommandResult> {
+public class PlayerBuildingConstruct extends PlayerChecksum<PlayerBuildingConstruct, CommandResult> {
     private String buildingUid;
     private boolean payWithHardCurrency;
     private Position position;
     private String tag;
 
     @Override
-    protected CommandResult execute(PlayerChecksumConstruct arguments, long time) throws Exception {
+    protected CommandResult execute(PlayerBuildingConstruct arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
@@ -26,8 +26,8 @@ public class PlayerChecksumConstruct extends PlayerChecksum<PlayerChecksumConstr
     }
 
     @Override
-    protected PlayerChecksumConstruct parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return jsonParser.fromJsonObject(argumentObject, PlayerChecksumConstruct.class);
+    protected PlayerBuildingConstruct parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, PlayerBuildingConstruct.class);
     }
 
     @Override

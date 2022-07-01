@@ -244,13 +244,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private BuildUnits mapContractsToPlayerSettings(PlayerSession playerSession) {
-        PlayerSettings playerSettings = playerSession.getPlayerSettings();
-        BuildUnits allContracts = playerSettings.getBuildContracts();
-        allContracts.clear();
+        BuildUnits allContracts = new BuildUnits();
         allContracts.addAll(playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
         allContracts.addAll(playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
         allContracts.addAll(playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
         allContracts.addAll(playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
+        allContracts.addAll(playerSession.getDroidManager().getUnitsInQueue());
         return allContracts;
     }
 

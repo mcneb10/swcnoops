@@ -55,7 +55,7 @@ public class TrainingManagerImpl implements TrainingManager {
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> buildUnits = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
-            BuildUnit buildUnit = new BuildUnit(builder, buildingId, troopData.getUnitId());
+            BuildUnit buildUnit = new BuildUnit(builder, buildingId, troopData.getUnitId(), builder.getContractType());
             buildUnits.add(buildUnit);
         }
 
@@ -180,9 +180,11 @@ public class TrainingManagerImpl implements TrainingManager {
     @Override
     public void initialiseBuildUnit(BuildUnit buildUnit) {
         Builder builder = this.getBuilder(buildUnit.getBuildingId());
-        builder.load(buildUnit);
-        DeployableQueue transport = builder.getDeployableQueue();
-        transport.addUnitsToQueue(buildUnit);
+        if (builder != null) {
+            builder.load(buildUnit);
+            DeployableQueue transport = builder.getDeployableQueue();
+            transport.addUnitsToQueue(buildUnit);
+        }
     }
 
     @Override
