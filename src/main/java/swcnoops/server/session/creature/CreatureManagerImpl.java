@@ -25,7 +25,7 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public String getBuildingId() {
+    public String getBuildingKey() {
         return this.creatureDataMap.building.key;
     }
 

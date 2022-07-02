@@ -86,7 +86,7 @@ public class DeployableQueue {
             // is there enough space to move this completed troop to the transport
             if (buildUnit.getBuildSlot().getTroopData().getSize() < this.getAvailableCapacity()) {
                 buildUnitsIterator.remove();
-                buildUnit.getBuilder().removeCompletedBuildUnit(buildUnit);
+                buildUnit.getConstructor().removeCompletedBuildUnit(buildUnit);
                 this.moveUnitToDeployable(buildUnit);
             }
         }

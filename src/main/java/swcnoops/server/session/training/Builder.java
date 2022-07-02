@@ -2,8 +2,10 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.model.Building;
+import swcnoops.server.session.Constructor;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.buildings.MapItem;
+import swcnoops.server.session.map.MapItem;
 
 import java.util.*;
 
@@ -13,18 +15,18 @@ import java.util.*;
  * When a unit/troop has finished building it gets moved to a shared deployable queue that will only take the troop
  * if there is space available for that troops size.
  */
-public class Builder implements MapItem {
-    final private String buildingId;
+public class Builder implements MapItem, Constructor {
+    final private Building building;
     final private BuildQueue buildQueue;
     private long startTime;
     final private BuildingData buildingData;
     final private DeployableQueue deployableQueue;
     final private ContractType contractType;
 
-    public Builder(PlayerSession playerSession, String buildingId, BuildingData buildingData,
+    public Builder(PlayerSession playerSession, Building building, BuildingData buildingData,
                    DeployableQueue deployableQueue, ContractType contractType)
     {
-        this.buildingId = buildingId;
+        this.building = building;
         this.buildingData = buildingData;
         this.deployableQueue = deployableQueue;
         this.contractType = contractType;
@@ -37,8 +39,13 @@ public class Builder implements MapItem {
     }
 
     @Override
-    public String getBuildingId() {
-        return this.buildingId;
+    public String getBuildingKey() {
+        return this.building.key;
+    }
+
+    @Override
+    public String getBuildingUid() {
+        return this.building.uid;
     }
 
     protected void train(List<BuildUnit> buildUnits, long startTime) {
@@ -56,7 +63,8 @@ public class Builder implements MapItem {
         return removed;
     }
 
-    protected void removeCompletedBuildUnit(BuildUnit buildUnit) {
+    @Override
+    public void removeCompletedBuildUnit(BuildUnit buildUnit) {
         // remove it from its slot first, then see if the whole slot can be removed
         buildUnit.getBuildSlot().removeBuildUnit(buildUnit);
         this.buildQueue.removeBuildSlotIfEmpty(buildUnit.getBuildSlot());

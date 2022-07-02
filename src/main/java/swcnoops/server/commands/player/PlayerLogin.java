@@ -4,6 +4,7 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
@@ -38,7 +39,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
         PlayerLoginCommandResult response = loadPlayerTemplate();
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
-                .getPlayerSession(arguments.getPlayerId());
+                .getPlayerSession(arguments.getPlayerId(),
+                        response.playerModel);
         playerSession.playerLogin(time);
         mapLoginForPlayer(response, playerSession);
         return response;
@@ -55,7 +57,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.map = playerSession.getBaseMap();
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
-        //playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
+        playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
 
         mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
         mapShards(playerLoginResponse.playerModel);
@@ -83,7 +85,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerModel.creatureTrapData = new ArrayList<>();
         if (playerSession.getCreatureManager().hasCreature()) {
             CreatureTrapData creatureTrapData = new CreatureTrapData();
-            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingId();
+            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingKey();
             creatureTrapData.specialAttackUid = playerSession.getCreatureManager().getSpecialAttackUid();
             creatureTrapData.ready = playerSession.getCreatureManager().isCreatureAlive();
             creatureTrapData.championUid = playerSession.getCreatureManager().getCreatureUid();
@@ -96,9 +98,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
-        playerModel.inventory = new Inventory();
         playerModel.inventory.capacity = -1;
-        playerModel.inventory.storage = mapInventoryStorage();
+        playerModel.inventory.storage = playerSession.getPlayerSettings().getInventoryStorage();
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 
@@ -124,46 +125,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
     }
 
-    private InventoryStorage mapInventoryStorage() {
-        InventoryStorage inventoryStorage = new InventoryStorage();
-        inventoryStorage.crystals.capacity = 7200000;
-        inventoryStorage.crystals.amount = 7200000;
-        inventoryStorage.crystals.scale = 1;
-
-        inventoryStorage.credits.capacity = 7200000;
-        inventoryStorage.credits.amount = 7200000;
-        inventoryStorage.credits.scale = 1;
-
-        inventoryStorage.materials.capacity = 7200000;
-        inventoryStorage.materials.amount = 7200000;
-        inventoryStorage.materials.scale = 1;
-
-        inventoryStorage.contraband.capacity = 930000;
-        inventoryStorage.contraband.amount = 930000;
-        inventoryStorage.contraband.scale = 1;
-
-        inventoryStorage.droids.capacity = 5;
-        inventoryStorage.droids.amount = 5;
-        inventoryStorage.droids.scale = 1;
-
-        inventoryStorage.droids_prestige.capacity = 1;
-        inventoryStorage.droids_prestige.amount = 51;
-        inventoryStorage.droids_prestige.scale = 1;
-
-        inventoryStorage.troop.capacity = 20;
-        inventoryStorage.troop.amount = 0;
-        inventoryStorage.troop.scale = 1;
-
-        inventoryStorage.hero.capacity = 0;
-        inventoryStorage.hero.amount = 0;
-        inventoryStorage.hero.scale = 1;
-
-        inventoryStorage.champion.capacity = 0;
-        inventoryStorage.champion.amount = 0;
-        inventoryStorage.champion.scale = 1;
-        return inventoryStorage;
-    }
-
     // TODO - set the troops for the SC
     private void mapDonatedTroops(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.donatedTroops = playerSession.getDonatedTroops();
@@ -182,6 +143,18 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
         mapTroopUpgradeContract(playerModel.contracts, playerSession.getTroopInventory().getTroops());
+        mapBuildingContracts(playerModel.contracts, playerSession.getDroidManager().getUnitsInQueue());
+    }
+
+    private void mapBuildingContracts(List<Contract> contracts, Collection<BuildUnit> unitsInQueue) {
+        for (BuildUnit buildUnit : unitsInQueue) {
+            Contract contract = new Contract();
+            contract.contractType = buildUnit.getContractType().name();
+            contract.buildingId = buildUnit.getBuildingId();
+            contract.uid = buildUnit.getUnitId();
+            contract.endTime = buildUnit.getEndTime();
+            contracts.add(contract);
+        }
     }
 
     private void mapTroopUpgradeContract(List<Contract> contracts, Troops troops) {
@@ -202,7 +175,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             if (creatureManager.isRecapturing()) {
                 Contract contract = new Contract();
                 contract.contractType = ContractType.Creature.name();
-                contract.buildingId = creatureManager.getBuildingId();
+                contract.buildingId = creatureManager.getBuildingKey();
                 contract.uid = creatureManager.getBuildingUid();
                 contract.endTime = creatureManager.getRecaptureEndTime();
                 contracts.add(contract);
@@ -213,7 +186,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapContracts(PlayerSession playerSession, List<Contract> contracts, List<BuildUnit> troopsInQueue) {
         for (BuildUnit buildUnit : troopsInQueue) {
             Contract contract = new Contract();
-            contract.contractType = buildUnit.getBuilder().getContractType().name();
+            contract.contractType = buildUnit.getContractType().name();
             contract.buildingId = buildUnit.getBuildingId();
             TroopData troopData = getTroopForPlayerByUnitId(playerSession, buildUnit.getUnitId());
             contract.uid = troopData.getUid();

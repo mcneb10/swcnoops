@@ -3,6 +3,7 @@ package swcnoops.server.session.research;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.TroopData;
+import swcnoops.server.model.Building;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.inventory.TroopRecord;
 import swcnoops.server.session.inventory.TroopUpgrade;
@@ -13,18 +14,23 @@ import java.util.Iterator;
 import java.util.List;
 
 public class OffenseLabImpl implements OffenseLab {
-    final private String buildingId;
+    final private Building building;
     private BuildingData buildingData;
     final private PlayerSession playerSession;
-    public OffenseLabImpl(PlayerSession playerSession, String buildingId, BuildingData buildingData) {
+    public OffenseLabImpl(PlayerSession playerSession, Building building, BuildingData buildingData) {
         this.playerSession = playerSession;
-        this.buildingId = buildingId;
+        this.building = building;
         this.buildingData = buildingData;
     }
 
     @Override
-    public String getBuildingId() {
-        return buildingId;
+    public String getBuildingKey() {
+        return building.key;
+    }
+
+    @Override
+    public String getBuildingUid() {
+        return building.uid;
     }
 
     @Override
@@ -38,10 +44,9 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public void buyout(long time) {
-        Troops troops = this.playerSession.getTroopInventory().getTroops();
-
         // can only really handle 1 upgrade at a time
-        if (troops.getUpgrades().size() > 0) {
+        if (isResearchingTroop()) {
+            Troops troops = this.playerSession.getTroopInventory().getTroops();
             List<TroopUpgrade> buyoutList = new ArrayList<>(troops.getUpgrades());
             for (TroopUpgrade troopUpgrade : buyoutList) {
                 troopUpgrade.buyout(time);
@@ -52,8 +57,8 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public void cancel(long time) {
-        Troops troops = this.playerSession.getTroopInventory().getTroops();
-        if (troops.getUpgrades().size() > 0) {
+        if (isResearchingTroop()) {
+            Troops troops = this.playerSession.getTroopInventory().getTroops();
             troops.getUpgrades().clear();
         }
     }
@@ -94,5 +99,11 @@ public class OffenseLabImpl implements OffenseLab {
         }
 
         return hasUpgrade;
+    }
+
+    @Override
+    public boolean isResearchingTroop() {
+        Troops troops = this.playerSession.getTroopInventory().getTroops();
+        return troops.getUpgrades().size() > 0;
     }
 }

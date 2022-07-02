@@ -37,19 +37,24 @@ public class CreatureManagerFactory {
 
     static public CreatureDataMap findCreatureTrap(PlayerMap map) {
         CreatureDataMap creatureDataMap = null;
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        for (Building building : map.buildings) {
-            BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-            if (buildingData != null) {
-                if (buildingData.getTrapId() != null) {
-                    TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
-                    if (trapData.getEventType() == TrapEventType.CreatureSpecialAttack) {
-                        creatureDataMap = new CreatureDataMap(building, buildingData, trapData);
-                        break;
+        if (map != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            for (Building building : map.buildings) {
+                BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
+                if (buildingData != null) {
+                    if (buildingData.getTrapId() != null) {
+                        TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
+                        if (trapData.getEventType() == TrapEventType.CreatureSpecialAttack) {
+                            creatureDataMap = new CreatureDataMap(building, buildingData, trapData);
+                            break;
+                        }
                     }
                 }
             }
         }
+
+        if (creatureDataMap == null)
+            creatureDataMap = new CreatureDataMap(null, null, null);
 
         return creatureDataMap;
     }

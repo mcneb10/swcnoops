@@ -1,8 +1,9 @@
-package swcnoops.server.session.buildings;
+package swcnoops.server.session.map;
 
 import swcnoops.server.game.BuildingData;
 
 public interface MapItem {
-    String getBuildingId();
+    String getBuildingKey();
+    String getBuildingUid();
     BuildingData getBuildingData();
 }

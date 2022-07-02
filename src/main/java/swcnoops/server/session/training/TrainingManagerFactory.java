@@ -1,7 +1,6 @@
 package swcnoops.server.session.training;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.*;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
@@ -14,7 +13,7 @@ import swcnoops.server.session.PlayerSession;
 public class TrainingManagerFactory {
     public TrainingManager createForPlayer(PlayerSession playerSession) {
         TrainingManager trainingManager = this.create(playerSession);
-        initialiseFromPlayerSettings(trainingManager, playerSession.getPlayerSettings());
+        initialiseFromPlayerSettings(trainingManager, playerSession);
         return trainingManager;
     }
 
@@ -31,11 +30,13 @@ public class TrainingManagerFactory {
      * @param map
      */
     private void initialise(TrainingManager trainingManager, PlayerMap map) {
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        for (Building building : map.buildings) {
-            BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-            if (buildingData != null) {
-                configureForBuilding(trainingManager, building, buildingData);
+        if (map != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            for (Building building : map.buildings) {
+                BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
+                if (buildingData != null) {
+                    configureForBuilding(trainingManager, building, buildingData);
+                }
             }
         }
     }
@@ -69,17 +70,27 @@ public class TrainingManagerFactory {
         }
     }
 
-    private void initialiseFromPlayerSettings(TrainingManager trainingManager, PlayerSettings playerSettings) {
-        initialiseBuildContracts(trainingManager, playerSettings.getBuildContracts());
-        trainingManager.initialiseDeployables(playerSettings.getDeployableTroops());
+    private void initialiseFromPlayerSettings(TrainingManager trainingManager, PlayerSession playerSession) {
+        initialiseBuildContracts(trainingManager, playerSession.getPlayerSettings().getBuildContracts());
+        trainingManager.initialiseDeployables(playerSession.getPlayerSettings().getDeployableTroops());
     }
 
     private void initialiseBuildContracts(TrainingManager trainingManager, BuildUnits buildUnits) {
         if (buildUnits != null) {
             buildUnits.stream().sorted((a, b) -> a.compareEndTime(b));
             for (BuildUnit buildUnit : buildUnits) {
-                trainingManager.initialiseBuildUnit(buildUnit);
+                if (!isBuilding(buildUnit.getContractType()))
+                    trainingManager.initialiseBuildUnit(buildUnit);
             }
         }
+    }
+
+    private boolean isBuilding(ContractType contractType) {
+        if (contractType == ContractType.Build)
+            return true;
+        if (contractType == ContractType.Upgrade)
+            return true;
+
+        return false;
     }
 }

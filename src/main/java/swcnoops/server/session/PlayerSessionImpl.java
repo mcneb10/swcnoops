@@ -4,11 +4,10 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.ContractType;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.*;
-import swcnoops.server.session.buildings.HeadQuarter;
-import swcnoops.server.session.buildings.MapItem;
-import swcnoops.server.session.buildings.SquadBuilding;
+import swcnoops.server.session.map.*;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.creature.CreatureStatus;
@@ -16,6 +15,7 @@ import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.TroopInventoryFactory;
 import swcnoops.server.session.research.OffenseLab;
 import swcnoops.server.session.research.OffenseLabFactory;
+import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
@@ -35,11 +35,13 @@ public class PlayerSessionImpl implements PlayerSession {
     final private TroopInventory troopInventory;
     final private OffenseLab offenseLab;
     final private DonatedTroops donatedTroops;
-    final private Map<String, MapItem> mapItemsById = new HashMap<>();
+    final private InventoryStorage inventoryStorage;
+    final private Map<String, MoveableMapItem> mapItemsByKey = new HashMap<>();
     private SquadBuilding squadBuilding;
     private HeadQuarter headQuarter;
 
     private GuildSession guildSession;
+    private DroidManager droidManager;
 
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
     static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
@@ -54,37 +56,63 @@ public class PlayerSessionImpl implements PlayerSession {
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
         this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
         this.donatedTroops = playerSettings.getDonatedTroops();
+        this.inventoryStorage = playerSettings.getInventoryStorage();
+        this.droidManager = new DroidManager(this);
+        mapBuildingContracts(playerSettings);
         readMapItems(playerSettings.getBaseMap());
     }
 
+    private void mapBuildingContracts(PlayerSettings playerSettings) {
+        for (BuildUnit buildUnit : playerSettings.getBuildContracts()) {
+            if (isBuilding(buildUnit.getContractType()))
+                this.droidManager.addBuildUnit(buildUnit);
+        }
+    }
+
+    private boolean isBuilding(ContractType contractType) {
+        if (contractType == ContractType.Build)
+            return true;
+        if (contractType == ContractType.Upgrade)
+            return true;
+
+        return false;
+    }
+
     private void readMapItems(PlayerMap baseMap) {
-        this.mapItemsById.clear();
+        this.mapItemsByKey.clear();
         this.squadBuilding = null;
         this.headQuarter = null;
 
-        for (Building building: baseMap.buildings) {
-            BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
-            if (buildingData != null) {
-                MapItem mapItem;
-                switch (buildingData.getType()) {
-                    case squad:
-                        this.squadBuilding = new SquadBuilding(building, buildingData);
-                        mapItem = squadBuilding;
-                        break;
-                    case HQ:
-                        this.headQuarter = new HeadQuarter(building, buildingData);
-                        mapItem = headQuarter;
-                        break;
-                    default:
-                        mapItem = null;
-                        break;
-                }
+        if (baseMap != null) {
+            for (Building building : baseMap.buildings) {
+                BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+                if (buildingData != null) {
+                    MoveableMapItem mapItem;
+                    switch (buildingData.getType()) {
+                        case squad:
+                            this.squadBuilding = new SquadBuilding(building, buildingData);
+                            mapItem = squadBuilding;
+                            break;
+                        case HQ:
+                            this.headQuarter = new HeadQuarter(building, buildingData);
+                            mapItem = headQuarter;
+                            break;
+                        default:
+                            mapItem = new MoveableBuilding(building, buildingData);
+                            break;
+                    }
 
-                if (mapItem != null) {
-                    mapItemsById.put(mapItem.getBuildingId(), mapItem);
+                    if (mapItem != null) {
+                        mapItemsByKey.put(mapItem.getBuildingKey(), mapItem);
+                    }
                 }
             }
         }
+    }
+
+    @Override
+    public DroidManager getDroidManager() {
+        return this.droidManager;
     }
 
     @Override
@@ -183,9 +211,10 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void processCompletedContracts(long time) {
-        if (this.offenseLab.processCompletedUpgrades(time))
+        if (this.offenseLab != null && this.offenseLab.processCompletedUpgrades(time))
             this.trainingManager.recalculateContracts(time);
         this.trainingManager.moveCompletedBuildUnits(time);
+        this.droidManager.moveCompletedBuildUnits(time);
     }
 
     @Override
@@ -212,12 +241,20 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingBuyout(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingId().equals(buildingId)) {
+        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(buildingId)) {
             this.creatureManager.buyout(time);
             this.savePlayerSession();
-        } else if (this.offenseLab.getBuildingId().equals(buildingId)) {
-            this.offenseLab.buyout(time);
-            this.trainingManager.recalculateContracts(time);
+        } else if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
+            if (offenseLab.isResearchingTroop()) {
+                this.offenseLab.buyout(time);
+                this.trainingManager.recalculateContracts(time);
+            } else {
+                this.droidManager.buyout(buildingId, time);
+            }
+
+            this.savePlayerSession();
+        } else {
+            this.droidManager.buyout(buildingId, time);
             this.savePlayerSession();
         }
     }
@@ -225,8 +262,15 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingCancel(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        if (this.offenseLab.getBuildingId().equals(buildingId)) {
-            this.offenseLab.cancel(time);
+        if (this.offenseLab.getBuildingKey().equals(buildingId)) {
+            if (offenseLab.isResearchingTroop()) {
+                this.offenseLab.cancel(time);
+            } else {
+                this.droidManager.cancel(buildingId);
+            }
+            this.savePlayerSession();
+        } else {
+            this.droidManager.cancel(buildingId);
             this.savePlayerSession();
         }
     }
@@ -304,6 +348,75 @@ public class PlayerSessionImpl implements PlayerSession {
         this.savePlayerSession();
     }
 
+    @Override
+    public void buildingMultimove(PositionMap positions, long time) {
+        positions.forEach((a,b) -> buildingMultimove(a,b));
+        this.savePlayerSession();
+    }
+
+    @Override
+    public void buildingCollect(String buildingId, long time) {
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+        if (moveableMapItem != null) {
+            moveableMapItem.collect(time);
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
+    public void buildingConstruct(String buildingUid, Position position, long time) {
+        this.processCompletedContracts(time);
+        MoveableMapItem moveableMapItem = createMovableMapItem(buildingUid, position);
+
+        // add the building to the map
+        this.mapItemsByKey.put(moveableMapItem.getBuildingKey(), moveableMapItem);
+        this.playerSettings.getBaseMap().buildings.add(moveableMapItem.getBuilding());
+        this.droidManager.constructBuildUnit(moveableMapItem, time);
+        savePlayerSession();
+    }
+
+    private MoveableMapItem createMovableMapItem(String buildingUid, Position position) {
+        BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildingUid);
+        Building building = new Building();
+        building.uid = buildingUid;
+        building.key = "bld_" + this.playerSettings.getBaseMap().next;
+        this.playerSettings.getBaseMap().next++;
+        building.x = position.x;
+        building.z = position.z;
+        building.currentStorage = buildingData.getStorage();
+        MoveableMapItem moveableMapItem = new MoveableBuilding(building, buildingData);
+        return moveableMapItem;
+    }
+
+    @Override
+    public void buildingUpgrade(String buildingId, long time) {
+        this.processCompletedContracts(time);
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+        if (moveableMapItem != null) {
+            this.droidManager.upgradeBuildUnit(moveableMapItem, time);
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
+    public void factionSet(FactionType faction) {
+        FactionType oldFaction = this.playerSettings.getFaction();
+        this.playerSettings.setFaction(faction);
+        // TODO - change the base to this faction
+        this.savePlayerSession();
+    }
+
+    @Override
+    public MoveableMapItem getMapItemByKey(String key) {
+        return mapItemsByKey.get(key);
+    }
+
+    private void buildingMultimove(String key, Position newPosition) {
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(key);
+        if (moveableMapItem != null)
+            moveableMapItem.moveTo(newPosition);
+    }
+
     private void processCreature(Map<String, Integer> attackingUnitsKilled) {
         if (this.getCreatureManager().hasCreature()) {
             if (attackingUnitsKilled.containsKey(this.getCreatureManager().getCreatureUid()))
@@ -330,5 +443,18 @@ public class PlayerSessionImpl implements PlayerSession {
 
         troopsGivenByPlayer = troopsGivenByPlayer + numberOf;
         guildDonatedTroops.put(fromPlayerId, troopsGivenByPlayer);
+    }
+
+    @Override
+    public void rearm(List<String> buildingIds, long time) {
+        this.processCompletedContracts(time);
+        for (String buildingId : buildingIds) {
+            MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+            if (moveableMapItem != null) {
+                moveableMapItem.getBuilding().currentStorage = 1;
+            }
+        }
+
+        this.savePlayerSession();
     }
 }

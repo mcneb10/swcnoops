@@ -11,7 +11,7 @@ public class PlayerModel {
     public Object buildingsUnderConstruction;
     public PlayerMap map;
     public Inventory inventory;
-    public String faction;
+    public FactionType faction;
     public String currentQuest;
     public Long protectedUntil;
     public Long protectionFrom;

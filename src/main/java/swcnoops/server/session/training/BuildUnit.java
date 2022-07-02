@@ -1,6 +1,8 @@
 package swcnoops.server.session.training;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import swcnoops.server.game.ContractType;
+import swcnoops.server.session.Constructor;
 
 /**
  * Unit build details, equivalent to the Contracts model in the game.
@@ -9,25 +11,31 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
  */
 public class BuildUnit {
     @JsonIgnore
-    private Builder builder;
+    private Constructor constructor;
     private String buildingId;
     private String unitId;
     private long startTime;
     private long endTime;
+    private ContractType contractType;
     @JsonIgnore
     private BuildSlot buildSlot;
 
     public BuildUnit() {
     }
 
-    public BuildUnit(Builder builder, String buildingId, String unitId) {
+    public BuildUnit(Constructor constructor, String buildingId, String unitId, ContractType contractType) {
         this.buildingId = buildingId;
         this.unitId = unitId;
-        this.builder = builder;
+        this.constructor = constructor;
+        this.contractType = contractType;
     }
 
-    protected void setBuilder(Builder builder) {
-        this.builder = builder;
+    public ContractType getContractType() {
+        return contractType;
+    }
+
+    protected void setBuilder(Constructor constructor) {
+        this.constructor = constructor;
     }
 
     public String getBuildingId() {
@@ -62,8 +70,8 @@ public class BuildUnit {
         return buildSlot;
     }
 
-    public Builder getBuilder() {
-        return builder;
+    public Constructor getConstructor() {
+        return constructor;
     }
 
     public int compareEndTime(BuildUnit b) {

@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS PlayerSettings
      contracts json,
      creature json,
      troops json,
-     donatedTroops json);
+     donatedTroops json,
+     inventoryStorage json);
 
 insert into PlayerSettings (id, upgrades) values ('2c2d4aea-7f38-11e5-a29f-069096004f69', '{}')
 on conflict(id) do nothing;

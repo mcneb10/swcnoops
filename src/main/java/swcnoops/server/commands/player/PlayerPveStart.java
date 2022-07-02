@@ -6,6 +6,9 @@ import swcnoops.server.commands.player.response.PlayerPveStartCommandResult;
 import swcnoops.server.json.JsonParser;
 
 public class PlayerPveStart extends AbstractCommandAction<PlayerPveStart, PlayerPveStartCommandResult> {
+    private String missionUid;
+    private String battleUid;
+
     @Override
     protected PlayerPveStartCommandResult execute(PlayerPveStart arguments, long time) throws Exception {
         PlayerPveStartCommandResult playerPveStartResponse = new PlayerPveStartCommandResult();
@@ -21,5 +24,13 @@ public class PlayerPveStart extends AbstractCommandAction<PlayerPveStart, Player
     @Override
     public String getAction() {
         return "player.pve.start";
+    }
+
+    public String getMissionUid() {
+        return missionUid;
+    }
+
+    public String getBattleUid() {
+        return battleUid;
     }
 }
