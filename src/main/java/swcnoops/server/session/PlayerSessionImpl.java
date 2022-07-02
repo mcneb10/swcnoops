@@ -245,8 +245,13 @@ public class PlayerSessionImpl implements PlayerSession {
             this.creatureManager.buyout(time);
             this.savePlayerSession();
         } else if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
-            this.offenseLab.buyout(time);
-            this.trainingManager.recalculateContracts(time);
+            if (offenseLab.isResearchingTroop()) {
+                this.offenseLab.buyout(time);
+                this.trainingManager.recalculateContracts(time);
+            } else {
+                this.droidManager.buyout(buildingId, time);
+            }
+
             this.savePlayerSession();
         } else {
             this.droidManager.buyout(buildingId, time);
@@ -258,7 +263,11 @@ public class PlayerSessionImpl implements PlayerSession {
     public void buildingCancel(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
         if (this.offenseLab.getBuildingKey().equals(buildingId)) {
-            this.offenseLab.cancel(time);
+            if (offenseLab.isResearchingTroop()) {
+                this.offenseLab.cancel(time);
+            } else {
+                this.droidManager.cancel(buildingId);
+            }
             this.savePlayerSession();
         } else {
             this.droidManager.cancel(buildingId);
@@ -434,5 +443,18 @@ public class PlayerSessionImpl implements PlayerSession {
 
         troopsGivenByPlayer = troopsGivenByPlayer + numberOf;
         guildDonatedTroops.put(fromPlayerId, troopsGivenByPlayer);
+    }
+
+    @Override
+    public void rearm(List<String> buildingIds, long time) {
+        this.processCompletedContracts(time);
+        for (String buildingId : buildingIds) {
+            MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+            if (moveableMapItem != null) {
+                moveableMapItem.getBuilding().currentStorage = 1;
+            }
+        }
+
+        this.savePlayerSession();
     }
 }

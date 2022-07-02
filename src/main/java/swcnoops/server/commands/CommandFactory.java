@@ -44,17 +44,18 @@ public class CommandFactory {
         this.add(new PlayerBuildingCapture());
         this.add(new PlayerBuildingBuyout());
         this.add(new PlayerDeployableUpgradeStart());
-        this.add(new PlayerBuildingCancel());
         this.add(new GuildTroopsRequest());
         this.add(new GuildTroopsDonate());
 
+        this.add(new PlayerBuildingCancel());
         this.add(new PlayerBuildingMultimove());
         this.add(new PlayerBuildingCollect());
         this.add(new PlayerBuildingConstruct());
+        this.add(new PlayerBuildingRearm());
+        this.add(new PlayerBuildingUpgrade());
 
         this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
-        this.add(new PlayerBuildingUpgrade());
         this.add(new PlayerPveComplete());
         this.add(new PlayerFactionSet());
 
@@ -70,11 +71,9 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.missions.startSpecop"));
         this.add(new OkCommandAction("player.missions.claimMission"));
 
-//        this.add(new OkCommandAction("player.building.upgrade"));
 //        this.add(new OkCommandAction("player.building.upgradeAll"));
 //        this.add(new OkCommandAction("player.building.instantUpgrade"));
 //        this.add(new OkCommandAction("player.building.swap"));
-//        this.add(new OkCommandAction("player.building.rearm"));
 //        this.add(new OkCommandAction("player.building.move"));
 //        this.add(new OkCommandAction("player.building.clear"));
 

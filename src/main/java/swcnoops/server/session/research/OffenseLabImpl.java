@@ -44,10 +44,9 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public void buyout(long time) {
-        Troops troops = this.playerSession.getTroopInventory().getTroops();
-
         // can only really handle 1 upgrade at a time
-        if (troops.getUpgrades().size() > 0) {
+        if (isResearchingTroop()) {
+            Troops troops = this.playerSession.getTroopInventory().getTroops();
             List<TroopUpgrade> buyoutList = new ArrayList<>(troops.getUpgrades());
             for (TroopUpgrade troopUpgrade : buyoutList) {
                 troopUpgrade.buyout(time);
@@ -58,8 +57,8 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public void cancel(long time) {
-        Troops troops = this.playerSession.getTroopInventory().getTroops();
-        if (troops.getUpgrades().size() > 0) {
+        if (isResearchingTroop()) {
+            Troops troops = this.playerSession.getTroopInventory().getTroops();
             troops.getUpgrades().clear();
         }
     }
@@ -100,5 +99,11 @@ public class OffenseLabImpl implements OffenseLab {
         }
 
         return hasUpgrade;
+    }
+
+    @Override
+    public boolean isResearchingTroop() {
+        Troops troops = this.playerSession.getTroopInventory().getTroops();
+        return troops.getUpgrades().size() > 0;
     }
 }

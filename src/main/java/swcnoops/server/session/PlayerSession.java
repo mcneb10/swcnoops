@@ -80,4 +80,6 @@ public interface PlayerSession {
     void factionSet(String faction);
 
     DroidManager getDroidManager();
+
+    void rearm(List<String> buildingIds, long time);
 }
