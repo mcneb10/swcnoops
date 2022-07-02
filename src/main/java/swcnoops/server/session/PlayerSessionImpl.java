@@ -399,8 +399,8 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void factionSet(String faction) {
-        String oldFaction = this.playerSettings.getFaction();
+    public void factionSet(FactionType faction) {
+        FactionType oldFaction = this.playerSettings.getFaction();
         this.playerSettings.setFaction(faction);
         // TODO - change the base to this faction
         this.savePlayerSession();

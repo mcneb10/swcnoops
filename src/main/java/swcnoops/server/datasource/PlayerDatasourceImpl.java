@@ -2,10 +2,7 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.UtilsHelper;
-import swcnoops.server.model.DonatedTroops;
-import swcnoops.server.model.InventoryStorage;
-import swcnoops.server.model.PlayerMap;
-import swcnoops.server.model.Upgrades;
+import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.TroopInventory;
@@ -118,7 +115,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     while (rs.next()) {
                         playerSettings = new PlayerSettings(rs.getString("id"));
                         playerSettings.setName(rs.getString("name"));
-                        playerSettings.setFaction(rs.getString("faction"));
+
+                        String faction = rs.getString("faction");
+                        if (faction != null && !faction.isEmpty())
+                            playerSettings.setFaction(FactionType.valueOf(faction));
 
                         String baseMap = rs.getString("baseMap");
                         if (baseMap != null) {
@@ -295,7 +295,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
-                                    String faction, Connection connection)
+                                    FactionType faction, Connection connection)
     {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
@@ -310,7 +310,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(5, donatedTroops);
                 stmt.setString(6, playerMapJson);
                 stmt.setString(7, inventoryStorageJson);
-                stmt.setString(8, faction);
+                stmt.setString(8, faction != faction ? faction.name() : null);
                 stmt.setString(9, playerId);
                 stmt.executeUpdate();
             }

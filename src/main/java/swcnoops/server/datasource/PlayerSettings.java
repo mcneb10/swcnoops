@@ -1,9 +1,6 @@
 package swcnoops.server.datasource;
 
-import swcnoops.server.model.DonatedTroops;
-import swcnoops.server.model.InventoryStorage;
-import swcnoops.server.model.PlayerMap;
-import swcnoops.server.model.Upgrades;
+import swcnoops.server.model.*;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
@@ -11,7 +8,7 @@ public class PlayerSettings {
     private final String playerId;
     private Upgrades upgrades;
     private String name;
-    private String faction;
+    private FactionType faction;
     private PlayerMap baseMap;
     private Deployables deployableTroops;
     private BuildUnits buildUnits;
@@ -40,11 +37,11 @@ public class PlayerSettings {
         this.name = name;
     }
 
-    public void setFaction(String faction) {
+    public void setFaction(FactionType faction) {
         this.faction = faction;
     }
 
-    public String getFaction() {
+    public FactionType getFaction() {
         return faction;
     }
 

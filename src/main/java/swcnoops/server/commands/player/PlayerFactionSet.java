@@ -3,12 +3,13 @@ package swcnoops.server.commands.player;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.FactionType;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
 public class PlayerFactionSet extends AbstractCommandAction<PlayerFactionSet, CommandResult> {
-    private String faction;
+    private FactionType faction;
 
     @Override
     protected CommandResult execute(PlayerFactionSet arguments, long time) throws Exception {
@@ -28,7 +29,7 @@ public class PlayerFactionSet extends AbstractCommandAction<PlayerFactionSet, Co
         return "player.faction.set";
     }
 
-    public String getFaction() {
+    public FactionType getFaction() {
         return faction;
     }
 }
