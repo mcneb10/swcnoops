@@ -143,22 +143,18 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
         mapTroopUpgradeContract(playerModel.contracts, playerSession.getTroopInventory().getTroops());
-        mapBuildingContracts(playerSession, playerModel.contracts, playerSession.getDroidManager().getUnitsInQueue());
+        mapBuildingContracts(playerModel.contracts, playerSession.getDroidManager().getUnitsInQueue());
     }
 
-    private void mapBuildingContracts(PlayerSession playerSession, List<Contract> contracts, Collection<BuildUnit> unitsInQueue) {
+    private void mapBuildingContracts(List<Contract> contracts, Collection<BuildUnit> unitsInQueue) {
         for (BuildUnit buildUnit : unitsInQueue) {
             Contract contract = new Contract();
             contract.contractType = buildUnit.getContractType().name();
             contract.buildingId = buildUnit.getBuildingId();
-            contract.uid = playerSession.getMapItemByKey(buildUnit.getBuildingId()).getBuildingUid();
+            contract.uid = buildUnit.getUnitId();
             contract.endTime = buildUnit.getEndTime();
             contracts.add(contract);
         }
-    }
-
-    private BuildingData getBuildingPlayerByUnitId(PlayerSession playerSession, String unitId) {
-        return null;
     }
 
     private void mapTroopUpgradeContract(List<Contract> contracts, Troops troops) {

@@ -260,6 +260,9 @@ public class PlayerSessionImpl implements PlayerSession {
         if (this.offenseLab.getBuildingKey().equals(buildingId)) {
             this.offenseLab.cancel(time);
             this.savePlayerSession();
+        } else {
+            this.droidManager.cancel(buildingId);
+            this.savePlayerSession();
         }
     }
 

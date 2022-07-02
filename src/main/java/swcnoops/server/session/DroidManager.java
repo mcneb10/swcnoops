@@ -1,5 +1,7 @@
 package swcnoops.server.session;
 
+import swcnoops.server.ServiceFactory;
+import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.session.map.MoveableMapItem;
 import swcnoops.server.session.training.BuildUnit;
@@ -39,7 +41,7 @@ public class DroidManager implements Constructor {
                 buildUnitsIterator.remove();
                 if (buildUnit.getContractType() == ContractType.Upgrade) {
                     MoveableMapItem moveableMapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
-                    moveableMapItem.upgradeComplete(time);
+                    moveableMapItem.upgradeComplete();
                 }
             }
         }
@@ -66,17 +68,26 @@ public class DroidManager implements Constructor {
 
     public void constructBuildUnit(MoveableMapItem moveableMapItem, long time) {
         BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
-                moveableMapItem.getBuildingData().getBuildingID(), ContractType.Build);
+                moveableMapItem.getBuildingData().getUid(), ContractType.Build);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + moveableMapItem.getBuildingData().getTime());
         this.addBuildUnit(buildUnit);
     }
 
     public void upgradeBuildUnit(MoveableMapItem moveableMapItem, long time) {
+        BuildingData nextLevelBuildingData = ServiceFactory.instance().getGameDataManager()
+                .getBuildingDataByBuildingId(moveableMapItem.getBuildingData().getBuildingID(),
+                        moveableMapItem.getBuildingData().getLevel() + 1);
         BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
-                moveableMapItem.getBuildingKey(), ContractType.Upgrade);
+                nextLevelBuildingData.getUid(), ContractType.Upgrade);
         buildUnit.setStartTime(time);
-        buildUnit.setEndTime(time + moveableMapItem.getBuildingData().getTime());
+        buildUnit.setEndTime(time + nextLevelBuildingData.getTime());
         this.addBuildUnit(buildUnit);
+    }
+
+    public void cancel(String buildingId) {
+        BuildUnit buildUnit = getBuildUnitById(buildingId);
+        if (buildUnit != null)
+            this.unitsInQueue.remove(buildUnit);
     }
 }
