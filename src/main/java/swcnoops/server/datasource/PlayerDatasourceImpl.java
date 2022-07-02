@@ -310,7 +310,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(5, donatedTroops);
                 stmt.setString(6, playerMapJson);
                 stmt.setString(7, inventoryStorageJson);
-                stmt.setString(8, faction != faction ? faction.name() : null);
+                stmt.setString(8, faction != null ? faction.name() : null);
                 stmt.setString(9, playerId);
                 stmt.executeUpdate();
             }
