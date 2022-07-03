@@ -1,10 +1,10 @@
 package swcnoops.server.session.training;
 
-import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.*;
 import swcnoops.server.model.Building;
-import swcnoops.server.model.PlayerMap;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.PlayerMapItems;
+import swcnoops.server.session.map.MoveableMapItem;
 
 /**
  * A separate class that creates, configures and loads a players TrainingManager.
@@ -19,7 +19,7 @@ public class TrainingManagerFactory {
 
     private TrainingManager create(PlayerSession playerSession) {
         TrainingManager trainingManager = new TrainingManagerImpl(playerSession);
-        initialise(trainingManager, playerSession.getBaseMap());
+        initialise(trainingManager, playerSession.getPlayerMapItems());
         return trainingManager;
     }
 
@@ -29,14 +29,11 @@ public class TrainingManagerFactory {
      * @param trainingManager
      * @param map
      */
-    private void initialise(TrainingManager trainingManager, PlayerMap map) {
+    private void initialise(TrainingManager trainingManager, PlayerMapItems map) {
         if (map != null) {
-            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-            for (Building building : map.buildings) {
-                BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-                if (buildingData != null) {
-                    configureForBuilding(trainingManager, building, buildingData);
-                }
+            for (MoveableMapItem moveableMapItem : map.getMapItems()) {
+                BuildingData buildingData = moveableMapItem.getBuildingData();
+                configureForBuilding(trainingManager, moveableMapItem.getBuilding(), buildingData);
             }
         }
     }

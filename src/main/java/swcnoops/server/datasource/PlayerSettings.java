@@ -9,7 +9,7 @@ public class PlayerSettings {
     private Upgrades upgrades;
     private String name;
     private FactionType faction;
-    private PlayerMap baseMap;
+    public PlayerMap baseMap;
     private Deployables deployableTroops;
     private BuildUnits buildUnits;
     private Creature creature;
