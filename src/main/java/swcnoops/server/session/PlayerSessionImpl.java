@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.BuildingType;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.model.*;
@@ -36,9 +37,7 @@ public class PlayerSessionImpl implements PlayerSession {
     final private OffenseLab offenseLab;
     final private DonatedTroops donatedTroops;
     final private InventoryStorage inventoryStorage;
-    final private Map<String, MoveableMapItem> mapItemsByKey = new HashMap<>();
-    private SquadBuilding squadBuilding;
-    private HeadQuarter headQuarter;
+    final private PlayerMapItems playerMapItems;
 
     private GuildSession guildSession;
     private DroidManager droidManager;
@@ -51,6 +50,10 @@ public class PlayerSessionImpl implements PlayerSession {
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
         this.playerSettings = playerSettings;
+
+        // TODO - change this to use a method once refactor is done
+        this.playerMapItems = createPlayersMap(playerSettings.baseMap);
+
         this.troopInventory = PlayerSessionImpl.troopInventoryFactory.createForPlayer(this);
         this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this);
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
@@ -59,7 +62,6 @@ public class PlayerSessionImpl implements PlayerSession {
         this.inventoryStorage = playerSettings.getInventoryStorage();
         this.droidManager = new DroidManager(this);
         mapBuildingContracts(playerSettings);
-        readMapItems(playerSettings.getBaseMap());
     }
 
     private void mapBuildingContracts(PlayerSettings playerSettings) {
@@ -78,36 +80,20 @@ public class PlayerSessionImpl implements PlayerSession {
         return false;
     }
 
-    private void readMapItems(PlayerMap baseMap) {
-        this.mapItemsByKey.clear();
-        this.squadBuilding = null;
-        this.headQuarter = null;
+    private PlayerMapItems createPlayersMap(PlayerMap baseMap) {
+        PlayerMapItems playerMapItems = new PlayerMapItems(baseMap);
 
         if (baseMap != null) {
             for (Building building : baseMap.buildings) {
                 BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
                 if (buildingData != null) {
-                    MoveableMapItem mapItem;
-                    switch (buildingData.getType()) {
-                        case squad:
-                            this.squadBuilding = new SquadBuilding(building, buildingData);
-                            mapItem = squadBuilding;
-                            break;
-                        case HQ:
-                            this.headQuarter = new HeadQuarter(building, buildingData);
-                            mapItem = headQuarter;
-                            break;
-                        default:
-                            mapItem = new MoveableBuilding(building, buildingData);
-                            break;
-                    }
-
-                    if (mapItem != null) {
-                        mapItemsByKey.put(mapItem.getBuildingKey(), mapItem);
-                    }
+                    MoveableMapItem mapItem = new MoveableBuilding(building, buildingData);
+                    playerMapItems.add(mapItem.getBuildingKey(), mapItem);
                 }
             }
         }
+
+        return playerMapItems;
     }
 
     @Override
@@ -116,13 +102,13 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public SquadBuilding getSquadBuilding() {
-        return squadBuilding;
+    public MoveableMapItem getSquadBuilding() {
+        return this.playerMapItems.getMapItemByType(BuildingType.squad);
     }
 
     @Override
-    public HeadQuarter getHeadQuarter() {
-        return headQuarter;
+    public MoveableMapItem getHeadQuarter() {
+        return this.playerMapItems.getMapItemByType(BuildingType.HQ);
     }
 
     @Override
@@ -149,17 +135,15 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
         this.processCompletedContracts(time);
+        this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
         savePlayerSession();
     }
 
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        // we move completed troops last because its possible they managed to buy it out
-        // while we think it had completed and already moved to be a deployable
-        this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
         this.processCompletedContracts(time);
+        this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
         this.savePlayerSession();
     }
 
@@ -215,11 +199,6 @@ public class PlayerSessionImpl implements PlayerSession {
             this.trainingManager.recalculateContracts(time);
         this.trainingManager.moveCompletedBuildUnits(time);
         this.droidManager.moveCompletedBuildUnits(time);
-    }
-
-    @Override
-    public PlayerMap getBaseMap() {
-        return playerSettings.getBaseMap();
     }
 
     @Override
@@ -366,26 +345,12 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingConstruct(String buildingUid, Position position, long time) {
         this.processCompletedContracts(time);
-        MoveableMapItem moveableMapItem = createMovableMapItem(buildingUid, position);
+        MoveableMapItem moveableMapItem = this.playerMapItems.createMovableMapItem(buildingUid, position);
 
         // add the building to the map
-        this.mapItemsByKey.put(moveableMapItem.getBuildingKey(), moveableMapItem);
-        this.playerSettings.getBaseMap().buildings.add(moveableMapItem.getBuilding());
+        this.playerMapItems.constructNewBuilding(moveableMapItem);
         this.droidManager.constructBuildUnit(moveableMapItem, time);
         savePlayerSession();
-    }
-
-    private MoveableMapItem createMovableMapItem(String buildingUid, Position position) {
-        BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildingUid);
-        Building building = new Building();
-        building.uid = buildingUid;
-        building.key = "bld_" + this.playerSettings.getBaseMap().next;
-        this.playerSettings.getBaseMap().next++;
-        building.x = position.x;
-        building.z = position.z;
-        building.currentStorage = buildingData.getStorage();
-        MoveableMapItem moveableMapItem = new MoveableBuilding(building, buildingData);
-        return moveableMapItem;
     }
 
     @Override
@@ -399,16 +364,26 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void factionSet(FactionType faction) {
+    public void factionSet(FactionType faction, long time) {
+        this.processCompletedContracts(time);
         FactionType oldFaction = this.playerSettings.getFaction();
         this.playerSettings.setFaction(faction);
-        // TODO - change the base to this faction
+        for (MoveableMapItem moveableMapItem : this.playerMapItems.getMapItems()) {
+            BuildingData oldBuildingData = moveableMapItem.getBuildingData();
+            if (moveableMapItem.getBuildingData().getFaction() == oldFaction) {
+                BuildingData buildingData = ServiceFactory.instance().getGameDataManager()
+                        .getBuildingData(oldBuildingData.getType(), faction, oldBuildingData.getLevel());
+
+                moveableMapItem.changeBuildingData(buildingData);
+            }
+        }
+
         this.savePlayerSession();
     }
 
     @Override
     public MoveableMapItem getMapItemByKey(String key) {
-        return mapItemsByKey.get(key);
+        return this.playerMapItems.getMapItemByKey(key);
     }
 
     private void buildingMultimove(String key, Position newPosition) {
@@ -456,5 +431,10 @@ public class PlayerSessionImpl implements PlayerSession {
         }
 
         this.savePlayerSession();
+    }
+
+    @Override
+    public PlayerMapItems getPlayerMapItems() {
+        return this.playerMapItems;
     }
 }

@@ -232,7 +232,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         DonatedTroops donatedTroops = mapDonatedTroopsToPlayerSession(playerSession);
         String donatedTroopsJson = ServiceFactory.instance().getJsonParser().toJson(donatedTroops);
 
-        PlayerMap playerMap = playerSession.getBaseMap();
+        PlayerMap playerMap = playerSession.getPlayerMapItems().getBaseMap();
         String playerMapJson = ServiceFactory.instance().getJsonParser().toJson(playerMap);
 
         InventoryStorage inventoryStorage = playerSession.getPlayerSettings().getInventoryStorage();

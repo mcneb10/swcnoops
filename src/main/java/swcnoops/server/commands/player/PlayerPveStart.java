@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerPveStartCommandResult;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.session.PlayerSession;
 
 public class PlayerPveStart extends AbstractCommandAction<PlayerPveStart, PlayerPveStartCommandResult> {
     private String missionUid;
@@ -11,6 +12,10 @@ public class PlayerPveStart extends AbstractCommandAction<PlayerPveStart, Player
 
     @Override
     protected PlayerPveStartCommandResult execute(PlayerPveStart arguments, long time) throws Exception {
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+
+        playerSession.playerBattleStart(time);
         PlayerPveStartCommandResult playerPveStartResponse = new PlayerPveStartCommandResult();
         playerPveStartResponse.setBattleId(ServiceFactory.createRandomUUID());
         return playerPveStartResponse;

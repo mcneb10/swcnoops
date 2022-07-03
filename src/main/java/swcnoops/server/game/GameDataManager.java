@@ -1,5 +1,7 @@
 package swcnoops.server.game;
 
+import swcnoops.server.model.FactionType;
+
 public interface GameDataManager {
     void initOnStartup();
 
@@ -26,4 +28,6 @@ public interface GameDataManager {
     TroopData getTroopDataByUnitId(String unitId, int level);
 
     BuildingData getBuildingDataByBuildingId(String buildingID, int level);
+
+    BuildingData getBuildingData(BuildingType type, FactionType faction, int level);
 }

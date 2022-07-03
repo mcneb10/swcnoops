@@ -1,8 +1,10 @@
 package swcnoops.server.game;
 
+import swcnoops.server.model.FactionType;
+
 public class BuildingData implements GameData {
     final private String uid;
-    private String faction;
+    private FactionType faction;
     private int level;
     private BuildingType type;
     private int storage;
@@ -10,15 +12,18 @@ public class BuildingData implements GameData {
     private String buildingID;
     private String trapId;
     private String linkedUnit;
+    private StoreTab storeTab;
+    private BuildingSubType subType;
+
     public BuildingData(String uid) {
         this.uid = uid;
     }
 
-    protected void setFaction(String faction) {
+    protected void setFaction(FactionType faction) {
         this.faction = faction;
     }
 
-    public String getFaction() {
+    public FactionType getFaction() {
         return faction;
     }
 
@@ -80,5 +85,21 @@ public class BuildingData implements GameData {
 
     public void setLinkedUnit(String linkedUnit) {
         this.linkedUnit = linkedUnit;
+    }
+
+    public void setStoreTab(StoreTab storeTab) {
+        this.storeTab = storeTab;
+    }
+
+    public StoreTab getStoreTab() {
+        return storeTab;
+    }
+
+    public BuildingSubType getSubType() {
+        return subType;
+    }
+
+    public void setSubType(BuildingSubType subType) {
+        this.subType = subType;
     }
 }

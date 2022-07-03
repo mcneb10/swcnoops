@@ -3,9 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
-import swcnoops.server.session.map.HeadQuarter;
 import swcnoops.server.session.map.MoveableMapItem;
-import swcnoops.server.session.map.SquadBuilding;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.training.TrainingManager;
@@ -16,8 +14,8 @@ import java.util.Map;
 public interface PlayerSession {
     Player getPlayer();
 
-    HeadQuarter getHeadQuarter();
-    SquadBuilding getSquadBuilding();
+    MoveableMapItem getHeadQuarter();
+    MoveableMapItem getSquadBuilding();
 
     String getPlayerId();
 
@@ -33,8 +31,6 @@ public interface PlayerSession {
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     void playerBattleStart(long time);
-
-    PlayerMap getBaseMap();
 
     TrainingManager getTrainingManager();
     PlayerSettings getPlayerSettings();
@@ -77,9 +73,11 @@ public interface PlayerSession {
 
     void buildingUpgrade(String buildingId, long time);
 
-    void factionSet(FactionType faction);
+    void factionSet(FactionType faction, long time);
 
     DroidManager getDroidManager();
 
     void rearm(List<String> buildingIds, long time);
+
+    PlayerMapItems getPlayerMapItems();
 }

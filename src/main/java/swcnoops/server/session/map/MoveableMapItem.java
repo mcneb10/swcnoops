@@ -48,7 +48,11 @@ abstract public class MoveableMapItem implements MapItem {
     public void upgradeComplete() {
         BuildingData upgradeBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByBuildingId(this.buildingData.getBuildingID(), this.buildingData.getLevel() + 1);
-        this.buildingData = upgradeBuildingData;
-        this.building.uid = upgradeBuildingData.getUid();
+        changeBuildingData(upgradeBuildingData);
+    }
+
+    public void changeBuildingData(BuildingData buildingData) {
+        this.getBuilding().uid = buildingData.getUid();
+        this.buildingData = buildingData;
     }
 }

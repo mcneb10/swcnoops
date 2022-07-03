@@ -54,7 +54,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     // TODO - setup map and troops
     private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, PlayerSession playerSession) {
-        playerLoginResponse.playerModel.map = playerSession.getBaseMap();
+        playerLoginResponse.playerModel.map = playerSession.getPlayerMapItems().getBaseMap();
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
         playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
