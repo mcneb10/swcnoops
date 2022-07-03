@@ -15,7 +15,7 @@ public class PlayerFactionSet extends AbstractCommandAction<PlayerFactionSet, Co
     protected CommandResult execute(PlayerFactionSet arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
-        playerSession.factionSet(arguments.getFaction());
+        playerSession.factionSet(arguments.getFaction(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

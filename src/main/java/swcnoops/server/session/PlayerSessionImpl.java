@@ -366,10 +366,20 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void factionSet(FactionType faction) {
+    public void factionSet(FactionType faction, long time) {
+        this.processCompletedContracts(time);
         FactionType oldFaction = this.playerSettings.getFaction();
         this.playerSettings.setFaction(faction);
-        // TODO - change the base to this faction
+        for (MoveableMapItem moveableMapItem : this.playerMapItems.getMapItems()) {
+            BuildingData oldBuildingData = moveableMapItem.getBuildingData();
+            if (moveableMapItem.getBuildingData().getFaction() == oldFaction) {
+                BuildingData buildingData = ServiceFactory.instance().getGameDataManager()
+                        .getBuildingData(oldBuildingData.getType(), faction, oldBuildingData.getLevel());
+
+                moveableMapItem.changeBuildingData(buildingData);
+            }
+        }
+
         this.savePlayerSession();
     }
 

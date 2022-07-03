@@ -1,6 +1,7 @@
 package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.model.FactionType;
 
 import java.util.*;
 
@@ -10,6 +11,10 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, List<TroopData>> troopLevelsByUnitId = new HashMap<>();
     private Map<String, List<BuildingData>> buildingLevelsByBuildingId = new HashMap<>();
 
+    /**
+     * This map is only used to change the map from smuggler to faction which happens for new players
+     */
+    private Map<BuildingType, Map<FactionType, List<BuildingData>>> buildingMapByTypeAndFaction = new HashMap<>();
     private Map<String, BuildingData> buildings = new HashMap<>();
     private Map<String, TrapData> traps = new HashMap<>();
 
@@ -83,7 +88,7 @@ public class GameDataManagerImpl implements GameDataManager {
             this.troops.put(troopData.getUid(), troopData);
             addToLowestLevelTroopUnitId(troopData);
 
-            String needToSort = addToLevelsByUnitId(troopData);
+            String needToSort = addToLevelMaps(troopData);
             if (needToSort != null)
                 unitIdsNeedsSorting.add(needToSort);
         }
@@ -92,7 +97,7 @@ public class GameDataManagerImpl implements GameDataManager {
                 .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
     }
 
-    private String addToLevelsByUnitId(TroopData troopData) {
+    private String addToLevelMaps(TroopData troopData) {
         String unitId = troopData.getUnitId();
         if (unitId != null) {
             List<TroopData> levels = this.troopLevelsByUnitId.get(unitId);
@@ -167,9 +172,12 @@ public class GameDataManagerImpl implements GameDataManager {
             int storage = Integer.valueOf(building.get("storage") == null ? "0" : building.get("storage")).intValue();
             int time = Integer.valueOf(building.get("time")).intValue();
             String linkedUnit = building.get("linkedUnit");
+            StoreTab storeTab = building.get("storeTab") != null ? StoreTab.valueOf(building.get("storeTab")) : null;
+            BuildingSubType buildingSubType = building.get("subType") != null ?
+                    BuildingSubType.valueOf(building.get("subType")) : null;
 
             BuildingData buildingData = new BuildingData(uid);
-            buildingData.setFaction(faction);
+            buildingData.setFaction(FactionType.valueOf(faction));
             buildingData.setLevel(lvl);
             buildingData.setType(BuildingType.valueOf(type));
             buildingData.setStorage(storage);
@@ -177,9 +185,11 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setBuildingID(buildingID);
             buildingData.setTrapId(trapId);
             buildingData.setLinkedUnit(linkedUnit);
+            buildingData.setStoreTab(storeTab);
+            buildingData.setSubType(buildingSubType);
 
             map.put(buildingData.getUid(), buildingData);
-            String needToSort = addToLevelsByUnitId(buildingData);
+            String needToSort = addToLevelMaps(buildingData);
             if (needToSort != null)
                 buildingIdsNeedsSorting.add(needToSort);
         }
@@ -190,7 +200,7 @@ public class GameDataManagerImpl implements GameDataManager {
         return map;
     }
 
-    private String addToLevelsByUnitId(BuildingData buildingData) {
+    private String addToLevelMaps(BuildingData buildingData) {
         String buildingID = buildingData.getBuildingID();
         if (buildingID != null) {
             List<BuildingData> levels = this.buildingLevelsByBuildingId.get(buildingID);
@@ -201,6 +211,21 @@ public class GameDataManagerImpl implements GameDataManager {
 
             // this list will be sorted later before it can be used
             levels.add(buildingData);
+
+            if (buildingData.getStoreTab() != StoreTab.not_in_store) {
+                if (!(buildingData.getType() == BuildingType.turret &&
+                        buildingData.getSubType() != BuildingSubType.rapid_fire_turret))
+                {
+
+                    Map<FactionType, List<BuildingData>> factionMap = this.buildingMapByTypeAndFaction.get(buildingData.getType());
+                    if (factionMap == null) {
+                        factionMap = new HashMap<>();
+                        this.buildingMapByTypeAndFaction.put(buildingData.getType(), factionMap);
+                    }
+
+                    factionMap.put(buildingData.getFaction(), levels);
+                }
+            }
         }
 
         return buildingID;
@@ -219,5 +244,10 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public BuildingData getBuildingDataByBuildingId(String buildingID, int level) {
         return this.buildingLevelsByBuildingId.get(buildingID).get(level - 1);
+    }
+
+    @Override
+    public BuildingData getBuildingData(BuildingType type, FactionType faction, int level) {
+        return this.buildingMapByTypeAndFaction.get(type).get(faction).get(level - 1);
     }
 }
