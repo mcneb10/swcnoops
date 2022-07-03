@@ -220,7 +220,7 @@
   "prepEndTime": 1565523768,
   "prepGraceStartTime": 1565523648,
   "rebelsGuild": null,
-  "rewardsProcessed": false,
+  "rewardsProcessed": true,
   "rival": {
     "faction": "empire",
     "guildId": "eda86f3d-c8ef-11e7-b63e-0a5a0a2c0e5b",

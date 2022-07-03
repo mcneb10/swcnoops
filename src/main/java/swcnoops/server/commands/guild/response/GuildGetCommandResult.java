@@ -29,5 +29,5 @@ public class GuildGetCommandResult extends AbstractCommandResult {
     public int totalRepInvested;
     public List<WarHistory> warHistory;
     public Object warRating;
-    public Object warSignUpTime;
+    public Long warSignUpTime;
 }

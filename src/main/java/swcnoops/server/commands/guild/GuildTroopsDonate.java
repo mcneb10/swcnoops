@@ -6,8 +6,6 @@ import swcnoops.server.commands.Command;
 import swcnoops.server.commands.guild.response.GuildTroopsDonateCommandResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
-import swcnoops.server.requests.GuildMessages;
-import swcnoops.server.requests.Messages;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.Map;
@@ -15,7 +13,7 @@ import java.util.Map;
 /**
  * TODO - finish this properly, for now it is self donating
  */
-public class GuildTroopsDonate extends AbstractCommandAction<GuildTroopsDonate, GuildTroopsDonateCommandResult> {
+public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, GuildTroopsDonateCommandResult> {
     private Map<String, Integer> troopsDonated;
     private String recipientId;
     private String requestId;
@@ -38,11 +36,9 @@ public class GuildTroopsDonate extends AbstractCommandAction<GuildTroopsDonate, 
         // not sure about this yet, this probably controls the SC space that the client has on screen
         TroopDonationProgress troopDonationProgress = null;
         GuildTroopsDonateCommandResult guildTroopsDonateCommandResult =
-                new GuildTroopsDonateCommandResult(arguments.getTroopsDonated(),
-                        false, troopDonationProgress);
+                new GuildTroopsDonateCommandResult(recipientPlayerId, playerSession.getPlayer().getPlayerSettings().getName(),
+                        playerSession.getGuildSession(), arguments.getTroopsDonated(), false, troopDonationProgress);
 
-        guildTroopsDonateCommandResult.setPlayerId(recipientPlayerId);
-        guildTroopsDonateCommandResult.setName(playerSession.getPlayer().getPlayerSettings().getName());
         guildTroopsDonateCommandResult.setRequestId(requestId);
 
         TroopDonationData troopDonationData = new TroopDonationData();
@@ -51,49 +47,8 @@ public class GuildTroopsDonate extends AbstractCommandAction<GuildTroopsDonate, 
         troopDonationData.requestId = arguments.getRequestId();
         troopDonationData.recipientId = recipientPlayerId;
 
-        guildTroopsDonateCommandResult.setTroopDonationData(troopDonationData);
-        guildTroopsDonateCommandResult.setGuildSession(playerSession.getGuildSession());
-
+        guildTroopsDonateCommandResult.setNotificationData(SquadMsgType.troopDonation, troopDonationData);
         return guildTroopsDonateCommandResult;
-    }
-
-    @Override
-    protected Messages createMessage(Command command, GuildTroopsDonateCommandResult guildTroopsDonateCommandResult) {
-        String guid = ServiceFactory.createRandomUUID();
-        long systemTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
-
-        SquadNotification squadNotification =
-                createSquadNotification(systemTime,guid, guildTroopsDonateCommandResult);
-        SquadMessage squadMessage = createSquadMessage(systemTime, guildTroopsDonateCommandResult, squadNotification);
-        GuildMessage guildMessage = new GuildMessage(squadMessage, guid, command.getTime());
-        GuildMessages messages = new GuildMessages(command.getTime(), systemTime, guid);
-        messages.getGuild().add(guildMessage);
-        return messages;
-    }
-
-    private SquadNotification createSquadNotification(long systemTime, String guid,
-                                                      GuildTroopsDonateCommandResult guildTroopsDonateCommandResult)
-    {
-        SquadNotification squadNotification =
-                new SquadNotification(systemTime, guid,
-                        "Donated by someone",
-                        guildTroopsDonateCommandResult.getName(),
-                        guildTroopsDonateCommandResult.getPlayerId(),
-                        SquadMsgType.troopDonation,
-                        guildTroopsDonateCommandResult.getTroopDonationData());
-        return squadNotification;
-    }
-
-    private SquadMessage createSquadMessage(long systemTime, GuildTroopsDonateCommandResult guildTroopsDonateCommandResult,
-                                            SquadNotification squadNotification)
-    {
-        SquadMessage squadMessage = new SquadMessage(squadNotification);
-        squadMessage.event = SquadMsgType.troopRequest;
-        squadMessage.guildId = guildTroopsDonateCommandResult.getGuildSession().getGuildId();
-        squadMessage.guildName = guildTroopsDonateCommandResult.getGuildSession().getGuildName();
-        squadMessage.level = 0;
-        squadMessage.serverTime = systemTime;
-        return squadMessage;
     }
 
     @Override

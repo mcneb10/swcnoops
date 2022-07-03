@@ -1,9 +1,10 @@
 package swcnoops.server.commands.guild.response;
 
 import swcnoops.server.model.DonatedTroops;
-import swcnoops.server.requests.AbstractCommandResult;
+import swcnoops.server.session.GuildSession;
+import swcnoops.server.session.PlayerSession;
 
-public class GuildWarGetParticipantCommandResult extends AbstractCommandResult {
+public class GuildWarGetParticipantCommandResult extends GuildResult {
     public Object champions;
     public Object creatureTraps;
     public Object currentlyDefending;
@@ -21,6 +22,13 @@ public class GuildWarGetParticipantCommandResult extends AbstractCommandResult {
     public int victoryPoints;
     public Object warMap;
     public Object warStats;
+
+    public GuildWarGetParticipantCommandResult() {
+    }
+
+    public GuildWarGetParticipantCommandResult(PlayerSession playerSession, GuildSession guildSession) {
+        super(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(), guildSession);
+    }
 
     @Override
     public Object getResult() {

@@ -1,5 +1,6 @@
 package swcnoops.server.session;
 
+import java.util.List;
 import java.util.Map;
 
 public interface GuildSession {
@@ -12,4 +13,6 @@ public interface GuildSession {
     String getGuildName();
 
     void processDonations(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession, String recipientId, long time);
+
+    void warMatchmakingStart(List<String> participantIds, boolean isSameFactionWarAllowed);
 }

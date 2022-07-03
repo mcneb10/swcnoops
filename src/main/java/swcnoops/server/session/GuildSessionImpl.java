@@ -2,6 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -48,5 +49,11 @@ public class GuildSessionImpl implements GuildSession {
                 .getPlayerSession(recipientPlayerId);
         recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId());
         ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession, recipientPlayerSession);
+    }
+
+    @Override
+    public void warMatchmakingStart(List<String> participantIds, boolean isSameFactionWarAllowed) {
+        // TODO
+        // add a guild notification to say match making has started
     }
 }
