@@ -59,6 +59,8 @@ public class CommandFactory {
         this.add(new PlayerPveComplete());
         this.add(new PlayerFactionSet());
 
+        this.add(new GuildWarMatchmakingStart());
+
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
         this.add(new OkListCommandAction("guild.notifications.get"));

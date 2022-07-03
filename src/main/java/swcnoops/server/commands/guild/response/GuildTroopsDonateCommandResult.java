@@ -3,12 +3,11 @@ package swcnoops.server.commands.guild.response;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import swcnoops.server.model.TroopDonationData;
 import swcnoops.server.model.TroopDonationProgress;
-import swcnoops.server.requests.AbstractCommandResult;
 import swcnoops.server.session.GuildSession;
 
 import java.util.Map;
 
-public class GuildTroopsDonateCommandResult extends AbstractCommandResult {
+public class GuildTroopsDonateCommandResult extends GuildResult {
     private Map<String,Integer> troopsDonated;
     private boolean reputationAwarded;
     private TroopDonationProgress troopDonationProgress;
@@ -18,13 +17,12 @@ public class GuildTroopsDonateCommandResult extends AbstractCommandResult {
     private String playerId;
     @JsonIgnore
     private TroopDonationData troopDonationData;
-    @JsonIgnore
-    private GuildSession guildSession;
-    private String name;
 
-    public GuildTroopsDonateCommandResult(Map<String, Integer> troopsDonated, boolean reputationAwarded,
-                                          TroopDonationProgress troopDonationProgress)
+    public GuildTroopsDonateCommandResult(String playerId, String playerName,
+                                          GuildSession guildSession, Map<String, Integer> troopsDonated,
+                                          boolean reputationAwarded, TroopDonationProgress troopDonationProgress)
     {
+        super(playerId, playerName, guildSession);
         this.troopsDonated = troopsDonated;
         this.reputationAwarded = reputationAwarded;
         this.troopDonationProgress = troopDonationProgress;
@@ -56,29 +54,5 @@ public class GuildTroopsDonateCommandResult extends AbstractCommandResult {
 
     public void setPlayerId(String playerId) {
         this.playerId = playerId;
-    }
-
-    public void setTroopDonationData(TroopDonationData troopDonationData) {
-        this.troopDonationData = troopDonationData;
-    }
-
-    public TroopDonationData getTroopDonationData() {
-        return troopDonationData;
-    }
-
-    public void setGuildSession(GuildSession guildSession) {
-        this.guildSession = guildSession;
-    }
-
-    public GuildSession getGuildSession() {
-        return guildSession;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
     }
 }
