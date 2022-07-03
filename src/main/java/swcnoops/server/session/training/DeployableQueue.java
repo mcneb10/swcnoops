@@ -1,33 +1,34 @@
 package swcnoops.server.session.training;
 
 import swcnoops.server.game.TroopData;
+import swcnoops.server.session.map.MoveableMapItem;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * This is to model the games queuing system for its troops, when they are built, completed and moved to being
  * a deployable unit ready for war.
  */
 public class DeployableQueue {
-    private int storage;
     private int totalDeployable;
     final private Map<String, Integer> deployableUnits = new HashMap<>();
     final private List<BuildUnit> unitsInQueue = new ArrayList<>();
+    final private List<MoveableMapItem> moveableMapItems = new ArrayList<>();
 
     public DeployableQueue() {
-        this(0);
     }
 
-    public DeployableQueue(int storage) {
-        this.storage = storage;
-    }
-
-    public void addStorage(int storage) {
-        this.storage += storage;
+    public void addStorage(MoveableMapItem moveableMapItem)
+    {
+        if (!moveableMapItems.contains(moveableMapItem))
+            moveableMapItems.add(moveableMapItem);
     }
 
     private int getAvailableCapacity() {
-        return this.storage - this.totalDeployable;
+        AtomicInteger totalStorage = new AtomicInteger();
+        moveableMapItems.stream().forEach(a -> totalStorage.addAndGet(a.getBuildingData().getStorage()));
+        return totalStorage.get() - this.totalDeployable;
     }
 
     private void moveToDeployable(BuildUnit buildUnit) {

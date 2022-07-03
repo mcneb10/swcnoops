@@ -135,17 +135,15 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
         this.processCompletedContracts(time);
+        this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
         savePlayerSession();
     }
 
     @Override
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
-        // we move completed troops last because its possible they managed to buy it out
-        // while we think it had completed and already moved to be a deployable
-        this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
         this.processCompletedContracts(time);
+        this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
         this.savePlayerSession();
     }
 

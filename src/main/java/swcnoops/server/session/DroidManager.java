@@ -5,6 +5,7 @@ import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.session.map.MoveableMapItem;
 import swcnoops.server.session.training.BuildUnit;
+import swcnoops.server.session.training.TrainingManagerFactory;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -12,6 +13,8 @@ import java.util.LinkedList;
 import java.util.Optional;
 
 public class DroidManager implements Constructor {
+    static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
+
     private Collection<BuildUnit> unitsInQueue = new LinkedList<>();
     final private PlayerSession playerSession;
 
@@ -39,9 +42,11 @@ public class DroidManager implements Constructor {
             // units are sorted by endTime
             if (buildUnit.getEndTime() <= time) {
                 buildUnitsIterator.remove();
+                MoveableMapItem moveableMapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
                 if (buildUnit.getContractType() == ContractType.Upgrade) {
-                    MoveableMapItem moveableMapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
                     moveableMapItem.upgradeComplete();
+                } else if (buildUnit.getContractType() == ContractType.Build) {
+                    this.trainingManagerFactory.constructCompleteForBuilding(this.playerSession.getTrainingManager(), moveableMapItem);
                 }
             }
         }

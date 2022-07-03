@@ -2,10 +2,10 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
-import swcnoops.server.model.Building;
 import swcnoops.server.session.Constructor;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
+import swcnoops.server.session.map.MoveableMapItem;
 
 import java.util.*;
 
@@ -16,18 +16,16 @@ import java.util.*;
  * if there is space available for that troops size.
  */
 public class Builder implements MapItem, Constructor {
-    final private Building building;
     final private BuildQueue buildQueue;
     private long startTime;
-    final private BuildingData buildingData;
     final private DeployableQueue deployableQueue;
     final private ContractType contractType;
+    final private MoveableMapItem moveableMapItem;
 
-    public Builder(PlayerSession playerSession, Building building, BuildingData buildingData,
+    public Builder(PlayerSession playerSession, MoveableMapItem moveableMapItem,
                    DeployableQueue deployableQueue, ContractType contractType)
     {
-        this.building = building;
-        this.buildingData = buildingData;
+        this.moveableMapItem = moveableMapItem;
         this.deployableQueue = deployableQueue;
         this.contractType = contractType;
         this.buildQueue = new BuildQueue(playerSession);
@@ -35,17 +33,17 @@ public class Builder implements MapItem, Constructor {
 
     @Override
     public BuildingData getBuildingData() {
-        return buildingData;
+        return this.moveableMapItem.getBuildingData();
     }
 
     @Override
     public String getBuildingKey() {
-        return this.building.key;
+        return this.moveableMapItem.getBuildingKey();
     }
 
     @Override
     public String getBuildingUid() {
-        return this.building.uid;
+        return this.moveableMapItem.getBuildingUid();
     }
 
     protected void train(List<BuildUnit> buildUnits, long startTime) {
