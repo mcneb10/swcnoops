@@ -80,4 +80,6 @@ public interface PlayerSession {
     void rearm(List<String> buildingIds, long time);
 
     PlayerMapItems getPlayerMapItems();
+
+    void setCurrentQuest(String fueUid, long time);
 }

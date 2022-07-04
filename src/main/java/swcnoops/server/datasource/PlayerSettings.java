@@ -16,6 +16,7 @@ public class PlayerSettings {
     private Troops troops;
     private DonatedTroops donatedTroops;
     private InventoryStorage inventoryStorage;
+    private String currentQuest;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -102,5 +103,13 @@ public class PlayerSettings {
 
     public void setInventoryStorage(InventoryStorage inventoryStorage) {
         this.inventoryStorage = inventoryStorage;
+    }
+
+    public void setCurrentQuest(String currentQuest) {
+        this.currentQuest = currentQuest;
+    }
+
+    public String getCurrentQuest() {
+        return currentQuest;
     }
 }
