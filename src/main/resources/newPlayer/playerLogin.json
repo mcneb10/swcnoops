@@ -1305,12 +1305,92 @@
         "collected": false,
         "points": 0,
         "items": {}
+      },
+      "sw_hth_outposts": {
+        "uid": "sw_hth_outposts",
+        "timeZone": 0.0,
+        "completed": false,
+        "collected": false,
+        "points": 0,
+        "items": {}
+      },
+      "cmp_0_hb_e": {
+        "uid": "cmp_0_hb_e",
+        "timeZone": 0.0,
+        "completed": false,
+        "collected": false,
+        "points": 0,
+        "items": {}
       }
     },
     "missions": {
       "fue_defendBaseMission_00": {
         "uid": "fue_defendBaseMission_00",
         "campaignUid": "cmp_fue",
+        "status": "Completed",
+        "earnedStars": 3,
+        "counters": {},
+        "goals": 3,
+        "lastBattleId": "ee1f81a7-9d1f-11e9-8814-0a580a2c1747",
+        "lootRemaining": {},
+        "satisfiedGoals": [
+          "RetainHalfBuildings",
+          "RetainHQ",
+          "AvoidCompleteLoss"
+        ],
+        "grindMissionRetries": 0
+      },
+      "fue_impIntroBaseMission_00": {
+        "uid": "fue_impIntroBaseMission_00",
+        "campaignUid": "cmp_fue",
+        "status": "Completed",
+        "earnedStars": 3,
+        "counters": {},
+        "goals": 3,
+        "lastBattleId": "2a69780c-9d20-11e9-99d1-0a580a2c184e",
+        "lootRemaining": {
+          "credits": 0,
+          "materials": 0,
+          "contraband": 0
+        },
+        "satisfiedGoals": [
+          "DestroyAllBuildings"
+        ],
+        "grindMissionRetries": 0
+      },
+      "fue_rebIntroBaseMission_00": {
+        "uid": "fue_rebIntroBaseMission_00",
+        "campaignUid": "cmp_fue",
+        "status": "Claimed",
+        "earnedStars": 3,
+        "counters": {},
+        "goals": 3,
+        "lastBattleId": "5c869a17-9d20-11e9-a92f-0a580a2c0e51",
+        "lootRemaining": {
+          "credits": 57,
+          "materials": 0,
+          "contraband": 0
+        },
+        "satisfiedGoals": [
+          "DestroyAllBuildings"
+        ],
+        "grindMissionRetries": 0
+      },
+      "sw_hth_outpost_s_1": {
+        "uid": "sw_hth_outpost_s_1",
+        "campaignUid": "sw_hth_outposts",
+        "status": "Default",
+        "earnedStars": 0,
+        "counters": {},
+        "goals": 3,
+        "lastBattleId": null,
+        "lootRemaining": {},
+        "satisfiedGoals": [],
+        "grindMissionRetries": 0
+      },
+      "camp_1_utts_e_1": {
+        "uid": "camp_1_utts_e_1",
+        "campaignUid": "cmp_0_hb_e",
         "status": "Default",
         "earnedStars": 0,
         "counters": {},
@@ -1331,7 +1411,7 @@
     "isConnectedAccount": false,
     "pvpTargetServedTime": null,
     "intros": [],
-    "lastMission": "fue_defendBaseMission_00",
+    "lastMission": "camp_1_utts_e_1",
     "isRateIncentivized": false,
     "lastPaymentTime": null,
     "lastWarParticipationTime": null,
