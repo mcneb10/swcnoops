@@ -60,11 +60,12 @@ public class CommandFactory {
 
         this.add(new GuildWarMatchmakingStart());
 
+        this.add(new PlayerMissionsActivateMission());
+
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
         this.add(new OkListCommandAction("guild.notifications.get"));
         this.add(new OkCommandAction("player.planet.stats"));
-        this.add(new OkCommandAction("player.missions.activateMission"));
         this.add(new OkCommandAction("player.store.buy"));
         this.add(new OkCommandAction("player.pve.collect"));
         this.add(new OkCommandAction("player.missions.claimCampaign"));

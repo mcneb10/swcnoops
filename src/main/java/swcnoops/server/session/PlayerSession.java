@@ -82,4 +82,6 @@ public interface PlayerSession {
     PlayerMapItems getPlayerMapItems();
 
     void setCurrentQuest(String fueUid, long time);
+
+    void activateMission(String missionUid, long time);
 }

@@ -17,8 +17,8 @@ public class PlayerModel {
     public Long protectionFrom;
     public Object protectionCooldownUntil;
     public List<BattleLog> battleLogs;
-    public Object campaigns;
-    public Object missions;
+    public Map<String,Campaign> campaigns;
+    public Map<String,Mission> missions;
     public Object tournaments;
     public Boolean isFueInProgress;
     public Map<String,Integer> DamagedBuildings;

@@ -19,6 +19,7 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, TrapData> traps = new HashMap<>();
     private Map<FactionType, CampaignSet> factionCampaigns = new HashMap<>();
     private Map<String, CampaignSet> campaignSets = new HashMap<>();
+    private Map<String, CampaignMissionData> missionDataMap = new HashMap<>();
 
 
     @Override
@@ -51,6 +52,7 @@ public class GameDataManagerImpl implements GameDataManager {
         for (CampaignMissionData campaignMissionData : result.content.objects.campaignMissionData) {
             CampaignSet campaignSet = this.campaignSets.get(campaignMissionData.getCampaignUid());
             campaignSet.getCampaignMissionSet(campaignMissionData.getCampaignUid()).addMission(campaignMissionData);
+            this.missionDataMap.put(campaignMissionData.getUid(), campaignMissionData);
         }
     }
 

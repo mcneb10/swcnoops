@@ -443,4 +443,9 @@ public class PlayerSessionImpl implements PlayerSession {
         this.getPlayerSettings().setCurrentQuest(fueUid);
         this.savePlayerSession();
     }
+
+    @Override
+    public void activateMission(String missionUid, long time) {
+        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMissions();
+    }
 }

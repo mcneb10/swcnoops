@@ -1,6 +1,7 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.model.*;
+import swcnoops.server.session.PlayerCampaignMission;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
@@ -17,6 +18,7 @@ public class PlayerSettings {
     private DonatedTroops donatedTroops;
     private InventoryStorage inventoryStorage;
     private String currentQuest;
+    private PlayerCampaignMission playerCampaignMissions;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -111,5 +113,13 @@ public class PlayerSettings {
 
     public String getCurrentQuest() {
         return currentQuest;
+    }
+
+    public PlayerCampaignMission getPlayerCampaignMissions() {
+        return playerCampaignMissions;
+    }
+
+    public void setPlayerCampaignMissions(PlayerCampaignMission playerCampaignMissions) {
+        this.playerCampaignMissions = playerCampaignMissions;
     }
 }
