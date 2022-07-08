@@ -34,7 +34,6 @@ public class CommandFactory {
         this.add(new PlayerStoreShardOffersGet());
         this.add(new PlayerCrateCheckDaily());
         this.add(new PlayerMissionsMissionMap());
-        this.add(new PlayerFueComplete());
         this.add(new PlayerNameSet());
         this.add(new PlayerDeployableTrain());
         this.add(new PlayerDeployableCancel());
@@ -79,7 +78,9 @@ public class CommandFactory {
 //        this.add(new OkCommandAction("player.building.move"));
 //        this.add(new OkCommandAction("player.building.clear"));
 
-        this.add(new OkCommandAction("player.fue.setQuest"));
+        this.add(new PlayerFueComplete());
+        this.add(new PlayerFueSetQuest());
+
         this.add(new OkCommandAction("player.building.collect.all"));
         this.add(new OkCommandAction("player.planet.relocate"));
         this.add(new OkCommandAction("player.raids.update"));

@@ -58,6 +58,13 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
         playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
+        playerLoginResponse.playerModel.currentQuest = playerSession.getPlayerSettings().getCurrentQuest();
+
+        if (playerLoginResponse.playerModel.currentQuest == null || !playerLoginResponse.playerModel.currentQuest.isEmpty())
+            playerLoginResponse.playerModel.isFueInProgress = true;
+        else
+            playerLoginResponse.playerModel.isFueInProgress = false;
+        playerLoginResponse.firstTimePlayer = playerSession.getPlayerSettings().getCurrentQuest() == null ? true : false;
 
         mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
         mapShards(playerLoginResponse.playerModel);

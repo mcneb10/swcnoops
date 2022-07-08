@@ -102,7 +102,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
         final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops, " +
-                "inventoryStorage " +
+                "inventoryStorage, currentQuest " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -187,6 +187,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     .fromJsonString(inventoryStorageJson, InventoryStorage.class);
                         }
                         playerSettings.setInventoryStorage(inventoryStorage);
+
+                        playerSettings.setCurrentQuest(rs.getString("currentQuest"));
                     }
                 }
             }
@@ -195,14 +197,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return playerSettings;
-    }
-
-    private String loadDefaultMap(String faction) {
-        try {
-            return UtilsHelper.loadStringFromResource("defaultMap/empire.json");
-        } catch (IOException ex) {
-            throw new RuntimeException("Failed to load default map", ex);
-        }
     }
 
     @Override
@@ -240,7 +234,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
                 creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
-                playerSession.getPlayerSettings().getFaction(), connection);
+                playerSession.getPlayerSettings().getFaction(),
+                playerSession.getPlayerSettings().getCurrentQuest(),
+                connection);
     }
 
     private BuildUnits mapContractsToPlayerSettings(PlayerSession playerSession) {
@@ -295,11 +291,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
-                                    FactionType faction, Connection connection)
+                                    FactionType faction, String currentQuest, Connection connection)
     {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
-                "inventoryStorage = ?, faction = ? " +
+                "inventoryStorage = ?, faction = ?, currentQuest = ? " +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -311,7 +307,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(6, playerMapJson);
                 stmt.setString(7, inventoryStorageJson);
                 stmt.setString(8, faction != null ? faction.name() : null);
-                stmt.setString(9, playerId);
+                stmt.setString(9, currentQuest);
+                stmt.setString(10, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {

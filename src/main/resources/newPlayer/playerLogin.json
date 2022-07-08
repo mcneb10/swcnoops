@@ -1311,13 +1311,17 @@
       "fue_defendBaseMission_00": {
         "uid": "fue_defendBaseMission_00",
         "campaignUid": "cmp_fue",
-        "status": "Default",
-        "earnedStars": 0,
+        "status": "Completed",
+        "earnedStars": 3,
         "counters": {},
         "goals": 3,
-        "lastBattleId": null,
+        "lastBattleId": "ee1f81a7-9d1f-11e9-8814-0a580a2c1747",
         "lootRemaining": {},
-        "satisfiedGoals": [],
+        "satisfiedGoals": [
+          "RetainHalfBuildings",
+          "RetainHQ",
+          "AvoidCompleteLoss"
+        ],
         "grindMissionRetries": 0
       }
     },

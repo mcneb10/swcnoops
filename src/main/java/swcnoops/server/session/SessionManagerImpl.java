@@ -59,6 +59,8 @@ public class SessionManagerImpl implements SessionManager {
             playerSettings.setInventoryStorage(defaultPlayerModel.inventory.storage);
         if (playerSettings.getFaction() == null)
             playerSettings.setFaction(defaultPlayerModel.faction);
+        if (playerSettings.getCurrentQuest() == null)
+            playerSettings.setCurrentQuest(defaultPlayerModel.currentQuest);
 
         player.setPlayerSettings(playerSettings);
         PlayerSession playerSession = new PlayerSessionImpl(player, playerSettings);

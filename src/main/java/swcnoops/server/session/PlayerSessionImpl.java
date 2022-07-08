@@ -437,4 +437,10 @@ public class PlayerSessionImpl implements PlayerSession {
     public PlayerMapItems getPlayerMapItems() {
         return this.playerMapItems;
     }
+
+    @Override
+    public void setCurrentQuest(String fueUid, long time) {
+        this.getPlayerSettings().setCurrentQuest(fueUid);
+        this.savePlayerSession();
+    }
 }
