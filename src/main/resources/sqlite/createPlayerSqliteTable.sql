@@ -17,6 +17,7 @@ CREATE TABLE IF NOT EXISTS PlayerSettings
      troops json,
      donatedTroops json,
      inventoryStorage json,
+     campaigns json,
      currentQuest text);
 
 insert into PlayerSettings (id, upgrades) values ('2c2d4aea-7f38-11e5-a29f-069096004f69', '{}')
