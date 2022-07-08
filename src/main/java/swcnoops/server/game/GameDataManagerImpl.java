@@ -17,6 +17,9 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<BuildingType, Map<FactionType, List<BuildingData>>> buildingMapByTypeAndFaction = new HashMap<>();
     private Map<String, BuildingData> buildings = new HashMap<>();
     private Map<String, TrapData> traps = new HashMap<>();
+    private Map<FactionType, CampaignSet> factionCampaigns = new HashMap<>();
+    private Map<String, CampaignSet> campaignSets = new HashMap<>();
+
 
     @Override
     public void initOnStartup() {
@@ -24,8 +27,30 @@ public class GameDataManagerImpl implements GameDataManager {
             loadTroops();
             this.buildings = loadBuildings();
             this.traps = loadTraps();
+            loadCampaigns();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
+        }
+    }
+
+    private void loadCampaigns() throws Exception {
+        CampaignFile result = ServiceFactory.instance().getJsonParser()
+                .toObjectFromResource(ServiceFactory.instance().getConfig().caeJson, CampaignFile.class);
+
+        for (CampaignData campaignData : result.content.objects.campaignData) {
+            CampaignSet factionCampaignSet = this.factionCampaigns.get(campaignData.getFaction());
+            if (factionCampaignSet == null) {
+                factionCampaignSet = new CampaignSet(campaignData.getFaction());
+                this.factionCampaigns.put(factionCampaignSet.getFactionType(), factionCampaignSet);
+            }
+
+            factionCampaignSet.addCampaignData(campaignData);
+            this.campaignSets.put(campaignData.getUid(), factionCampaignSet);
+        }
+
+        for (CampaignMissionData campaignMissionData : result.content.objects.campaignMissionData) {
+            CampaignSet campaignSet = this.campaignSets.get(campaignMissionData.getCampaignUid());
+            campaignSet.getCampaignMissionSet(campaignMissionData.getCampaignUid()).addMission(campaignMissionData);
         }
     }
 
