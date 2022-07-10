@@ -1,7 +1,6 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.UtilsHelper;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureManager;
@@ -102,7 +101,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
         final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops, " +
-                "inventoryStorage, currentQuest " +
+                "inventoryStorage, currentQuest, campaigns " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -189,6 +188,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         playerSettings.setInventoryStorage(inventoryStorage);
 
                         playerSettings.setCurrentQuest(rs.getString("currentQuest"));
+
+                        String campaignsJson = rs.getString("campaigns");
+                        PlayerCampaignMission playerCampaignMission = null;
+                        if (campaignsJson != null) {
+                            playerCampaignMission = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(campaignsJson, PlayerCampaignMission.class);
+                        }
+                        playerSettings.setPlayerCampaignMissions(playerCampaignMission);
                     }
                 }
             }
@@ -232,10 +239,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         InventoryStorage inventoryStorage = playerSession.getPlayerSettings().getInventoryStorage();
         String inventoryStorageJson = ServiceFactory.instance().getJsonParser().toJson(inventoryStorage);
 
+        PlayerCampaignMission playerCampaignMission = playerSession.getPlayerSettings().getPlayerCampaignMission();
+        String campaignsJson = ServiceFactory.instance().getJsonParser().toJson(playerCampaignMission);
+
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
                 creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
                 playerSession.getPlayerSettings().getFaction(),
                 playerSession.getPlayerSettings().getCurrentQuest(),
+                campaignsJson,
                 connection);
     }
 
@@ -291,11 +302,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
-                                    FactionType faction, String currentQuest, Connection connection)
+                                    FactionType faction, String currentQuest, String campaignsJson, Connection connection)
     {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
-                "inventoryStorage = ?, faction = ?, currentQuest = ? " +
+                "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ? " +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -308,7 +319,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(7, inventoryStorageJson);
                 stmt.setString(8, faction != null ? faction.name() : null);
                 stmt.setString(9, currentQuest);
-                stmt.setString(10, playerId);
+                stmt.setString(10, campaignsJson);
+                stmt.setString(11, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {

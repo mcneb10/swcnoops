@@ -58,7 +58,7 @@ public class DeployableQueue {
 
     public void removeDeployable(String key, Integer value) {
         if (this.deployableUnits.containsKey(key)) {
-            int onBoard = value.intValue();
+            int onBoard = this.deployableUnits.get(key).intValue();
             // number from client is negative
             int numberToRemove = Math.abs(value.intValue());
             if (onBoard < numberToRemove) {

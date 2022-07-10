@@ -7,6 +7,6 @@ public class Campaign {
     public boolean collected;
     public boolean completed;
     public int points;
-    public float timezone;
+    public float timeZone;
     public Map<String,Integer> items;
 }

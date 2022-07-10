@@ -20,6 +20,7 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<FactionType, CampaignSet> factionCampaigns = new HashMap<>();
     private Map<String, CampaignSet> campaignSets = new HashMap<>();
     private Map<String, CampaignMissionData> missionDataMap = new HashMap<>();
+    private Map<String, CampaignMissionSet> campaignMissionSets = new HashMap<>();
 
 
     @Override
@@ -51,7 +52,9 @@ public class GameDataManagerImpl implements GameDataManager {
 
         for (CampaignMissionData campaignMissionData : result.content.objects.campaignMissionData) {
             CampaignSet campaignSet = this.campaignSets.get(campaignMissionData.getCampaignUid());
-            campaignSet.getCampaignMissionSet(campaignMissionData.getCampaignUid()).addMission(campaignMissionData);
+            CampaignMissionSet campaignMissionSet = campaignSet.getCampaignMissionSet(campaignMissionData.getCampaignUid());
+            campaignMissionSet.addMission(campaignMissionData);
+            this.campaignMissionSets.put(campaignMissionSet.getUid(), campaignMissionSet);
             this.missionDataMap.put(campaignMissionData.getUid(), campaignMissionData);
         }
     }
@@ -276,5 +279,20 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public BuildingData getBuildingData(BuildingType type, FactionType faction, int level) {
         return this.buildingMapByTypeAndFaction.get(type).get(faction).get(level - 1);
+    }
+
+    @Override
+    public CampaignMissionData getCampaignMissionData(String missionUid) {
+        return this.missionDataMap.get(missionUid);
+    }
+
+    @Override
+    public CampaignSet getCampaignForFaction(FactionType faction) {
+        return this.factionCampaigns.get(faction);
+    }
+
+    @Override
+    public CampaignMissionSet getCampaignMissionSet(String campaignUid) {
+        return this.campaignMissionSets.get(campaignUid);
     }
 }

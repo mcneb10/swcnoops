@@ -2,11 +2,9 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
+import swcnoops.server.datasource.PlayerCampaignMission;
 import swcnoops.server.datasource.PlayerSettings;
-import swcnoops.server.game.BuildingData;
-import swcnoops.server.game.BuildingType;
-import swcnoops.server.game.ContractType;
-import swcnoops.server.game.GameDataManager;
+import swcnoops.server.game.*;
 import swcnoops.server.model.*;
 import swcnoops.server.session.map.*;
 import swcnoops.server.session.creature.CreatureManager;
@@ -182,12 +180,25 @@ public class PlayerSessionImpl implements PlayerSession {
     /**
      * Before a battle we move all completed troops to their transport, as those are the troops going to war.
      * We do this as during the battle, deployment records are sent which we use to remove from deployables
+     *
+     * @param missionUid
      * @param time
      */
     @Override
-    public void playerBattleStart(long time) {
+    public String playerBattleStart(String missionUid, long time) {
         this.processCompletedContracts(time);
+        String guid = ServiceFactory.createRandomUUID();
+
+        if (missionUid != null) {
+            PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
+            Mission mission = playerCampaignMission.missions.get(missionUid);
+            if (mission != null) {
+                mission.lastBattleId = guid;
+            }
+        }
+
         this.savePlayerSession();
+        return guid;
     }
 
     private void savePlayerSession() {
@@ -320,10 +331,12 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void pvpBattleComplete(Map<String, Integer> attackingUnitsKilled, long time) {
+    public void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
         processCreature(attackingUnitsKilled);
         Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(attackingUnitsKilled);
         this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
+        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
+        playerCampaignMission.battleComplete(battleId, stars);
         this.savePlayerSession();
     }
 
@@ -366,6 +379,8 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void factionSet(FactionType faction, long time) {
         this.processCompletedContracts(time);
+
+        // redo the map to the chosen faction to keep in sync
         FactionType oldFaction = this.playerSettings.getFaction();
         this.playerSettings.setFaction(faction);
         for (MoveableMapItem moveableMapItem : this.playerMapItems.getMapItems()) {
@@ -378,6 +393,12 @@ public class PlayerSessionImpl implements PlayerSession {
             }
         }
 
+        // add the first campaign and mission for this faction
+        CampaignSet campaignSet = ServiceFactory.instance().getGameDataManager().getCampaignForFaction(faction);
+        CampaignMissionSet campaignMissionSet = campaignSet.getCampaignMissionSet(1);
+        PlayerCampaignMission playerCampaignMission = this.playerSettings.getPlayerCampaignMission();
+        CampaignMissionData campaignMissionData = campaignMissionSet.getMission(1);
+        playerCampaignMission.addMission(campaignMissionData);
         this.savePlayerSession();
     }
 
@@ -446,6 +467,36 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void activateMission(String missionUid, long time) {
-        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMissions();
+        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        CampaignMissionData campaignMissionData = gameDataManager.getCampaignMissionData(missionUid);
+        Mission mission = playerCampaignMission.addMission(campaignMissionData);
+
+        if (mission != null)
+            mission.status = MissionStatus.Active;
+
+        this.savePlayerSession();
+    }
+
+    @Override
+    public void claimCampaign(String campaignUid, String missionUid, long time) {
+        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        CampaignMissionData campaignMissionData = gameDataManager.getCampaignMissionData(missionUid);
+
+        Mission mission = playerCampaignMission.missions.get(missionUid);
+        if (mission != null)
+            mission.status = MissionStatus.Claimed;
+
+        // see if the campaign has been setup
+        if (campaignMissionData != null) {
+            Campaign campaign = playerCampaignMission.campaigns.get(campaignMissionData.getCampaignUid());
+            if (campaign != null) {
+                campaign.collected = true;
+                campaign.completed = true;
+            }
+        }
+
+        this.savePlayerSession();
     }
 }

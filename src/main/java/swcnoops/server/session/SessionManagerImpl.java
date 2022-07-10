@@ -2,6 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Player;
+import swcnoops.server.datasource.PlayerCampaignMission;
 import swcnoops.server.datasource.PlayerDataSource;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.PlayerModel;
@@ -61,6 +62,11 @@ public class SessionManagerImpl implements SessionManager {
             playerSettings.setFaction(defaultPlayerModel.faction);
         if (playerSettings.getCurrentQuest() == null)
             playerSettings.setCurrentQuest(defaultPlayerModel.currentQuest);
+        if (playerSettings.getPlayerCampaignMission() == null) {
+            PlayerCampaignMission playerCampaignMission =
+                    new PlayerCampaignMission(defaultPlayerModel.campaigns, defaultPlayerModel.missions);
+            playerSettings.setPlayerCampaignMissions(playerCampaignMission);
+        }
 
         player.setPlayerSettings(playerSettings);
         PlayerSession playerSession = new PlayerSessionImpl(player, playerSettings);

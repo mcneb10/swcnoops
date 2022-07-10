@@ -61,6 +61,7 @@ public class CommandFactory {
         this.add(new GuildWarMatchmakingStart());
 
         this.add(new PlayerMissionsActivateMission());
+        this.add(new PlayerMissionsClaimCampaign());
 
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
@@ -68,10 +69,9 @@ public class CommandFactory {
         this.add(new OkCommandAction("player.planet.stats"));
         this.add(new OkCommandAction("player.store.buy"));
         this.add(new OkCommandAction("player.pve.collect"));
-        this.add(new OkCommandAction("player.missions.claimCampaign"));
-        this.add(new OkCommandAction("player.missions.showIntro"));
-        this.add(new OkCommandAction("player.missions.startSpecop"));
-        this.add(new OkCommandAction("player.missions.claimMission"));
+//        this.add(new OkCommandAction("player.missions.showIntro"));
+//        this.add(new OkCommandAction("player.missions.startSpecop"));
+//        this.add(new OkCommandAction("player.missions.claimMission"));
 
 //        this.add(new OkCommandAction("player.building.upgradeAll"));
 //        this.add(new OkCommandAction("player.building.instantUpgrade"));

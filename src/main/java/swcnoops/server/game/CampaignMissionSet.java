@@ -34,6 +34,17 @@ public class CampaignMissionSet {
     }
 
     public CampaignMissionData getMission(int unlocKOrder) {
+        if (!hasMission(unlocKOrder))
+            return null;
+
         return this.missions.get(unlocKOrder - 1);
+    }
+
+    public CampaignData getCampaignData() {
+        return this.campaignData;
+    }
+
+    public boolean hasMission(int nextMissionIndex) {
+        return (nextMissionIndex <= this.missions.size());
     }
 }

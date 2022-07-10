@@ -1,7 +1,6 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.model.*;
-import swcnoops.server.session.PlayerCampaignMission;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
@@ -115,7 +114,7 @@ public class PlayerSettings {
         return currentQuest;
     }
 
-    public PlayerCampaignMission getPlayerCampaignMissions() {
+    public PlayerCampaignMission getPlayerCampaignMission() {
         return playerCampaignMissions;
     }
 
