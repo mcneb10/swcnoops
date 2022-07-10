@@ -4,7 +4,6 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
-import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
@@ -74,6 +73,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapInventory(playerLoginResponse.playerModel, playerSession);
         mapCreatureTrapData(playerLoginResponse.playerModel, playerSession);
 
+        mapCampaignAndMissions(playerLoginResponse.playerModel, playerSession.getPlayerSettings());
+
         // turn off conflicts
         playerLoginResponse.sharedPrefs.put("tv", null);
         // this disables login to google at start up
@@ -86,6 +87,11 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+    }
+
+    private void mapCampaignAndMissions(PlayerModel playerModel, PlayerSettings playerSettings) {
+        playerModel.campaigns = playerSettings.getPlayerCampaignMission().campaigns;
+        playerModel.missions = playerSettings.getPlayerCampaignMission().missions;
     }
 
     private void mapCreatureTrapData(PlayerModel playerModel, PlayerSession playerSession) {

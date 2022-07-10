@@ -17,6 +17,7 @@ public class PlayerSettings {
     private DonatedTroops donatedTroops;
     private InventoryStorage inventoryStorage;
     private String currentQuest;
+    private PlayerCampaignMission playerCampaignMissions;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -111,5 +112,13 @@ public class PlayerSettings {
 
     public String getCurrentQuest() {
         return currentQuest;
+    }
+
+    public PlayerCampaignMission getPlayerCampaignMission() {
+        return playerCampaignMissions;
+    }
+
+    public void setPlayerCampaignMissions(PlayerCampaignMission playerCampaignMissions) {
+        this.playerCampaignMissions = playerCampaignMissions;
     }
 }

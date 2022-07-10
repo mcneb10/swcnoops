@@ -11,7 +11,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.pvpBattleComplete(arguments.getAttackingUnitsKilled(), time);
+        playerSession.battleComplete(arguments.getBattleId(), arguments.getStars(), arguments.getAttackingUnitsKilled(), time);
 
         PlayerPvpBattleCompleteCommandResult response =
                 ServiceFactory.instance().getJsonParser()

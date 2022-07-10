@@ -17,6 +17,11 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<BuildingType, Map<FactionType, List<BuildingData>>> buildingMapByTypeAndFaction = new HashMap<>();
     private Map<String, BuildingData> buildings = new HashMap<>();
     private Map<String, TrapData> traps = new HashMap<>();
+    private Map<FactionType, CampaignSet> factionCampaigns = new HashMap<>();
+    private Map<String, CampaignSet> campaignSets = new HashMap<>();
+    private Map<String, CampaignMissionData> missionDataMap = new HashMap<>();
+    private Map<String, CampaignMissionSet> campaignMissionSets = new HashMap<>();
+
 
     @Override
     public void initOnStartup() {
@@ -24,8 +29,33 @@ public class GameDataManagerImpl implements GameDataManager {
             loadTroops();
             this.buildings = loadBuildings();
             this.traps = loadTraps();
+            loadCampaigns();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
+        }
+    }
+
+    private void loadCampaigns() throws Exception {
+        CampaignFile result = ServiceFactory.instance().getJsonParser()
+                .toObjectFromResource(ServiceFactory.instance().getConfig().caeJson, CampaignFile.class);
+
+        for (CampaignData campaignData : result.content.objects.campaignData) {
+            CampaignSet factionCampaignSet = this.factionCampaigns.get(campaignData.getFaction());
+            if (factionCampaignSet == null) {
+                factionCampaignSet = new CampaignSet(campaignData.getFaction());
+                this.factionCampaigns.put(factionCampaignSet.getFactionType(), factionCampaignSet);
+            }
+
+            factionCampaignSet.addCampaignData(campaignData);
+            this.campaignSets.put(campaignData.getUid(), factionCampaignSet);
+        }
+
+        for (CampaignMissionData campaignMissionData : result.content.objects.campaignMissionData) {
+            CampaignSet campaignSet = this.campaignSets.get(campaignMissionData.getCampaignUid());
+            CampaignMissionSet campaignMissionSet = campaignSet.getCampaignMissionSet(campaignMissionData.getCampaignUid());
+            campaignMissionSet.addMission(campaignMissionData);
+            this.campaignMissionSets.put(campaignMissionSet.getUid(), campaignMissionSet);
+            this.missionDataMap.put(campaignMissionData.getUid(), campaignMissionData);
         }
     }
 
@@ -249,5 +279,20 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public BuildingData getBuildingData(BuildingType type, FactionType faction, int level) {
         return this.buildingMapByTypeAndFaction.get(type).get(faction).get(level - 1);
+    }
+
+    @Override
+    public CampaignMissionData getCampaignMissionData(String missionUid) {
+        return this.missionDataMap.get(missionUid);
+    }
+
+    @Override
+    public CampaignSet getCampaignForFaction(FactionType faction) {
+        return this.factionCampaigns.get(faction);
+    }
+
+    @Override
+    public CampaignMissionSet getCampaignMissionSet(String campaignUid) {
+        return this.campaignMissionSets.get(campaignUid);
     }
 }

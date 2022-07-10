@@ -30,4 +30,10 @@ public interface GameDataManager {
     BuildingData getBuildingDataByBuildingId(String buildingID, int level);
 
     BuildingData getBuildingData(BuildingType type, FactionType faction, int level);
+
+    CampaignMissionData getCampaignMissionData(String missionUid);
+
+    CampaignSet getCampaignForFaction(FactionType faction);
+
+    CampaignMissionSet getCampaignMissionSet(String campaignUid);
 }

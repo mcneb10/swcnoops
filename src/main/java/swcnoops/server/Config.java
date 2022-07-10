@@ -23,6 +23,8 @@ public class Config {
 
     public String troopJson = "patches\\manifest45\\trp.json";
     public String baseJson = "patches\\manifest45\\base.json";
+    public String caeJson = "patches\\manifest45\\cae.json";
+
 
     public enum JsonParser {Jackson, Gson}
 }

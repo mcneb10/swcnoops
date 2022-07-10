@@ -30,7 +30,7 @@ public interface PlayerSession {
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
-    void playerBattleStart(long time);
+    String playerBattleStart(String missionUid, long time);
 
     TrainingManager getTrainingManager();
     PlayerSettings getPlayerSettings();
@@ -61,7 +61,7 @@ public interface PlayerSession {
 
     int getDonatedTroopsTotalUnits();
 
-    void pvpBattleComplete(Map<String, Integer> attackingUnitsKilled, long time);
+    void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
 
     void buildingMultimove(PositionMap positions, long time);
 
@@ -82,4 +82,8 @@ public interface PlayerSession {
     PlayerMapItems getPlayerMapItems();
 
     void setCurrentQuest(String fueUid, long time);
+
+    void activateMission(String missionUid, long time);
+
+    void claimCampaign(String campaignUid, String missionUid, long time);
 }
