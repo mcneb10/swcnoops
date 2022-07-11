@@ -75,10 +75,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
         mapCampaignAndMissions(playerLoginResponse.playerModel, playerSession.getPlayerSettings());
 
-        // turn off conflicts
-        playerLoginResponse.sharedPrefs.put("tv", null);
-        // this disables login to google at start up
-        playerLoginResponse.sharedPrefs.put("promptedForGoogleSignin", "1");
+        mapSharedPreferencs(playerLoginResponse, playerSession.getPlayerSettings());
 
         playerLoginResponse.liveness = new Liveness();
         playerLoginResponse.liveness.keepAliveTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
@@ -87,6 +84,14 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+    }
+
+    private void mapSharedPreferencs(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
+        // turn off conflicts
+        playerLoginResponse.sharedPrefs.put("tv", null);
+        // this disables login to google at start up
+        playerLoginResponse.sharedPrefs.put("promptedForGoogleSignin", "1");
+        playerLoginResponse.sharedPrefs.putAll(playerSettings.getSharedPreferences());
     }
 
     private void mapCampaignAndMissions(PlayerModel playerModel, PlayerSettings playerSettings) {
