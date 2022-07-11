@@ -86,4 +86,6 @@ public interface PlayerSession {
     void activateMission(String missionUid, long time);
 
     void claimCampaign(String campaignUid, String missionUid, long time);
+
+    void preferencesSet(Map<String,String> sharedPrefs);
 }

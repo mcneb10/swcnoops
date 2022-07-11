@@ -18,6 +18,7 @@ public class PlayerSettings {
     private InventoryStorage inventoryStorage;
     private String currentQuest;
     private PlayerCampaignMission playerCampaignMissions;
+    private PreferencesMap sharedPreferences;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -120,5 +121,13 @@ public class PlayerSettings {
 
     public void setPlayerCampaignMissions(PlayerCampaignMission playerCampaignMissions) {
         this.playerCampaignMissions = playerCampaignMissions;
+    }
+
+    public PreferencesMap getSharedPreferences() {
+        return sharedPreferences;
+    }
+
+    public void setSharedPreferences(PreferencesMap sharedPreferences) {
+        this.sharedPreferences = sharedPreferences;
     }
 }

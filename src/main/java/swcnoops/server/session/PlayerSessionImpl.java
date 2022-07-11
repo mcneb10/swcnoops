@@ -499,4 +499,11 @@ public class PlayerSessionImpl implements PlayerSession {
 
         this.savePlayerSession();
     }
+
+    @Override
+    public void preferencesSet(Map<String,String> sharedPrefs) {
+        Map<String,String> currentPrefs = this.getPlayerSettings().getSharedPreferences();
+        currentPrefs.putAll(sharedPrefs);
+        this.savePlayerSession();
+    }
 }

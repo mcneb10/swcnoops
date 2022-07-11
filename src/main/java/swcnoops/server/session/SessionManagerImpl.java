@@ -6,7 +6,7 @@ import swcnoops.server.datasource.PlayerCampaignMission;
 import swcnoops.server.datasource.PlayerDataSource;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.PlayerModel;
-
+import swcnoops.server.model.PreferencesMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -66,6 +66,9 @@ public class SessionManagerImpl implements SessionManager {
             PlayerCampaignMission playerCampaignMission =
                     new PlayerCampaignMission(defaultPlayerModel.campaigns, defaultPlayerModel.missions);
             playerSettings.setPlayerCampaignMissions(playerCampaignMission);
+        }
+        if (playerSettings.getSharedPreferences() == null) {
+            playerSettings.setSharedPreferences(new PreferencesMap());
         }
 
         player.setPlayerSettings(playerSettings);

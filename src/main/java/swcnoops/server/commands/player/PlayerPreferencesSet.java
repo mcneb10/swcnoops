@@ -1,9 +1,35 @@
 package swcnoops.server.commands.player;
 
-import swcnoops.server.commands.OkListCommandAction;
+import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.AbstractCommandAction;
+import swcnoops.server.json.JsonParser;
+import swcnoops.server.requests.CommandResult;
+import swcnoops.server.requests.ResponseHelper;
+import swcnoops.server.session.PlayerSession;
 
-public class PlayerPreferencesSet extends OkListCommandAction {
-    public PlayerPreferencesSet() {
-        super("player.preferences.set");
+import java.util.Map;
+
+public class PlayerPreferencesSet extends AbstractCommandAction<PlayerPreferencesSet, CommandResult> {
+    private Map<String, String> sharedPrefs;
+    @Override
+    protected CommandResult execute(PlayerPreferencesSet arguments, long time) throws Exception {
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+        playerSession.preferencesSet(arguments.getSharedPrefs());
+        return ResponseHelper.SUCCESS_COMMAND_RESULT;
+    }
+
+    @Override
+    protected PlayerPreferencesSet parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, PlayerPreferencesSet.class);
+    }
+
+    @Override
+    public String getAction() {
+        return "player.preferences.set";
+    }
+
+    public Map<String, String> getSharedPrefs() {
+        return sharedPrefs;
     }
 }
