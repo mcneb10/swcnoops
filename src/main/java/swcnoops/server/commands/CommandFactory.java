@@ -56,39 +56,54 @@ public class CommandFactory {
         this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
         this.add(new PlayerPveComplete());
+        this.add(new PlayerPveCollect());
+        this.add(new PlayerMissionsClaimMission());
+
         this.add(new PlayerFactionSet());
 
         this.add(new GuildWarMatchmakingStart());
+        this.add(new GuildListOpen());
+        this.add(new GuildGetPublic());
+        this.add(new GuildJoin());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());
 
+        this.add(new PlayerFueComplete());
+        this.add(new PlayerFueSetQuest());
+        this.add(new PlayerPvpGetNextTarget());
+        this.add(new PlayerPvpBattleComplete());
+        this.add(new PlayerEpisodesProgressGet());
+
+        // TODO - this command looks like it will bring up some sort of dialog on the client related to CommandCenterVO
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
+
+        // TODO - this command looks like it will give an update on war etc.. related to TransmissionVO
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
-        this.add(new OkListCommandAction("guild.notifications.get"));
-        this.add(new OkCommandAction("player.planet.stats"));
+
+        // TODO - needed to buy droids, resources and protection
         this.add(new OkCommandAction("player.store.buy"));
-        this.add(new OkCommandAction("player.pve.collect"));
+
+//        this.add(new OkListCommandAction("guild.notifications.get"));
+
+        // TODO - planet population stats maybe
+        this.add(new OkCommandAction("player.planet.stats"));
+
 //        this.add(new OkCommandAction("player.missions.showIntro"));
 //        this.add(new OkCommandAction("player.missions.startSpecop"));
-//        this.add(new OkCommandAction("player.missions.claimMission"));
-
 //        this.add(new OkCommandAction("player.building.upgradeAll"));
 //        this.add(new OkCommandAction("player.building.instantUpgrade"));
 //        this.add(new OkCommandAction("player.building.swap"));
 //        this.add(new OkCommandAction("player.building.move"));
 //        this.add(new OkCommandAction("player.building.clear"));
 
-        this.add(new PlayerFueComplete());
-        this.add(new PlayerFueSetQuest());
-
         this.add(new OkCommandAction("player.building.collect.all"));
         this.add(new OkCommandAction("player.planet.relocate"));
         this.add(new OkCommandAction("player.raids.update"));
-        this.add(new PlayerPvpGetNextTarget());
-        this.add(new PlayerPvpBattleComplete());
-        this.add(new PlayerEpisodesProgressGet());
         this.add(new OkCommandAction("player.pvp.releaseTarget"));
+
+        // works but needs full support
+        this.add(new OkCommandAction("player.perks.activate"));
     }
 
     private void add(CommandAction commandAction) {

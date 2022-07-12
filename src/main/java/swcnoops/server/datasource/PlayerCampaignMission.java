@@ -64,6 +64,9 @@ public class PlayerCampaignMission {
         }
     }
 
+    /**
+     * I think these are called after each mission that requires a battle
+     */
     public void battleComplete(String battleId, int stars) {
         Optional<Mission> missionOptional = this.missions.values().stream().filter(a -> battleId.equals(a.lastBattleId)).findFirst();
         // if this is a completed battle
@@ -75,22 +78,53 @@ public class PlayerCampaignMission {
                 mission.status = MissionStatus.Completed;
 
                 // add next mission
-                CampaignMissionData campaignMissionData = ServiceFactory.instance().getGameDataManager().getCampaignMissionData(mission.uid);
-                if (campaignMissionData != null) {
-                    CampaignMissionSet campaignMissionSet = ServiceFactory.instance().getGameDataManager().getCampaignMissionSet(mission.campaignUid);
-
-                    int nextMissionIndex = campaignMissionData.getUnlockOrder() + 1;
-                    if (!campaignMissionSet.hasMission(nextMissionIndex)) {
-                        nextMissionIndex = 1;
-                        CampaignSet campaignSet = ServiceFactory.instance().getGameDataManager()
-                                .getCampaignForFaction(campaignMissionSet.getCampaignData().getFaction());
-                        campaignMissionSet = campaignSet.getCampaignMissionSet(campaignMissionSet.getOrder() + 1);
-                    }
-
-                    CampaignMissionData nextcampaignMissionData = campaignMissionSet.getMission(nextMissionIndex);
-                    this.addMission(nextcampaignMissionData);
-                }
+                addNextMission(mission);
             }
+        }
+    }
+
+    private void addNextMission(Mission mission) {
+        CampaignMissionData campaignMissionData = ServiceFactory.instance().getGameDataManager().getCampaignMissionData(mission.uid);
+        if (campaignMissionData != null) {
+            CampaignMissionSet campaignMissionSet = ServiceFactory.instance().getGameDataManager().getCampaignMissionSet(mission.campaignUid);
+
+            int nextMissionIndex = campaignMissionData.getUnlockOrder() + 1;
+            if (!campaignMissionSet.hasMission(nextMissionIndex)) {
+                nextMissionIndex = 1;
+                CampaignSet campaignSet = ServiceFactory.instance().getGameDataManager()
+                        .getCampaignForFaction(campaignMissionSet.getCampaignData().getFaction());
+                campaignMissionSet = campaignSet.getCampaignMissionSet(campaignMissionSet.getOrder() + 1);
+            }
+
+            CampaignMissionData nextcampaignMissionData = campaignMissionSet.getMission(nextMissionIndex);
+            this.addMission(nextcampaignMissionData);
+        }
+    }
+
+    public void pveCollect(String missionUid) {
+        Optional<Mission> missionOptional = this.missions.values().stream().filter(a -> missionUid.equals(a.uid)).findFirst();
+        // if this is a completed battle
+        if (missionOptional.isPresent()) {
+            Mission mission = missionOptional.get();
+            mission.collected = true;
+            mission.status = MissionStatus.Claimed;
+        }
+    }
+
+    /**
+     * These look like they are called when a mission is a task and not a battle
+     */
+    public void missionsClaimMission(String missionUid) {
+        Optional<Mission> missionOptional = this.missions.values().stream().filter(a -> missionUid.equals(a.uid)).findFirst();
+        if (missionOptional.isPresent()) {
+            Mission mission = missionOptional.get();
+            mission.completed = true;
+            mission.collected = true;
+            mission.status = MissionStatus.Claimed;
+            mission.earnedStars = 3;
+
+            // add next mission
+            addNextMission(mission);
         }
     }
 }

@@ -101,7 +101,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
         final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops, " +
-                "inventoryStorage, currentQuest, campaigns, preferences " +
+                "inventoryStorage, currentQuest, campaigns, preferences, guildId " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -204,6 +204,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     .fromJsonString(preferencesJson, PreferencesMap.class);
                         }
                         playerSettings.setSharedPreferences(preferences);
+
+                        playerSettings.setGuildId(rs.getString("guildId"));
                     }
                 }
             }
@@ -259,6 +261,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 playerSession.getPlayerSettings().getCurrentQuest(),
                 campaignsJson,
                 preferencesJson,
+                playerSession.getPlayerSettings().getGuildId(),
                 connection);
     }
 
@@ -315,11 +318,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
                                     FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
+                                    String guildId,
                                     Connection connection)
     {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
-                "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ? " +
+                "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ? " +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -334,7 +338,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(9, currentQuest);
                 stmt.setString(10, campaignsJson);
                 stmt.setString(11, preferencesJson);
-                stmt.setString(12, playerId);
+                stmt.setString(12, guildId);
+                stmt.setString(13, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {

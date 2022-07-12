@@ -19,6 +19,7 @@ public class PlayerSettings {
     private String currentQuest;
     private PlayerCampaignMission playerCampaignMissions;
     private PreferencesMap sharedPreferences;
+    private String guildId;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -129,5 +130,13 @@ public class PlayerSettings {
 
     public void setSharedPreferences(PreferencesMap sharedPreferences) {
         this.sharedPreferences = sharedPreferences;
+    }
+
+    public void setGuildId(String guildId) {
+        this.guildId = guildId;
+    }
+
+    public String getGuildId() {
+        return guildId;
     }
 }

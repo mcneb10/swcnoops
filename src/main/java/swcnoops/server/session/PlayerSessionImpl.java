@@ -506,4 +506,18 @@ public class PlayerSessionImpl implements PlayerSession {
         currentPrefs.putAll(sharedPrefs);
         this.savePlayerSession();
     }
+
+    @Override
+    public void pveCollect(String missionUid, String battleUid, long time) {
+        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
+        playerCampaignMission.pveCollect(missionUid);
+        this.savePlayerSession();
+    }
+
+    @Override
+    public void missionsClaimMission(String missionUid, long time) {
+        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
+        playerCampaignMission.missionsClaimMission(missionUid);
+        this.savePlayerSession();
+    }
 }

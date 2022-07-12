@@ -59,6 +59,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.faction = playerSession.getPlayer().getPlayerSettings().getFaction();
         playerLoginResponse.playerModel.currentQuest = playerSession.getPlayerSettings().getCurrentQuest();
 
+        mapGuild(playerLoginResponse.playerModel, playerSession);
+
         if (playerLoginResponse.playerModel.currentQuest == null || !playerLoginResponse.playerModel.currentQuest.isEmpty())
             playerLoginResponse.playerModel.isFueInProgress = true;
         else
@@ -84,6 +86,17 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+    }
+
+    private void mapGuild(PlayerModel playerModel, PlayerSession playerSession) {
+        if (playerSession.getGuildSession() != null) {
+            playerModel.guildInfo = new GuildInfo();
+            playerModel.guildInfo.guildId = playerSession.getGuildSession().getGuildId();
+            playerModel.guildInfo.guildName = playerSession.getGuildSession().getGuildName();
+            // TODO - and the rest
+        } else {
+            playerModel.guildInfo = null;
+        }
     }
 
     private void mapSharedPreferencs(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {

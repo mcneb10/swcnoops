@@ -1,5 +1,6 @@
 package swcnoops.server.commands.guild.response;
 
+import swcnoops.server.model.FactionType;
 import swcnoops.server.model.Member;
 import swcnoops.server.model.MembershipRestrictions;
 import swcnoops.server.model.WarHistory;
@@ -7,7 +8,8 @@ import swcnoops.server.requests.AbstractCommandResult;
 
 import java.util.List;
 
-public class GuildGetCommandResult extends AbstractCommandResult {
+public class SquadResult extends AbstractCommandResult {
+    public FactionType faction;
     public int activeMemberCount;
     public long created;
     public String currentWarId;

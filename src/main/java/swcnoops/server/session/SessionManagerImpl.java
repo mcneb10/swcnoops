@@ -79,14 +79,14 @@ public class SessionManagerImpl implements SessionManager {
     //TODO - make it load and minimise blocking
     //should not be taking the name from being passed in, need to fix
     @Override
-    public GuildSession getGuildSession(String guildId, String guildName) {
+    public GuildSession getGuildSession(String playerId, String guildId) {
         GuildSession guildSession = this.guilds.get(guildId);
         if (guildSession == null) {
             try {
                 guildLock.lock();
                 guildSession = this.guilds.get(guildId);
                 if (guildSession == null) {
-                    guildSession = createGuildSession(guildId, guildName);
+                    guildSession = createGuildSession(playerId, guildId);
                     this.guilds.put(guildSession.getGuildId(), guildSession);
                 }
             } finally {
@@ -97,8 +97,12 @@ public class SessionManagerImpl implements SessionManager {
         return guildSession;
     }
 
-    private GuildSession createGuildSession(String guildId, String guildName) {
-        GuildSession guildSession = new GuildSessionImpl(guildId, guildName);
+    private GuildSession createGuildSession(String playerId, String guildId) {
+        GuildSession guildSession = null;
+
+        if (playerId.equals(guildId))
+            guildSession = new GuildSessionImpl(guildId, "SelfDonating");
+
         return guildSession;
     }
 }

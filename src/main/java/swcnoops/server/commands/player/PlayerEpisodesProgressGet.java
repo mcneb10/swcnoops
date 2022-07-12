@@ -5,10 +5,6 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerEpisodesProgressGetCommandResult;
 import swcnoops.server.json.JsonParser;
 
-/**
- * Currently does not work so deprecated for now
- */
-@Deprecated
 public class PlayerEpisodesProgressGet extends AbstractCommandAction<PlayerEpisodesProgressGet, PlayerEpisodesProgressGetCommandResult> {
     @Override
     protected PlayerEpisodesProgressGetCommandResult execute(PlayerEpisodesProgressGet arguments, long time) throws Exception {

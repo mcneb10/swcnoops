@@ -34,6 +34,12 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
+    public void leave(PlayerSession playerSession) {
+        playerSession.setGuildSession(null);
+        this.guildPlayerSessions.remove(playerSession.getPlayerId());
+    }
+
+    @Override
     public void troopsRequest(String playerId, String message, long time) {
         // TODO
     }
