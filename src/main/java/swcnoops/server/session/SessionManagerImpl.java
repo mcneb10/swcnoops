@@ -1,10 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.datasource.Player;
-import swcnoops.server.datasource.PlayerCampaignMission;
-import swcnoops.server.datasource.PlayerDataSource;
-import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.datasource.*;
 import swcnoops.server.model.PlayerModel;
 import swcnoops.server.model.PreferencesMap;
 import java.util.Map;
@@ -79,14 +76,14 @@ public class SessionManagerImpl implements SessionManager {
     //TODO - make it load and minimise blocking
     //should not be taking the name from being passed in, need to fix
     @Override
-    public GuildSession getGuildSession(String guildId, String guildName) {
+    public GuildSession getGuildSession(PlayerSettings playerSettings, String guildId) {
         GuildSession guildSession = this.guilds.get(guildId);
         if (guildSession == null) {
             try {
                 guildLock.lock();
                 guildSession = this.guilds.get(guildId);
                 if (guildSession == null) {
-                    guildSession = createGuildSession(guildId, guildName);
+                    guildSession = createGuildSession(playerSettings, guildId);
                     this.guilds.put(guildSession.getGuildId(), guildSession);
                 }
             } finally {
@@ -97,8 +94,22 @@ public class SessionManagerImpl implements SessionManager {
         return guildSession;
     }
 
-    private GuildSession createGuildSession(String guildId, String guildName) {
-        GuildSession guildSession = new GuildSessionImpl(guildId, guildName);
-        return guildSession;
+    private GuildSession createGuildSession(PlayerSettings playerSettings, String guildId) {
+        GuildSession guildSession = null;
+
+        GuildSettings guildSettings = null;
+        if (playerSettings.getPlayerId().equals(guildId))
+            guildSettings = new SelfDonatingSquad(playerSettings);
+        else
+            guildSettings = loadGuildSettings(guildId);
+
+        return new GuildSessionImpl(guildSettings);
+    }
+
+    private GuildSettings loadGuildSettings(String guildId) {
+        // TODO
+        //ServiceFactory.instance().getPlayerDatasource().loadGuildSettings(guildId);
+
+        return null;
     }
 }

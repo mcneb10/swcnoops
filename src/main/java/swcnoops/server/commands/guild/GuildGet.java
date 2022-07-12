@@ -3,66 +3,33 @@ package swcnoops.server.commands.guild;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
-import swcnoops.server.commands.guild.response.GuildGetCommandResult;
-import swcnoops.server.model.Member;
+import swcnoops.server.commands.guild.response.SquadResult;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
-import java.util.ArrayList;
-
-public class GuildGet extends AbstractCommandAction<GuildGet, GuildGetCommandResult> {
+/**
+ * This is called on login to get the players squad details.
+ */
+public class GuildGet extends AbstractCommandAction<GuildGet, SquadResult> {
 
     @Override
-    protected GuildGetCommandResult execute(GuildGet arguments, long time) throws Exception {
-        GuildGetCommandResult guildGetResult =
-                parseJsonFile(ServiceFactory.instance().getConfig().guildGetTemplate, GuildGetCommandResult.class);
-
+    protected SquadResult execute(GuildGet arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        // TODO - get guild for the player
-        String guildId = guildGetResult.id;
-        String guildName = guildGetResult.name;
+        String guildId = playerSession.getPlayerSettings().getGuildId();
+        if (guildId == null || guildId.isEmpty())
+            return null;
 
-        GuildSession guildSession = ServiceFactory.instance().getSessionManager().getGuildSession(guildId, guildName);
+        // TODO - maybe move this and make it part of login or loading the players session
+        GuildSession guildSession = ServiceFactory.instance().getSessionManager()
+                .getGuildSession(playerSession.getPlayerSettings(), guildId);
         if (guildSession == null)
             throw new RuntimeException("Unknown guild " + guildId);
 
         guildSession.join(playerSession);
-        mapToResponse(guildGetResult, playerSession);
-
-        guildGetResult.warSignUpTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
-
-        for (int i = 0; i < 15; i++) {
-            Member member = guildGetResult.members.get(1);
-            Member newMember = new Member();
-            newMember.name = Integer.valueOf(i).toString();
-            newMember.playerId = ServiceFactory.createRandomUUID();
-            newMember.hqLevel = 3;
-            newMember.isOfficer = false;
-            newMember.isOwner = false;
-            newMember.planet = member.planet;
-            newMember.hasPlanetaryCommand = true;
-            newMember.joinDate = member.joinDate;
-            newMember.warParty = 1;
-            guildGetResult.members.add(newMember);
-        }
-
-        // TODO
-//        swcSession.warId = swcSession.getPlayerSettings().currentRivalWarSquadId;
-//        guildGetResponse.id = swcSession.getGuildId();
-//        guildGetResponse.currentWarId = swcSession.warId;
-        //guildGetResponse.members.get(1).playerId = swcSession.getPlayerId();
-        //guildGetResponse.members.get(1).warParty = 0;
-
-        return guildGetResult;
-    }
-
-    private void mapToResponse(GuildGetCommandResult guildGetResult, PlayerSession playerSession) {
-        guildGetResult.warSignUpTime = null;
-        guildGetResult.warRating = null;
-        guildGetResult.warHistory = new ArrayList<>();
-        guildGetResult.lastPerkNotif = 0;
+        SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
+        return squadResult;
     }
 
     @Override

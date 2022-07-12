@@ -1,29 +1,33 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.datasource.GuildSettings;
 
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class GuildSessionImpl implements GuildSession {
-    final private String guildId;
-    final private String guildName;
+    final private GuildSettings guildSettings;
     final private Map<String,PlayerSession> guildPlayerSessions = new ConcurrentHashMap<>();
 
-    public GuildSessionImpl(String guildId, String guildName) {
-        this.guildId = guildId;
-        this.guildName = guildName;
+    public GuildSessionImpl(GuildSettings guildSettings) {
+        this.guildSettings = guildSettings;
+    }
+
+    @Override
+    public GuildSettings getGuildSettings() {
+        return this.guildSettings;
     }
 
     @Override
     public String getGuildId() {
-        return guildId;
+        return this.guildSettings.getGuildId();
     }
 
     @Override
     public String getGuildName() {
-        return guildName;
+        return this.guildSettings.getGuildName();
     }
 
     // TODO - needs proper handler to notify other players, or if the player is already in the squad
@@ -31,6 +35,14 @@ public class GuildSessionImpl implements GuildSession {
     public void join(PlayerSession playerSession) {
         playerSession.setGuildSession(this);
         this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
+        playerSession.savePlayerSession();
+    }
+
+    @Override
+    public void leave(PlayerSession playerSession) {
+        playerSession.setGuildSession(null);
+        this.guildPlayerSessions.remove(playerSession.getPlayerId());
+        playerSession.savePlayerSession();
     }
 
     @Override

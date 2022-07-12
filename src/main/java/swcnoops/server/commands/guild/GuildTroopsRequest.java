@@ -2,6 +2,7 @@ package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.response.GuildTroopsRequestCommandResult;
+import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
@@ -25,10 +26,20 @@ public class GuildTroopsRequest extends GuildCommandAction<GuildTroopsRequest, G
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
         troopRequestData.amount = troopRequestData.totalCapacity - playerSession.getDonatedTroopsTotalUnits();
 
+        String playerId = playerSession.getPlayerSettings().getPlayerId();
+        String playerName = playerSession.getPlayerSettings().getName();
+
+        if (playerSession.getGuildSession().getGuildName().equals(SelfDonatingSquad.NAME)) {
+            Member botMember = playerSession.getGuildSession().getGuildSettings().getMembers()
+                    .stream().filter(m -> m.name.equals(SelfDonatingSquad.DonateBotName)).findFirst().get();
+            playerId = botMember.playerId;
+            playerName = botMember.name;
+        }
+
         GuildTroopsRequestCommandResult guildTroopsRequestCommandResult =
                 new GuildTroopsRequestCommandResult(playerSession.getGuildSession(), arguments.getMessage(),
-                        "2c2d4aea-7f38-11e5-a29f-069096004f6a",
-                        "SelfDonateBot");
+                        playerId,
+                        playerName);
 
         guildTroopsRequestCommandResult.setSquadMessage(arguments.getMessage());
         guildTroopsRequestCommandResult.setNotificationData(SquadMsgType.troopRequest, troopRequestData);

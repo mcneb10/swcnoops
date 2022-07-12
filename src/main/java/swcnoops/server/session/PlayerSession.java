@@ -88,4 +88,10 @@ public interface PlayerSession {
     void claimCampaign(String campaignUid, String missionUid, long time);
 
     void preferencesSet(Map<String,String> sharedPrefs);
+
+    void pveCollect(String missionUid, String battleUid, long time);
+
+    void missionsClaimMission(String missionUid, long time);
+
+    void savePlayerSession();
 }

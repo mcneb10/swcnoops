@@ -15,6 +15,8 @@ public class GuildWarMatchmakingStart extends GuildCommandAction<GuildWarMatchma
 
     @Override
     protected GuildResult execute(GuildWarMatchmakingStart arguments, long time) throws Exception {
+        // TODO - not complete currently does not do much except send notification
+        // need to change login details to keep in this state
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = playerSession.getGuildSession();
