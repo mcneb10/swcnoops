@@ -139,4 +139,8 @@ public class PlayerSettings {
     public String getGuildId() {
         return guildId;
     }
+
+    public String getPlayerId() {
+        return playerId;
+    }
 }

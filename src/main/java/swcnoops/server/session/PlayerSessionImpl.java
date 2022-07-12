@@ -201,7 +201,10 @@ public class PlayerSessionImpl implements PlayerSession {
         return guid;
     }
 
-    private void savePlayerSession() {
+    // TODO - rewrite this as this should be private, need a nicer way to save squad and player sessions together
+    // thinking maybe save squad first then player, on load check that the player is still in squad
+    @Override
+    public void savePlayerSession() {
         ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this);
     }
 
@@ -309,6 +312,11 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void setGuildSession(GuildSession guildSession) {
         this.guildSession = guildSession;
+
+        if (this.guildSession != null)
+            this.getPlayerSettings().setGuildId(this.guildSession.getGuildId());
+        else
+            this.getPlayerSettings().setGuildId(null);
     }
 
     @Override

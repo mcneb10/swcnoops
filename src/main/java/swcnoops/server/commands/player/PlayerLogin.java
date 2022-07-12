@@ -89,10 +89,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     private void mapGuild(PlayerModel playerModel, PlayerSession playerSession) {
-        if (playerSession.getGuildSession() != null) {
+        if (playerSession.getPlayerSettings().getGuildId() != null) {
             playerModel.guildInfo = new GuildInfo();
-            playerModel.guildInfo.guildId = playerSession.getGuildSession().getGuildId();
-            playerModel.guildInfo.guildName = playerSession.getGuildSession().getGuildName();
+            playerModel.guildInfo.guildId = playerSession.getPlayerSettings().getGuildId();
             // TODO - and the rest
         } else {
             playerModel.guildInfo = null;

@@ -65,6 +65,7 @@ public class CommandFactory {
         this.add(new GuildListOpen());
         this.add(new GuildGetPublic());
         this.add(new GuildJoin());
+        this.add(new GuildLeave());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());
@@ -84,7 +85,8 @@ public class CommandFactory {
         // TODO - needed to buy droids, resources and protection
         this.add(new OkCommandAction("player.store.buy"));
 
-//        this.add(new OkListCommandAction("guild.notifications.get"));
+        // TODO - squad messages and notifications from a point in time
+        this.add(new OkListCommandAction("guild.notifications.get"));
 
         // TODO - planet population stats maybe
         this.add(new OkCommandAction("player.planet.stats"));

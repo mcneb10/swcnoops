@@ -1,9 +1,8 @@
 package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
-import swcnoops.server.commands.Command;
 import swcnoops.server.commands.guild.response.GuildTroopsDonateCommandResult;
+import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
@@ -23,12 +22,12 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        // TODO - when we do it for real, we use the real recipientId
-        String recipientPlayerId = arguments.getPlayerId();
+        String recipientPlayerId = arguments.getRecipientId();
+        if (playerSession.getGuildSession().getGuildName().equals(SelfDonatingSquad.NAME))
+            recipientPlayerId = arguments.getPlayerId();
 
         playerSession.getGuildSession().processDonations(arguments.getTroopsDonated(), arguments.getRequestId(),
                 playerSession, recipientPlayerId, time);
-
 
         // TODO - do we need to deal with any race conditions when multiple players
         // are trying to donate to the same player, a problem to be solved when doing squad support

@@ -92,4 +92,6 @@ public interface PlayerSession {
     void pveCollect(String missionUid, String battleUid, long time);
 
     void missionsClaimMission(String missionUid, long time);
+
+    void savePlayerSession();
 }

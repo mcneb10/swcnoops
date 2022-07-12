@@ -1,5 +1,6 @@
 package swcnoops.server.session;
 
+import swcnoops.server.datasource.GuildSettings;
 import java.util.List;
 import java.util.Map;
 
@@ -17,4 +18,6 @@ public interface GuildSession {
     void warMatchmakingStart(List<String> participantIds, boolean isSameFactionWarAllowed);
 
     void leave(PlayerSession playerSession);
+
+    GuildSettings getGuildSettings();
 }
