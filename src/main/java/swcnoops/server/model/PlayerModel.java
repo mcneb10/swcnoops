@@ -33,7 +33,7 @@ public class PlayerModel {
     public boolean isRateIncentivized;
     public Object lastPaymentTime;
     public Long lastWarParticipationTime;
-    public Object identitySwitchTimes;
+    public Map<String,Long> identitySwitchTimes;
     public Object openOffer;
     public List<String> unlockedPlanets;
     public Integer relocationStarCount;
