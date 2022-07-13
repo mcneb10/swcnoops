@@ -75,6 +75,8 @@ public class CommandFactory {
         this.add(new PlayerPvpGetNextTarget());
         this.add(new PlayerPvpBattleComplete());
         this.add(new PlayerEpisodesProgressGet());
+        this.add(new PlayerIdentityGet());
+        this.add(new PlayerIdentitySwitch());
 
         // TODO - this command looks like it will bring up some sort of dialog on the client related to CommandCenterVO
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));

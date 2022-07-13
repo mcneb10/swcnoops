@@ -86,6 +86,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+
+        playerLoginResponse.playerModel.identitySwitchTimes = new HashMap<>();
+        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
+        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
     }
 
     private void mapGuild(PlayerModel playerModel, PlayerSession playerSession) {
