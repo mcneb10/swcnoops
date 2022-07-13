@@ -393,6 +393,17 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
+    public void buildingUpgradeAll(String buildingUid, long time) {
+        this.processCompletedContracts(time);
+        List<MoveableMapItem> allMapItems = this.playerMapItems.getMapItemsByBuildingUid(buildingUid);
+        for (MoveableMapItem moveableMapItem : allMapItems) {
+            this.droidManager.upgradeBuildUnit(moveableMapItem, time);
+            this.droidManager.buyout(moveableMapItem.getBuildingKey(), time);
+        }
+        this.savePlayerSession();
+    }
+
+    @Override
     public void buildingInstantUpgrade(String buildingId, long time) {
         this.processCompletedContracts(time);
         MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);

@@ -54,6 +54,7 @@ public class CommandFactory {
         this.add(new PlayerBuildingUpgrade());
         this.add(new PlayerBuildingClear());
         this.add(new PlayerBuildingInstantUpgrade());
+        this.add(new PlayerBuildingUpgradeAll());
 
         this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
