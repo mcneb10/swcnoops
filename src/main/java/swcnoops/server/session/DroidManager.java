@@ -44,7 +44,7 @@ public class DroidManager implements Constructor {
                 buildUnitsIterator.remove();
                 MoveableMapItem moveableMapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
                 if (buildUnit.getContractType() == ContractType.Upgrade) {
-                    moveableMapItem.upgradeComplete();
+                    moveableMapItem.upgradeComplete(buildUnit.getUnitId());
                 } else if (buildUnit.getContractType() == ContractType.Build) {
                     this.trainingManagerFactory.constructCompleteForBuilding(this.playerSession.getTrainingManager(), moveableMapItem);
                 }
@@ -94,5 +94,13 @@ public class DroidManager implements Constructor {
         BuildUnit buildUnit = getBuildUnitById(buildingId);
         if (buildUnit != null)
             this.unitsInQueue.remove(buildUnit);
+    }
+
+    public void buildingSwap(MoveableMapItem moveableMapItem, String buildingUid, long time) {
+        BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
+                buildingUid, ContractType.Upgrade);
+        buildUnit.setStartTime(time);
+        buildUnit.setEndTime(time + moveableMapItem.getBuildingData().getCrossTime());
+        this.addBuildUnit(buildUnit);
     }
 }

@@ -201,6 +201,7 @@ public class GameDataManagerImpl implements GameDataManager {
             int lvl = Integer.valueOf(building.get("lvl"));
             int storage = Integer.valueOf(building.get("storage") == null ? "0" : building.get("storage")).intValue();
             int time = Integer.valueOf(building.get("time")).intValue();
+            int crossTime = Integer.valueOf(building.get("crossTime") == null ? "0" : building.get("crossTime")).intValue();
             String linkedUnit = building.get("linkedUnit");
             StoreTab storeTab = building.get("storeTab") != null ? StoreTab.valueOf(building.get("storeTab")) : null;
             BuildingSubType buildingSubType = building.get("subType") != null ?
@@ -212,6 +213,7 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setType(BuildingType.valueOf(type));
             buildingData.setStorage(storage);
             buildingData.setTime(time);
+            buildingData.setCrossTime(crossTime);
             buildingData.setBuildingID(buildingID);
             buildingData.setTrapId(trapId);
             buildingData.setLinkedUnit(linkedUnit);

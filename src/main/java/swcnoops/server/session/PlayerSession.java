@@ -104,4 +104,6 @@ public interface PlayerSession {
     void storeBuy(String uid, int count, long time);
 
     void buildingUpgradeAll(String buildingUid, long time);
+
+    void buildingSwap(String buildingId, String buildingUid, long time);
 }

@@ -393,6 +393,16 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
+    public void buildingSwap(String buildingId, String buildingUid, long time) {
+        this.processCompletedContracts(time);
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+        if (moveableMapItem != null) {
+            this.droidManager.buildingSwap(moveableMapItem, buildingUid, time);
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
     public void buildingUpgradeAll(String buildingUid, long time) {
         this.processCompletedContracts(time);
         List<MoveableMapItem> allMapItems = this.playerMapItems.getMapItemsByBuildingUid(buildingUid);

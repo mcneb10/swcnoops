@@ -14,6 +14,7 @@ public class BuildingData implements GameData {
     private String linkedUnit;
     private StoreTab storeTab;
     private BuildingSubType subType;
+    private long crossTime;
 
     public BuildingData(String uid) {
         this.uid = uid;
@@ -101,5 +102,13 @@ public class BuildingData implements GameData {
 
     public void setSubType(BuildingSubType subType) {
         this.subType = subType;
+    }
+
+    public long getCrossTime() {
+        return crossTime;
+    }
+
+    public void setCrossTime(long crossTime) {
+        this.crossTime = crossTime;
     }
 }
