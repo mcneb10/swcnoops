@@ -69,6 +69,8 @@ public interface PlayerSession {
 
     void buildingCollect(String buildingId, long time);
 
+    void buildingClear(String instanceId, long time);
+
     void buildingConstruct(String buildingUid, Position position, long time);
 
     void buildingUpgrade(String buildingId, long time);
@@ -94,4 +96,6 @@ public interface PlayerSession {
     void missionsClaimMission(String missionUid, long time);
 
     void savePlayerSession();
+
+    MoveableMapItem removeMapItemByKey(String instanceId);
 }

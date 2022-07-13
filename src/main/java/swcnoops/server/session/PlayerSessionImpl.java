@@ -364,6 +364,14 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
+    public void buildingClear(String instanceId, long time) {
+        MoveableMapItem moveableMapItem = this.removeMapItemByKey(instanceId);
+        if (moveableMapItem != null) {
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
     public void buildingConstruct(String buildingUid, Position position, long time) {
         this.processCompletedContracts(time);
         MoveableMapItem moveableMapItem = this.playerMapItems.createMovableMapItem(buildingUid, position);
@@ -413,6 +421,16 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public MoveableMapItem getMapItemByKey(String key) {
         return this.playerMapItems.getMapItemByKey(key);
+    }
+
+    @Override
+    public MoveableMapItem removeMapItemByKey(String instanceId) {
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(instanceId);
+        if (moveableMapItem != null) {
+            this.playerMapItems.remove(moveableMapItem);
+        }
+
+        return moveableMapItem;
     }
 
     private void buildingMultimove(String key, Position newPosition) {

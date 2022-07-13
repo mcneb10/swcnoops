@@ -42,6 +42,11 @@ public class PlayerMapItems {
         }
     }
 
+    public void remove(MoveableMapItem mapItem) {
+        this.mapItemsByKey.remove(mapItem.getBuildingKey());
+        this.map.buildings.remove(mapItem.getBuilding());
+    }
+
     public List<MoveableMapItem> getMapItems() {
         return new ArrayList<>(mapItemsByKey.values());
     }
