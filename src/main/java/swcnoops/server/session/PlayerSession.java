@@ -98,4 +98,6 @@ public interface PlayerSession {
     void savePlayerSession();
 
     MoveableMapItem removeMapItemByKey(String instanceId);
+
+    void buildingInstantUpgrade(String instanceId, long time);
 }
