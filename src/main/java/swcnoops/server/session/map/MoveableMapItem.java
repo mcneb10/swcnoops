@@ -45,9 +45,9 @@ abstract public class MoveableMapItem implements MapItem {
         // TODO - work out how much to collect and move to inventory
     }
 
-    public void upgradeComplete() {
+    public void upgradeComplete(String unitId) {
         BuildingData upgradeBuildingData = ServiceFactory.instance().getGameDataManager()
-                .getBuildingDataByBuildingId(this.buildingData.getBuildingID(), this.buildingData.getLevel() + 1);
+                .getBuildingDataByUid(unitId);
         changeBuildingData(upgradeBuildingData);
     }
 
