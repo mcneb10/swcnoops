@@ -98,4 +98,6 @@ public interface PlayerSession {
     void savePlayerSession();
 
     MoveableMapItem removeMapItemByKey(String instanceId);
+
+    void storeBuy(String uid, int count, long time);
 }
