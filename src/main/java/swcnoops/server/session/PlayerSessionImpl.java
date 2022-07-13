@@ -393,6 +393,17 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
+    public void buildingInstantUpgrade(String buildingId, long time) {
+        this.processCompletedContracts(time);
+        MoveableMapItem moveableMapItem = this.getMapItemByKey(buildingId);
+        if (moveableMapItem != null) {
+            this.droidManager.upgradeBuildUnit(moveableMapItem, time);
+            this.droidManager.buyout(buildingId, time);
+            this.savePlayerSession();
+        }
+    }
+
+    @Override
     public void factionSet(FactionType faction, long time) {
         this.processCompletedContracts(time);
 

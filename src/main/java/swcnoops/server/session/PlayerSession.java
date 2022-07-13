@@ -99,5 +99,7 @@ public interface PlayerSession {
 
     MoveableMapItem removeMapItemByKey(String instanceId);
 
+    void buildingInstantUpgrade(String instanceId, long time);
+    
     void storeBuy(String uid, int count, long time);
 }
