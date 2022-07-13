@@ -87,9 +87,11 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
+        // TODO - this is to enable switching accounts in settings
+        // needs more work to get this to work
         playerLoginResponse.playerModel.identitySwitchTimes = new HashMap<>();
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
-        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
+        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
     }
 
     private void mapGuild(PlayerModel playerModel, PlayerSession playerSession) {

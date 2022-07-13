@@ -557,4 +557,12 @@ public class PlayerSessionImpl implements PlayerSession {
         playerCampaignMission.missionsClaimMission(missionUid);
         this.savePlayerSession();
     }
+
+    @Override
+    public void storeBuy(String uid, int count, long time) {
+        if (uid.equals("droids")) {
+            this.getPlayerSettings().getInventoryStorage().droids.amount += count;
+            this.savePlayerSession();
+        }
+    }
 }

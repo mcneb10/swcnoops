@@ -80,14 +80,13 @@ public class CommandFactory {
         this.add(new PlayerIdentityGet());
         this.add(new PlayerIdentitySwitch());
 
+        this.add(new PlayerStoreBuy());
+
         // TODO - this command looks like it will bring up some sort of dialog on the client related to CommandCenterVO
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
 
         // TODO - this command looks like it will give an update on war etc.. related to TransmissionVO
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
-
-        // TODO - needed to buy droids, resources and protection
-        this.add(new OkCommandAction("player.store.buy"));
 
         // TODO - squad messages and notifications from a point in time
         this.add(new OkListCommandAction("guild.notifications.get"));
