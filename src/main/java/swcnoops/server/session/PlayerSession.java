@@ -102,4 +102,6 @@ public interface PlayerSession {
     void buildingInstantUpgrade(String instanceId, long time);
     
     void storeBuy(String uid, int count, long time);
+
+    void buildingUpgradeAll(String buildingUid, long time);
 }

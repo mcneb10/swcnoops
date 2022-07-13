@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class is a wrapper around a map to give easy access and manipulation to handle upgrades
@@ -49,6 +50,10 @@ public class PlayerMapItems {
 
     public List<MoveableMapItem> getMapItems() {
         return new ArrayList<>(mapItemsByKey.values());
+    }
+
+    public List<MoveableMapItem> getMapItemsByBuildingUid(String buildingUid) {
+        return this.getMapItems().stream().filter(a -> buildingUid.equals(a.getBuildingUid())).collect(Collectors.toList());
     }
 
     public MoveableMapItem getMapItemByType(BuildingType buildingType) {
