@@ -2,10 +2,11 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.model.Building;
+import swcnoops.server.model.Position;
 import swcnoops.server.session.Constructor;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
-import swcnoops.server.session.map.MoveableMapItem;
 
 import java.util.*;
 
@@ -20,12 +21,12 @@ public class Builder implements MapItem, Constructor {
     private long startTime;
     final private DeployableQueue deployableQueue;
     final private ContractType contractType;
-    final private MoveableMapItem moveableMapItem;
+    final private MapItem mapItem;
 
-    public Builder(PlayerSession playerSession, MoveableMapItem moveableMapItem,
+    public Builder(PlayerSession playerSession, MapItem mapItem,
                    DeployableQueue deployableQueue, ContractType contractType)
     {
-        this.moveableMapItem = moveableMapItem;
+        this.mapItem = mapItem;
         this.deployableQueue = deployableQueue;
         this.contractType = contractType;
         this.buildQueue = new BuildQueue(playerSession);
@@ -33,17 +34,42 @@ public class Builder implements MapItem, Constructor {
 
     @Override
     public BuildingData getBuildingData() {
-        return this.moveableMapItem.getBuildingData();
+        return this.mapItem.getBuildingData();
     }
 
     @Override
     public String getBuildingKey() {
-        return this.moveableMapItem.getBuildingKey();
+        return this.mapItem.getBuildingKey();
     }
 
     @Override
     public String getBuildingUid() {
-        return this.moveableMapItem.getBuildingUid();
+        return this.mapItem.getBuildingUid();
+    }
+
+    @Override
+    public Building getBuilding() {
+        return this.mapItem.getBuilding();
+    }
+
+    @Override
+    public void changeBuildingData(BuildingData buildingData) {
+        this.mapItem.changeBuildingData(buildingData);
+    }
+
+    @Override
+    public void moveTo(Position newPosition) {
+        this.mapItem.moveTo(newPosition);
+    }
+
+    @Override
+    public void upgradeComplete(String unitId) {
+        this.mapItem.upgradeComplete(unitId);
+    }
+
+    @Override
+    public void collect(long time) {
+        this.mapItem.collect(time);
     }
 
     protected void train(List<BuildUnit> buildUnits, long startTime) {

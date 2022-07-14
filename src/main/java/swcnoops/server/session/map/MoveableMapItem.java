@@ -14,6 +14,7 @@ abstract public class MoveableMapItem implements MapItem {
         this.buildingData = buildingData;
     }
 
+    @Override
     public Building getBuilding() {
         return building;
     }
@@ -51,6 +52,7 @@ abstract public class MoveableMapItem implements MapItem {
         changeBuildingData(upgradeBuildingData);
     }
 
+    @Override
     public void changeBuildingData(BuildingData buildingData) {
         this.getBuilding().uid = buildingData.getUid();
         this.buildingData = buildingData;

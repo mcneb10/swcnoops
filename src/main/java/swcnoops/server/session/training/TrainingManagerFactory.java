@@ -3,7 +3,7 @@ package swcnoops.server.session.training;
 import swcnoops.server.game.*;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.PlayerMapItems;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 
 import java.util.Set;
 
@@ -32,37 +32,37 @@ public class TrainingManagerFactory {
         if (map != null) {
             Set<String>  newBuildContractKeys = playerSession.getPlayerSettings().getBuildContracts().getNewBuildContractKeys();
 
-            for (MoveableMapItem moveableMapItem : map.getMapItems()) {
-                if (!newBuildContractKeys.contains(moveableMapItem.getBuildingKey()))
-                    constructCompleteForBuilding(trainingManager, moveableMapItem);
+            for (MapItem mapItem : map.getMapItems()) {
+                if (!newBuildContractKeys.contains(mapItem.getBuildingKey()))
+                    constructCompleteForBuilding(trainingManager, mapItem);
             }
         }
     }
 
-    public void constructCompleteForBuilding(TrainingManager trainingManager, MoveableMapItem moveableMapItem) {
-        switch (moveableMapItem.getBuildingData().getType()) {
+    public void constructCompleteForBuilding(TrainingManager trainingManager, MapItem mapItem) {
+        switch (mapItem.getBuildingData().getType()) {
             case factory:
             case barracks:
             case cantina:
-                trainingManager.initialiseBuilder(moveableMapItem, trainingManager.getDeployableTroops(),
+                trainingManager.initialiseBuilder(mapItem, trainingManager.getDeployableTroops(),
                         ContractType.Troop);
                 break;
             case hero_mobilizer:
-                trainingManager.getDeployableHero().addStorage(moveableMapItem);
-                trainingManager.initialiseBuilder(moveableMapItem, trainingManager.getDeployableHero(),
+                trainingManager.getDeployableHero().addStorage(mapItem);
+                trainingManager.initialiseBuilder(mapItem, trainingManager.getDeployableHero(),
                         ContractType.Hero);
                 break;
             case champion_platform:
-                trainingManager.getDeployableChampion().addStorage(moveableMapItem);
-                trainingManager.initialiseBuilder(moveableMapItem, trainingManager.getDeployableChampion(),
+                trainingManager.getDeployableChampion().addStorage(mapItem);
+                trainingManager.initialiseBuilder(mapItem, trainingManager.getDeployableChampion(),
                         ContractType.Champion);
                 break;
             case starport:
-                trainingManager.getDeployableTroops().addStorage(moveableMapItem);
+                trainingManager.getDeployableTroops().addStorage(mapItem);
                 break;
             case fleet_command:
-                trainingManager.getDeployableSpecialAttack().addStorage(moveableMapItem);
-                trainingManager.initialiseBuilder(moveableMapItem, trainingManager.getDeployableSpecialAttack(),
+                trainingManager.getDeployableSpecialAttack().addStorage(mapItem);
+                trainingManager.initialiseBuilder(mapItem, trainingManager.getDeployableSpecialAttack(),
                         ContractType.SpecialAttack);
                 break;
         }

@@ -7,7 +7,7 @@ import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 
 import java.util.*;
 
@@ -169,10 +169,10 @@ public class TrainingManagerImpl implements TrainingManager {
     }
 
     @Override
-    public void initialiseBuilder(MoveableMapItem moveableMapItem, DeployableQueue deployableQueue,
+    public void initialiseBuilder(MapItem mapItem, DeployableQueue deployableQueue,
                                   ContractType contractType) {
-        if (!this.builders.containsKey(moveableMapItem.getBuildingKey())) {
-            Builder builder = new Builder(this.playerSession, moveableMapItem, deployableQueue, contractType);
+        if (!this.builders.containsKey(mapItem.getBuildingKey())) {
+            Builder builder = new Builder(this.playerSession, mapItem, deployableQueue, contractType);
             this.builders.put(builder.getBuildingKey(), builder);
         }
     }

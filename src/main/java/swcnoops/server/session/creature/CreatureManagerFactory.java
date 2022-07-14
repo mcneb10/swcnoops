@@ -11,7 +11,7 @@ import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.PlayerMapItems;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 
 public class CreatureManagerFactory {
     public CreatureManager createForPlayer(PlayerSession playerSession) {
@@ -42,13 +42,13 @@ public class CreatureManagerFactory {
         CreatureDataMap creatureDataMap = null;
         if (map != null) {
             GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-            for (MoveableMapItem moveableMapItem : map.getMapItems()) {
-                BuildingData buildingData = moveableMapItem.getBuildingData();
+            for (MapItem mapItem : map.getMapItems()) {
+                BuildingData buildingData = mapItem.getBuildingData();
                 if (buildingData != null) {
                     if (buildingData.getTrapId() != null) {
                         TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
                         if (trapData.getEventType() == TrapEventType.CreatureSpecialAttack) {
-                            creatureDataMap = new CreatureDataMap(moveableMapItem.getBuilding(), buildingData, trapData);
+                            creatureDataMap = new CreatureDataMap(mapItem.getBuilding(), buildingData, trapData);
                             break;
                         }
                     }

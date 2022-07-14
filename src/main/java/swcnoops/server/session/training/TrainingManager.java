@@ -3,7 +3,7 @@ package swcnoops.server.session.training;
 import swcnoops.server.datasource.Deployables;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.model.DeploymentRecord;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 
 import java.util.List;
 import java.util.Map;
@@ -19,7 +19,7 @@ public interface TrainingManager {
     DeployableQueue getDeployableHero();
     DeployableQueue getDeployableChampion();
 
-    void initialiseBuilder(MoveableMapItem moveableMapItem, DeployableQueue deployableQueue,
+    void initialiseBuilder(MapItem mapItem, DeployableQueue deployableQueue,
                            ContractType contractType);
     void initialiseBuildUnit(BuildUnit buildUnit);
 

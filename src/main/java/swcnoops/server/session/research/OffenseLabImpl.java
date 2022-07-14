@@ -1,9 +1,11 @@
 package swcnoops.server.session.research;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.model.Building;
+import swcnoops.server.model.Position;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.inventory.TroopRecord;
 import swcnoops.server.session.inventory.TroopUpgrade;
@@ -31,6 +33,12 @@ public class OffenseLabImpl implements OffenseLab {
     @Override
     public String getBuildingUid() {
         return building.uid;
+    }
+
+
+    @Override
+    public Building getBuilding() {
+        return this.building;
     }
 
     @Override
@@ -105,5 +113,25 @@ public class OffenseLabImpl implements OffenseLab {
     public boolean isResearchingTroop() {
         Troops troops = this.playerSession.getTroopInventory().getTroops();
         return troops.getUpgrades().size() > 0;
+    }
+
+    @Override
+    public void changeBuildingData(BuildingData buildingData) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void upgradeComplete(String unitId) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void moveTo(Position newPosition) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void collect(long time) {
+        throw new NotImplementedException();
     }
 }

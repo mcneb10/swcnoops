@@ -3,7 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
@@ -42,11 +42,11 @@ public class DroidManager implements Constructor {
             // units are sorted by endTime
             if (buildUnit.getEndTime() <= time) {
                 buildUnitsIterator.remove();
-                MoveableMapItem moveableMapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
+                MapItem mapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
                 if (buildUnit.getContractType() == ContractType.Upgrade) {
-                    moveableMapItem.upgradeComplete(buildUnit.getUnitId());
+                    mapItem.upgradeComplete(buildUnit.getUnitId());
                 } else if (buildUnit.getContractType() == ContractType.Build) {
-                    this.trainingManagerFactory.constructCompleteForBuilding(this.playerSession.getTrainingManager(), moveableMapItem);
+                    this.trainingManagerFactory.constructCompleteForBuilding(this.playerSession.getTrainingManager(), mapItem);
                 }
             }
         }
@@ -71,7 +71,7 @@ public class DroidManager implements Constructor {
         return buildUnit;
     }
 
-    public void constructBuildUnit(MoveableMapItem moveableMapItem, long time) {
+    public void constructBuildUnit(MapItem moveableMapItem, long time) {
         BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
                 moveableMapItem.getBuildingData().getUid(), ContractType.Build);
         buildUnit.setStartTime(time);
@@ -79,7 +79,7 @@ public class DroidManager implements Constructor {
         this.addBuildUnit(buildUnit);
     }
 
-    public void upgradeBuildUnit(MoveableMapItem moveableMapItem, long time) {
+    public void upgradeBuildUnit(MapItem moveableMapItem, long time) {
         BuildingData nextLevelBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByBuildingId(moveableMapItem.getBuildingData().getBuildingID(),
                         moveableMapItem.getBuildingData().getLevel() + 1);
@@ -96,7 +96,7 @@ public class DroidManager implements Constructor {
             this.unitsInQueue.remove(buildUnit);
     }
 
-    public void buildingSwap(MoveableMapItem moveableMapItem, String buildingUid, long time) {
+    public void buildingSwap(MapItem moveableMapItem, String buildingUid, long time) {
         BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
                 buildingUid, ContractType.Upgrade);
         buildUnit.setStartTime(time);
