@@ -8,10 +8,14 @@ import swcnoops.server.session.PlayerSession;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * This is a map of the troops keyed by the unitId instead of the uid.
+ * This is to allow us to change the TroopData to effect already built troops for them to be upgraded too.
+ */
 public class TroopInventoryImpl implements TroopInventory {
     final private Map<String,TroopData> playersTroopsByUnitId = new HashMap<>();
     final private PlayerSession playerSession;
-    private Troops troops;
+    private Troops playerTroopSettings;
 
     public TroopInventoryImpl(PlayerSession playerSession) {
         this.playerSession = playerSession;
@@ -64,24 +68,31 @@ public class TroopInventoryImpl implements TroopInventory {
     }
 
     @Override
-    public void addTroopByUnitIdAndLevel(String unitId, int level) {
-        TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUnitId(unitId, level);
-        upgradeTroop(troopData);
-    }
-
-    @Override
     public Troops getTroops() {
-        return troops;
+        return playerTroopSettings;
     }
 
     @Override
-    public void setTroops(Troops troops) {
-        this.troops = troops;
+    public void initialise(Troops troops) {
+        this.playerTroopSettings = troops;
+        this.initialise();
+    }
+
+    private void initialise() {
+        this.playerTroopSettings.getTroopRecords().forEach((a, b) -> this.initialiseTroopRecord(a, b));
+    }
+
+    private void initialiseTroopRecord(String unitId, TroopRecord troopRecord) {
+        TroopData troopData = ServiceFactory.instance().getGameDataManager()
+                .getTroopDataByUnitId(unitId, troopRecord.getLevel());
+        this.playersTroopsByUnitId.put(troopData.getUnitId(), troopData);
     }
 
     @Override
-    public void upgradeTroop(TroopData troopData) {
-        if (troopData != null)
+    public void upgradeTroop(TroopData troopData, long endTime) {
+        if (troopData != null) {
+            this.playerTroopSettings.addTroop(troopData, endTime);
             this.playersTroopsByUnitId.put(troopData.getUnitId(), troopData);
+        }
     }
 }

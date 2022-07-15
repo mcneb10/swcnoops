@@ -8,11 +8,9 @@ public interface TroopInventory {
 
     void addTroopUid(String uId);
 
-    void addTroopByUnitIdAndLevel(String unitId, int level);
-
     Troops getTroops();
 
-    void setTroops(Troops troops);
+    void initialise(Troops troops);
 
-    void upgradeTroop(TroopData troopData);
+    void upgradeTroop(TroopData troopData, long endTime);
 }

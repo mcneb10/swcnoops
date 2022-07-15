@@ -7,7 +7,6 @@ import swcnoops.server.game.TroopData;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.Position;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.inventory.TroopRecord;
 import swcnoops.server.session.inventory.TroopUpgrade;
 import swcnoops.server.session.inventory.Troops;
 
@@ -87,21 +86,13 @@ public class OffenseLabImpl implements OffenseLab {
 
         Troops troops = this.playerSession.getTroopInventory().getTroops();
         Iterator<TroopUpgrade> troopUpgradeIterator = troops.getUpgrades().iterator();
-        while(troopUpgradeIterator.hasNext()) {
+        while (troopUpgradeIterator.hasNext()) {
             TroopUpgrade troopUpgrade = troopUpgradeIterator.next();
             if (troopUpgrade.getEndTime() <= time) {
                 troopUpgradeIterator.remove();
                 TroopData troopData = ServiceFactory.instance().getGameDataManager()
                         .getTroopDataByUid(troopUpgrade.getTroopUnitId());
-                TroopRecord troopRecord = new TroopRecord(troopData.getLevel(), time);
-                if (troopData.isSpecialAttack())
-                    troops.getSpecialAttacks().put(troopData.getUnitId(), troopRecord);
-                else
-                    troops.getTroops().put(troopData.getUnitId(), troopRecord);
-
-                // upgrade the players inventory, and our record of when the upgrade becomes effective
-                troops.getTroopRecords().put(troopData.getUnitId(), troopRecord);
-                this.playerSession.getTroopInventory().upgradeTroop(troopData);
+                this.playerSession.getTroopInventory().upgradeTroop(troopData, time);
                 hasUpgrade = true;
             }
         }
@@ -121,7 +112,7 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         throw new NotImplementedException();
     }
 
@@ -136,7 +127,7 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         throw new NotImplementedException();
     }
 }

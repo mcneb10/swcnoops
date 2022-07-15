@@ -12,11 +12,11 @@ public interface MapItem {
     Building getBuilding();
     void changeBuildingData(BuildingData buildingData);
 
-    void upgradeComplete(PlayerSession playerSession, String unitId, String tag);
+    void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime);
 
     void moveTo(Position newPosition);
 
     void collect(long time);
 
-    void buildComplete(PlayerSession playerSession, String unitId, String tag);
+    void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime);
 }

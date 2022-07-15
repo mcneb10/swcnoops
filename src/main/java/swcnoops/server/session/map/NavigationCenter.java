@@ -10,14 +10,14 @@ public class NavigationCenter extends MapItemImpl {
     }
 
     @Override
-    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
-        super.upgradeComplete(playerSession, unitId, tag);
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
+        super.upgradeComplete(playerSession, unitId, tag, endTime);
         if (!playerSession.getPlayerSettings().getUnlockedPlanets().contains(tag))
             playerSession.getPlayerSettings().getUnlockedPlanets().add(tag);
     }
 
     @Override
-    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
-        upgradeComplete(playerSession, unitId, tag);
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
+        upgradeComplete(playerSession, unitId, tag, endTime);
     }
 }

@@ -44,9 +44,9 @@ public class DroidManager implements Constructor {
                 buildUnitsIterator.remove();
                 MapItem mapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
                 if (buildUnit.getContractType() == ContractType.Upgrade) {
-                    mapItem.upgradeComplete(this.playerSession, buildUnit.getUnitId(), buildUnit.getTag());
+                    mapItem.upgradeComplete(this.playerSession, buildUnit.getUnitId(), buildUnit.getTag(), buildUnit.getEndTime());
                 } else if (buildUnit.getContractType() == ContractType.Build) {
-                    mapItem.buildComplete(this.playerSession, buildUnit.getUnitId(), buildUnit.getTag());
+                    mapItem.buildComplete(this.playerSession, buildUnit.getUnitId(), buildUnit.getTag(), buildUnit.getEndTime());
                     this.trainingManagerFactory.constructCompleteForBuilding(this.playerSession.getTrainingManager(), mapItem);
                 }
             }

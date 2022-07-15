@@ -6,6 +6,7 @@ import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Position;
+import swcnoops.server.session.map.ChampionPlatform;
 import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.map.MapItemImpl;
 import swcnoops.server.session.map.NavigationCenter;
@@ -92,6 +93,9 @@ public class PlayerMapItems {
         switch (buildingData.getType()) {
             case navigation_center:
                 mapItem = new NavigationCenter(building, buildingData);
+                break;
+            case champion_platform:
+                mapItem = new ChampionPlatform(building, buildingData);
                 break;
             default:
                 mapItem = new MapItemImpl(building, buildingData);
