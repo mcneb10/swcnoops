@@ -15,7 +15,7 @@ public class PlayerBuildingInstantUpgrade extends AbstractCommandAction<PlayerBu
     protected CommandResult execute(PlayerBuildingInstantUpgrade arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
-        playerSession.buildingInstantUpgrade(arguments.getInstanceId(), time);
+        playerSession.buildingInstantUpgrade(arguments.getInstanceId(), arguments.getTag(), time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

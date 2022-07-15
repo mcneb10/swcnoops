@@ -6,8 +6,9 @@ import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Position;
-import swcnoops.server.session.map.MoveableBuilding;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
+import swcnoops.server.session.map.MapItemImpl;
+import swcnoops.server.session.map.NavigationCenter;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,8 +23,8 @@ public class PlayerMapItems {
     /**
      * Lookup by key
      */
-    final private Map<String, MoveableMapItem> mapItemsByKey = new HashMap<>();
-    final private Map<BuildingType, MoveableMapItem> mapItemsByType = new HashMap<>();
+    final private Map<String, MapItem> mapItemsByKey = new HashMap<>();
+    final private Map<BuildingType, MapItem> mapItemsByType = new HashMap<>();
     /**
      * This is the real map that is from the DB
      */
@@ -32,7 +33,7 @@ public class PlayerMapItems {
         this.map = playerMap;
     }
 
-    public void add(String buildingKey, MoveableMapItem mapItem) {
+    public void add(String buildingKey, MapItem mapItem) {
         this.mapItemsByKey.put(buildingKey, mapItem);
 
         switch (mapItem.getBuildingData().getType()) {
@@ -43,28 +44,28 @@ public class PlayerMapItems {
         }
     }
 
-    public void remove(MoveableMapItem mapItem) {
+    public void remove(MapItem mapItem) {
         this.mapItemsByKey.remove(mapItem.getBuildingKey());
         this.map.buildings.remove(mapItem.getBuilding());
     }
 
-    public List<MoveableMapItem> getMapItems() {
+    public List<MapItem> getMapItems() {
         return new ArrayList<>(mapItemsByKey.values());
     }
 
-    public List<MoveableMapItem> getMapItemsByBuildingUid(String buildingUid) {
+    public List<MapItem> getMapItemsByBuildingUid(String buildingUid) {
         return this.getMapItems().stream().filter(a -> buildingUid.equals(a.getBuildingUid())).collect(Collectors.toList());
     }
 
-    public MoveableMapItem getMapItemByType(BuildingType buildingType) {
+    public MapItem getMapItemByType(BuildingType buildingType) {
         return this.mapItemsByType.get(buildingType);
     }
 
-    public MoveableMapItem getMapItemByKey(String key) {
+    public MapItem getMapItemByKey(String key) {
         return this.mapItemsByKey.get(key);
     }
 
-    public MoveableMapItem createMovableMapItem(String buildingUid, Position position) {
+    public MapItem createMapItem(String buildingUid, String tag, Position position) {
         BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildingUid);
         Building building = new Building();
         building.uid = buildingUid;
@@ -73,16 +74,29 @@ public class PlayerMapItems {
         building.x = position.x;
         building.z = position.z;
         building.currentStorage = buildingData.getStorage();
-        MoveableMapItem moveableMapItem = new MoveableBuilding(building, buildingData);
-        return moveableMapItem;
+        MapItem mapItem = createMapItem(building, buildingData);
+        return mapItem;
     }
 
-    public void constructNewBuilding(MoveableMapItem moveableMapItem) {
-        add(moveableMapItem.getBuildingKey(), moveableMapItem);
-        this.map.buildings.add(moveableMapItem.getBuilding());
+    public void constructNewBuilding(MapItem mapItem) {
+        add(mapItem.getBuildingKey(), mapItem);
+        this.map.buildings.add(mapItem.getBuilding());
     }
 
     public PlayerMap getBaseMap() {
         return this.map;
+    }
+
+    static public MapItem createMapItem(Building building, BuildingData buildingData) {
+        MapItem mapItem;
+        switch (buildingData.getType()) {
+            case navigation_center:
+                mapItem = new NavigationCenter(building, buildingData);
+                break;
+            default:
+                mapItem = new MapItemImpl(building, buildingData);
+                break;
+        }
+        return mapItem;
     }
 }

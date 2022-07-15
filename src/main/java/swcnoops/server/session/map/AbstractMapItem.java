@@ -4,16 +4,18 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.Position;
+import swcnoops.server.session.PlayerSession;
 
-abstract public class MoveableMapItem implements MapItem {
+abstract public class AbstractMapItem implements MapItem {
     private Building building;
     private BuildingData buildingData;
 
-    public MoveableMapItem(Building building, BuildingData buildingData) {
+    public AbstractMapItem(Building building, BuildingData buildingData) {
         this.building = building;
         this.buildingData = buildingData;
     }
 
+    @Override
     public Building getBuilding() {
         return building;
     }
@@ -45,12 +47,18 @@ abstract public class MoveableMapItem implements MapItem {
         // TODO - work out how much to collect and move to inventory
     }
 
-    public void upgradeComplete(String unitId) {
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
         BuildingData upgradeBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByUid(unitId);
         changeBuildingData(upgradeBuildingData);
     }
 
+    @Override
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+
+    }
+
+    @Override
     public void changeBuildingData(BuildingData buildingData) {
         this.getBuilding().uid = buildingData.getUid();
         this.buildingData = buildingData;

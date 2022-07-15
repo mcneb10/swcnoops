@@ -4,7 +4,7 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.BuildingType;
 import swcnoops.server.session.PlayerSessionImpl;
 import swcnoops.server.session.PlayerMapItems;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 
 public class TroopInventoryFactory {
     public TroopInventory createForPlayer(PlayerSessionImpl playerSession) {
@@ -16,9 +16,9 @@ public class TroopInventoryFactory {
 
     private void initialiseFromPlayersMap(TroopInventory troopInventory, PlayerMapItems map) {
         if (map != null) {
-            for (MoveableMapItem moveableMapItem : map.getMapItems()) {
-                if (moveableMapItem.getBuildingData().getType() == BuildingType.champion_platform) {
-                    troopInventory.addTroopUid(moveableMapItem.getBuildingData().getLinkedUnit());
+            for (MapItem mapItem : map.getMapItems()) {
+                if (mapItem.getBuildingData().getType() == BuildingType.champion_platform) {
+                    troopInventory.addTroopUid(mapItem.getBuildingData().getLinkedUnit());
                 }
             }
         }

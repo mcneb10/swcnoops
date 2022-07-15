@@ -3,7 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.training.TrainingManager;
@@ -14,8 +14,8 @@ import java.util.Map;
 public interface PlayerSession {
     Player getPlayer();
 
-    MoveableMapItem getHeadQuarter();
-    MoveableMapItem getSquadBuilding();
+    MapItem getHeadQuarter();
+    MapItem getSquadBuilding();
 
     String getPlayerId();
 
@@ -65,15 +65,15 @@ public interface PlayerSession {
 
     void buildingMultimove(PositionMap positions, long time);
 
-    MoveableMapItem getMapItemByKey(String key);
+    MapItem getMapItemByKey(String key);
 
     void buildingCollect(String buildingId, long time);
 
     void buildingClear(String instanceId, long time);
 
-    void buildingConstruct(String buildingUid, Position position, long time);
+    void buildingConstruct(String buildingUid, String tag, Position position, long time);
 
-    void buildingUpgrade(String buildingId, long time);
+    void buildingUpgrade(String buildingId, String tag, long time);
 
     void factionSet(FactionType faction, long time);
 
@@ -97,9 +97,9 @@ public interface PlayerSession {
 
     void savePlayerSession();
 
-    MoveableMapItem removeMapItemByKey(String instanceId);
+    MapItem removeMapItemByKey(String instanceId);
 
-    void buildingInstantUpgrade(String instanceId, long time);
+    void buildingInstantUpgrade(String instanceId, String tag, long time);
     
     void storeBuy(String uid, int count, long time);
 

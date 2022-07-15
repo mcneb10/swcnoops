@@ -1,7 +1,11 @@
 package swcnoops.server.session.creature;
 
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import swcnoops.server.datasource.Creature;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.model.Building;
+import swcnoops.server.model.Position;
+import swcnoops.server.session.PlayerSession;
 
 public class CreatureManagerImpl implements CreatureManager {
     final private CreatureDataMap creatureDataMap;
@@ -88,5 +92,35 @@ public class CreatureManagerImpl implements CreatureManager {
     @Override
     public Creature getCreature() {
         return this.creature;
+    }
+
+    @Override
+    public void collect(long time) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void moveTo(Position newPosition) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public Building getBuilding() {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void changeBuildingData(BuildingData buildingData) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+        throw new NotImplementedException();
     }
 }

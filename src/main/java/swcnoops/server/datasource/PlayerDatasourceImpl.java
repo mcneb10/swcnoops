@@ -101,7 +101,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
         final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops, " +
-                "inventoryStorage, currentQuest, campaigns, preferences, guildId " +
+                "inventoryStorage, currentQuest, campaigns, preferences, guildId, unlockedPlanets " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -206,6 +206,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         playerSettings.setSharedPreferences(preferences);
 
                         playerSettings.setGuildId(rs.getString("guildId"));
+
+                        String unlockedPlanetsJson = rs.getString("unlockedPlanets");
+                        UnlockedPlanets unlockedPlanets = null;
+                        if (unlockedPlanetsJson != null) {
+                            unlockedPlanets = ServiceFactory.instance().getJsonParser()
+                                    .fromJsonString(unlockedPlanetsJson, UnlockedPlanets.class);
+                        }
+                        playerSettings.setUnlockedPlanets(unlockedPlanets);
                     }
                 }
             }
@@ -255,6 +263,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PreferencesMap preferences = playerSession.getPlayerSettings().getSharedPreferences();
         String preferencesJson = ServiceFactory.instance().getJsonParser().toJson(preferences);
 
+        UnlockedPlanets unlockedPlanets = playerSession.getPlayerSettings().getUnlockedPlanets();
+        String unlockedPlanetsJson = ServiceFactory.instance().getJsonParser().toJson(unlockedPlanets);
+
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
                 creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
                 playerSession.getPlayerSettings().getFaction(),
@@ -262,6 +273,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 campaignsJson,
                 preferencesJson,
                 playerSession.getPlayerSettings().getGuildId(),
+                unlockedPlanetsJson,
                 connection);
     }
 
@@ -318,12 +330,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
                                     FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
-                                    String guildId,
+                                    String guildId, String unlockedPlanets,
                                     Connection connection)
     {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
-                "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ? " +
+                "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ?," +
+                "unlockedPlanets = ? " +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -339,7 +352,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(10, campaignsJson);
                 stmt.setString(11, preferencesJson);
                 stmt.setString(12, guildId);
-                stmt.setString(13, playerId);
+                stmt.setString(13, unlockedPlanets);
+                stmt.setString(14, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {

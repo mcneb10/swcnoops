@@ -2,16 +2,18 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.model.Building;
+import swcnoops.server.model.Position;
 import swcnoops.server.session.Constructor;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
-import swcnoops.server.session.map.MoveableMapItem;
 
 import java.util.*;
 
 /**
- * This class represents one of the buildings on the map used to build something.
- * Each building has its own queue of work that it can perform that has its own capacity which is not modelled.
+ * This class represents a mapItem that can build something.
+ * It is a wrapper to the mapItem on the map to help manage the units that this building constructs.
+ * Each mapItem has its own queue of work that it can perform, its capacity is not modelled.
  * When a unit/troop has finished building it gets moved to a shared deployable queue that will only take the troop
  * if there is space available for that troops size.
  */
@@ -20,12 +22,12 @@ public class Builder implements MapItem, Constructor {
     private long startTime;
     final private DeployableQueue deployableQueue;
     final private ContractType contractType;
-    final private MoveableMapItem moveableMapItem;
+    final private MapItem mapItem;
 
-    public Builder(PlayerSession playerSession, MoveableMapItem moveableMapItem,
+    public Builder(PlayerSession playerSession, MapItem mapItem,
                    DeployableQueue deployableQueue, ContractType contractType)
     {
-        this.moveableMapItem = moveableMapItem;
+        this.mapItem = mapItem;
         this.deployableQueue = deployableQueue;
         this.contractType = contractType;
         this.buildQueue = new BuildQueue(playerSession);
@@ -33,17 +35,47 @@ public class Builder implements MapItem, Constructor {
 
     @Override
     public BuildingData getBuildingData() {
-        return this.moveableMapItem.getBuildingData();
+        return this.mapItem.getBuildingData();
     }
 
     @Override
     public String getBuildingKey() {
-        return this.moveableMapItem.getBuildingKey();
+        return this.mapItem.getBuildingKey();
     }
 
     @Override
     public String getBuildingUid() {
-        return this.moveableMapItem.getBuildingUid();
+        return this.mapItem.getBuildingUid();
+    }
+
+    @Override
+    public Building getBuilding() {
+        return this.mapItem.getBuilding();
+    }
+
+    @Override
+    public void changeBuildingData(BuildingData buildingData) {
+        this.mapItem.changeBuildingData(buildingData);
+    }
+
+    @Override
+    public void moveTo(Position newPosition) {
+        this.mapItem.moveTo(newPosition);
+    }
+
+    @Override
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+        this.mapItem.upgradeComplete(playerSession, unitId, tag);
+    }
+
+    @Override
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+        this.mapItem.buildComplete(playerSession, unitId, tag);
+    }
+
+    @Override
+    public void collect(long time) {
+        this.mapItem.collect(time);
     }
 
     protected void train(List<BuildUnit> buildUnits, long startTime) {

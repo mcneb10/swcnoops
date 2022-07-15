@@ -19,15 +19,17 @@ public class BuildUnit {
     private ContractType contractType;
     @JsonIgnore
     private BuildSlot buildSlot;
+    private String tag;
 
     public BuildUnit() {
     }
 
-    public BuildUnit(Constructor constructor, String buildingId, String unitId, ContractType contractType) {
+    public BuildUnit(Constructor constructor, String buildingId, String unitId, ContractType contractType, String tag) {
         this.buildingId = buildingId;
         this.unitId = unitId;
         this.constructor = constructor;
         this.contractType = contractType;
+        this.tag = tag;
     }
 
     public ContractType getContractType() {
@@ -76,5 +78,9 @@ public class BuildUnit {
 
     public int compareEndTime(BuildUnit b) {
         return Long.compare(this.getEndTime(), b.getEndTime());
+    }
+
+    public String getTag() {
+        return tag;
     }
 }

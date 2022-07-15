@@ -3,7 +3,7 @@ package swcnoops.server.session.research;
 import swcnoops.server.game.*;
 import swcnoops.server.session.PlayerMapItems;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 
 public class OffenseLabFactory {
     public OffenseLab createForPlayer(PlayerSession playerSession) {
@@ -14,10 +14,10 @@ public class OffenseLabFactory {
     private OffenseLab createForMap(PlayerSession playerSession) {
         OffenseLab offenseLab = null;
         PlayerMapItems playerMapItems = playerSession.getPlayerMapItems();
-        for (MoveableMapItem moveableMapItem : playerMapItems.getMapItems()) {
-            BuildingData buildingData = moveableMapItem.getBuildingData();
+        for (MapItem mapItem : playerMapItems.getMapItems()) {
+            BuildingData buildingData = mapItem.getBuildingData();
             if (buildingData != null && buildingData.getType() == BuildingType.troop_research) {
-                offenseLab = new OffenseLabImpl(playerSession, moveableMapItem.getBuilding(), buildingData);
+                offenseLab = new OffenseLabImpl(playerSession, mapItem.getBuilding(), buildingData);
             }
         }
         return offenseLab;

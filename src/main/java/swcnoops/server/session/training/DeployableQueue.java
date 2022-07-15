@@ -1,7 +1,7 @@
 package swcnoops.server.session.training;
 
 import swcnoops.server.game.TroopData;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -14,20 +14,20 @@ public class DeployableQueue {
     private int totalDeployable;
     final private Map<String, Integer> deployableUnits = new HashMap<>();
     final private List<BuildUnit> unitsInQueue = new ArrayList<>();
-    final private List<MoveableMapItem> moveableMapItems = new ArrayList<>();
+    final private List<MapItem> mapItems = new ArrayList<>();
 
     public DeployableQueue() {
     }
 
-    public void addStorage(MoveableMapItem moveableMapItem)
+    public void addStorage(MapItem mapItem)
     {
-        if (!moveableMapItems.contains(moveableMapItem))
-            moveableMapItems.add(moveableMapItem);
+        if (!mapItems.contains(mapItem))
+            mapItems.add(mapItem);
     }
 
     private int getAvailableCapacity() {
         AtomicInteger totalStorage = new AtomicInteger();
-        moveableMapItems.stream().forEach(a -> totalStorage.addAndGet(a.getBuildingData().getStorage()));
+        mapItems.stream().forEach(a -> totalStorage.addAndGet(a.getBuildingData().getStorage()));
         return totalStorage.get() - this.totalDeployable;
     }
 

@@ -3,7 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
-import swcnoops.server.session.map.MoveableMapItem;
+import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
@@ -42,11 +42,12 @@ public class DroidManager implements Constructor {
             // units are sorted by endTime
             if (buildUnit.getEndTime() <= time) {
                 buildUnitsIterator.remove();
-                MoveableMapItem moveableMapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
+                MapItem mapItem = this.playerSession.getMapItemByKey(buildUnit.getBuildingId());
                 if (buildUnit.getContractType() == ContractType.Upgrade) {
-                    moveableMapItem.upgradeComplete(buildUnit.getUnitId());
+                    mapItem.upgradeComplete(this.playerSession, buildUnit.getUnitId(), buildUnit.getTag());
                 } else if (buildUnit.getContractType() == ContractType.Build) {
-                    this.trainingManagerFactory.constructCompleteForBuilding(this.playerSession.getTrainingManager(), moveableMapItem);
+                    mapItem.buildComplete(this.playerSession, buildUnit.getUnitId(), buildUnit.getTag());
+                    this.trainingManagerFactory.constructCompleteForBuilding(this.playerSession.getTrainingManager(), mapItem);
                 }
             }
         }
@@ -71,20 +72,20 @@ public class DroidManager implements Constructor {
         return buildUnit;
     }
 
-    public void constructBuildUnit(MoveableMapItem moveableMapItem, long time) {
-        BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
-                moveableMapItem.getBuildingData().getUid(), ContractType.Build);
+    public void constructBuildUnit(MapItem mapItem, String tag, long time) {
+        BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
+                mapItem.getBuildingData().getUid(), ContractType.Build, tag);
         buildUnit.setStartTime(time);
-        buildUnit.setEndTime(time + moveableMapItem.getBuildingData().getTime());
+        buildUnit.setEndTime(time + mapItem.getBuildingData().getTime());
         this.addBuildUnit(buildUnit);
     }
 
-    public void upgradeBuildUnit(MoveableMapItem moveableMapItem, long time) {
+    public void upgradeBuildUnit(MapItem mapItem, String tag, long time) {
         BuildingData nextLevelBuildingData = ServiceFactory.instance().getGameDataManager()
-                .getBuildingDataByBuildingId(moveableMapItem.getBuildingData().getBuildingID(),
-                        moveableMapItem.getBuildingData().getLevel() + 1);
-        BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
-                nextLevelBuildingData.getUid(), ContractType.Upgrade);
+                .getBuildingDataByBuildingId(mapItem.getBuildingData().getBuildingID(),
+                        mapItem.getBuildingData().getLevel() + 1);
+        BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
+                nextLevelBuildingData.getUid(), ContractType.Upgrade, tag);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + nextLevelBuildingData.getTime());
         this.addBuildUnit(buildUnit);
@@ -96,11 +97,11 @@ public class DroidManager implements Constructor {
             this.unitsInQueue.remove(buildUnit);
     }
 
-    public void buildingSwap(MoveableMapItem moveableMapItem, String buildingUid, long time) {
-        BuildUnit buildUnit = new BuildUnit(this, moveableMapItem.getBuildingKey(),
-                buildingUid, ContractType.Upgrade);
+    public void buildingSwap(MapItem mapItem, String buildingUid, long time) {
+        BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
+                buildingUid, ContractType.Upgrade, null);
         buildUnit.setStartTime(time);
-        buildUnit.setEndTime(time + moveableMapItem.getBuildingData().getCrossTime());
+        buildUnit.setEndTime(time + mapItem.getBuildingData().getCrossTime());
         this.addBuildUnit(buildUnit);
     }
 }

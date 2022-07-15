@@ -20,6 +20,7 @@ public class PlayerSettings {
     private PlayerCampaignMission playerCampaignMissions;
     private PreferencesMap sharedPreferences;
     private String guildId;
+    private UnlockedPlanets unlockedPlanets;
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -142,5 +143,13 @@ public class PlayerSettings {
 
     public String getPlayerId() {
         return playerId;
+    }
+
+    public UnlockedPlanets getUnlockedPlanets() {
+        return unlockedPlanets;
+    }
+
+    public void setUnlockedPlanets(UnlockedPlanets unlockedPlanets) {
+        this.unlockedPlanets = unlockedPlanets;
     }
 }
