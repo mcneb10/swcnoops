@@ -115,12 +115,12 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         throw new NotImplementedException();
     }
 
     @Override
-    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         throw new NotImplementedException();
     }
 }

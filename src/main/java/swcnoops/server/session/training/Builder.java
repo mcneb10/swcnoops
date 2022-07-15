@@ -64,13 +64,13 @@ public class Builder implements MapItem, Constructor {
     }
 
     @Override
-    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
-        this.mapItem.upgradeComplete(playerSession, unitId, tag);
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
+        this.mapItem.upgradeComplete(playerSession, unitId, tag, endTime);
     }
 
     @Override
-    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
-        this.mapItem.buildComplete(playerSession, unitId, tag);
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
+        this.mapItem.buildComplete(playerSession, unitId, tag, endTime);
     }
 
     @Override

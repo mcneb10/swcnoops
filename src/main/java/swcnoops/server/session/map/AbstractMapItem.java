@@ -47,14 +47,14 @@ abstract public class AbstractMapItem implements MapItem {
         // TODO - work out how much to collect and move to inventory
     }
 
-    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         BuildingData upgradeBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByUid(unitId);
         changeBuildingData(upgradeBuildingData);
     }
 
     @Override
-    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
 
     }
 

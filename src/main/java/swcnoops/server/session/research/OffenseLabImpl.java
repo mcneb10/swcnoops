@@ -87,7 +87,7 @@ public class OffenseLabImpl implements OffenseLab {
 
         Troops troops = this.playerSession.getTroopInventory().getTroops();
         Iterator<TroopUpgrade> troopUpgradeIterator = troops.getUpgrades().iterator();
-        while(troopUpgradeIterator.hasNext()) {
+        while (troopUpgradeIterator.hasNext()) {
             TroopUpgrade troopUpgrade = troopUpgradeIterator.next();
             if (troopUpgrade.getEndTime() <= time) {
                 troopUpgradeIterator.remove();
@@ -121,7 +121,7 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         throw new NotImplementedException();
     }
 
@@ -136,7 +136,7 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         throw new NotImplementedException();
     }
 }
