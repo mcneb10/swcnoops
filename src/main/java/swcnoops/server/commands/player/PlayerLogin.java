@@ -78,6 +78,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapCampaignAndMissions(playerLoginResponse.playerModel, playerSession.getPlayerSettings());
 
         mapSharedPreferencs(playerLoginResponse, playerSession.getPlayerSettings());
+        mapUnlockedPlanets(playerLoginResponse, playerSession.getPlayerSettings());
 
         playerLoginResponse.liveness = new Liveness();
         playerLoginResponse.liveness.keepAliveTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
@@ -92,6 +93,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.identitySwitchTimes = new HashMap<>();
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
+    }
+
+    private void mapUnlockedPlanets(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
+        playerLoginResponse.playerModel.unlockedPlanets = playerSettings.getUnlockedPlanets();
     }
 
     private void mapGuild(PlayerModel playerModel, PlayerSession playerSession) {

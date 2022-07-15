@@ -4,6 +4,8 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.*;
 import swcnoops.server.model.PlayerModel;
 import swcnoops.server.model.PreferencesMap;
+import swcnoops.server.model.UnlockedPlanets;
+
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -64,9 +66,12 @@ public class SessionManagerImpl implements SessionManager {
                     new PlayerCampaignMission(defaultPlayerModel.campaigns, defaultPlayerModel.missions);
             playerSettings.setPlayerCampaignMissions(playerCampaignMission);
         }
-        if (playerSettings.getSharedPreferences() == null) {
+
+        if (playerSettings.getSharedPreferences() == null)
             playerSettings.setSharedPreferences(new PreferencesMap());
-        }
+
+        if (playerSettings.getUnlockedPlanets() == null)
+            playerSettings.setUnlockedPlanets(new UnlockedPlanets());
 
         player.setPlayerSettings(playerSettings);
         PlayerSession playerSession = new PlayerSessionImpl(player, playerSettings);

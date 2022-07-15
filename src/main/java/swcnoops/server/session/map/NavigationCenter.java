@@ -12,8 +12,8 @@ public class NavigationCenter extends MapItemImpl {
     @Override
     public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
         super.upgradeComplete(playerSession, unitId, tag);
-
-        // TODO - unlock planet for player
+        if (!playerSession.getPlayerSettings().getUnlockedPlanets().contains(tag))
+            playerSession.getPlayerSettings().getUnlockedPlanets().add(tag);
     }
 
     @Override
