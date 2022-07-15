@@ -5,9 +5,10 @@ import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.model.Building;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.inventory.TroopRecord;
-import swcnoops.server.session.inventory.Troops;
 
+/**
+ * Models the dekas platform where if the platform is upgraded then so does the deka.
+ */
 public class ChampionPlatform extends MapItemImpl {
     public ChampionPlatform(Building building, BuildingData buildingData) {
         super(building, buildingData);
@@ -23,12 +24,7 @@ public class ChampionPlatform extends MapItemImpl {
 
         playerSession.getTrainingManager().getDeployableChampion().getDeployableUnits()
                 .put(troopData.getUnitId(), new Integer(1));
-
-        Troops troops = playerSession.getTroopInventory().getTroops();
-        TroopRecord troopRecord = new TroopRecord(troopData.getLevel(), endTime);
-        troops.getTroops().put(troopData.getUnitId(), troopRecord);
-        troops.getTroopRecords().put(troopData.getUnitId(), troopRecord);
-        playerSession.getTroopInventory().upgradeTroop(troopData);
+        playerSession.getTroopInventory().upgradeTroop(troopData, endTime);
     }
 
     @Override

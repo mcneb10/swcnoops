@@ -25,11 +25,7 @@ public class TroopInventoryFactory {
     }
 
     private void initialiseFromPlayerSettings(TroopInventory troopInventory, PlayerSettings playerSettings) {
-        final Troops troops = playerSettings.getTroops() != null ? playerSettings.getTroops() : new Troops();
-        troopInventory.setTroops(troops);
-        // troop records are not persisted, need to initialise that map and the inventory
-        troops.getTroops().forEach((a,b) -> troops.getTroopRecords().put(a,b));
-        troops.getSpecialAttacks().forEach((a,b) -> troops.getTroopRecords().put(a,b));
-        troops.getTroopRecords().forEach((a,b) -> troopInventory.addTroopByUnitIdAndLevel(a,b.getLevel()));
+        final Troops troops = playerSettings.getTroops();
+        troopInventory.initialise(troops);
     }
 }

@@ -168,6 +168,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     .fromJsonString(troopsJson, Troops.class);
                         else
                             troops = new Troops();
+                        troops.initialiseMaps();
                         playerSettings.setTroops(troops);
 
                         String donatedTroopsJson = rs.getString("donatedTroops");
@@ -245,7 +246,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         Creature creature = mapCreatureToPlayerSession(playerSession);
         String creatureJson = ServiceFactory.instance().getJsonParser().toJson(creature);
 
-        Troops troops = mapTroopsToPlayerSession(playerSession);
+        Troops troops = playerSession.getPlayerSettings().getTroops();
         String troopsJson = ServiceFactory.instance().getJsonParser().toJson(troops);
 
         DonatedTroops donatedTroops = mapDonatedTroopsToPlayerSession(playerSession);
@@ -311,15 +312,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         playerSettings.setDonatedTroops(donatedTroops);
         return donatedTroops;
-    }
-
-    private Troops mapTroopsToPlayerSession(PlayerSession playerSession) {
-        // replace the players troops with new data before saving
-        PlayerSettings playerSettings = playerSession.getPlayerSettings();
-        TroopInventory troopInventory = playerSession.getTroopInventory();
-        Troops troops = troopInventory.getTroops();
-        playerSettings.setTroops(troops);
-        return troops;
     }
 
     private void mapToPlayerSetting(DeployableQueue deployableQueue, Map<String, Integer> storage) {
