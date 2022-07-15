@@ -7,7 +7,7 @@ import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Position;
 import swcnoops.server.session.map.MapItem;
-import swcnoops.server.session.map.MoveableBuilding;
+import swcnoops.server.session.map.MapItemImpl;
 import swcnoops.server.session.map.NavigationCenter;
 
 import java.util.ArrayList;
@@ -65,7 +65,7 @@ public class PlayerMapItems {
         return this.mapItemsByKey.get(key);
     }
 
-    public MapItem createMovableMapItem(String buildingUid, String tag, Position position) {
+    public MapItem createMapItem(String buildingUid, String tag, Position position) {
         BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildingUid);
         Building building = new Building();
         building.uid = buildingUid;
@@ -74,27 +74,27 @@ public class PlayerMapItems {
         building.x = position.x;
         building.z = position.z;
         building.currentStorage = buildingData.getStorage();
-        MapItem moveableMapItem = createMovableMapItem(building, buildingData);
-        return moveableMapItem;
+        MapItem mapItem = createMapItem(building, buildingData);
+        return mapItem;
     }
 
-    public void constructNewBuilding(MapItem moveableMapItem) {
-        add(moveableMapItem.getBuildingKey(), moveableMapItem);
-        this.map.buildings.add(moveableMapItem.getBuilding());
+    public void constructNewBuilding(MapItem mapItem) {
+        add(mapItem.getBuildingKey(), mapItem);
+        this.map.buildings.add(mapItem.getBuilding());
     }
 
     public PlayerMap getBaseMap() {
         return this.map;
     }
 
-    static public MapItem createMovableMapItem(Building building, BuildingData buildingData) {
+    static public MapItem createMapItem(Building building, BuildingData buildingData) {
         MapItem mapItem;
         switch (buildingData.getType()) {
             case navigation_center:
                 mapItem = new NavigationCenter(building, buildingData);
                 break;
             default:
-                mapItem = new MoveableBuilding(building, buildingData);
+                mapItem = new MapItemImpl(building, buildingData);
                 break;
         }
         return mapItem;

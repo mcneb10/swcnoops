@@ -15,7 +15,7 @@ public class PlayerBuildingUpgrade extends PlayerChecksum<PlayerBuildingUpgrade,
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.buildingUpgrade(arguments.getInstanceId(), time);
+        playerSession.buildingUpgrade(arguments.getInstanceId(), arguments.getTag(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

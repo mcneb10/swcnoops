@@ -14,10 +14,10 @@ public class OffenseLabFactory {
     private OffenseLab createForMap(PlayerSession playerSession) {
         OffenseLab offenseLab = null;
         PlayerMapItems playerMapItems = playerSession.getPlayerMapItems();
-        for (MapItem moveableMapItem : playerMapItems.getMapItems()) {
-            BuildingData buildingData = moveableMapItem.getBuildingData();
+        for (MapItem mapItem : playerMapItems.getMapItems()) {
+            BuildingData buildingData = mapItem.getBuildingData();
             if (buildingData != null && buildingData.getType() == BuildingType.troop_research) {
-                offenseLab = new OffenseLabImpl(playerSession, moveableMapItem.getBuilding(), buildingData);
+                offenseLab = new OffenseLabImpl(playerSession, mapItem.getBuilding(), buildingData);
             }
         }
         return offenseLab;

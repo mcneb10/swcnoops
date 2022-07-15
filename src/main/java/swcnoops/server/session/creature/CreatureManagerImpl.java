@@ -5,6 +5,7 @@ import swcnoops.server.datasource.Creature;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.Position;
+import swcnoops.server.session.PlayerSession;
 
 public class CreatureManagerImpl implements CreatureManager {
     final private CreatureDataMap creatureDataMap;
@@ -114,7 +115,12 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public void upgradeComplete(String unitId) {
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
         throw new NotImplementedException();
     }
 }

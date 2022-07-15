@@ -55,7 +55,7 @@ public class TrainingManagerImpl implements TrainingManager {
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> buildUnits = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
-            BuildUnit buildUnit = new BuildUnit(builder, buildingId, troopData.getUnitId(), builder.getContractType());
+            BuildUnit buildUnit = new BuildUnit(builder, buildingId, troopData.getUnitId(), builder.getContractType(), null);
             buildUnits.add(buildUnit);
         }
 

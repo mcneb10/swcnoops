@@ -14,20 +14,20 @@ public class DeployableQueue {
     private int totalDeployable;
     final private Map<String, Integer> deployableUnits = new HashMap<>();
     final private List<BuildUnit> unitsInQueue = new ArrayList<>();
-    final private List<MapItem> moveableMapItems = new ArrayList<>();
+    final private List<MapItem> mapItems = new ArrayList<>();
 
     public DeployableQueue() {
     }
 
-    public void addStorage(MapItem moveableMapItem)
+    public void addStorage(MapItem mapItem)
     {
-        if (!moveableMapItems.contains(moveableMapItem))
-            moveableMapItems.add(moveableMapItem);
+        if (!mapItems.contains(mapItem))
+            mapItems.add(mapItem);
     }
 
     private int getAvailableCapacity() {
         AtomicInteger totalStorage = new AtomicInteger();
-        moveableMapItems.stream().forEach(a -> totalStorage.addAndGet(a.getBuildingData().getStorage()));
+        mapItems.stream().forEach(a -> totalStorage.addAndGet(a.getBuildingData().getStorage()));
         return totalStorage.get() - this.totalDeployable;
     }
 

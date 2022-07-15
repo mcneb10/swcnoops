@@ -11,8 +11,9 @@ import swcnoops.server.session.map.MapItem;
 import java.util.*;
 
 /**
- * This class represents one of the buildings on the map used to build something.
- * Each building has its own queue of work that it can perform that has its own capacity which is not modelled.
+ * This class represents a mapItem that can build something.
+ * It is a wrapper to the mapItem on the map to help manage the units that this building constructs.
+ * Each mapItem has its own queue of work that it can perform, its capacity is not modelled.
  * When a unit/troop has finished building it gets moved to a shared deployable queue that will only take the troop
  * if there is space available for that troops size.
  */
@@ -63,8 +64,13 @@ public class Builder implements MapItem, Constructor {
     }
 
     @Override
-    public void upgradeComplete(String unitId) {
-        this.mapItem.upgradeComplete(unitId);
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
+        this.mapItem.upgradeComplete(playerSession, unitId, tag);
+    }
+
+    @Override
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
+        this.mapItem.buildComplete(playerSession, unitId, tag);
     }
 
     @Override

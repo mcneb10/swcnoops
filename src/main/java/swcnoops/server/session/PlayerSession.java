@@ -73,7 +73,7 @@ public interface PlayerSession {
 
     void buildingConstruct(String buildingUid, String tag, Position position, long time);
 
-    void buildingUpgrade(String buildingId, long time);
+    void buildingUpgrade(String buildingId, String tag, long time);
 
     void factionSet(FactionType faction, long time);
 
@@ -99,7 +99,7 @@ public interface PlayerSession {
 
     MapItem removeMapItemByKey(String instanceId);
 
-    void buildingInstantUpgrade(String instanceId, long time);
+    void buildingInstantUpgrade(String instanceId, String tag, long time);
     
     void storeBuy(String uid, int count, long time);
 

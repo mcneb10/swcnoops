@@ -121,7 +121,7 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void upgradeComplete(String unitId) {
+    public void upgradeComplete(PlayerSession playerSession, String unitId, String tag) {
         throw new NotImplementedException();
     }
 
@@ -132,6 +132,11 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public void collect(long time) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public void buildComplete(PlayerSession playerSession, String unitId, String tag) {
         throw new NotImplementedException();
     }
 }

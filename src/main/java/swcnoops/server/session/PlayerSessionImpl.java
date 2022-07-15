@@ -85,7 +85,7 @@ public class PlayerSessionImpl implements PlayerSession {
             for (Building building : baseMap.buildings) {
                 BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
                 if (buildingData != null) {
-                    MapItem mapItem = PlayerMapItems.createMovableMapItem(building, buildingData);
+                    MapItem mapItem = PlayerMapItems.createMapItem(building, buildingData);
                     playerMapItems.add(mapItem.getBuildingKey(), mapItem);
                 }
             }
@@ -365,8 +365,8 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingClear(String instanceId, long time) {
-        MapItem moveableMapItem = this.removeMapItemByKey(instanceId);
-        if (moveableMapItem != null) {
+        MapItem mapItem = this.removeMapItemByKey(instanceId);
+        if (mapItem != null) {
             this.savePlayerSession();
         }
     }
@@ -374,20 +374,20 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingConstruct(String buildingUid, String tag, Position position, long time) {
         this.processCompletedContracts(time);
-        MapItem moveableMapItem = this.playerMapItems.createMovableMapItem(buildingUid, tag, position);
+        MapItem mapItem = this.playerMapItems.createMapItem(buildingUid, tag, position);
 
         // add the building to the map
-        this.playerMapItems.constructNewBuilding(moveableMapItem);
-        this.droidManager.constructBuildUnit(moveableMapItem, time);
+        this.playerMapItems.constructNewBuilding(mapItem);
+        this.droidManager.constructBuildUnit(mapItem, tag, time);
         savePlayerSession();
     }
 
     @Override
-    public void buildingUpgrade(String buildingId, long time) {
+    public void buildingUpgrade(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        MapItem moveableMapItem = this.getMapItemByKey(buildingId);
-        if (moveableMapItem != null) {
-            this.droidManager.upgradeBuildUnit(moveableMapItem, time);
+        MapItem mapItem = this.getMapItemByKey(buildingId);
+        if (mapItem != null) {
+            this.droidManager.upgradeBuildUnit(mapItem, tag, time);
             this.savePlayerSession();
         }
     }
@@ -395,9 +395,9 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingSwap(String buildingId, String buildingUid, long time) {
         this.processCompletedContracts(time);
-        MapItem moveableMapItem = this.getMapItemByKey(buildingId);
-        if (moveableMapItem != null) {
-            this.droidManager.buildingSwap(moveableMapItem, buildingUid, time);
+        MapItem mapItem = this.getMapItemByKey(buildingId);
+        if (mapItem != null) {
+            this.droidManager.buildingSwap(mapItem, buildingUid, time);
             this.savePlayerSession();
         }
     }
@@ -406,19 +406,19 @@ public class PlayerSessionImpl implements PlayerSession {
     public void buildingUpgradeAll(String buildingUid, long time) {
         this.processCompletedContracts(time);
         List<MapItem> allMapItems = this.playerMapItems.getMapItemsByBuildingUid(buildingUid);
-        for (MapItem moveableMapItem : allMapItems) {
-            this.droidManager.upgradeBuildUnit(moveableMapItem, time);
-            this.droidManager.buyout(moveableMapItem.getBuildingKey(), time);
+        for (MapItem mapItem : allMapItems) {
+            this.droidManager.upgradeBuildUnit(mapItem, null, time);
+            this.droidManager.buyout(mapItem.getBuildingKey(), time);
         }
         this.savePlayerSession();
     }
 
     @Override
-    public void buildingInstantUpgrade(String buildingId, long time) {
+    public void buildingInstantUpgrade(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        MapItem moveableMapItem = this.getMapItemByKey(buildingId);
-        if (moveableMapItem != null) {
-            this.droidManager.upgradeBuildUnit(moveableMapItem, time);
+        MapItem mapItem = this.getMapItemByKey(buildingId);
+        if (mapItem != null) {
+            this.droidManager.upgradeBuildUnit(mapItem, tag, time);
             this.droidManager.buyout(buildingId, time);
             this.savePlayerSession();
         }
@@ -502,9 +502,9 @@ public class PlayerSessionImpl implements PlayerSession {
     public void rearm(List<String> buildingIds, long time) {
         this.processCompletedContracts(time);
         for (String buildingId : buildingIds) {
-            MapItem moveableMapItem = this.getMapItemByKey(buildingId);
-            if (moveableMapItem != null) {
-                moveableMapItem.getBuilding().currentStorage = 1;
+            MapItem mapItem = this.getMapItemByKey(buildingId);
+            if (mapItem != null) {
+                mapItem.getBuilding().currentStorage = 1;
             }
         }
 
