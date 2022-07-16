@@ -52,16 +52,22 @@ Anything outside of that you will crash your client as it does not like any fail
 The good news, if you are using fiddler the errors get sent out to a URL with "bi_event2" at the end, and that sometimes gives you details on critical errors.
 That is how I recognise if there are problems and which API is not working.
 
+What works so far
+* Saving player state for troops, map and builds
+* Player can join a self donating squad to donate to oneself
+* Campaign missions
+* Deka platform and upgrading
+* Enemy base always has droidekas and creature
+* Transition to prestige
+
 Things to work on in no particular order (eventually)
-* Persist player state to resume where they have left off.
-* Enemy SC to always be full.
-* Donating to your own SC.
-* Enemy Droidekas.
-* Fix new player to not crash.
-* Creating and Saving War layouts.
-* Campaigns and Missions.
-* Multiplayer support.
-* Replays.
+* Enemy SC to always be full
+* Creating and Saving War layouts
+* Multiplayer support
+* Replays
+* Planet objectives
+* Daily base defense
+* Handling resources that are collected and raided in attacks
 
 Things that may never work.
 * Squad chat
