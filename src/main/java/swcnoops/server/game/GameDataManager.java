@@ -2,6 +2,8 @@ package swcnoops.server.game;
 
 import swcnoops.server.model.FactionType;
 
+import java.util.List;
+
 public interface GameDataManager {
     void initOnStartup();
 
@@ -36,4 +38,6 @@ public interface GameDataManager {
     CampaignSet getCampaignForFaction(FactionType faction);
 
     CampaignMissionSet getCampaignMissionSet(String campaignUid);
+
+    List<TroopData> getLowestLevelTroopsForFaction(FactionType faction);
 }

@@ -1,8 +1,10 @@
 package swcnoops.server.game;
 
+import swcnoops.server.model.FactionType;
+
 public class TroopData implements GameData {
     final private String uid;
-    private String faction;
+    private FactionType faction;
     private int level;
     private String unitId;
     private String type;
@@ -21,11 +23,11 @@ public class TroopData implements GameData {
         return uid;
     }
 
-    protected void setFaction(String faction) {
+    protected void setFaction(FactionType faction) {
         this.faction = faction;
     }
 
-    public String getFaction() {
+    public FactionType getFaction() {
         return faction;
     }
 

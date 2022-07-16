@@ -585,4 +585,9 @@ public class PlayerSessionImpl implements PlayerSession {
             this.savePlayerSession();
         }
     }
+
+    @Override
+    public FactionType getFaction() {
+        return this.playerSettings.getFaction();
+    }
 }

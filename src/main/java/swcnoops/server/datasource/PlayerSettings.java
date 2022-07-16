@@ -26,6 +26,7 @@ public class PlayerSettings {
         this.playerId = playerId;
     }
 
+    // TODO - not used at the moment, will probably be used for samples, will have to rename if do
     public Upgrades getUpgrades() {
         return upgrades;
     }
