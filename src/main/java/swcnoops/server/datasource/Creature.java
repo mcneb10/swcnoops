@@ -6,7 +6,8 @@ import swcnoops.server.session.creature.CreatureStatus;
 public class Creature {
     private CreatureStatus creatureStatus;
     private long recaptureEndTime;
-    private String creatureUid;
+
+    private String creatureUnitId;
 
     public CreatureStatus getCreatureStatus() {
         return creatureStatus;
@@ -16,8 +17,12 @@ public class Creature {
         return recaptureEndTime;
     }
 
-    public String getCreatureUid() {
-        return creatureUid;
+    public String getCreatureUnitId() {
+        return creatureUnitId;
+    }
+
+    public void setCreatureUnitId(String creatureUnitId) {
+        this.creatureUnitId = creatureUnitId;
     }
 
     public void setCreatureStatus(CreatureStatus creatureStatus) {
@@ -25,14 +30,6 @@ public class Creature {
 
         if (this.creatureStatus == CreatureStatus.Alive)
             this.recaptureEndTime = 0;
-    }
-
-    public void setRecaptureEndTime(long recaptureEndTime) {
-        this.recaptureEndTime = recaptureEndTime;
-    }
-
-    public void setCreatureUid(String creatureUid) {
-        this.creatureUid = creatureUid;
     }
 
     public void recapture(long endTime) {

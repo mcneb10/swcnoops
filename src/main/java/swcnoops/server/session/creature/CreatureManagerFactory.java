@@ -8,6 +8,7 @@ import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TrapData;
 import swcnoops.server.game.TrapEventType;
 import swcnoops.server.model.Building;
+import swcnoops.server.model.FactionType;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.PlayerMapItems;
@@ -28,8 +29,8 @@ public class CreatureManagerFactory {
 
             if (creatureDataMap != null && creatureDataMap.building != null) {
                 playerCreature.setCreatureStatus(CreatureStatus.Alive);
-                // TODO - set this to what the player has
-                playerCreature.setCreatureUid("troopEmpireRageRancorCreature10");
+                String unitId = getDefaultCreatureUnitId(playerSession.getFaction());
+                playerCreature.setCreatureUnitId(unitId);
             } else {
                 playerCreature.setCreatureStatus(CreatureStatus.Invalid);
             }
@@ -95,5 +96,10 @@ public class CreatureManagerFactory {
         }
 
         return isCreatureTrap;
+    }
+
+    static public String getDefaultCreatureUnitId(FactionType faction) {
+        String unitId = faction.getNameForLookup() + "RancorCreature";
+        return unitId;
     }
 }

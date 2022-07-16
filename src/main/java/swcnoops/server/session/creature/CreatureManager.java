@@ -5,7 +5,7 @@ import swcnoops.server.session.commands.BuildingCommands;
 import swcnoops.server.session.map.StrixBeacon;
 
 public interface CreatureManager extends BuildingCommands {
-    void recaptureCreature(String creatureTroopUid, long time);
+    void recaptureCreature(String creatureTroopUnitId, long time);
 
     boolean hasCreature();
 
@@ -17,7 +17,7 @@ public interface CreatureManager extends BuildingCommands {
 
     boolean isRecapturing();
 
-    String getCreatureUid();
+    String getCreatureUnitId();
 
     String getSpecialAttackUid();
 
