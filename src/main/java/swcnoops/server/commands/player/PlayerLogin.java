@@ -124,14 +124,15 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private void mapCreatureTrapData(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.creatureTrapData = new ArrayList<>();
+        CreatureManager creatureManager = playerSession.getCreatureManager();
         if (playerSession.getCreatureManager().hasCreature()) {
             CreatureTrapData creatureTrapData = new CreatureTrapData();
-            creatureTrapData.buildingId = playerSession.getCreatureManager().getBuildingKey();
-            creatureTrapData.specialAttackUid = playerSession.getCreatureManager().getSpecialAttackUid();
-            creatureTrapData.ready = playerSession.getCreatureManager().isCreatureAlive();
-            creatureTrapData.championUid = playerSession.getCreatureManager().getCreatureUid();
+            creatureTrapData.buildingId = creatureManager.getBuildingKey();
+            creatureTrapData.specialAttackUid = creatureManager.getSpecialAttackUid();
+            creatureTrapData.ready = creatureManager.isCreatureAlive();
+            TroopData troopData = playerSession.getTroopInventory().getTroopByUnitId(creatureManager.getCreatureUnitId());
+            creatureTrapData.championUid = troopData.getUid();
             playerModel.creatureTrapData.add(creatureTrapData);
-
             // set the storage to indicate if we have a creature in there or not
             playerModel.map.buildings.stream().filter(a -> a.key.equals(creatureTrapData.buildingId))
                     .findFirst().get().currentStorage = creatureTrapData.ready ? 1 : 0;

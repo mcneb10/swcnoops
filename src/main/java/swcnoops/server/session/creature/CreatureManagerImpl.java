@@ -22,8 +22,9 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public void recaptureCreature(String creatureTroopUid, long time) {
+    public void recaptureCreature(String creatureTroopUnitId, long time) {
         if (hasCreature()) {
+            this.creature.setCreatureUnitId(creatureTroopUnitId);
             this.creature.recapture(time + creatureDataMap.trapData.getRearmTime());
         }
     }
@@ -70,8 +71,8 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public String getCreatureUid() {
-        return this.getCreature().getCreatureUid();
+    public String getCreatureUnitId() {
+        return this.getCreature().getCreatureUnitId();
     }
 
     @Override
@@ -134,11 +135,8 @@ public class CreatureManagerImpl implements CreatureManager {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         TrapData trapData = gameDataManager.getTrapDataByUid(strixBeacon.getBuildingData().getTrapId());
         this.creatureDataMap = new CreatureDataMap(strixBeacon.getBuilding(), strixBeacon.getBuildingData(), trapData);
-
-        // default is the rancour
-        String unitId = strixBeacon.getBuildingData().getFaction().getNameForLookup() + "RancorCreature";
-        TroopData creatureTroopData = gameDataManager.getLowestLevelTroopDataByUnitId(unitId);
-        this.creature.setCreatureUid(creatureTroopData.getUid());
+        String unitId = CreatureManagerFactory.getDefaultCreatureUnitId(strixBeacon.getBuildingData().getFaction());
+        this.creature.setCreatureUnitId(unitId);
         this.buyout(endTime);
     }
 }
