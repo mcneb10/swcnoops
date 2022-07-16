@@ -6,10 +6,7 @@ import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Position;
-import swcnoops.server.session.map.ChampionPlatform;
-import swcnoops.server.session.map.MapItem;
-import swcnoops.server.session.map.MapItemImpl;
-import swcnoops.server.session.map.NavigationCenter;
+import swcnoops.server.session.map.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,6 +37,8 @@ public class PlayerMapItems {
         switch (mapItem.getBuildingData().getType()) {
             case HQ:
             case squad:
+            case droid_hut:
+            case scout_tower:
                 this.mapItemsByType.put(mapItem.getBuildingData().getType(), mapItem);
                 break;
         }
@@ -96,6 +95,9 @@ public class PlayerMapItems {
                 break;
             case champion_platform:
                 mapItem = new ChampionPlatform(building, buildingData);
+                break;
+            case HQ:
+                mapItem = new HeadQuarter(building, buildingData);
                 break;
             default:
                 mapItem = new MapItemImpl(building, buildingData);
