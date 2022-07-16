@@ -5,16 +5,11 @@ import swcnoops.server.session.creature.CreatureStatus;
 
 public class Creature {
     private CreatureStatus creatureStatus;
-    private String specialAttack;
     private long recaptureEndTime;
     private String creatureUid;
 
     public CreatureStatus getCreatureStatus() {
         return creatureStatus;
-    }
-
-    public String getSpecialAttack() {
-        return specialAttack;
     }
 
     public long getRecaptureEndTime() {
@@ -30,10 +25,6 @@ public class Creature {
 
         if (this.creatureStatus == CreatureStatus.Alive)
             this.recaptureEndTime = 0;
-    }
-
-    public void setSpecialAttack(String specialAttack) {
-        this.specialAttack = specialAttack;
     }
 
     public void setRecaptureEndTime(long recaptureEndTime) {

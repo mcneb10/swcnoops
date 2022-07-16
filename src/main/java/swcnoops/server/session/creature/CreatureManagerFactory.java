@@ -30,7 +30,6 @@ public class CreatureManagerFactory {
                 playerCreature.setCreatureStatus(CreatureStatus.Alive);
                 // TODO - set this to what the player has
                 playerCreature.setCreatureUid("troopEmpireRageRancorCreature10");
-                playerCreature.setSpecialAttack(creatureDataMap.trapData.getEventData());
             } else {
                 playerCreature.setCreatureStatus(CreatureStatus.Invalid);
             }
@@ -67,15 +66,11 @@ public class CreatureManagerFactory {
         if (map != null) {
             GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
             for (Building building : map.buildings) {
-                BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-                if (buildingData != null) {
-                    if (buildingData.getTrapId() != null) {
-                        TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
-                        if (trapData.getEventType() == TrapEventType.CreatureSpecialAttack) {
-                            creatureDataMap = new CreatureDataMap(building, buildingData, trapData);
-                            break;
-                        }
-                    }
+                if (isCreatureTrap(building.uid)) {
+                    BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
+                    TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
+                    creatureDataMap = new CreatureDataMap(building, buildingData, trapData);
+                    break;
                 }
             }
         }
@@ -84,5 +79,21 @@ public class CreatureManagerFactory {
             creatureDataMap = new CreatureDataMap(null, null, null);
 
         return creatureDataMap;
+    }
+
+    static public boolean isCreatureTrap(String uid) {
+        boolean isCreatureTrap = false;
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(uid);
+        if (buildingData != null) {
+            if (buildingData.getTrapId() != null) {
+                TrapData trapData = gameDataManager.getTrapDataByUid(buildingData.getTrapId());
+                if (trapData.getEventType() == TrapEventType.CreatureSpecialAttack) {
+                    isCreatureTrap = true;
+                }
+            }
+        }
+
+        return isCreatureTrap;
     }
 }

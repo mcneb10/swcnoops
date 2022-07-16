@@ -6,6 +6,7 @@ import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Position;
+import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.map.*;
 
 import java.util.ArrayList;
@@ -98,6 +99,13 @@ public class PlayerMapItems {
                 break;
             case HQ:
                 mapItem = new HeadQuarter(building, buildingData);
+                break;
+            case trap:
+                if (CreatureManagerFactory.isCreatureTrap(building.uid)) {
+                    mapItem = new StrixBeacon(building, buildingData);
+                } else {
+                    mapItem = new MapItemImpl(building, buildingData);
+                }
                 break;
             default:
                 mapItem = new MapItemImpl(building, buildingData);
