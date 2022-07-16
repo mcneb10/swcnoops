@@ -1265,6 +1265,11 @@
           "amount": 0,
           "capacity": 0,
           "scale": 1
+        },
+        "droids_prestige": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 0
         }
       },
       "capacity": -1,
