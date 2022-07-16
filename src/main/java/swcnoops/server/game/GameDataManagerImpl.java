@@ -104,7 +104,7 @@ public class GameDataManagerImpl implements GameDataManager {
             String specialAttackID = troop.get("specialAttackID");
 
             TroopData troopData = new TroopData(uid);
-            troopData.setFaction(faction);
+            troopData.setFaction(FactionType.valueOf(faction));
             troopData.setLevel(lvl);
             troopData.setUnitId(unitId != null ? unitId : specialAttackID);
             troopData.setType(type);
@@ -296,5 +296,12 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public CampaignMissionSet getCampaignMissionSet(String campaignUid) {
         return this.campaignMissionSets.get(campaignUid);
+    }
+
+    @Override
+    public List<TroopData> getLowestLevelTroopsForFaction(FactionType faction) {
+        List<TroopData> alltroops = new ArrayList<>(this.lowestLevelTroopByUnitId.values());
+        alltroops.removeIf(a -> a.getFaction() != faction);
+        return alltroops;
     }
 }

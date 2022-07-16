@@ -106,4 +106,6 @@ public interface PlayerSession {
     void buildingUpgradeAll(String buildingUid, long time);
 
     void buildingSwap(String buildingId, String buildingUid, long time);
+
+    FactionType getFaction();
 }

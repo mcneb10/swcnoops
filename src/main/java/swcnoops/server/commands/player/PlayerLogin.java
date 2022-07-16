@@ -68,7 +68,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.firstTimePlayer = playerSession.getPlayerSettings().getCurrentQuest() == null ? true : false;
 
         mapBuildableTroops(playerLoginResponse.playerModel, playerSession.getPlayer().getPlayerSettings());
-        mapShards(playerLoginResponse.playerModel);
+        mapShards(playerLoginResponse.playerModel, playerSession);
         mapDonatedTroops(playerLoginResponse.playerModel, playerSession);
 
         mapContracts(playerLoginResponse.playerModel, playerSession);
@@ -141,6 +141,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory.capacity = -1;
         playerModel.inventory.storage = playerSession.getPlayerSettings().getInventoryStorage();
+        playerModel.inventory.storage.credits.amount = 9999999L;
+        playerModel.inventory.storage.crystals.amount = 9999999L;
+        playerModel.inventory.storage.contraband.amount = 9999999L;
+        playerModel.inventory.storage.materials.amount = 9999999L;
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 
@@ -166,7 +170,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
     }
 
-    // TODO - set the troops for the SC
     private void mapDonatedTroops(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.donatedTroops = playerSession.getDonatedTroops();
     }
@@ -240,13 +243,27 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         return playerSession.getTroopInventory().getTroopByUnitId(unitId);
     }
 
-    // TODO
+    // TODO - loading and saving samples
     private void mapBuildableTroops(PlayerModel playerModel, PlayerSettings playerSettings) {
-        playerModel.upgrades = playerSettings.getUpgrades();
+        playerModel.upgrades = new Upgrades();
         playerModel.upgrades.troop = map(playerSettings.getTroops().getTroops());
         playerModel.upgrades.specialAttack = map(playerSettings.getTroops().getSpecialAttacks());
 
-        // samples
+        // add in all troops that needs fragments
+        List<TroopData> troopsForFaction = ServiceFactory.instance().getGameDataManager()
+                .getLowestLevelTroopsForFaction(playerSettings.getFaction());
+        troopsForFaction.removeIf(a -> a.getUpgradeShardUid() == null);
+        troopsForFaction.forEach(a -> {
+            if (!a.isSpecialAttack() && !playerModel.upgrades.troop.containsKey(a.getUnitId()))
+                playerModel.upgrades.troop.put(a.getUnitId(), a.getLevel());
+        });
+
+        troopsForFaction.forEach(a -> {
+            if (a.isSpecialAttack() && !playerModel.upgrades.specialAttack.containsKey(a.getUnitId()))
+                playerModel.upgrades.specialAttack.put(a.getUnitId(), a.getLevel());
+        });
+
+        // TODO - samples
         playerModel.prizes = new Upgrades();
     }
 
@@ -257,9 +274,12 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         return map;
     }
 
-    // TODO - no shards for now but may need to populate as some troops needs shards to be able to build them
-    private void mapShards(PlayerModel playerModel) {
+    private void mapShards(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.shards.clear();
+        List<TroopData> troopsForFaction = ServiceFactory.instance().getGameDataManager()
+                .getLowestLevelTroopsForFaction(playerSession.getFaction());
+        troopsForFaction.removeIf(a -> a.getUpgradeShardUid() == null);
+        troopsForFaction.forEach(a -> playerModel.shards.put(a.getUpgradeShardUid(), Integer.valueOf(1000)));
     }
 
     @Override
