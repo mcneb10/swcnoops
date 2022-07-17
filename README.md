@@ -64,10 +64,12 @@ What works so far
 Things to work on in no particular order (eventually)
 * Creating and Saving War layouts
 * Multiplayer support
+* Multiplayer squad support
 * Replays
 * Planet objectives
 * Daily base defense
 * Handling resources that are collected and raided in attacks
+* Support faction switching (partially done)
 
 Things that may never work.
 * Squad chat
