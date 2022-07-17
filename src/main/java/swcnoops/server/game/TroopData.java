@@ -1,13 +1,18 @@
 package swcnoops.server.game;
 
 import swcnoops.server.model.FactionType;
+import swcnoops.server.model.TroopType;
 
+/**
+ * This is used to hold Troops and SpecialAttacks merged together.
+ * Not all properties will exists, as specialAttacks dont have troopType etc...
+ */
 public class TroopData implements GameData {
     final private String uid;
     private FactionType faction;
     private int level;
     private String unitId;
-    private String type;
+    private TroopType type;
     private int size;
     private long trainingTime;
     private String upgradeShardUid;
@@ -47,7 +52,7 @@ public class TroopData implements GameData {
         return unitId;
     }
 
-    protected void setType(String type) {
+    protected void setType(TroopType type) {
         this.type = type;
     }
 
@@ -91,7 +96,7 @@ public class TroopData implements GameData {
         return upgradeTime;
     }
 
-    public String getType() {
+    public TroopType getType() {
         return this.type;
     }
 

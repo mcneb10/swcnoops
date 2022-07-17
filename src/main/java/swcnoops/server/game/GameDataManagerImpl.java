@@ -1,7 +1,9 @@
 package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.CommandFactory;
 import swcnoops.server.model.FactionType;
+import swcnoops.server.model.TroopType;
 
 import java.util.*;
 
@@ -10,6 +12,8 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, TroopData> lowestLevelTroopByUnitId = new HashMap<>();
     private Map<String, List<TroopData>> troopLevelsByUnitId = new HashMap<>();
     private Map<String, List<BuildingData>> buildingLevelsByBuildingId = new HashMap<>();
+    private Map<FactionType, List<TroopData>> creaturesByFaction = new HashMap<>();
+    private Map<FactionType, List<TroopData>> lowestLevelTroopByFaction = new HashMap<>();
 
     /**
      * This map is only used to change the map from smuggler to faction which happens for new players
@@ -21,7 +25,7 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, CampaignSet> campaignSets = new HashMap<>();
     private Map<String, CampaignMissionData> missionDataMap = new HashMap<>();
     private Map<String, CampaignMissionSet> campaignMissionSets = new HashMap<>();
-
+    private Map<FactionType, Map<Integer, List<TroopData>>> troopSizeMapByFaction = new HashMap<>();
 
     @Override
     public void initOnStartup() {
@@ -30,9 +34,53 @@ public class GameDataManagerImpl implements GameDataManager {
             this.buildings = loadBuildings();
             this.traps = loadTraps();
             loadCampaigns();
+            buildCustomTroopMaps();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
         }
+    }
+
+    private void buildCustomTroopMaps() {
+        // list of creatures for faction for populating strix beacon
+        this.lowestLevelTroopByUnitId.forEach((a,b) -> {
+            if (b.getType() == TroopType.creature) {
+                List<TroopData> creatureList = this.creaturesByFaction.get(b.getFaction());
+                if (creatureList == null) {
+                    creatureList = new ArrayList<>();
+                    this.creaturesByFaction.put(b.getFaction(), creatureList);
+                }
+                creatureList.add(b);
+            }
+        });
+
+        this.lowestLevelTroopByUnitId.forEach((a,b) -> {
+            List<TroopData> troopList = this.lowestLevelTroopByFaction.get(b.getFaction());
+            if (troopList == null) {
+                troopList = new ArrayList<>();
+                this.lowestLevelTroopByFaction.put(b.getFaction(), troopList);
+            }
+            troopList.add(b);
+        });
+
+        // map used to group troops by unit size for SC populating, does not include special attack
+        this.lowestLevelTroopByUnitId.forEach((a,b) -> {
+            if (!b.isSpecialAttack()) {
+                Map<Integer, List<TroopData>> troopBySizeMap = this.troopSizeMapByFaction.get(b.getFaction());
+                if (troopBySizeMap == null) {
+                    troopBySizeMap = new HashMap<>();
+                    this.troopSizeMapByFaction.put(b.getFaction(), troopBySizeMap);
+                }
+
+                List<TroopData> troopBySize = troopBySizeMap.get(b.getSize());
+
+                if (troopBySize == null) {
+                    troopBySize = new ArrayList<>();
+                    troopBySizeMap.put(b.getSize(), troopBySize);
+                }
+
+                troopBySize.add(b);
+            }
+        });
     }
 
     private void loadCampaigns() throws Exception {
@@ -107,7 +155,7 @@ public class GameDataManagerImpl implements GameDataManager {
             troopData.setFaction(FactionType.valueOf(faction));
             troopData.setLevel(lvl);
             troopData.setUnitId(unitId != null ? unitId : specialAttackID);
-            troopData.setType(type);
+            troopData.setType(type != null ? TroopType.valueOf(type) : null);
             troopData.setSize(size);
             troopData.setTrainingTime(trainingTime);
             troopData.setUpgradeTime(upgradeTime);
@@ -270,6 +318,9 @@ public class GameDataManagerImpl implements GameDataManager {
 
     @Override
     public TroopData getTroopDataByUnitId(String unitId, int level) {
+        if (this.troopLevelsByUnitId.get(unitId).size() < (level - 1))
+            return null;
+
         return this.troopLevelsByUnitId.get(unitId).get(level - 1);
     }
 
@@ -300,8 +351,21 @@ public class GameDataManagerImpl implements GameDataManager {
 
     @Override
     public List<TroopData> getLowestLevelTroopsForFaction(FactionType faction) {
-        List<TroopData> alltroops = new ArrayList<>(this.lowestLevelTroopByUnitId.values());
-        alltroops.removeIf(a -> a.getFaction() != faction);
-        return alltroops;
+        return this.lowestLevelTroopByFaction.get(faction);
+    }
+
+    @Override
+    public Map<FactionType, List<TroopData>> getCreaturesByFaction() {
+        return creaturesByFaction;
+    }
+
+    @Override
+    public Map<Integer, List<TroopData>> getTroopSizeMap(FactionType faction) {
+        return this.troopSizeMapByFaction.get(faction);
+    }
+
+    @Override
+    public int getMaxlevelForTroopUnitId(String unitId) {
+        return this.troopLevelsByUnitId.get(unitId).size();
     }
 }
