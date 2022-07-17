@@ -1,6 +1,7 @@
 package swcnoops.server.commands.player.response;
 
 import swcnoops.server.model.CreatureTrapData;
+import swcnoops.server.model.DonatedTroops;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.requests.AbstractCommandResult;
 
@@ -20,7 +21,7 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
     public int defensesWon;
     public String guildId;
     public String guildName;
-    public Object guildDonatedTroops;
+    public DonatedTroops guildTroops;
     public Map<String,Integer> champions;
     public List<CreatureTrapData> creatureTrapData;
     public int potentialMedalsToGain;

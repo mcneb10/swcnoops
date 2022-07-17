@@ -112,7 +112,7 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public Building getBuilding() {
-        throw new NotImplementedException();
+        return this.creatureDataMap.building;
     }
 
     @Override

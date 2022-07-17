@@ -3,10 +3,7 @@ package swcnoops.server.session.creature;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Creature;
 import swcnoops.server.datasource.PlayerSettings;
-import swcnoops.server.game.BuildingData;
-import swcnoops.server.game.GameDataManager;
-import swcnoops.server.game.TrapData;
-import swcnoops.server.game.TrapEventType;
+import swcnoops.server.game.*;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.FactionType;
 import swcnoops.server.model.PlayerMap;
@@ -14,7 +11,16 @@ import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.PlayerMapItems;
 import swcnoops.server.session.map.MapItem;
 
+import java.util.List;
+import java.util.Random;
+
 public class CreatureManagerFactory {
+    static private Random random = new Random();
+    public static String getRandomCreatureUnitId(FactionType faction) {
+        List<TroopData> creatureTroopDatum = ServiceFactory.instance().getGameDataManager().getCreaturesByFaction().get(faction);
+        return creatureTroopDatum.get(random.nextInt(creatureTroopDatum.size())).getUnitId();
+    }
+
     public CreatureManager createForPlayer(PlayerSession playerSession) {
         CreatureManagerImpl creatureManager = this.createForMap(playerSession);
         return creatureManager;

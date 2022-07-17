@@ -3,6 +3,7 @@ package swcnoops.server.game;
 import swcnoops.server.model.FactionType;
 
 import java.util.List;
+import java.util.Map;
 
 public interface GameDataManager {
     void initOnStartup();
@@ -40,4 +41,10 @@ public interface GameDataManager {
     CampaignMissionSet getCampaignMissionSet(String campaignUid);
 
     List<TroopData> getLowestLevelTroopsForFaction(FactionType faction);
+
+    Map<FactionType, List<TroopData>> getCreaturesByFaction();
+
+    Map<Integer, List<TroopData>> getTroopSizeMap(FactionType faction);
+
+    int getMaxlevelForTroopUnitId(String unitId);
 }

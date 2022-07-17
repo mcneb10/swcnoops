@@ -134,8 +134,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             creatureTrapData.championUid = troopData.getUid();
             playerModel.creatureTrapData.add(creatureTrapData);
             // set the storage to indicate if we have a creature in there or not
-            playerModel.map.buildings.stream().filter(a -> a.key.equals(creatureTrapData.buildingId))
-                    .findFirst().get().currentStorage = creatureTrapData.ready ? 1 : 0;
+            creatureManager.getBuilding().currentStorage = creatureTrapData.ready ? 1 : 0;
         }
     }
 
@@ -251,8 +250,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerModel.upgrades.specialAttack = map(playerSettings.getTroops().getSpecialAttacks());
 
         // add in all troops that needs fragments
-        List<TroopData> troopsForFaction = ServiceFactory.instance().getGameDataManager()
-                .getLowestLevelTroopsForFaction(playerSettings.getFaction());
+        List<TroopData> troopsForFaction = new LinkedList<>(ServiceFactory.instance().getGameDataManager()
+                .getLowestLevelTroopsForFaction(playerSettings.getFaction()));
         troopsForFaction.removeIf(a -> a.getUpgradeShardUid() == null);
         troopsForFaction.forEach(a -> {
             if (!a.isSpecialAttack() && !playerModel.upgrades.troop.containsKey(a.getUnitId()))
@@ -277,8 +276,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private void mapShards(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.shards.clear();
-        List<TroopData> troopsForFaction = ServiceFactory.instance().getGameDataManager()
-                .getLowestLevelTroopsForFaction(playerSession.getFaction());
+        List<TroopData> troopsForFaction = new LinkedList<>(ServiceFactory.instance().getGameDataManager()
+                .getLowestLevelTroopsForFaction(playerSession.getFaction()));
         troopsForFaction.removeIf(a -> a.getUpgradeShardUid() == null);
         troopsForFaction.forEach(a -> playerModel.shards.put(a.getUpgradeShardUid(), Integer.valueOf(1000)));
     }

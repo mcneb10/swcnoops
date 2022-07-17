@@ -7,6 +7,9 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
+/**
+ * This command builds troops, special attacks and repairs dekas.
+ */
 public class PlayerDeployableTrain extends AbstractCommandAction<PlayerDeployableTrain, CommandResult> {
     private String constructor;
     private String unitTypeId;
