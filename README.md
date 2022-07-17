@@ -35,6 +35,8 @@ The client if running on Android or an Android emulator, you need to configure t
 ## Patching game client
 Coming... (once I have worked out how to do it)
 
+1. Obtain SWC apk from either downloading it from somewhere or use ADB to pull it out from your device. I used this link https://developer.android.com/studio/releases/platform-tools to get ADB and followed these instructions https://stackoverflow.com/questions/4032960/how-do-i-get-an-apk-file-from-an-android-device to pull com.lucasarts.starts_goo from my device.
+
 ## Obtaining game asset bundle and modding
 Currently I am undecided if I should provide out the assetbundles, the thinking behind that is I dont want the responsibility of potentially giving out a harmful binary (as some of those files I obtained from some link I found recently, which you can easily find if you search hard enough - hint some modelling site has provided some).
 
