@@ -59,9 +59,9 @@ What works so far
 * Deka platform and upgrading
 * Enemy base always has droidekas and creature
 * Transition to prestige
+* Enemy SC to always be full
 
 Things to work on in no particular order (eventually)
-* Enemy SC to always be full
 * Creating and Saving War layouts
 * Multiplayer support
 * Replays
