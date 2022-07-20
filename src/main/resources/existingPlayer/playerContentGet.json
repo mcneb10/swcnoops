@@ -1,9 +1,9 @@
 {
         "cdnRoots": [
-          "https://zynga-swc-prod-1-seed.akamaized.net/"
+          "http://192.168.1.142:8080/swcFiles/"
         ],
         "secureCdnRoots": [
-          "https://zynga-swc-prod-1-seed.akamaized.net/"
+          "http://192.168.1.142:8080/swcFiles/"
         ],
         "manifestVersion": 2045,
         "manifest": "manifests/__manifest_zyngaswc_prod.02045.json",
