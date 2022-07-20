@@ -202,6 +202,21 @@ void* NetworkConnectionTester_Download(void *instance, monoString *url, void *me
 	return old_NetworkConnectionTester_Download(instance,CreateMonoString("http://192.168.1.142:8080/connection_test.txt"), methodInfo);
 }
 
+monoString* (*old_CalculateEndpoint)(void *instance, bool useHttps, int32_t appId, int32_t stack, monoString* suffix, void* methodInfo);
+monoString* CalculateEndpoint (void *instance, bool useHttps, int32_t appId, int32_t stack, monoString* suffix, void* methodInfo) {
+	return CreateMonoString("http://localhost/swrve");
+}
+
+bool (*old_GetAutoNotify) (void* instance, void* methodInfo);
+bool GetAutoNotify (void* instance, void* methodInfo) {
+    return false;
+}
+
+bool (*old_GetAutoCaptureSessions) (void* instance, void* methodInfo);
+bool GetAutoCaptureSessions (void* instance, void* methodInfo) {
+    return false;
+}
+
 // the constructor is ran when the lib is loaded
 // \smali\com\unity3d\player\UnityPlayerActivity.smali -> onCreate
 __attribute__((constructor))
@@ -209,6 +224,9 @@ void libjbro_main() {
     __android_log_print(ANDROID_LOG_DEBUG,"Hook", "Going to Cheat");
     MSHookFunction((void *) getRealOffset(0x6404C8), (void *)&GetServer, (void**)&old_GetServer);
     MSHookFunction((void *) getRealOffset(0x35545C), (void *)&NetworkConnectionTester_Download, (void**)&old_NetworkConnectionTester_Download);
+    MSHookFunction((void *) getRealOffset(0x894038), (void *)&CalculateEndpoint, (void**)&old_CalculateEndpoint);
+    MSHookFunction((void *) getRealOffset(0x10F88BC), (void *)&GetAutoNotify, (void**)&old_GetAutoNotify);
+    MSHookFunction((void *) getRealOffset(0x10F88CC), (void *)&GetAutoCaptureSessions, (void**)&old_GetAutoCaptureSessions);    
     __android_log_print(ANDROID_LOG_DEBUG,"Hook", "hooked");
 }
 
@@ -217,4 +235,22 @@ void libjbro_main() {
 10) from command line run Android-Hooking-Template/compile.bat which will compile and build libhook.so
 11) modify APK to load our library, will continue using the decompiled version done through Easy APK Tool
 12) copy our built Android-Hooking-Template\libs\armeabi-v7a\libhook.so to our decompiled APK Easy Tool\1-Decompiled APKs\SWCfromTablet\lib\armeabi-v7a
-13) use Easy APK Tool to compile, align and then install into the emulator
+13) Amend the smali file in the decompiled APK to load the hook library in onCreate method
+
+````
+    const-string v0, "hook"
+    invoke-static {v0}, Ljava/lang/System;->loadLibrary(Ljava/lang/String;)V
+````
+
+14) use Easy APK Tool to compile, align and then install into the emulator
+
+## Java client changes to the smali files to remove or block URL calls the game makes
+
+1) The playerContentGet.json has the URL for the assetbundles that tells the client where to download them from
+2) change ServerProtocol.smali as that provides the URL for graph.facebook.com and other facebook related calls
+3) change event2BiLoggingIpAddress in config.java to change the URL for the bi-logging calls
+4) add hook to CalculateEndpoint to remove swrve URL calls
+5) change configuration.smali to remove bugsnag URL calls
+6) add hook to AutoNotify and AutoCaptureSessions to remove bugsnag URL calls
+
+** DAMN works on Android 7 and below on the emulators but crashes in Android 9, looks like its the hooks.
