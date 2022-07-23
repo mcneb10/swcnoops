@@ -40,6 +40,11 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>3.36.0.3</version>
         </dependency>
+        <dependency>
+            <groupId>com.sparkjava</groupId>
+            <artifactId>spark-core</artifactId>
+            <version>2.9.4</version>
+        </dependency>
 <!--        <dependency>-->
 <!--            <groupId>com.zaxxer</groupId>-->
 <!--            <artifactId>HikariCP</artifactId>-->
