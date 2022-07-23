@@ -254,3 +254,4 @@ void libjbro_main() {
 6) add hook to AutoNotify and AutoCaptureSessions to remove bugsnag URL calls
 
 ** DAMN works on Android 7 and below on the emulators but crashes in Android 9, looks like its the hooks.
+Changed hook to the method done in https://github.com/LGLTeam/Android-Hooking-Patching-Template which is the same code but invoked through java class which seems to work.
