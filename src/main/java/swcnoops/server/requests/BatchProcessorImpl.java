@@ -5,10 +5,11 @@ import swcnoops.server.commands.CommandAction;
 import swcnoops.server.commands.CommandFactory;
 import swcnoops.server.ServiceFactory;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 public class BatchProcessorImpl implements BatchProcessor {
     final private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'+01:00'");
@@ -69,5 +70,35 @@ public class BatchProcessorImpl implements BatchProcessor {
         BatchResponse batchResponse = this.executeCommands(batch);
         String json = ServiceFactory.instance().getJsonParser().toJson(batchResponse);
         return json;
+    }
+
+    public static Map<String, List<String>> decodeParameters(String queryString) {
+        Map<String, List<String>> parms = new HashMap<String, List<String>>();
+        if (queryString != null) {
+            StringTokenizer st = new StringTokenizer(queryString, "&");
+            while (st.hasMoreTokens()) {
+                String e = st.nextToken();
+                int sep = e.indexOf('=');
+                String propertyName = sep >= 0 ? decodePercent(e.substring(0, sep)).trim() : decodePercent(e).trim();
+                if (!parms.containsKey(propertyName)) {
+                    parms.put(propertyName, new ArrayList<String>());
+                }
+                String propertyValue = sep >= 0 ? decodePercent(e.substring(sep + 1)) : null;
+                if (propertyValue != null) {
+                    parms.get(propertyName).add(propertyValue);
+                }
+            }
+        }
+        return parms;
+    }
+
+    public static String decodePercent(String str) {
+        String decoded = null;
+        try {
+            decoded = URLDecoder.decode(str, "UTF8");
+        } catch (UnsupportedEncodingException ignored) {
+            throw new RuntimeException(ignored);
+        }
+        return decoded;
     }
 }
