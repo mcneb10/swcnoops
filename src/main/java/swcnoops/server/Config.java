@@ -7,7 +7,7 @@ public class Config {
     /**
      * Change this to pick up different templates
      */
-    public String templateDir = "existingPlayer";
+    public String templateDir = "newPlayer";
     public String playerLoginTemplate = templateDir + "/" + "playerLogin.json";
     public String playerContentGetTemplate = templateDir + "/" + "playerContentGet.json";
     public String guildGetTemplate = templateDir + "/" + "guildGet.json";
