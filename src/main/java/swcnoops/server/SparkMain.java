@@ -19,7 +19,7 @@ public class SparkMain {
         port(8080);
         BatchRoute batchRoute = new BatchRoute();
         post("/starts/batch/json", batchRoute);
-        put("/starts/batch/json", batchRoute);
+        post("/starts/batch/jsons", batchRoute);
         post("/bi_event2", (a,b) -> {b.type("octet-stream"); return "{}";});
         get("/swcFiles/*", new GetFile());
     }
