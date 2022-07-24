@@ -22,6 +22,7 @@ public class SparkMain {
         post("/starts/batch/jsons", batchRoute);
         post("/bi_event2", (a,b) -> {b.type("octet-stream"); return "{}";});
         get("/swcFiles/*", new GetFile());
+        get("/*", new ConnectionTest());
     }
 
     private static void initialise() {
@@ -58,6 +59,20 @@ public class SparkMain {
             IOUtils.copy(in, os);
             in.close();
             os.close();
+            return null;
+        }
+    }
+
+    private static class ConnectionTest implements Route {
+        @Override
+        public Object handle(Request request, Response response) throws Exception {
+            if (request.pathInfo() != null && request.pathInfo().contains("connection_test.txt")) {
+                response.type("octet-stream");
+                response.status(200);
+                return "success";
+            }
+
+            response.status(404);
             return null;
         }
     }
