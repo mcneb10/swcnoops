@@ -23,6 +23,12 @@ public class SparkMain {
         post("/bi_event2", (a,b) -> {b.type("octet-stream"); return "{}";});
         get("/swcFiles/*", new GetFile());
         get("/*", new ConnectionTest());
+
+        exception(Exception.class, (e, request, response) -> {
+            e.printStackTrace();
+            response.status(404);
+            response.body("Resource not found");
+        });
     }
 
     private static void initialise() {

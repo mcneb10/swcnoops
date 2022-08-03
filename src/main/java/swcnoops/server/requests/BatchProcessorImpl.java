@@ -46,7 +46,7 @@ public class BatchProcessorImpl implements BatchProcessor {
             CommandAction commandAction = command.getCommandAction();
 
             if (commandAction == null) {
-                System.err.println(command.getAction() + " is not supported");
+                throw new Exception("Command " + command.getAction() + " not supported");
             }
 
             CommandResult commandResult = commandAction.execute(command.getArgs(), command.getTime());

@@ -141,10 +141,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory.capacity = -1;
         playerModel.inventory.storage = playerSession.getPlayerSettings().getInventoryStorage();
-        playerModel.inventory.storage.credits.amount = 0L;
-        playerModel.inventory.storage.crystals.amount = 9999999L;
-        playerModel.inventory.storage.contraband.amount = 9999999L;
-        playerModel.inventory.storage.materials.amount = 0L;
+//        playerModel.inventory.storage.credits.amount = 0L;
+//        playerModel.inventory.storage.crystals.amount = 9999999L;
+//        playerModel.inventory.storage.contraband.amount = 9999999L;
+//        playerModel.inventory.storage.materials.amount = 0L;
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 

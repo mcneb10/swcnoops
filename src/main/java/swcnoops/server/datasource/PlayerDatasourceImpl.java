@@ -365,4 +365,38 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     " and id=" + recipientPlayerSession.getPlayerId(), ex);
         }
     }
+
+    @Override
+    public void newPlayer(String playerId, String secret) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            createNewPlayer(playerId, secret, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private void createNewPlayer(String playerId, String secret, Connection connection) {
+        final String playerSql = "insert into Player (id, secret) values " +
+                "(?, ?)";
+
+        final String settingsSql = "insert into PlayerSettings (id, upgrades) values " +
+                "(?, '{}')";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(playerSql)) {
+                stmt.setString(1, playerId);
+                stmt.setString(2, secret);
+                stmt.executeUpdate();
+            }
+
+            try (PreparedStatement stmt = connection.prepareStatement(settingsSql)) {
+                stmt.setString(1, playerId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
+        }
+    }
 }
