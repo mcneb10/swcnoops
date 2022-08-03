@@ -7,9 +7,7 @@ import spark.Response;
 import spark.Route;
 import spark.utils.IOUtils;
 import javax.servlet.ServletOutputStream;
-import java.io.BufferedInputStream;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.*;
 import java.util.*;
 
 import static spark.Spark.*;
@@ -19,30 +17,55 @@ public class SparkMain {
     private static final Logger LOG = LoggerFactory.getLogger(SparkMain.class);
 
     public static void main(String[] args) {
-        LOG.info("Initialising");
-        initialise();
-        port(8080);
-        BatchRoute batchRoute = new BatchRoute();
-        post("/starts/batch/json", batchRoute);
-        post("/starts/batch/jsons", batchRoute);
-        post("/bi_event2", (a,b) -> {b.type("octet-stream"); return "{}";});
-        get("/swcFiles/*", new GetFile());
-        get("/*", new ConnectionTest());
+        try {
+            LOG.info("Initialising");
+            Properties properties = readProperties(args.length >= 1 ? args[0] : null);
+            initialise(properties);
+            LOG.info("Initialising complete, going to setup webserver and routes");
+            port(ServiceFactory.instance().getConfig().webServicePort);
+            BatchRoute batchRoute = new BatchRoute();
+            post("/starts/batch/json", batchRoute);
+            post("/starts/batch/jsons", batchRoute);
+            post("/bi_event2", (a, b) -> {
+                b.type("octet-stream");
+                return "{}";
+            });
+            get("/swcFiles/*", new GetFile());
+            get("/*", new ConnectionTest());
 
-        exception(Exception.class, (e, request, response) -> {
-            LOG.error("Caught exception ", e);
-            response.status(404);
-            response.body("Resource not found");
-        });
+            exception(Exception.class, (e, request, response) -> {
+                LOG.error("Caught exception ", e);
+                response.status(404);
+                response.body("Resource not found");
+            });
 
-        LOG.info("Initialising complete");
+            LOG.info("Done ready to process from port " + ServiceFactory.instance().getConfig().webServicePort);
+
+        } catch (Exception ex) {
+            LOG.error("Failed with exception", ex);
+            System.exit(-1);
+        }
     }
 
-    private static void initialise() {
+    private static void initialise(Properties properties) throws Exception {
         Config config = new Config();
+        config.setFromProperties(properties);
         ServiceFactory.instance(config);
         ServiceFactory.instance().getPlayerDatasource().initOnStartup();
         ServiceFactory.instance().getGameDataManager().initOnStartup();
+    }
+
+    private static Properties readProperties(String fileName) throws Exception {
+        Properties prop = new Properties();
+        if (fileName != null) {
+            LOG.info("Reading properties file " + fileName);
+            File configFile = new File(fileName);
+            try (FileReader reader = new FileReader(configFile)) {
+                prop.load(reader);
+            }
+        }
+
+        return prop;
     }
 
     private static class BatchRoute implements Route {
