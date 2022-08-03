@@ -65,7 +65,7 @@ public class SparkMain {
             IOUtils.copy(in, os);
             in.close();
             os.close();
-            return null;
+            return "";
         }
     }
 
@@ -79,7 +79,7 @@ public class SparkMain {
             }
 
             response.status(404);
-            return null;
+            return "";
         }
     }
 }
