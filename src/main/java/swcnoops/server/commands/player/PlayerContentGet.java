@@ -24,11 +24,11 @@ public class PlayerContentGet extends AbstractCommandAction<PlayerContentGet, Pl
     protected PlayerContentGetCommandResult execute(PlayerContentGet arguments, long time) throws Exception {
         PlayerContentGetCommandResult response =
                 parseJsonFile(ServiceFactory.instance().getConfig().playerContentGetTemplate, PlayerContentGetCommandResult.class);
-//        response.cdnRoots.clear();
-//        response.cdnRoots.add("http://192.168.1.108:8888/");
-//
-//        response.secureCdnRoots.clear();
-//        response.secureCdnRoots.add("http://192.168.1.108:8888/");
+        response.cdnRoots.clear();
+        response.cdnRoots.add("http://192.168.1.142:8080/swcFiles/");
+
+        response.secureCdnRoots.clear();
+        response.secureCdnRoots.add("http://192.168.1.142:8080/swcFiles/");
         return response;
     }
 

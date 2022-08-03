@@ -6,7 +6,6 @@ import swcnoops.server.requests.AbstractCommandResult;
 /**
  * not sure about this one yet
  */
-@Deprecated
 public class PlayerEpisodesProgressGetCommandResult extends AbstractCommandResult {
     public String uid;
     public Long endTime;

@@ -79,7 +79,6 @@ public class SessionManagerImpl implements SessionManager {
     }
 
     //TODO - make it load and minimise blocking
-    //should not be taking the name from being passed in, need to fix
     @Override
     public GuildSession getGuildSession(PlayerSettings playerSettings, String guildId) {
         GuildSession guildSession = this.guilds.get(guildId);
@@ -100,9 +99,7 @@ public class SessionManagerImpl implements SessionManager {
     }
 
     private GuildSession createGuildSession(PlayerSettings playerSettings, String guildId) {
-        GuildSession guildSession = null;
-
-        GuildSettings guildSettings = null;
+        GuildSettings guildSettings;
         if (playerSettings.getPlayerId().equals(guildId))
             guildSettings = new SelfDonatingSquad(playerSettings);
         else

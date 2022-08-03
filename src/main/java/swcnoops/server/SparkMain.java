@@ -1,5 +1,7 @@
 package swcnoops.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -14,7 +16,10 @@ import static spark.Spark.*;
 import static swcnoops.server.requests.BatchProcessorImpl.decodeParameters;
 
 public class SparkMain {
+    private static final Logger LOG = LoggerFactory.getLogger(SparkMain.class);
+
     public static void main(String[] args) {
+        LOG.info("Initialising");
         initialise();
         port(8080);
         BatchRoute batchRoute = new BatchRoute();
@@ -23,6 +28,14 @@ public class SparkMain {
         post("/bi_event2", (a,b) -> {b.type("octet-stream"); return "{}";});
         get("/swcFiles/*", new GetFile());
         get("/*", new ConnectionTest());
+
+        exception(Exception.class, (e, request, response) -> {
+            LOG.error("Caught exception ", e);
+            response.status(404);
+            response.body("Resource not found");
+        });
+
+        LOG.info("Initialising complete");
     }
 
     private static void initialise() {
@@ -59,7 +72,7 @@ public class SparkMain {
             IOUtils.copy(in, os);
             in.close();
             os.close();
-            return null;
+            return "";
         }
     }
 
@@ -73,7 +86,7 @@ public class SparkMain {
             }
 
             response.status(404);
-            return null;
+            return "";
         }
     }
 }

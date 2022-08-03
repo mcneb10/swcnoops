@@ -1,5 +1,6 @@
 package swcnoops.server.commands.auth.preauth;
 
+import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.Command;
 import swcnoops.server.json.JsonParser;
@@ -20,10 +21,9 @@ public class GeneratePlayer extends AbstractCommandAction<GeneratePlayer, Genera
 
     @Override
     protected GeneratePlayerCommandResult execute(GeneratePlayer arguments, long time) throws Exception {
-        // TODO - change generate our guid and secret
-        GeneratePlayerCommandResult generatePlayerResponse = new GeneratePlayerCommandResult();
-        generatePlayerResponse.playerId = "2c2d4aea-7f38-11e5-a29f-069096004f69";
-        generatePlayerResponse.secret = "1118035f8f4160d5606e0c1a5e101ae5";
+        GeneratePlayerCommandResult generatePlayerResponse = GeneratePlayerCommandResult.newInstance();
+        ServiceFactory.instance().getPlayerDatasource()
+                .newPlayer(generatePlayerResponse.playerId, generatePlayerResponse.secret);
         return generatePlayerResponse;
     }
 

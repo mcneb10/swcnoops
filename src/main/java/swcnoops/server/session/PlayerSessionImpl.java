@@ -307,15 +307,19 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     public GuildSession getGuildSession() {
+        String guildId = this.getPlayerSettings().getGuildId();
+        if (guildId == null || guildId.isEmpty())
+            return null;
+
+        GuildSession guildSession = ServiceFactory.instance().getSessionManager()
+                .getGuildSession(this.getPlayerSettings(), guildId);
         return guildSession;
     }
 
     @Override
     public void setGuildSession(GuildSession guildSession) {
-        this.guildSession = guildSession;
-
-        if (this.guildSession != null)
-            this.getPlayerSettings().setGuildId(this.guildSession.getGuildId());
+        if (guildSession != null)
+            this.getPlayerSettings().setGuildId(guildSession.getGuildId());
         else
             this.getPlayerSettings().setGuildId(null);
     }
