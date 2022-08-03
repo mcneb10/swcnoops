@@ -1,5 +1,7 @@
 package swcnoops.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.Request;
 import spark.Response;
 import spark.Route;
@@ -14,7 +16,10 @@ import static spark.Spark.*;
 import static swcnoops.server.requests.BatchProcessorImpl.decodeParameters;
 
 public class SparkMain {
+    private static final Logger LOG = LoggerFactory.getLogger(SparkMain.class);
+
     public static void main(String[] args) {
+        LOG.info("Initialising");
         initialise();
         port(8080);
         BatchRoute batchRoute = new BatchRoute();
@@ -25,10 +30,12 @@ public class SparkMain {
         get("/*", new ConnectionTest());
 
         exception(Exception.class, (e, request, response) -> {
-            e.printStackTrace();
+            LOG.error("Caught exception ", e);
             response.status(404);
             response.body("Resource not found");
         });
+
+        LOG.info("Initialising complete");
     }
 
     private static void initialise() {

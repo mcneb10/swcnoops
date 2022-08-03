@@ -1,5 +1,7 @@
 package swcnoops.server.commands.player;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandResult;
@@ -22,6 +24,7 @@ import java.util.Random;
  */
 public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, PlayerPvpGetNextTargetCommandResult>
 {
+    private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
     private List<File> layouts;
     private Random rand = new Random();
 
@@ -31,6 +34,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
                 parseJsonFile("templates/playerPvpGetNextTarget.json", PlayerPvpGetNextTargetCommandResult.class);
         response.battleId = ServiceFactory.createRandomUUID();
         response.map.buildings = getNextLayout();
+        response.map.planet = "planet24";
         setupDefenseTroops(response, response.map);
         return response;
     }
@@ -113,12 +117,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
                     donatedTroops.put(maxChosenTroop.getUid(), guildDonatedTroops);
                 }
 
-//                Integer donatedCount = guildDonatedTroops.get("random-sc");
-//                if (donatedCount == null) {
-//                    donatedCount = Integer.valueOf(0);
-//                }
-//                donatedCount += numberOfTroops;
-//                guildDonatedTroops.put("random-sc", donatedCount);
                 guildDonatedTroops.put(ServiceFactory.createRandomUUID(), numberOfTroops);
                 storage -= numberOfTroops * pickedSize;
             }
@@ -147,8 +145,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             mapObject = ServiceFactory.instance().getJsonParser().fromJsonFile(layoutFile.getAbsolutePath(), Buildings.class);
             return mapObject;
         } catch(Exception ex) {
-            // TODO
-            System.out.println(ex);
+            LOG.error("Failed to load next layout", ex);
         }
 
         return mapObject;
