@@ -1,5 +1,6 @@
 package swcnoops.server.commands;
 
+import org.junit.Ignore;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.PlayerEpisodesProgressGet;
@@ -16,6 +17,8 @@ import static org.junit.Assert.assertNotNull;
 public class PlayerEpisodesProgressGetTest {
     static {
         ServiceFactory.instance(new Config());
+        ServiceFactory.instance().getPlayerDatasource().initOnStartup();
+        ServiceFactory.instance().getGameDataManager().initOnStartup();
     }
 
     @Test
@@ -33,6 +36,7 @@ public class PlayerEpisodesProgressGetTest {
         System.out.println(timestamp.getTime());
     }
 
+    @Ignore
     @Test
     public void prefer() throws Exception {
         PlayerPreferencesSet playerPreferencesSet = new PlayerPreferencesSet();

@@ -11,6 +11,8 @@ import static org.junit.Assert.assertNotNull;
 public class PlayerPvpGetNextTargetTest {
     static {
         ServiceFactory.instance(new Config());
+        ServiceFactory.instance().getPlayerDatasource().initOnStartup();
+        ServiceFactory.instance().getGameDataManager().initOnStartup();
     }
 
     @Test
