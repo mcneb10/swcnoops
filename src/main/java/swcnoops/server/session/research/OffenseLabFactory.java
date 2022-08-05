@@ -17,9 +17,13 @@ public class OffenseLabFactory {
         for (MapItem mapItem : playerMapItems.getMapItems()) {
             BuildingData buildingData = mapItem.getBuildingData();
             if (buildingData != null && buildingData.getType() == BuildingType.troop_research) {
-                offenseLab = new OffenseLabImpl(playerSession, mapItem.getBuilding(), buildingData);
+                offenseLab = createOffenseLab(playerSession, mapItem);
             }
         }
         return offenseLab;
+    }
+
+    static public OffenseLab createOffenseLab(PlayerSession playerSession, MapItem mapItem) {
+        return (new OffenseLabImpl(playerSession, mapItem.getBuilding(), mapItem.getBuildingData()));
     }
 }

@@ -4,6 +4,7 @@ import swcnoops.server.game.*;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.PlayerMapItems;
 import swcnoops.server.session.map.MapItem;
+import swcnoops.server.session.research.OffenseLabFactory;
 
 import java.util.Set;
 
@@ -64,6 +65,10 @@ public class TrainingManagerFactory {
                 trainingManager.getDeployableSpecialAttack().addStorage(mapItem);
                 trainingManager.initialiseBuilder(mapItem, trainingManager.getDeployableSpecialAttack(),
                         ContractType.SpecialAttack);
+                break;
+            case troop_research:
+                trainingManager.getPlayerSession().setOffenseLab(
+                        OffenseLabFactory.createOffenseLab(trainingManager.getPlayerSession(), mapItem));
                 break;
         }
     }

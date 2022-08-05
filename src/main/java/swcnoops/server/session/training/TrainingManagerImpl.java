@@ -206,4 +206,9 @@ public class TrainingManagerImpl implements TrainingManager {
            builder.recalculateBuildUnitTimes(time);
         }
     }
+
+    @Override
+    public PlayerSession getPlayerSession() {
+        return this.playerSession;
+    }
 }

@@ -6,6 +6,7 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.TroopInventory;
+import swcnoops.server.session.research.OffenseLab;
 import swcnoops.server.session.training.TrainingManager;
 
 import java.util.List;
@@ -108,4 +109,6 @@ public interface PlayerSession {
     void buildingSwap(String buildingId, String buildingUid, long time);
 
     FactionType getFaction();
+
+    void setOffenseLab(OffenseLab offenseLab);
 }
