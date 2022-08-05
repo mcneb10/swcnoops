@@ -18,6 +18,9 @@ public class GuildSettingsImpl implements GuildSettings {
 
     private Map<String, String> memberMap = new HashMap<>();
     final private List<Member> members = new ArrayList<>();
+    private boolean openEnrollment;
+    private Integer minScoreAtEnrollment;
+    private String icon;
 
     public GuildSettingsImpl(String id) {
         this.id = id;
@@ -59,10 +62,9 @@ public class GuildSettingsImpl implements GuildSettings {
         return this.members;
     }
 
-    // TODO -
     @Override
     public String getIcon() {
-        return "SquadSymbols_11";
+        return this.icon;
     }
 
     protected void setName(String name) {
@@ -82,5 +84,30 @@ public class GuildSettingsImpl implements GuildSettings {
             this.memberMap.put(playerId, playerName);
             this.members.add(GuildHelper.createMember(playerId, playerName));
         }
+    }
+
+    @Override
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    @Override
+    public void setIcon(String icon) {
+        this.icon = icon;
+    }
+
+    @Override
+    public void setMinScoreAtEnrollment(Integer minScoreAtEnrollment) {
+        this.minScoreAtEnrollment = minScoreAtEnrollment;
+    }
+
+    @Override
+    public void setOpenEnrollment(boolean openEnrollment) {
+        this.openEnrollment = openEnrollment;
+    }
+
+    @Override
+    public boolean canEdit() {
+        return true;
     }
 }

@@ -75,4 +75,29 @@ public class SelfDonatingSquad implements GuildSettings {
     public String getIcon() {
         return "SquadSymbols_11";
     }
+
+    @Override
+    public void setDescription(String description) {
+
+    }
+
+    @Override
+    public void setIcon(String icon) {
+
+    }
+
+    @Override
+    public void setMinScoreAtEnrollment(Integer minScoreAtEnrollment) {
+
+    }
+
+    @Override
+    public void setOpenEnrollment(boolean openEnrollment) {
+
+    }
+
+    @Override
+    public boolean canEdit() {
+        return false;
+    }
 }

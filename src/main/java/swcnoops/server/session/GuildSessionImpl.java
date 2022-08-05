@@ -73,4 +73,20 @@ public class GuildSessionImpl implements GuildSession {
         // TODO
         // add a guild notification to say match making has started
     }
+
+    @Override
+    public void editGuild(String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment) {
+        this.guildSettings.setDescription(description);
+        this.guildSettings.setIcon(icon);
+        this.guildSettings.setMinScoreAtEnrollment(minScoreAtEnrollment);
+        this.guildSettings.setOpenEnrollment(openEnrollment);
+
+        ServiceFactory.instance().getPlayerDatasource().editGuild(this.getGuildId(),
+                description, icon, minScoreAtEnrollment, openEnrollment);
+    }
+
+    @Override
+    public boolean canEdit() {
+        return this.guildSettings.canEdit();
+    }
 }

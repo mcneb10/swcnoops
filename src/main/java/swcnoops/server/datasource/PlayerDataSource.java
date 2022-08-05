@@ -19,4 +19,6 @@ public interface PlayerDataSource {
     void newGuild(String playerId, SquadResult squadResult);
 
     GuildSettings loadGuildSettings(String guildId);
+
+    void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment);
 }

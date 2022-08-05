@@ -22,4 +22,8 @@ public interface GuildSession {
     void leave(PlayerSession playerSession);
 
     GuildSettings getGuildSettings();
+
+    void editGuild(String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment);
+
+    boolean canEdit();
 }

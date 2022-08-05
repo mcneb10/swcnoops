@@ -22,4 +22,14 @@ public interface GuildSettings {
     List<Member> getMembers();
 
     String getIcon();
+
+    void setDescription(String description);
+
+    void setIcon(String icon);
+
+    void setMinScoreAtEnrollment(Integer minScoreAtEnrollment);
+
+    void setOpenEnrollment(boolean openEnrollment);
+
+    boolean canEdit();
 }

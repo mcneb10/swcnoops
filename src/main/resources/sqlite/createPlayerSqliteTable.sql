@@ -32,5 +32,7 @@ CREATE TABLE IF NOT EXISTS Squads
      name text,
      perks json,
      members json,
-     warId text);
+     warId text,
+     description text,
+     icon text);
 
