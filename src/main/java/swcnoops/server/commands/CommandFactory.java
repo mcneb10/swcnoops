@@ -70,6 +70,7 @@ public class CommandFactory {
         this.add(new GuildGetPublic());
         this.add(new GuildJoin());
         this.add(new GuildLeave());
+        this.add(new GuildCreate());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());

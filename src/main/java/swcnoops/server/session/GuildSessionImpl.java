@@ -30,11 +30,16 @@ public class GuildSessionImpl implements GuildSession {
         return this.guildSettings.getGuildName();
     }
 
+    @Override
+    public void login(PlayerSession playerSession) {
+        playerSession.setGuildSession(this);
+        this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
+    }
+
     // TODO - needs proper handler to notify other players, or if the player is already in the squad
     @Override
     public void join(PlayerSession playerSession) {
-        playerSession.setGuildSession(this);
-        this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
+        login(playerSession);
         playerSession.savePlayerSession();
     }
 

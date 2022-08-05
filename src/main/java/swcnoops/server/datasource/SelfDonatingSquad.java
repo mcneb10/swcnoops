@@ -1,6 +1,7 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.model.FactionType;
 import swcnoops.server.model.Member;
 import swcnoops.server.model.Perks;
@@ -19,7 +20,7 @@ public class SelfDonatingSquad implements GuildSettings {
         this.faction = playerSettings.getFaction();
         this.guildId = playerSettings.getPlayerId();
 
-        this.members.add(createMember(playerSettings));
+        this.members.add(GuildHelper.createMember(playerSettings));
         this.members.add(createDonateBot(playerSettings));
     }
 
@@ -34,20 +35,6 @@ public class SelfDonatingSquad implements GuildSettings {
         member.name = DonateBotName;
         return member;
     }
-
-    private Member createMember(PlayerSettings playerSettings) {
-        Member member = new Member();
-        member.isOfficer = true;
-        member.isOwner = true;
-        member.playerId = playerSettings.getPlayerId();
-        member.planet = playerSettings.getBaseMap().planet;
-        member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.hqLevel = 1;
-        member.name = playerSettings.getName();
-        return member;
-    }
-
-    static final public Perks emptyPerks = new Perks();
 
     @Override
     public String getGuildId() {
@@ -76,7 +63,7 @@ public class SelfDonatingSquad implements GuildSettings {
 
     @Override
     public Perks getPerks() {
-        return emptyPerks;
+        return GuildHelper.emptyPerks;
     }
 
     @Override

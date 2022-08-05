@@ -1,5 +1,6 @@
 package swcnoops.server.datasource;
 
+import swcnoops.server.commands.guild.response.SquadResult;
 import swcnoops.server.session.PlayerSession;
 
 public interface PlayerDataSource {
@@ -14,4 +15,8 @@ public interface PlayerDataSource {
     void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession);
 
     void newPlayer(String playerId, String secret);
+
+    void newGuild(String playerId, SquadResult squadResult);
+
+    GuildSettings loadGuildSettings(String guildId);
 }

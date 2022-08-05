@@ -23,7 +23,7 @@ public class Config {
     public String swcFolderName = "swcFiles";
     public String swcRootPath = "c:/swcnoops/";
     public String layoutsPath = swcRootPath + "layouts";
-    public String event2BiLoggingIpAddress = "http://0.0.0.0";
+    public String event2BiLoggingIpAddress = "http://192.168.1.142:8080";
     public String playerSqliteDB = "jdbc:sqlite:" + swcRootPath + "players.db";
     public String playerCreatePlayerDBSqlResource = "sqlite/createPlayerSqliteTable.sql";
 

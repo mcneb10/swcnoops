@@ -109,9 +109,6 @@ public class SessionManagerImpl implements SessionManager {
     }
 
     private GuildSettings loadGuildSettings(String guildId) {
-        // TODO
-        //ServiceFactory.instance().getPlayerDatasource().loadGuildSettings(guildId);
-
-        return null;
+        return ServiceFactory.instance().getPlayerDatasource().loadGuildSettings(guildId);
     }
 }

@@ -29,4 +29,6 @@ public class SquadResult extends AbstractCommandResult {
     public List<WarHistory> warHistory;
     public Object warRating;
     public Long warSignUpTime;
+    public int minScoreAtEnrollment;
+    public boolean openEnrollment;
 }

@@ -59,6 +59,9 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
     }
 
     static protected SquadResult createSquadResult(GuildSession guildSession) {
+        if (guildSession == null)
+            return null;
+
         SquadResult squadResult = new SquadResult();
         squadResult.id = guildSession.getGuildId();
         squadResult.name = guildSession.getGuildName();

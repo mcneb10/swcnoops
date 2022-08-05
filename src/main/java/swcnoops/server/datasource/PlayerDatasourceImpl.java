@@ -1,10 +1,10 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.guild.response.SquadResult;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureManager;
-import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.training.DeployableQueue;
@@ -398,5 +398,86 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
         }
+    }
+
+    @Override
+    public void newGuild(String playerId, SquadResult squadResult) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            createNewGuild(playerId, squadResult, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private void createNewGuild(String playerId, SquadResult squadResult, Connection connection) {
+        final String squadSql = "insert into Squads (id, faction, name) values " +
+                "(?, ?, ?)";
+
+        final String playerSettingsSql = "update PlayerSettings " +
+                "set guildId = ? " +
+                "WHERE id = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+                stmt.setString(1, squadResult.id);
+                stmt.setString(2, squadResult.faction.toString());
+                stmt.setString(3, squadResult.name);
+                stmt.executeUpdate();
+            }
+
+            try (PreparedStatement stmt = connection.prepareStatement(playerSettingsSql)) {
+                stmt.setString(1, squadResult.id);
+                stmt.setString(2, playerId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
+        }
+    }
+
+    @Override
+    public GuildSettings loadGuildSettings(String guildId) {
+        final String sql = "SELECT id, name, faction, perks, members, warId " +
+                "FROM Squads s WHERE s.id = ?";
+
+        final String squadPlayers = "SELECT id, name " +
+                "FROM PlayerSettings s WHERE s.guildId = ?";
+
+        GuildSettingsImpl guildSettings = null;
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+                    pstmt.setString(1, guildId);
+                    ResultSet rs = pstmt.executeQuery();
+
+                    while (rs.next()) {
+                        guildSettings = new GuildSettingsImpl(rs.getString("id"));
+                        guildSettings.setName(rs.getString("name"));
+
+                        String faction = rs.getString("faction");
+                        if (faction != null && !faction.isEmpty())
+                            guildSettings.setFaction(FactionType.valueOf(faction));
+                    }
+                }
+
+                try (PreparedStatement pstmt = con.prepareStatement(squadPlayers)) {
+                    pstmt.setString(1, guildId);
+                    ResultSet rs = pstmt.executeQuery();
+
+                    while (rs.next()) {
+                        String playerId = rs.getString("id");
+                        String playerName = rs.getString("name");
+
+                        guildSettings.addMember(playerId, playerName);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load Guild settings from DB id=" + guildId, ex);
+        }
+
+        return guildSettings;
     }
 }

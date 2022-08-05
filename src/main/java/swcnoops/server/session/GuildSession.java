@@ -7,6 +7,8 @@ import java.util.Map;
 public interface GuildSession {
     String getGuildId();
 
+    void login(PlayerSession playerSession);
+
     void join(PlayerSession playerSession);
 
     void troopsRequest(String playerId, String message, long time);
