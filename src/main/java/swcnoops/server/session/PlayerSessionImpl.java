@@ -32,12 +32,10 @@ public class PlayerSessionImpl implements PlayerSession {
     final private TrainingManager trainingManager;
     final private CreatureManager creatureManager;
     final private TroopInventory troopInventory;
-    final private OffenseLab offenseLab;
+    private OffenseLab offenseLab;
     final private DonatedTroops donatedTroops;
     final private InventoryStorage inventoryStorage;
     final private PlayerMapItems playerMapItems;
-
-    private GuildSession guildSession;
     private DroidManager droidManager;
 
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
@@ -256,7 +254,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingCancel(String buildingId, String tag, long time) {
         this.processCompletedContracts(time);
-        if (this.offenseLab.getBuildingKey().equals(buildingId)) {
+        if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
             if (offenseLab.isResearchingTroop()) {
                 this.offenseLab.cancel(time);
             } else {
@@ -277,7 +275,9 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void deployableUpgradeStart(String buildingId, String troopUid, long time) {
         this.processCompletedContracts(time);
-        this.offenseLab.upgradeStart(buildingId, troopUid, time);
+        if (this.offenseLab != null)
+            this.offenseLab.upgradeStart(buildingId, troopUid, time);
+
         this.savePlayerSession();
     }
 
@@ -298,8 +298,8 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public boolean isInGuild(String guildId) {
-        if (this.guildSession != null) {
-            GuildSession guild = this.guildSession;
+        if (this.getGuildSession() != null) {
+            GuildSession guild = this.getGuildSession();
             return guildId.equals(guild.getGuildId());
         }
 
@@ -599,5 +599,10 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public FactionType getFaction() {
         return this.playerSettings.getFaction();
+    }
+
+    @Override
+    public void setOffenseLab(OffenseLab offenseLab) {
+        this.offenseLab = offenseLab;
     }
 }

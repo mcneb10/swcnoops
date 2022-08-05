@@ -25,10 +25,10 @@ public class PlayerContentGet extends AbstractCommandAction<PlayerContentGet, Pl
         PlayerContentGetCommandResult response =
                 parseJsonFile(ServiceFactory.instance().getConfig().playerContentGetTemplate, PlayerContentGetCommandResult.class);
         response.cdnRoots.clear();
-        response.cdnRoots.add("http://192.168.1.142:8080/swcFiles/");
+        response.cdnRoots.add(ServiceFactory.instance().getConfig().cdnRoots);
 
         response.secureCdnRoots.clear();
-        response.secureCdnRoots.add("http://192.168.1.142:8080/swcFiles/");
+        response.secureCdnRoots.add(ServiceFactory.instance().getConfig().cdnRoots);
         return response;
     }
 
