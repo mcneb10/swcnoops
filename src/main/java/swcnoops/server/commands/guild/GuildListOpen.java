@@ -7,6 +7,7 @@ import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.Squad;
 import swcnoops.server.session.PlayerSession;
+import java.util.List;
 
 public class GuildListOpen extends AbstractCommandAction<GuildListOpen, GuildListOpenResult> {
 
@@ -18,8 +19,11 @@ public class GuildListOpen extends AbstractCommandAction<GuildListOpen, GuildLis
         GuildListOpenResult guildListOpenResult = new GuildListOpenResult();
         Squad squad = createSelfDonateSquad(playerSession);
         guildListOpenResult.addSquad(squad);
+        List<Squad> squads = ServiceFactory.instance().getPlayerDatasource().getGuildList(playerSession.getFaction());
 
-        // TODO - read from DB and add the other squads
+        if (squads != null)
+            guildListOpenResult.getSquadData().addAll(squads);
+
         return guildListOpenResult;
     }
 

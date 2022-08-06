@@ -7,6 +7,7 @@ import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.MembershipRestrictions;
+import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
 public class GuildGetPublic extends AbstractCommandAction<GuildGetPublic, SquadResult> {
@@ -17,7 +18,17 @@ public class GuildGetPublic extends AbstractCommandAction<GuildGetPublic, SquadR
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        SquadResult squadResult = createSelfDonatingSquadResult(playerSession.getPlayerSettings());
+        SquadResult squadResult;
+
+        if (arguments.getGuildId().equals(arguments.getPlayerId()))
+            squadResult = createSelfDonatingSquadResult(playerSession.getPlayerSettings());
+        else {
+            GuildSession guildSession = ServiceFactory.instance().getSessionManager()
+                    .getGuildSession(playerSession.getPlayerSettings(), arguments.getGuildId());
+
+            squadResult = GuildCommandAction.createSquadResult(guildSession);;
+        }
+
         return squadResult;
     }
 

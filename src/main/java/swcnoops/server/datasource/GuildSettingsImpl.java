@@ -16,7 +16,7 @@ public class GuildSettingsImpl implements GuildSettings {
     private String description;
     private FactionType faction;
 
-    private Map<String, String> memberMap = new HashMap<>();
+    private Map<String, Member> memberMap = new HashMap<>();
     final private List<Member> members = new ArrayList<>();
     private boolean openEnrollment;
     private Integer minScoreAtEnrollment;
@@ -79,10 +79,20 @@ public class GuildSettingsImpl implements GuildSettings {
         this.faction = faction;
     }
 
-    protected void addMember(String playerId, String playerName) {
+    @Override
+    public void addMember(String playerId, String playerName) {
         if (!this.memberMap.containsKey(playerId)) {
-            this.memberMap.put(playerId, playerName);
-            this.members.add(GuildHelper.createMember(playerId, playerName));
+            Member member = GuildHelper.createMember(playerId, playerName);
+            this.memberMap.put(playerId, member);
+            this.members.add(member);
+        }
+    }
+
+    @Override
+    public void removeMember(String playerId) {
+        if (!this.memberMap.containsKey(playerId)) {
+            Member member = this.memberMap.remove(playerId);
+            this.members.remove(member);
         }
     }
 

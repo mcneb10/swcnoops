@@ -33,6 +33,7 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public void login(PlayerSession playerSession) {
         playerSession.setGuildSession(this);
+        this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName());
         this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
     }
 
@@ -46,6 +47,7 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public void leave(PlayerSession playerSession) {
         playerSession.setGuildSession(null);
+        this.guildSettings.removeMember(playerSession.getPlayerId());
         this.guildPlayerSessions.remove(playerSession.getPlayerId());
         playerSession.savePlayerSession();
     }

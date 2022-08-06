@@ -13,6 +13,8 @@ import swcnoops.server.session.training.TrainingManager;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -515,5 +517,49 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to edit squad id=" + guildId, ex);
         }
+    }
+
+    @Override
+    public List<Squad> getGuildList(FactionType faction) {
+        try (Connection connection = getConnection()) {
+            return getGuildList(faction, connection);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private List<Squad> getGuildList(FactionType faction, Connection connection) {
+        final String sql = "SELECT id, name, faction, description, icon " +
+                "FROM Squads s WHERE s.faction = ?";
+
+        List<Squad> squads = new ArrayList<>();
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+                    pstmt.setString(1, faction.name());
+                    ResultSet rs = pstmt.executeQuery();
+
+                    while (rs.next()) {
+                        Squad squad = new Squad();
+                        squad._id = rs.getString("id");
+                        squad.name = rs.getString("name");
+                        squad.faction = FactionType.valueOf(rs.getString("faction"));
+                        squad.icon = rs.getString("icon");
+                        squad.openEnrollment = true;
+                        squad.minScore = 0;
+                        squad.rank = 0;
+                        squad.level = 0;
+                        squad.activeMemberCount = 1;
+                        squad.members = 10;
+                        squad.score = 1;
+                        squads.add(squad);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load Guild list from DB", ex);
+        }
+
+        return squads;
     }
 }

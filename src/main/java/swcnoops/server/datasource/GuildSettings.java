@@ -32,4 +32,8 @@ public interface GuildSettings {
     void setOpenEnrollment(boolean openEnrollment);
 
     boolean canEdit();
+
+    void addMember(String playerId, String playerName);
+
+    void removeMember(String playerId);
 }

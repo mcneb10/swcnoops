@@ -100,4 +100,14 @@ public class SelfDonatingSquad implements GuildSettings {
     public boolean canEdit() {
         return false;
     }
+
+    @Override
+    public void addMember(String playerId, String playerName) {
+        throw new RuntimeException("Not implemented");
+    }
+
+    @Override
+    public void removeMember(String playerId) {
+        throw new RuntimeException("Not implemented");
+    }
 }
