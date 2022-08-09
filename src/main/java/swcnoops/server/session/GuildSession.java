@@ -26,4 +26,6 @@ public interface GuildSession {
     void editGuild(String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment);
 
     boolean canEdit();
+
+    void createNewGuild(PlayerSession playerSession);
 }

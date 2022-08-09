@@ -3,8 +3,10 @@ package swcnoops.server.commands.guild;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.guild.response.SquadResult;
+import swcnoops.server.datasource.GuildSettingsImpl;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.session.GuildSession;
+import swcnoops.server.session.GuildSessionImpl;
 import swcnoops.server.session.PlayerSession;
 
 public class GuildCreate extends AbstractCommandAction<GuildCreate, SquadResult> {
@@ -19,20 +21,22 @@ public class GuildCreate extends AbstractCommandAction<GuildCreate, SquadResult>
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        SquadResult squadResult = new SquadResult();
-        squadResult.id = ServiceFactory.createRandomUUID();
-        squadResult.name = arguments.getName();
-        squadResult.description = arguments.getDescription();
-        squadResult.icon = arguments.getIcon();
-        squadResult.minScoreAtEnrollment = arguments.getMinScoreAtEnrollment();
-        squadResult.openEnrollment = arguments.getOpenEnrollment();
-        squadResult.faction = playerSession.getFaction();
-
-        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession.getPlayerId(), squadResult);
-        GuildSession guildSession = ServiceFactory.instance().getSessionManager()
-                .getGuildSession(playerSession.getPlayerSettings(), squadResult.id);
+        GuildSettingsImpl guildSettings = new GuildSettingsImpl(ServiceFactory.createRandomUUID());
+        guildSettings.setName(arguments.getName());
+        guildSettings.setDescription(arguments.getDescription());
+        guildSettings.setIcon(arguments.getIcon());
+        guildSettings.setFaction(playerSession.getFaction());
+        guildSettings.setOpenEnrollment(arguments.getOpenEnrollment());
+        guildSettings.setMinScoreAtEnrollment(arguments.getMinScoreAtEnrollment());
+        GuildSession guildSession = new GuildSessionImpl(guildSettings);
         guildSession.login(playerSession);
-        squadResult = GuildCommandAction.createSquadResult(guildSession);
+
+        guildSession.createNewGuild(playerSession);
+
+        guildSession = ServiceFactory.instance().getSessionManager()
+                .getGuildSession(playerSession.getPlayerSettings(), guildSettings.getGuildId());
+        guildSession.login(playerSession);
+        SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
         return squadResult;
     }
 

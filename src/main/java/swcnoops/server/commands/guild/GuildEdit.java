@@ -19,7 +19,6 @@ public class GuildEdit extends AbstractCommandAction<GuildEdit, CommandResult> {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        // we only edit
         if (playerSession.getGuildSession().canEdit()) {
             playerSession.getGuildSession().editGuild(arguments.getDescription(),
                     arguments.getIcon(),

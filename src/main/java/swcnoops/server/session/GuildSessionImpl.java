@@ -88,7 +88,13 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
+    public void createNewGuild(PlayerSession playerSession) {
+        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession.getPlayerId(),
+                this.getGuildSettings());
+    }
+
+    @Override
     public boolean canEdit() {
-        return this.guildSettings.canEdit();
+        return this.guildSettings.canSave();
     }
 }

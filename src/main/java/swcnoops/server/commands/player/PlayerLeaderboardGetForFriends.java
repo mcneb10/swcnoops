@@ -4,6 +4,7 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.guild.response.LeaderboardResult;
 import swcnoops.server.json.JsonParser;
 
+// TODO
 public class PlayerLeaderboardGetForFriends extends AbstractCommandAction<PlayerLeaderboardGetForFriends, LeaderboardResult> {
     private String friendIds;
 

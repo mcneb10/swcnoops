@@ -67,7 +67,7 @@ public class GuildSettingsImpl implements GuildSettings {
         return this.icon;
     }
 
-    protected void setName(String name) {
+    public void setName(String name) {
         this.name = name;
     }
 
@@ -75,7 +75,7 @@ public class GuildSettingsImpl implements GuildSettings {
         return name;
     }
 
-    protected void setFaction(FactionType faction) {
+    public void setFaction(FactionType faction) {
         this.faction = faction;
     }
 
@@ -117,7 +117,7 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     @Override
-    public boolean canEdit() {
+    public boolean canSave() {
         return true;
     }
 }

@@ -1,14 +1,13 @@
 package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.guild.response.SquadResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.SessionManager;
 
-public class GuildJoin extends AbstractCommandAction<GuildJoin, SquadResult> {
+public class GuildJoin extends GuildCommandAction<GuildJoin, SquadResult> {
     private String guildId;
 
     @Override

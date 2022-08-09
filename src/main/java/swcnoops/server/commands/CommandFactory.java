@@ -43,8 +43,6 @@ public class CommandFactory {
         this.add(new PlayerBuildingCapture());
         this.add(new PlayerBuildingBuyout());
         this.add(new PlayerDeployableUpgradeStart());
-        this.add(new GuildTroopsRequest());
-        this.add(new GuildTroopsDonate());
 
         this.add(new PlayerBuildingCancel());
         this.add(new PlayerBuildingMultimove());
@@ -72,6 +70,8 @@ public class CommandFactory {
         this.add(new GuildLeave());
         this.add(new GuildCreate());
         this.add(new GuildEdit());
+        this.add(new GuildTroopsRequest());
+        this.add(new GuildTroopsDonate());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());

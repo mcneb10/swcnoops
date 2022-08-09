@@ -1,7 +1,6 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.guild.response.SquadResult;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureManager;
@@ -403,19 +402,19 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void newGuild(String playerId, SquadResult squadResult) {
+    public void newGuild(String playerId, GuildSettings guildSettings) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
-            createNewGuild(playerId, squadResult, connection);
+            createNewGuild(playerId, guildSettings, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
         }
     }
 
-    private void createNewGuild(String playerId, SquadResult squadResult, Connection connection) {
-        final String squadSql = "insert into Squads (id, faction, name) values " +
-                "(?, ?, ?)";
+    private void createNewGuild(String playerId, GuildSettings guildSettings, Connection connection) {
+        final String squadSql = "insert into Squads (id, faction, name, icon, description, leaderId) values " +
+                "(?, ?, ?, ?, ?, ?)";
 
         final String playerSettingsSql = "update PlayerSettings " +
                 "set guildId = ? " +
@@ -423,14 +422,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setString(1, squadResult.id);
-                stmt.setString(2, squadResult.faction.toString());
-                stmt.setString(3, squadResult.name);
+                stmt.setString(1, guildSettings.getGuildId());
+                stmt.setString(2, guildSettings.getFaction().toString());
+                stmt.setString(3, guildSettings.getGuildName());
+                stmt.setString(4, guildSettings.getIcon());
+                stmt.setString(5, guildSettings.getDescription());
+                stmt.setString(6, playerId);
                 stmt.executeUpdate();
             }
 
             try (PreparedStatement stmt = connection.prepareStatement(playerSettingsSql)) {
-                stmt.setString(1, squadResult.id);
+                stmt.setString(1, guildSettings.getGuildId());
                 stmt.setString(2, playerId);
                 stmt.executeUpdate();
             }

@@ -1,11 +1,10 @@
 package swcnoops.server.commands.guild.response;
 
 import swcnoops.server.model.*;
-import swcnoops.server.requests.AbstractCommandResult;
 
 import java.util.List;
 
-public class SquadResult extends AbstractCommandResult {
+public class SquadResult extends GuildResult {
     public FactionType faction;
     public int activeMemberCount;
     public long created;
