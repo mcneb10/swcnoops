@@ -127,4 +127,9 @@ public class GuildSettingsImpl implements GuildSettings {
 
         return squadNotification;
     }
+
+    @Override
+    public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
+        return recipientPlayerId;
+    }
 }

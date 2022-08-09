@@ -2,7 +2,6 @@ package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.response.GuildTroopsDonateCommandResult;
-import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
@@ -23,9 +22,6 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
                 .getPlayerSession(arguments.getPlayerId());
 
         String recipientPlayerId = arguments.getRecipientId();
-        if (playerSession.getGuildSession().getGuildName().equals(SelfDonatingSquad.NAME))
-            recipientPlayerId = arguments.getPlayerId();
-
         SquadNotification squadNotification = playerSession.getGuildSession().troopDonation(arguments.getTroopsDonated(),
                 arguments.getRequestId(), playerSession, recipientPlayerId, time);
 

@@ -76,6 +76,9 @@ public class GuildSessionImpl implements GuildSession {
         SquadNotification squadNotification = new SquadNotification(ServiceFactory.createRandomUUID(),
                 null, playerSession.getPlayerSettings().getName(), playerSession.getPlayerId(), SquadMsgType.troopDonation);
 
+        // determine recipient for self donation to work
+        recipientPlayerId = this.guildSettings.troopDonationRecipient(playerSession, recipientPlayerId);
+
         // remove from the donor
         playerSession.removeDeployedTroops(troopsDonated, time);
 
@@ -93,6 +96,8 @@ public class GuildSessionImpl implements GuildSession {
 
         squadNotification.setData(troopDonationData);
         this.addNotification(squadNotification);
+
+        // TODO - save notification
         return squadNotification;
     }
 

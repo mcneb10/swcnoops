@@ -121,4 +121,9 @@ public class SelfDonatingSquad implements GuildSettings {
 
         return squadNotification;
     }
+
+    @Override
+    public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
+        return playerSession.getPlayerId();
+    }
 }

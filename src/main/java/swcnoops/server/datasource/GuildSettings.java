@@ -40,4 +40,6 @@ public interface GuildSettings {
     void removeMember(String playerId);
 
     SquadNotification createTroopRequest(PlayerSession playerSession, String message);
+
+    String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId);
 }
