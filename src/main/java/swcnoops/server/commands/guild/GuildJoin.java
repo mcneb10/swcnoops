@@ -17,20 +17,7 @@ public class GuildJoin extends GuildCommandAction<GuildJoin, SquadResult> {
         SessionManager sessionManager = ServiceFactory.instance().getSessionManager();
         PlayerSession playerSession = sessionManager.getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = sessionManager.getGuildSession(playerSession.getPlayerSettings(), arguments.getGuildId());
-        GuildSession oldSquad = playerSession.getGuildSession();
-        if (oldSquad != null) {
-            oldSquad.leave(playerSession);
-            SquadNotification leaveNotification = oldSquad.createNotification(playerSession, SquadMsgType.leave);
-            oldSquad.addNotification(leaveNotification);
-        }
         guildSession.join(playerSession);
-
-        SquadNotification joinNotification =
-                guildSession.createNotification(playerSession, SquadMsgType.join);
-
-        guildSession.addNotification(joinNotification);
-
-        // TODO - save the notifications
 
         SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
         return squadResult;

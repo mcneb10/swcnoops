@@ -45,6 +45,8 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public void join(PlayerSession playerSession) {
         login(playerSession);
+        SquadNotification joinNotification = createNotification(playerSession, SquadMsgType.join);
+        this.addNotification(joinNotification);
         playerSession.savePlayerSession();
     }
 
@@ -53,6 +55,9 @@ public class GuildSessionImpl implements GuildSession {
         playerSession.setGuildSession(null);
         this.guildSettings.removeMember(playerSession.getPlayerId());
         this.guildPlayerSessions.remove(playerSession.getPlayerId());
+
+        SquadNotification joinNotification = createNotification(playerSession, SquadMsgType.leave);
+        this.addNotification(joinNotification);
         playerSession.savePlayerSession();
     }
 
@@ -102,8 +107,21 @@ public class GuildSessionImpl implements GuildSession {
         return this.guildSettings.canSave();
     }
 
+    private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
+
     @Override
-    public SquadNotification createNotification(PlayerSession playerSession, SquadMsgType squadMsgType) {
+    synchronized public void addNotification(SquadNotification squadNotification) {
+        squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        this.squadNotifications.add(squadNotification);
+    }
+
+    public List<SquadNotification> getNotificationsSince(long since) {
+        List<SquadNotification> notifications =
+                this.squadNotifications.stream().filter(n -> n.getDate() >= since).collect(Collectors.toList());
+        return notifications;
+    }
+
+    final static public SquadNotification createNotification(PlayerSession playerSession, SquadMsgType squadMsgType) {
         SquadNotification squadNotification = null;
         if (squadMsgType != null) {
             switch (squadMsgType) {
@@ -120,19 +138,5 @@ public class GuildSessionImpl implements GuildSession {
         }
 
         return squadNotification;
-    }
-
-    private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
-
-    @Override
-    synchronized public void addNotification(SquadNotification squadNotification) {
-        squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        this.squadNotifications.add(squadNotification);
-    }
-
-    public List<SquadNotification> getNotificationsSince(long since) {
-        List<SquadNotification> notifications =
-                this.squadNotifications.stream().filter(n -> n.getDate() >= since).collect(Collectors.toList());
-        return notifications;
     }
 }

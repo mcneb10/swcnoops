@@ -476,7 +476,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     while (rs.next()) {
                         String playerId = rs.getString("id");
                         String playerName = rs.getString("name");
-
                         guildSettings.addMember(playerId, playerName);
                     }
                 }

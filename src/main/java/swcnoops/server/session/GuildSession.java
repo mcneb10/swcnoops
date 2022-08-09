@@ -32,8 +32,6 @@ public interface GuildSession {
 
     void createNewGuild(PlayerSession playerSession);
 
-    SquadNotification createNotification(PlayerSession playerSession, SquadMsgType squadMsgType);
-
     void addNotification(SquadNotification squadNotification);
 
     List<SquadNotification> getNotificationsSince(long since);

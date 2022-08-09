@@ -36,7 +36,7 @@ public class GuildListOpen extends AbstractCommandAction<GuildListOpen, GuildLis
         squad.openEnrollment = true;
         squad.level = 1;
         squad.members = selfDonatingSquad.getMembers().size();
-        squad.activeMemberCount = selfDonatingSquad.getMembers().size();
+        squad.activeMemberCount = squad.members;
         return squad;
     }
 

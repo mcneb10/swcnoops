@@ -73,8 +73,8 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         squadResult.perks = guildSession.getGuildSettings().getPerks();
         squadResult.members = guildSession.getGuildSettings().getMembers();
         squadResult.warSignUpTime = null;
-        squadResult.memberCount = guildSession.getGuildSettings().getMembers().size();
-        squadResult.activeMemberCount = guildSession.getGuildSettings().getMembers().size();
+        squadResult.memberCount = squadResult.members.size();
+        squadResult.activeMemberCount = squadResult.members.size();
         squadResult.icon = guildSession.getGuildSettings().getIcon();
         squadResult.rank = 1;
         squadResult.level = 1;

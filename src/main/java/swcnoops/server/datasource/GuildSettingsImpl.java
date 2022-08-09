@@ -6,18 +6,16 @@ import swcnoops.server.model.Member;
 import swcnoops.server.model.Perks;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class GuildSettingsImpl implements GuildSettings {
     private String id;
     private String name;
     private String description;
     private FactionType faction;
-
-    private Map<String, Member> memberMap = new HashMap<>();
-    final private List<Member> members = new ArrayList<>();
+    private Map<String, Member> memberMap = new ConcurrentHashMap<>();
     private boolean openEnrollment;
     private Integer minScoreAtEnrollment;
     private String icon;
@@ -59,7 +57,7 @@ public class GuildSettingsImpl implements GuildSettings {
 
     @Override
     public List<Member> getMembers() {
-        return this.members;
+        return new ArrayList<>(this.memberMap.values());
     }
 
     @Override
@@ -84,15 +82,13 @@ public class GuildSettingsImpl implements GuildSettings {
         if (!this.memberMap.containsKey(playerId)) {
             Member member = GuildHelper.createMember(playerId, playerName);
             this.memberMap.put(playerId, member);
-            this.members.add(member);
         }
     }
 
     @Override
     public void removeMember(String playerId) {
         if (this.memberMap.containsKey(playerId)) {
-            Member member = this.memberMap.remove(playerId);
-            this.members.remove(member);
+            this.memberMap.remove(playerId);
         }
     }
 

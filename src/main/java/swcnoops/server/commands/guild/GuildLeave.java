@@ -19,12 +19,6 @@ public class GuildLeave extends AbstractCommandAction<GuildLeave, CommandResult>
         playerSession.getDonatedTroops().clear();
         GuildSession oldSquad = playerSession.getGuildSession();
         oldSquad.leave(playerSession);
-        SquadNotification joinNotification =
-                oldSquad.createNotification(playerSession, SquadMsgType.leave);
-        oldSquad.addNotification(joinNotification);
-
-        // TODO - save
-
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

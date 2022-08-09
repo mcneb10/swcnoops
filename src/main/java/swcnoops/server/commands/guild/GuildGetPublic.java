@@ -6,9 +6,12 @@ import swcnoops.server.commands.guild.response.SquadResult;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.Member;
 import swcnoops.server.model.MembershipRestrictions;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
+
+import java.util.List;
 
 public class GuildGetPublic extends AbstractCommandAction<GuildGetPublic, SquadResult> {
     private String guildId;
@@ -39,8 +42,9 @@ public class GuildGetPublic extends AbstractCommandAction<GuildGetPublic, SquadR
         squadResult.name = selfDonatingSquad.getGuildName();
         squadResult.description = selfDonatingSquad.getDescription();
         squadResult.faction = selfDonatingSquad.getFaction();
-        squadResult.memberCount = selfDonatingSquad.getMembers().size();
-        squadResult.activeMemberCount = selfDonatingSquad.getMembers().size();
+        List<Member> members = selfDonatingSquad.getMembers();
+        squadResult.memberCount = members.size();
+        squadResult.activeMemberCount = members.size();
         squadResult.level = 1;
         squadResult.rank = 1;
         squadResult.warSignUpTime = null;
