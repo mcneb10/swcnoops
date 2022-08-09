@@ -2,10 +2,14 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.GuildSettings;
-
+import swcnoops.server.model.SquadMsgType;
+import swcnoops.server.model.SquadNotification;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.stream.Collectors;
 
 public class GuildSessionImpl implements GuildSession {
     final private GuildSettings guildSettings;
@@ -96,5 +100,39 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public boolean canEdit() {
         return this.guildSettings.canSave();
+    }
+
+    @Override
+    public SquadNotification createNotification(PlayerSession playerSession, SquadMsgType squadMsgType) {
+        SquadNotification squadNotification = null;
+        if (squadMsgType != null) {
+            switch (squadMsgType) {
+                case leave:
+                case join:
+                    squadNotification =
+                            new SquadNotification(ServiceFactory.createRandomUUID(), null,
+                                    playerSession.getPlayerSettings().getName(),
+                                    playerSession.getPlayerId(), squadMsgType);
+                    break;
+                default:
+                    throw new RuntimeException("SquadMsgType not support yet " + squadMsgType);
+            }
+        }
+
+        return squadNotification;
+    }
+
+    private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
+
+    @Override
+    synchronized public void addNotification(SquadNotification squadNotification) {
+        squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        this.squadNotifications.add(squadNotification);
+    }
+
+    public List<SquadNotification> getNotificationsSince(long since) {
+        List<SquadNotification> notifications =
+                this.squadNotifications.stream().filter(n -> n.getDate() >= since).collect(Collectors.toList());
+        return notifications;
     }
 }

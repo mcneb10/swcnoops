@@ -1,6 +1,9 @@
 package swcnoops.server.session;
 
 import swcnoops.server.datasource.GuildSettings;
+import swcnoops.server.model.SquadMsgType;
+import swcnoops.server.model.SquadNotification;
+
 import java.util.List;
 import java.util.Map;
 
@@ -28,4 +31,10 @@ public interface GuildSession {
     boolean canEdit();
 
     void createNewGuild(PlayerSession playerSession);
+
+    SquadNotification createNotification(PlayerSession playerSession, SquadMsgType squadMsgType);
+
+    void addNotification(SquadNotification squadNotification);
+
+    List<SquadNotification> getNotificationsSince(long since);
 }

@@ -72,6 +72,7 @@ public class CommandFactory {
         this.add(new GuildEdit());
         this.add(new GuildTroopsRequest());
         this.add(new GuildTroopsDonate());
+        this.add(new GuildNotificationsGet());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());
@@ -99,9 +100,6 @@ public class CommandFactory {
 
         // TODO - this command looks like it will give an update on war etc.. related to TransmissionVO
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
-
-        // TODO - squad messages and notifications from a point in time
-        this.add(new OkListCommandAction("guild.notifications.get"));
 
         // TODO - planet population stats maybe
         this.add(new OkCommandAction("player.planet.stats"));

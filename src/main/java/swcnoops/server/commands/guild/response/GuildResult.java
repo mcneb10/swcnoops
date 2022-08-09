@@ -33,11 +33,17 @@ public class GuildResult extends AbstractCommandResult {
 
     @JsonIgnore
     public String getGuildId() {
+        if (this.guildSession == null)
+            return null;
+
         return this.guildSession.getGuildId();
     }
 
     @JsonIgnore
     public String getGuildName() {
+        if (this.guildSession == null)
+            return null;
+
         return this.guildSession.getGuildName();
     }
 

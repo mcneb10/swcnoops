@@ -90,7 +90,7 @@ public class GuildSettingsImpl implements GuildSettings {
 
     @Override
     public void removeMember(String playerId) {
-        if (!this.memberMap.containsKey(playerId)) {
+        if (this.memberMap.containsKey(playerId)) {
             Member member = this.memberMap.remove(playerId);
             this.members.remove(member);
         }
