@@ -7,7 +7,7 @@ public class SquadNotification {
     final private String name;
     final private String playerId;
     final private SquadMsgType type;
-    final private SquadNotificationData data;
+    private SquadNotificationData data;
 
     public SquadNotification(String id, String message, String name, String playerId, SquadMsgType type)
     {
@@ -56,5 +56,9 @@ public class SquadNotification {
 
     public SquadNotificationData getData() {
         return data;
+    }
+
+    public void setData(SquadNotificationData data) {
+        this.data = data;
     }
 }

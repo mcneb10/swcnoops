@@ -3,6 +3,8 @@ package swcnoops.server.datasource;
 import swcnoops.server.model.FactionType;
 import swcnoops.server.model.Member;
 import swcnoops.server.model.Perks;
+import swcnoops.server.model.SquadNotification;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.List;
 
@@ -36,4 +38,6 @@ public interface GuildSettings {
     void addMember(String playerId, String playerName);
 
     void removeMember(String playerId);
+
+    SquadNotification createTroopRequest(PlayerSession playerSession, String message);
 }

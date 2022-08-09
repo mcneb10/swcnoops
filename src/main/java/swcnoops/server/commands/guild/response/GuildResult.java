@@ -1,33 +1,21 @@
 package swcnoops.server.commands.guild.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import swcnoops.server.model.SquadMsgType;
-import swcnoops.server.model.SquadNotificationData;
+import swcnoops.server.model.SquadNotification;
 import swcnoops.server.requests.AbstractCommandResult;
 import swcnoops.server.session.GuildSession;
 
 public class GuildResult extends AbstractCommandResult {
     @JsonIgnore
     final private GuildSession guildSession;
-    @JsonIgnore
-    final private String playerId;
-    @JsonIgnore
-    final private String playerName;
-    @JsonIgnore
-    private SquadMsgType squadMsgType;
-    @JsonIgnore
-    private String squadMessage;
-    @JsonIgnore
-    private SquadNotificationData notificationData;
+    private SquadNotification squadNotification;
 
     public GuildResult() {
-        this(null, null, null);
+        this(null);
     }
 
-    public GuildResult(String playerId, String playerName, GuildSession guildSession)
+    public GuildResult(GuildSession guildSession)
     {
-        this.playerId = playerId;
-        this.playerName = playerName;
         this.guildSession = guildSession;
     }
 
@@ -47,34 +35,11 @@ public class GuildResult extends AbstractCommandResult {
         return this.guildSession.getGuildName();
     }
 
-    @JsonIgnore
-    public String getPlayerId() {
-        return playerId;
+    public void setSquadNotification(SquadNotification squadNotification) {
+        this.squadNotification = squadNotification;
     }
 
-    @JsonIgnore
-    public String getPlayerName() {
-        return playerName;
-    }
-
-    public SquadMsgType getSquadMsgType() {
-        return squadMsgType;
-    }
-
-    public String getSquadMessage() {
-        return squadMessage;
-    }
-
-    public void setSquadMessage(String squadMessage) {
-        this.squadMessage = squadMessage;
-    }
-
-    public SquadNotificationData getNotificationData() {
-        return notificationData;
-    }
-
-    public void setNotificationData(SquadMsgType squadMsgType, SquadNotificationData notificationData) {
-        this.squadMsgType = squadMsgType;
-        this.notificationData = notificationData;
+    public SquadNotification getSquadNotification() {
+        return squadNotification;
     }
 }

@@ -4,11 +4,9 @@ import swcnoops.server.session.GuildSession;
 
 public class GuildTroopsRequestCommandResult extends GuildResult {
 
-    public GuildTroopsRequestCommandResult(GuildSession guildSession, String message, String playerId,
-                                           String name)
+    public GuildTroopsRequestCommandResult(GuildSession guildSession)
     {
-        super(playerId, name, guildSession);
-        this.setSquadMessage(message);
+        super(guildSession);
     }
 
 

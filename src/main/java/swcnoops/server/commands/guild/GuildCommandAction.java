@@ -25,26 +25,14 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         GuildMessages messages = new GuildMessages(command.getTime(), systemTime, guid);
 
         // only if there is a msg do we create notification
-        if (guildResult.getSquadMsgType() != null) {
-            SquadNotification squadNotification = createSquadNotification(systemTime, guid, guildResult);
+        if (guildResult.getSquadNotification() != null) {
+            SquadNotification squadNotification = guildResult.getSquadNotification();
             SquadMessage squadMessage = createSquadMessage(guildResult, squadNotification);
             GuildMessage guildMessage = new GuildMessage(squadMessage, guid, command.getTime());
             messages.getGuild().add(guildMessage);
         }
 
         return messages;
-    }
-
-    private SquadNotification createSquadNotification(long systemTime, String guid, GuildResult guildResult)
-    {
-        SquadNotification squadNotification =
-                new SquadNotification(systemTime, guid,
-                        guildResult.getSquadMessage(),
-                        guildResult.getPlayerName(),
-                        guildResult.getPlayerId(),
-                        guildResult.getSquadMsgType(),
-                        guildResult.getNotificationData());
-        return squadNotification;
     }
 
     private SquadMessage createSquadMessage(GuildResult commandResult, SquadNotification squadNotification)

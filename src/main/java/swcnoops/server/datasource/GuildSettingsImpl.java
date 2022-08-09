@@ -1,9 +1,9 @@
 package swcnoops.server.datasource;
 
+import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
-import swcnoops.server.model.FactionType;
-import swcnoops.server.model.Member;
-import swcnoops.server.model.Perks;
+import swcnoops.server.model.*;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,5 +115,16 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public boolean canSave() {
         return true;
+    }
+
+    @Override
+    public SquadNotification createTroopRequest(PlayerSession playerSession, String message) {
+        String playerId = playerSession.getPlayerId();
+        String playerName = playerSession.getPlayerSettings().getName();
+
+        SquadNotification squadNotification = new SquadNotification(ServiceFactory.createRandomUUID(),
+                message, playerName, playerId, SquadMsgType.troopRequest);
+
+        return squadNotification;
     }
 }

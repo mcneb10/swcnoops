@@ -18,11 +18,10 @@ public class GuildTroopsDonateCommandResult extends GuildResult {
     @JsonIgnore
     private TroopDonationData troopDonationData;
 
-    public GuildTroopsDonateCommandResult(String playerId, String playerName,
-                                          GuildSession guildSession, Map<String, Integer> troopsDonated,
+    public GuildTroopsDonateCommandResult(GuildSession guildSession, Map<String, Integer> troopsDonated,
                                           boolean reputationAwarded, TroopDonationProgress troopDonationProgress)
     {
-        super(playerId, playerName, guildSession);
+        super(guildSession);
         this.troopsDonated = troopsDonated;
         this.reputationAwarded = reputationAwarded;
         this.troopDonationProgress = troopDonationProgress;
@@ -38,14 +37,6 @@ public class GuildTroopsDonateCommandResult extends GuildResult {
 
     public TroopDonationProgress getTroopDonationProgress() {
         return troopDonationProgress;
-    }
-
-    public void setRequestId(String requestId) {
-        this.requestId = requestId;
-    }
-
-    public String getRequestId() {
-        return requestId;
     }
 
     public String getPlayerId() {

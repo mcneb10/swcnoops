@@ -2,9 +2,8 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
-import swcnoops.server.model.FactionType;
-import swcnoops.server.model.Member;
-import swcnoops.server.model.Perks;
+import swcnoops.server.model.*;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -107,5 +106,19 @@ public class SelfDonatingSquad implements GuildSettings {
 
     @Override
     public void removeMember(String playerId) {
+    }
+
+    @Override
+    public SquadNotification createTroopRequest(PlayerSession playerSession, String message) {
+        Member botMember = playerSession.getGuildSession().getGuildSettings().getMembers()
+                .stream().filter(m -> m.name.equals(SelfDonatingSquad.DonateBotName)).findFirst().get();
+
+        String playerId = botMember.playerId;
+        String playerName = botMember.name;
+
+        SquadNotification squadNotification = new SquadNotification(ServiceFactory.createRandomUUID(),
+                message, playerName, playerId, SquadMsgType.troopRequest);
+
+        return squadNotification;
     }
 }

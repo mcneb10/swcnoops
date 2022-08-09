@@ -288,12 +288,22 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void troopsRequest(boolean payToSkip, String message, long time) {
+    public SquadNotification troopsRequest(boolean payToSkip, String message, long time) {
         // TODO - this will need to forward a message to the squad for requests
         // it will be something along the lines of putting a command onto a queue for the guild
         // every player request that can send messages in the response, checks that guild queue to create
         // that message type. For now we do nothing as not supporting multiple players and squads yet.
-        this.getGuildSession().troopsRequest(this.getPlayerId(), message, time);
+        TroopRequestData troopRequestData = new TroopRequestData();
+        troopRequestData.totalCapacity = this.getSquadBuilding().getBuildingData().getStorage();
+        troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
+        troopRequestData.amount = troopRequestData.totalCapacity - this.getDonatedTroopsTotalUnits();
+
+        SquadNotification squadNotification = this.getGuildSession().troopsRequest(this, message, time);
+        squadNotification.setData(troopRequestData);
+
+        this.getGuildSession().addNotification(squadNotification);
+
+        return squadNotification;
     }
 
     @Override

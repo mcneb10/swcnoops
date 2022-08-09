@@ -2,7 +2,6 @@ package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.response.GuildTroopsRequestCommandResult;
-import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
@@ -20,29 +19,12 @@ public class GuildTroopsRequest extends GuildCommandAction<GuildTroopsRequest, G
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.troopsRequest(arguments.isPayToSkip(), arguments.getMessage(), time);
-        TroopRequestData troopRequestData = new TroopRequestData();
-        troopRequestData.totalCapacity = playerSession.getSquadBuilding().getBuildingData().getStorage();
-        troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
-        troopRequestData.amount = troopRequestData.totalCapacity - playerSession.getDonatedTroopsTotalUnits();
-
-        String playerId = playerSession.getPlayerSettings().getPlayerId();
-        String playerName = playerSession.getPlayerSettings().getName();
-
-        if (playerSession.getGuildSession().getGuildName().equals(SelfDonatingSquad.NAME)) {
-            Member botMember = playerSession.getGuildSession().getGuildSettings().getMembers()
-                    .stream().filter(m -> m.name.equals(SelfDonatingSquad.DonateBotName)).findFirst().get();
-            playerId = botMember.playerId;
-            playerName = botMember.name;
-        }
+        SquadNotification squadNotification = playerSession.troopsRequest(arguments.isPayToSkip(), arguments.getMessage(), time);
 
         GuildTroopsRequestCommandResult guildTroopsRequestCommandResult =
-                new GuildTroopsRequestCommandResult(playerSession.getGuildSession(), arguments.getMessage(),
-                        playerId,
-                        playerName);
+                new GuildTroopsRequestCommandResult(playerSession.getGuildSession());
 
-        guildTroopsRequestCommandResult.setSquadMessage(arguments.getMessage());
-        guildTroopsRequestCommandResult.setNotificationData(SquadMsgType.troopRequest, troopRequestData);
+        guildTroopsRequestCommandResult.setSquadNotification(squadNotification);
         return guildTroopsRequestCommandResult;
     }
 

@@ -27,7 +27,7 @@ public class GuildWarGetParticipantCommandResult extends GuildResult {
     }
 
     public GuildWarGetParticipantCommandResult(PlayerSession playerSession, GuildSession guildSession) {
-        super(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(), guildSession);
+        super(guildSession);
     }
 
     @Override

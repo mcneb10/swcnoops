@@ -1,7 +1,6 @@
 package swcnoops.server.session;
 
 import swcnoops.server.datasource.GuildSettings;
-import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.model.SquadNotification;
 
 import java.util.List;
@@ -14,11 +13,11 @@ public interface GuildSession {
 
     void join(PlayerSession playerSession);
 
-    void troopsRequest(String playerId, String message, long time);
+    SquadNotification troopsRequest(PlayerSession playerSession, String message, long time);
 
     String getGuildName();
 
-    void processDonations(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession, String recipientId, long time);
+    SquadNotification troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession, String recipientId, long time);
 
     void warMatchmakingStart(List<String> participantIds, boolean isSameFactionWarAllowed);
 

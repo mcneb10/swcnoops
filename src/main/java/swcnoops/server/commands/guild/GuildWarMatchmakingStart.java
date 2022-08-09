@@ -4,7 +4,9 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.response.GuildResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.SquadMsgType;
+import swcnoops.server.model.SquadNotification;
 import swcnoops.server.session.GuildSession;
+import swcnoops.server.session.GuildSessionImpl;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.List;
@@ -21,9 +23,13 @@ public class GuildWarMatchmakingStart extends GuildCommandAction<GuildWarMatchma
                 .getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = playerSession.getGuildSession();
         guildSession.warMatchmakingStart(arguments.getParticipantIds(), arguments.isSameFactionWarAllowed);
-        GuildResult guildResult = new GuildResult(playerSession.getPlayerId(),
-                playerSession.getPlayer().getPlayerSettings().getName(), guildSession);
-        guildResult.setNotificationData(SquadMsgType.warMatchMakingBegin, null);
+        SquadNotification squadNotification =
+                GuildSessionImpl.createNotification(playerSession, SquadMsgType.warMatchMakingBegin);
+
+        guildSession.addNotification(squadNotification);
+
+        GuildResult guildResult = new GuildResult(guildSession);
+        guildResult.setSquadNotification(squadNotification);
         return guildResult;
     }
 
