@@ -91,6 +91,7 @@ public class CommandFactory {
         this.add(new PlayerLeaderboardGetForFriends());
 
         this.add(new PlayerPlanetObjective());
+        this.add(new PlayerPlanetRelocate());
 
         this.add(new PlayerStoreCrateBuy());
         this.add(new PlayerCrateAward());
@@ -109,12 +110,12 @@ public class CommandFactory {
 //        this.add(new OkCommandAction("player.building.move"));
 
         this.add(new OkCommandAction("player.building.collect.all"));
-        this.add(new OkCommandAction("player.planet.relocate"));
         this.add(new OkCommandAction("player.raids.update"));
         this.add(new OkCommandAction("player.pvp.releaseTarget"));
 
         // works but needs full support
         this.add(new OkCommandAction("player.perks.activate"));
+        this.add(new OkCommandAction("player.store.shard.offers.buy"));
     }
 
     private void add(CommandAction commandAction) {

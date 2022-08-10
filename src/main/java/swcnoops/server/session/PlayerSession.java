@@ -111,4 +111,6 @@ public interface PlayerSession {
     FactionType getFaction();
 
     void setOffenseLab(OffenseLab offenseLab);
+
+    void planetRelocate(String planet, boolean payWithHardCurrency);
 }

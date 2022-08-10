@@ -12,12 +12,12 @@ import java.util.List;
  */
 public class BuildSlot {
     final private String unitId;
-    final private PlayerSession playerSession;
+    final private BuildQueue buildQueue;
     final private LinkedList<BuildUnit> buildUnits = new LinkedList<>();
 
-    public BuildSlot(String unitId, PlayerSession playerSession) {
+    public BuildSlot(String unitId, BuildQueue buildQueue) {
         this.unitId = unitId;
-        this.playerSession = playerSession;
+        this.buildQueue = buildQueue;
     }
 
     protected String getUnitId() {
@@ -77,11 +77,11 @@ public class BuildSlot {
     }
 
     private TroopData getTroopDataEffectiveAt(long fromTime) {
-        return this.playerSession.getTroopInventory().getTroopByUnitIdEffectiveFrom(this.unitId, fromTime);
+        return this.buildQueue.getPlayerSession().getTroopInventory().getTroopByUnitIdEffectiveFrom(this.unitId, fromTime);
     }
 
     public TroopData getTroopData() {
-        return this.playerSession.getTroopInventory().getTroopByUnitId(this.unitId);
+        return this.buildQueue.getPlayerSession().getTroopInventory().getTroopByUnitId(this.unitId);
     }
 
     protected void removeBuildUnit(BuildUnit buildUnit) {
@@ -94,5 +94,9 @@ public class BuildSlot {
             buildUnit = buildUnits.get(0);
         }
         return buildUnit;
+    }
+
+    public boolean isHeadOfItsBuildQueue() {
+        return this.buildQueue.getBuildQueue().indexOf(this) == 0;
     }
 }

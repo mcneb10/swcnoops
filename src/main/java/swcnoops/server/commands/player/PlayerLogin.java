@@ -110,11 +110,15 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     private void mapSharedPreferencs(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
+        playerLoginResponse.sharedPrefs.putAll(playerSettings.getSharedPreferences());
+
         // turn off conflicts
         playerLoginResponse.sharedPrefs.put("tv", null);
         // this disables login to google at start up
         playerLoginResponse.sharedPrefs.put("promptedForGoogleSignin", "1");
-        playerLoginResponse.sharedPrefs.putAll(playerSettings.getSharedPreferences());
+        // this is to stop armory tutorial from triggering
+        playerLoginResponse.sharedPrefs.put("EqpTut", "3");
+        playerLoginResponse.sharedPrefs.remove("EqpTutStep");
     }
 
     private void mapCampaignAndMissions(PlayerModel playerModel, PlayerSettings playerSettings) {
