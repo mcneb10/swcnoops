@@ -8,10 +8,6 @@ public class PlayerStoreShardOffersGet extends AbstractCommandAction<PlayerStore
     @Override
     protected PlayerStoreShardOffersGetResult execute(PlayerStoreOffersGet arguments, long time) throws Exception {
         PlayerStoreShardOffersGetResult playerStoreShardOffersGetResult = new PlayerStoreShardOffersGetResult();
-
-        // empty string to turn off "Shard Shop Active Series not found!"
-        // need to find some real examples
-        playerStoreShardOffersGetResult.activeSeriesId = "";
         return playerStoreShardOffersGetResult;
     }
 
