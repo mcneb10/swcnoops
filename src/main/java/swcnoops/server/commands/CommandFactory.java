@@ -115,6 +115,7 @@ public class CommandFactory {
 
         // works but needs full support
         this.add(new OkCommandAction("player.perks.activate"));
+        this.add(new OkCommandAction("player.store.shard.offers.buy"));
     }
 
     private void add(CommandAction commandAction) {
