@@ -31,8 +31,8 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
         // not sure about this yet, this probably controls the SC space that the client has on screen
         TroopDonationProgress troopDonationProgress = null;
         GuildTroopsDonateCommandResult guildTroopsDonateCommandResult =
-                new GuildTroopsDonateCommandResult(playerSession.getGuildSession(), arguments.getTroopsDonated(),
-                        false, troopDonationProgress);
+                new GuildTroopsDonateCommandResult(playerSession.getGuildSession(), false,
+                        troopDonationProgress);
 
         guildTroopsDonateCommandResult.setSquadNotification(squadNotification);
         return guildTroopsDonateCommandResult;

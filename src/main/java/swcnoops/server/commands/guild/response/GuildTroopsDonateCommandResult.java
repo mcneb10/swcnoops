@@ -1,34 +1,24 @@
 package swcnoops.server.commands.guild.response;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import swcnoops.server.model.TroopDonationData;
 import swcnoops.server.model.TroopDonationProgress;
 import swcnoops.server.session.GuildSession;
 
-import java.util.Map;
-
 public class GuildTroopsDonateCommandResult extends GuildResult {
-    private Map<String,Integer> troopsDonated;
     private boolean reputationAwarded;
     private TroopDonationProgress troopDonationProgress;
     @JsonIgnore
     private String requestId;
     @JsonIgnore
     private String playerId;
-    @JsonIgnore
-    private TroopDonationData troopDonationData;
 
-    public GuildTroopsDonateCommandResult(GuildSession guildSession, Map<String, Integer> troopsDonated,
-                                          boolean reputationAwarded, TroopDonationProgress troopDonationProgress)
+    public GuildTroopsDonateCommandResult(GuildSession guildSession,
+                                          boolean reputationAwarded,
+                                          TroopDonationProgress troopDonationProgress)
     {
         super(guildSession);
-        this.troopsDonated = troopsDonated;
         this.reputationAwarded = reputationAwarded;
         this.troopDonationProgress = troopDonationProgress;
-    }
-
-    public Map<String, Integer> getTroopsDonated() {
-        return troopsDonated;
     }
 
     public boolean isReputationAwarded() {

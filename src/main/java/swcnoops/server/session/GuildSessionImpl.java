@@ -86,7 +86,6 @@ public class GuildSessionImpl implements GuildSession {
         PlayerSession recipientPlayerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(recipientPlayerId);
         recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId());
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession, recipientPlayerSession);
 
         TroopDonationData troopDonationData = new TroopDonationData();
         troopDonationData.troopsDonated = troopsDonated;
@@ -98,6 +97,7 @@ public class GuildSessionImpl implements GuildSession {
         this.addNotification(squadNotification);
 
         // TODO - save notification
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession, recipientPlayerSession);
         return squadNotification;
     }
 
