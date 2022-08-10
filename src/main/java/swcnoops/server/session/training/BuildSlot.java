@@ -1,7 +1,7 @@
 package swcnoops.server.session.training;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import swcnoops.server.game.TroopData;
-import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -96,6 +96,7 @@ public class BuildSlot {
         return buildUnit;
     }
 
+    @JsonIgnore
     public boolean isHeadOfItsBuildQueue() {
         return this.buildQueue.getBuildQueue().indexOf(this) == 0;
     }

@@ -84,6 +84,7 @@ public class BuildUnit {
         return tag;
     }
 
+    @JsonIgnore
     public boolean isHeadOfItsBuildQueue() {
         return this.buildSlot.isHeadOfItsBuildQueue();
     }
