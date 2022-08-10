@@ -605,4 +605,10 @@ public class PlayerSessionImpl implements PlayerSession {
     public void setOffenseLab(OffenseLab offenseLab) {
         this.offenseLab = offenseLab;
     }
+
+    @Override
+    public void planetRelocate(String planet, boolean payWithHardCurrency) {
+        this.playerSettings.getBaseMap().planet = planet;
+        this.savePlayerSession();
+    }
 }

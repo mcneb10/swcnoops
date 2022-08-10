@@ -34,7 +34,9 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
                 parseJsonFile("templates/playerPvpGetNextTarget.json", PlayerPvpGetNextTargetCommandResult.class);
         response.battleId = ServiceFactory.createRandomUUID();
         response.map.buildings = getNextLayout();
-        response.map.planet = "planet24";
+        response.map.planet = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId()).getPlayer().getPlayerSettings().getBaseMap().planet;
+
         setupDefenseTroops(response, response.map);
         return response;
     }
