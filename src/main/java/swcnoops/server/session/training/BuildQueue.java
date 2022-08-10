@@ -2,10 +2,7 @@ package swcnoops.server.session.training;
 
 import swcnoops.server.session.PlayerSession;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * A queue to represent the queues in a builder (barrack, factory etc...)
@@ -52,7 +49,7 @@ public class BuildQueue {
 
     private BuildSlot createBuildSlot(BuildUnit buildUnit) {
         // TODO - maybe register to the players session that they want to listen for upgrade events
-        return new BuildSlot(buildUnit.getUnitId(), this.playerSession);
+        return new BuildSlot(buildUnit.getUnitId(), this);
     }
 
     protected void recalculateBuildUnitTimes(long startTime) {
@@ -70,12 +67,16 @@ public class BuildQueue {
     }
 
     protected List<BuildUnit> remove(String unitTypeId, int quantity, boolean fromBack) {
-        List<BuildUnit> removed = null;
+        List<BuildUnit> removed = new ArrayList<>();
         BuildSlot buildSlot = this.buildQueueMap.get(unitTypeId);
         if (buildSlot != null) {
             removed = buildSlot.remove(quantity, fromBack);
             removeBuildSlotIfEmpty(buildSlot);
         }
         return removed;
+    }
+
+    public PlayerSession getPlayerSession() {
+        return playerSession;
     }
 }

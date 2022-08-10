@@ -346,11 +346,25 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
         processCreature(attackingUnitsKilled);
-        Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(attackingUnitsKilled);
+        Map<String, Integer> champions = getChampions(attackingUnitsKilled);
+        Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(champions);
         this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
         PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         playerCampaignMission.battleComplete(battleId, stars);
         this.savePlayerSession();
+    }
+
+    private Map<String, Integer> getChampions(Map<String, Integer> attackingUnitsKilled) {
+        Map<String, Integer> champions = new HashMap<>();
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        for (Map.Entry<String, Integer> entry : attackingUnitsKilled.entrySet()) {
+            TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
+            if (troopData.getType() == TroopType.champion) {
+                champions.put(entry.getKey(), entry.getValue());
+            }
+        }
+
+        return champions;
     }
 
     @Override

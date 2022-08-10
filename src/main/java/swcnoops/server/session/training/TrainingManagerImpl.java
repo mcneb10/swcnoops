@@ -1,5 +1,7 @@
 package swcnoops.server.session.training;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Deployables;
 import swcnoops.server.game.ContractType;
@@ -12,6 +14,8 @@ import swcnoops.server.session.map.MapItem;
 import java.util.*;
 
 public class TrainingManagerImpl implements TrainingManager {
+    private static final Logger LOG = LoggerFactory.getLogger(TrainingManagerImpl.class);
+
     final private Map<String, Builder> builders = new HashMap<>();
     final private DeployableQueue troopTransport;
     final private DeployableQueue specialAttackTransport;
@@ -82,6 +86,11 @@ public class TrainingManagerImpl implements TrainingManager {
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> cancelledContracts =
                 builder.remove(troopData.getUnitId(), quantity, time, true);
+
+        if (cancelledContracts.size() != quantity) {
+            LOG.warn("Number of units to cancel " + unitTypeId + " removed " + cancelledContracts.size() + " but expected " + quantity);
+        }
+
         DeployableQueue transport = builder.getDeployableQueue();
         if (transport != null) {
             transport.removeUnitsFromQueue(cancelledContracts);
@@ -121,11 +130,34 @@ public class TrainingManagerImpl implements TrainingManager {
 
     @Override
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove) {
-        Map<String,Integer> remapped = remapTroopUidToUnitId(deployablesToRemove);
-        this.troopTransport.removeDeployable(remapped);
-        this.specialAttackTransport.removeDeployable(remapped);
-        this.heroTransport.removeDeployable(remapped);
-        this.championTransport.removeDeployable(remapped);
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        Map<String, Integer> aTroopType = new HashMap<>();
+        for (Map.Entry<String, Integer> entry : deployablesToRemove.entrySet()) {
+            TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
+            aTroopType.put(entry.getKey(), entry.getValue());
+
+            if (troopData.isSpecialAttack()) {
+                this.specialAttackTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+            } else {
+                switch (troopData.getType()) {
+                    case infantry:
+                    case vehicle:
+                    case mercenary:
+                        this.troopTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+                        break;
+                    case hero:
+                        this.heroTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+                        break;
+                    case champion:
+                        this.championTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+                        break;
+                    default:
+                        throw new RuntimeException("Unsupported type for removal " + troopData.getType());
+                }
+            }
+
+            aTroopType.clear();
+        }
     }
 
     @Override
@@ -196,8 +228,7 @@ public class TrainingManagerImpl implements TrainingManager {
     }
 
     private void initialiseDeployables(DeployableQueue deployableQueue, Map<String, Integer> storage) {
-        deployableQueue.getDeployableUnits().clear();
-        deployableQueue.getDeployableUnits().putAll(storage);
+        deployableQueue.initialiseDeployableUnits(storage);
     }
 
     @Override
