@@ -83,4 +83,8 @@ public class BuildUnit {
     public String getTag() {
         return tag;
     }
+
+    public boolean isHeadOfItsBuildQueue() {
+        return this.buildSlot.isHeadOfItsBuildQueue();
+    }
 }
