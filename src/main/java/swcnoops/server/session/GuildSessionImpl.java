@@ -5,6 +5,7 @@ import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.model.SquadNotification;
 import swcnoops.server.model.TroopDonationData;
+import swcnoops.server.model.TroopRequestData;
 
 import java.util.List;
 import java.util.Map;
@@ -64,8 +65,12 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public SquadNotification troopsRequest(PlayerSession playerSession, String message, long time) {
+    public SquadNotification troopsRequest(PlayerSession playerSession, TroopRequestData troopRequestData, String message, long time) {
         SquadNotification squadNotification = this.guildSettings.createTroopRequest(playerSession, message);
+        squadNotification.setData(troopRequestData);
+
+        this.addNotification(squadNotification);
+        // TODO - save notification
         return squadNotification;
     }
 
@@ -79,7 +84,7 @@ public class GuildSessionImpl implements GuildSession {
         // determine recipient for self donation to work
         recipientPlayerId = this.guildSettings.troopDonationRecipient(playerSession, recipientPlayerId);
 
-        // remove from the donor
+        // remove units from the donor
         playerSession.removeDeployedTroops(troopsDonated, time);
 
         // move to recipient
@@ -92,12 +97,13 @@ public class GuildSessionImpl implements GuildSession {
         troopDonationData.amount = troopsDonated.size();
         troopDonationData.requestId = requestId;
         troopDonationData.recipientId = recipientPlayerId;
-
         squadNotification.setData(troopDonationData);
+
         this.addNotification(squadNotification);
 
         // TODO - save notification
         ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession, recipientPlayerSession);
+
         return squadNotification;
     }
 

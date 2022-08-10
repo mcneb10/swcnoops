@@ -2,6 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.model.SquadNotification;
+import swcnoops.server.model.TroopRequestData;
 
 import java.util.List;
 import java.util.Map;
@@ -13,7 +14,7 @@ public interface GuildSession {
 
     void join(PlayerSession playerSession);
 
-    SquadNotification troopsRequest(PlayerSession playerSession, String message, long time);
+    SquadNotification troopsRequest(PlayerSession playerSession, TroopRequestData troopRequestData, String message, long time);
 
     String getGuildName();
 

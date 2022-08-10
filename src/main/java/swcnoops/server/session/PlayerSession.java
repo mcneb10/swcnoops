@@ -113,4 +113,6 @@ public interface PlayerSession {
     void setOffenseLab(OffenseLab offenseLab);
 
     void planetRelocate(String planet, boolean payWithHardCurrency);
+
+    SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time);
 }

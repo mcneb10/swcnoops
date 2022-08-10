@@ -21,9 +21,8 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        String recipientPlayerId = arguments.getRecipientId();
-        SquadNotification squadNotification = playerSession.getGuildSession().troopDonation(arguments.getTroopsDonated(),
-                arguments.getRequestId(), playerSession, recipientPlayerId, time);
+        SquadNotification squadNotification = playerSession.troopsDonate(arguments.getTroopsDonated(),
+                arguments.getRequestId(), arguments.getRecipientId(), time);
 
         // TODO - do we need to deal with any race conditions when multiple players
         // are trying to donate to the same player, a problem to be solved when doing squad support

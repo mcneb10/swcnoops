@@ -298,11 +298,16 @@ public class PlayerSessionImpl implements PlayerSession {
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
         troopRequestData.amount = troopRequestData.totalCapacity - this.getDonatedTroopsTotalUnits();
 
-        SquadNotification squadNotification = this.getGuildSession().troopsRequest(this, message, time);
-        squadNotification.setData(troopRequestData);
+        SquadNotification squadNotification = this.getGuildSession().troopsRequest(this,
+                troopRequestData, message, time);
 
-        this.getGuildSession().addNotification(squadNotification);
+        return squadNotification;
+    }
 
+    @Override
+    public SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time) {
+        SquadNotification squadNotification = this.getGuildSession().troopDonation(troopsDonated,
+                requestId, this, recipientId, time);
         return squadNotification;
     }
 
