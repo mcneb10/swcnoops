@@ -9,4 +9,6 @@ public interface SessionManager {
     GuildSession getGuildSession(PlayerSettings playerSettings, String guildId);
 
     PlayerSession getPlayerSession(String playerId, PlayerModel defaultPlayerModel);
+
+    void removePlayerSession(String playerId);
 }

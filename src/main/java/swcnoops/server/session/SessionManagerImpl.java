@@ -27,6 +27,11 @@ public class SessionManagerImpl implements SessionManager {
         return playerSession;
     }
 
+    @Override
+    public void removePlayerSession(String playerId) {
+        this.players.remove(playerId);
+    }
+
     private PlayerSession getOrLoadPlayerSession(String playerId, PlayerModel defaultPlayerModel) {
         PlayerSession playerSession;
         if (!this.players.containsKey(playerId)) {

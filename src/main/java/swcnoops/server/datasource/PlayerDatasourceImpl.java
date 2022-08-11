@@ -1,10 +1,10 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureManager;
-import swcnoops.server.session.inventory.TroopInventory;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.training.DeployableQueue;
@@ -56,8 +56,16 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public Player loadPlayer(String playerId) {
-        final String sql = "SELECT id, secret " +
+        final String primarySql = "SELECT id, secret " +
                              "FROM Player p WHERE p.id = ?";
+
+        final String secondarySql = "SELECT secondaryAccount, secret " +
+                "FROM Player p WHERE p.secondaryAccount = ?";
+
+        String sql = primarySql;
+        if (playerId.endsWith("_1")) {
+            sql = secondarySql;
+        }
 
         Player player = null;
         try {
@@ -67,7 +75,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     ResultSet rs = pstmt.executeQuery();
 
                     while (rs.next()) {
-                        player = new Player(rs.getString("id"));
+                        player = new Player(playerId);
                         player.setSecret(rs.getString("secret"));
                     }
                 }
@@ -381,14 +389,25 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         final String playerSql = "insert into Player (id, secret) values " +
                 "(?, ?)";
 
-        final String settingsSql = "insert into PlayerSettings (id, upgrades) values " +
-                "(?, '{}')";
+        final String updateSql = "update Player set secondaryAccount = ? where id = ?";
+
+        final String settingsSql = "insert into PlayerSettings (id, name, upgrades) values " +
+                "(?, 'new', '{}')";
 
         try {
-            try (PreparedStatement stmt = connection.prepareStatement(playerSql)) {
-                stmt.setString(1, playerId);
-                stmt.setString(2, secret);
-                stmt.executeUpdate();
+            if (playerId.endsWith("_1")) {
+                String primaryAccount = PlayerIdentitySwitch.getPrimaryAccount(playerId);
+                try (PreparedStatement stmt = connection.prepareStatement(updateSql)) {
+                    stmt.setString(1, playerId);
+                    stmt.setString(2, primaryAccount);
+                    stmt.executeUpdate();
+                }
+            } else {
+                try (PreparedStatement stmt = connection.prepareStatement(playerSql)) {
+                    stmt.setString(1, playerId);
+                    stmt.setString(2, secret);
+                    stmt.executeUpdate();
+                }
             }
 
             try (PreparedStatement stmt = connection.prepareStatement(settingsSql)) {
@@ -398,5 +417,31 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
         }
+    }
+
+    @Override
+    public PlayerSecret getPlayerSecret(String primaryId) {
+        final String sql = "SELECT id, secret, secondaryAccount " +
+                "FROM Player s WHERE s.id = ?";
+
+        PlayerSecret playerSecret = null;
+        try {
+            try (Connection con = getConnection()) {
+                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
+                    pstmt.setString(1, primaryId);
+                    ResultSet rs = pstmt.executeQuery();
+
+                    while (rs.next()) {
+                        playerSecret = new PlayerSecret(rs.getString("id"),
+                                rs.getString("secret"),
+                                rs.getString("secondaryAccount"));
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to Player secret id=" + primaryId, ex);
+        }
+
+        return playerSecret;
     }
 }
