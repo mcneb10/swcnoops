@@ -58,6 +58,9 @@ public class SessionManagerImpl implements SessionManager {
 
         PlayerSettings playerSettings = playerDataSource.loadPlayerSettings(playerId);
 
+        if (playerSettings == null)
+            throw new RuntimeException("Failed to load playerSettings for id " + playerId);
+
         if (playerSettings.getBaseMap() == null)
             playerSettings.setBaseMap(defaultPlayerModel.map);
         if (playerSettings.getInventoryStorage() == null)
