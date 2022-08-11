@@ -14,4 +14,6 @@ public interface PlayerDataSource {
     void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession);
 
     void newPlayer(String playerId, String secret);
+
+    PlayerSecret getPlayerSecret(String primaryId);
 }

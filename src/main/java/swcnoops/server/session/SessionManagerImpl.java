@@ -27,6 +27,11 @@ public class SessionManagerImpl implements SessionManager {
         return playerSession;
     }
 
+    @Override
+    public void removePlayerSession(String playerId) {
+        this.players.remove(playerId);
+    }
+
     private PlayerSession getOrLoadPlayerSession(String playerId, PlayerModel defaultPlayerModel) {
         PlayerSession playerSession;
         if (!this.players.containsKey(playerId)) {
@@ -52,6 +57,9 @@ public class SessionManagerImpl implements SessionManager {
         }
 
         PlayerSettings playerSettings = playerDataSource.loadPlayerSettings(playerId);
+
+        if (playerSettings == null)
+            throw new RuntimeException("Failed to load playerSettings for id " + playerId);
 
         if (playerSettings.getBaseMap() == null)
             playerSettings.setBaseMap(defaultPlayerModel.map);
