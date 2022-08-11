@@ -25,4 +25,6 @@ public interface PlayerDataSource {
     void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment);
 
     List<Squad> getGuildList(FactionType faction);
+
+    PlayerSecret getPlayerSecret(String primaryId);
 }
