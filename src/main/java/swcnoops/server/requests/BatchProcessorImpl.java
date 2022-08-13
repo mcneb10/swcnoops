@@ -7,6 +7,8 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.model.GuildMessage;
 import swcnoops.server.model.SquadMessage;
 import swcnoops.server.model.SquadNotification;
+import swcnoops.server.session.GuildSession;
+import swcnoops.server.session.PlayerSession;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -67,31 +69,31 @@ public class BatchProcessorImpl implements BatchProcessor {
         }
 
         // attach guild notifications
-//        if (responseDatums.size() > 0 && playerId != null) {
-//            ResponseData firstResponseData = responseDatums.get(0);
-//            if (firstResponseData.status == Integer.valueOf(0)) {
-//                boolean canReplace = true;
-//                if (firstResponseData.messages instanceof GuildMessages) {
-//                    GuildMessages guildMessages = (GuildMessages) firstResponseData.messages;
-//                    if (guildMessages.getGuild().size() > 0) {
-//                        canReplace = false;
-//                    }
-//                }
-//
-//                if (canReplace) {
-//                    PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
-//                    if (playerSession.canSendNotifications()) {
-//                        List<SquadNotification> squadNotifications =
-//                                playerSession.getGuildSession().getNotificationsSince(playerSession.getNotificationsSince());
-//                        GuildSession guildSession = playerSession.getGuildSession();
-//                        Messages messages = createMessage(firstCommandTime, guildSession.getGuildId(),
-//                                guildSession.getGuildName(), squadNotifications);
-//                        if (messages != null)
-//                            firstResponseData.messages = messages;
-//                    }
-//                }
-//            }
-//        }
+        if (responseDatums.size() > 0 && playerId != null) {
+            ResponseData firstResponseData = responseDatums.get(0);
+            if (firstResponseData.status == Integer.valueOf(0)) {
+                boolean canReplace = true;
+                if (firstResponseData.messages instanceof GuildMessages) {
+                    GuildMessages guildMessages = (GuildMessages) firstResponseData.messages;
+                    if (guildMessages.getGuild().size() > 0) {
+                        canReplace = false;
+                    }
+                }
+
+                if (canReplace) {
+                    PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
+                    if (playerSession.getGuildSession() != null && playerSession.canSendNotifications()) {
+                        List<SquadNotification> squadNotifications =
+                                playerSession.getGuildSession().getNotificationsSince(playerSession.getNotificationsSince());
+                        GuildSession guildSession = playerSession.getGuildSession();
+                        Messages messages = createMessage(firstCommandTime, guildSession.getGuildId(),
+                                guildSession.getGuildName(), squadNotifications);
+                        if (messages != null)
+                            firstResponseData.messages = messages;
+                    }
+                }
+            }
+        }
 
         BatchResponse batchResponse = new BatchResponse(responseDatums);
         batchResponse.setProtocolVersion(ServiceFactory.instance().getConfig().PROTOCOL_VERSION);

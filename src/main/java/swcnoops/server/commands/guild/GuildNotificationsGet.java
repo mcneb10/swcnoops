@@ -24,14 +24,10 @@ public class GuildNotificationsGet extends AbstractCommandAction<GuildNotificati
         GuildNotificationsGetResult guildNotificationsGetResult = new GuildNotificationsGetResult();
 
         if (guildSession != null) {
-            boolean changedGuild = playerSession.setLastNotificationSince(guildSession.getGuildId(), arguments.getSince());
-
-            // only on start or a change of guild do we send the notification in this command
-            if (arguments.getSince() == 0 || changedGuild) {
-                List<SquadNotification> notifications = guildSession.getNotificationsSince(arguments.getSince());
-                if (notifications != null && notifications.size() > 0) {
-                    guildNotificationsGetResult.addNotifications(notifications);
-                }
+            playerSession.setLastNotificationSince(guildSession.getGuildId(), arguments.getSince());
+            List<SquadNotification> notifications = guildSession.getNotificationsSince(arguments.getSince());
+            if (notifications != null && notifications.size() > 0) {
+                guildNotificationsGetResult.addNotifications(notifications);
             }
         }
 

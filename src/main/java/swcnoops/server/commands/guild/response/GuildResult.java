@@ -8,7 +8,9 @@ import swcnoops.server.session.GuildSession;
 public class GuildResult extends AbstractCommandResult {
     @JsonIgnore
     final private GuildSession guildSession;
+    @JsonIgnore
     private SquadNotification squadNotification;
+
 
     public GuildResult() {
         this(null);

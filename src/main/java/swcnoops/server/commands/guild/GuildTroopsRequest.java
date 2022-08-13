@@ -22,7 +22,7 @@ public class GuildTroopsRequest extends GuildCommandAction<GuildTroopsRequest, G
         SquadNotification squadNotification = playerSession.troopsRequest(arguments.isPayToSkip(), arguments.getMessage(), time);
 
         GuildTroopsRequestCommandResult guildTroopsRequestCommandResult =
-                new GuildTroopsRequestCommandResult(playerSession.getGuildSession());
+                new GuildTroopsRequestCommandResult();
 
         guildTroopsRequestCommandResult.setSquadNotification(squadNotification);
         return guildTroopsRequestCommandResult;
