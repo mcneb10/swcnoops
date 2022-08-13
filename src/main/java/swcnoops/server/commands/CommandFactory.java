@@ -96,6 +96,8 @@ public class CommandFactory {
         this.add(new PlayerStoreCrateBuy());
         this.add(new PlayerCrateAward());
 
+        this.add(new PlayerNeighborVisit());
+
         // TODO - this command looks like it will bring up some sort of dialog on the client related to CommandCenterVO
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
 

@@ -72,7 +72,7 @@ public class GuildSessionImpl implements GuildSession {
         playerSession.setGuildSession(null);
         this.guildSettings.removeMember(playerSession.getPlayerId());
         this.guildPlayerSessions.remove(playerSession.getPlayerId());
-
+        this.squadNotifications.removeIf(a -> a.getPlayerId().equals(playerSession.getPlayerId()));
         SquadNotification leaveNotification = createNotification(this.getGuildId(), playerSession, SquadMsgType.leave);
         this.addNotification(leaveNotification);
         playerSession.savePlayerSession(leaveNotification);
