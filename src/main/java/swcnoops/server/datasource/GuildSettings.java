@@ -6,6 +6,7 @@ import swcnoops.server.model.Perks;
 import swcnoops.server.model.SquadNotification;
 import swcnoops.server.session.PlayerSession;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface GuildSettings {
@@ -42,4 +43,8 @@ public interface GuildSettings {
     SquadNotification createTroopRequest(PlayerSession playerSession, String message);
 
     String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId);
+
+    void addSquadNotification(SquadNotification squadNotification);
+
+    Collection<? extends SquadNotification> getSquadNotifications();
 }

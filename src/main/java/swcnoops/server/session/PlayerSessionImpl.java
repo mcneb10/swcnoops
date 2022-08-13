@@ -43,6 +43,9 @@ public class PlayerSessionImpl implements PlayerSession {
     static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
     static final private OffenseLabFactory offenseLabFactory = new OffenseLabFactory();
 
+    private String notificationGuildId;
+    private long notificationSince;
+
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
         this.playerSettings = playerSettings;
@@ -203,7 +206,13 @@ public class PlayerSessionImpl implements PlayerSession {
     // thinking maybe save squad first then player, on load check that the player is still in squad
     @Override
     public void savePlayerSession() {
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this);
+        savePlayerSession(null);
+    }
+
+
+    @Override
+    public void savePlayerSession(SquadNotification squadNotification) {
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this, squadNotification);
     }
 
     private void processCompletedContracts(long time) {
@@ -289,15 +298,13 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public SquadNotification troopsRequest(boolean payToSkip, String message, long time) {
-        // TODO - this will need to forward a message to the squad for requests
-        // it will be something along the lines of putting a command onto a queue for the guild
-        // every player request that can send messages in the response, checks that guild queue to create
-        // that message type. For now we do nothing as not supporting multiple players and squads yet.
         TroopRequestData troopRequestData = new TroopRequestData();
         troopRequestData.totalCapacity = this.getSquadBuilding().getBuildingData().getStorage();
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
         troopRequestData.amount = troopRequestData.totalCapacity - this.getDonatedTroopsTotalUnits();
 
+        // this will save the notification for the guild for when the clients call GuildNotificationsGet they will
+        // pick up the request. Will probably have to change so that notifications are sent on other requests
         SquadNotification squadNotification = this.getGuildSession().troopsRequest(this,
                 troopRequestData, message, time);
 
@@ -312,9 +319,15 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
+    public void setLastNotificationSince(String guildId, long since) {
+        this.notificationGuildId = guildId;
+        this.notificationSince = since;
+    }
+
+    @Override
     public boolean isInGuild(String guildId) {
-        if (this.getGuildSession() != null) {
-            GuildSession guild = this.getGuildSession();
+        GuildSession guild = this.getGuildSession();
+        if (guild != null) {
             return guildId.equals(guild.getGuildId());
         }
 

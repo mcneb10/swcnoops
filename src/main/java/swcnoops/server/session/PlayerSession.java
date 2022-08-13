@@ -98,6 +98,8 @@ public interface PlayerSession {
 
     void savePlayerSession();
 
+    void savePlayerSession(SquadNotification squadNotification);
+
     MapItem removeMapItemByKey(String instanceId);
 
     void buildingInstantUpgrade(String instanceId, String tag, long time);
@@ -115,4 +117,6 @@ public interface PlayerSession {
     void planetRelocate(String planet, boolean payWithHardCurrency);
 
     SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time);
+
+    void setLastNotificationSince(String guildId, long since);
 }

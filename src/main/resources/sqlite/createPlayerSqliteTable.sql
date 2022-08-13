@@ -38,3 +38,20 @@ CREATE TABLE IF NOT EXISTS Squads
      icon text,
      leaderId text);
 
+CREATE TABLE IF NOT EXISTS "SquadNotifications" (
+	"guildId"	TEXT NOT NULL,
+	"id"	TEXT NOT NULL,
+	"orderNo"	NUMERIC NOT NULL,
+	"date"	NUMERIC NOT NULL,
+	"playerId"	TEXT,
+	"name"	TEXT,
+	"squadMessageType"	TEXT,
+	"message"	TEXT,
+	"squadNotification"	json,
+	PRIMARY KEY("id")
+);
+
+CREATE INDEX IF NOT EXISTS "SquadNotification_idx" ON "SquadNotifications" (
+	"guildId"
+);
+

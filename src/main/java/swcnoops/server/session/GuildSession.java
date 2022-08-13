@@ -35,4 +35,6 @@ public interface GuildSession {
     void addNotification(SquadNotification squadNotification);
 
     List<SquadNotification> getNotificationsSince(long since);
+
+    void saveNotification(SquadNotification squadNotification);
 }

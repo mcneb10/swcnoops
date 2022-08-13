@@ -6,6 +6,7 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,6 +23,10 @@ public class GuildSettingsImpl implements GuildSettings {
 
     public GuildSettingsImpl(String id) {
         this.id = id;
+    }
+
+    public void afterLoad() {
+        this.notifications.sort((a,b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
     }
 
     @Override
@@ -122,7 +127,8 @@ public class GuildSettingsImpl implements GuildSettings {
         String playerId = playerSession.getPlayerId();
         String playerName = playerSession.getPlayerSettings().getName();
 
-        SquadNotification squadNotification = new SquadNotification(ServiceFactory.createRandomUUID(),
+        SquadNotification squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
+                ServiceFactory.createRandomUUID(),
                 message, playerName, playerId, SquadMsgType.troopRequest);
 
         return squadNotification;
@@ -131,5 +137,17 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
         return recipientPlayerId;
+    }
+
+    private List<SquadNotification> notifications = new ArrayList<>();
+
+    @Override
+    public void addSquadNotification(SquadNotification squadNotification) {
+        this.notifications.add(squadNotification);
+    }
+
+    @Override
+    public Collection<? extends SquadNotification> getSquadNotifications() {
+        return this.notifications;
     }
 }

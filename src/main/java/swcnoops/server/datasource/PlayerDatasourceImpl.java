@@ -59,7 +59,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public Player loadPlayer(String playerId) {
         final String primarySql = "SELECT id, secret " +
-                             "FROM Player p WHERE p.id = ?";
+                "FROM Player p WHERE p.id = ?";
 
         final String secondarySql = "SELECT secondaryAccount, secret " +
                 "FROM Player p WHERE p.secondaryAccount = ?";
@@ -92,8 +92,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void savePlayerName(String playerId, String playerName) {
         final String sql = "update PlayerSettings " +
-                              "set name = ? " +
-                            "WHERE id = ?";
+                "set name = ? " +
+                "WHERE id = ?";
 
         try {
             try (Connection con = getConnection()) {
@@ -149,7 +149,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         Deployables deployables;
                         if (deployablesJson != null)
                             deployables = ServiceFactory.instance().getJsonParser()
-                                .fromJsonString(deployablesJson, Deployables.class);
+                                    .fromJsonString(deployablesJson, Deployables.class);
                         else
                             deployables = new Deployables();
                         playerSettings.setDeployableTroops(deployables);
@@ -236,10 +236,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void savePlayerSession(PlayerSession playerSession) {
+    public void savePlayerSession(PlayerSession playerSession, SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             savePlayerSession(playerSession, connection);
+            if (squadNotification != null)
+                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
@@ -333,8 +335,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
                                     FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
                                     String guildId, String unlockedPlanets,
-                                    Connection connection)
-    {
+                                    Connection connection) {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
                 "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ?," +
@@ -364,11 +365,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession) {
+    public void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession,
+                                   SquadNotification squadNotification)
+    {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             savePlayerSession(playerSession, connection);
             savePlayerSession(recipientPlayerSession, connection);
+            saveNotification(playerSession.getGuildSession().getGuildId(), squadNotification, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId() +
@@ -469,6 +473,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         final String squadPlayers = "SELECT id, name " +
                 "FROM PlayerSettings s WHERE s.guildId = ?";
 
+        final String notificationsSql = "SELECT id, orderNo, date, playerId, name, squadMessageType, message, squadNotification " +
+                "FROM SquadNotifications s WHERE s.guildId = ?";
+
         GuildSettingsImpl guildSettings = null;
         try {
             try (Connection con = getConnection()) {
@@ -499,6 +506,31 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         guildSettings.addMember(playerId, playerName);
                     }
                 }
+
+                try (PreparedStatement pstmt = con.prepareStatement(notificationsSql)) {
+                    pstmt.setString(1, guildId);
+                    ResultSet rs = pstmt.executeQuery();
+                    while (rs.next()) {
+                        String id = rs.getString("id");
+                        long orderNo = rs.getLong("orderNo");
+                        long date = rs.getLong("date");
+                        String playerId = rs.getString("playerId");
+                        String name = rs.getString("name");
+                        SquadMsgType squadMessageType = SquadMsgType.valueOf(rs.getString("squadMessageType"));
+                        String message = rs.getString("message");
+                        String squadNotificationJson = rs.getString("squadNotification");
+                        SquadNotificationData data = null;
+                        if (squadNotificationJson != null) {
+                            data = mapSquadNotificationData(squadMessageType, squadNotificationJson);
+                        }
+                        SquadNotification squadNotification =
+                                new SquadNotification(guildId, date, orderNo, id, message, name, playerId, squadMessageType, data);
+                        guildSettings.addSquadNotification(squadNotification);
+                    }
+                }
+
+                if (guildSettings != null)
+                    guildSettings.afterLoad();
             }
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load Guild settings from DB id=" + guildId, ex);
@@ -507,10 +539,28 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return guildSettings;
     }
 
+    private SquadNotificationData mapSquadNotificationData(SquadMsgType squadMessageType, String squadNotificationJson)
+            throws Exception
+    {
+        SquadNotificationData squadNotificationData = null;
+        if (squadMessageType != null) {
+            switch (squadMessageType) {
+                case troopRequest:
+                    squadNotificationData = ServiceFactory.instance().getJsonParser()
+                            .fromJsonString(squadNotificationJson, TroopRequestData.class);
+                    break;
+                case troopDonation:
+                    squadNotificationData = ServiceFactory.instance().getJsonParser()
+                            .fromJsonString(squadNotificationJson, TroopDonationData.class);
+                    break;
+            }
+        }
+        return squadNotificationData;
+    }
+
     @Override
     public void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment,
-                          boolean openEnrollment)
-    {
+                          boolean openEnrollment) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             editGuild(guildId, description, icon, minScoreAtEnrollment, openEnrollment, connection);
@@ -521,8 +571,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment,
-                           boolean openEnrollment, Connection connection)
-    {
+                           boolean openEnrollment, Connection connection) {
         final String squadSql = "update Squads " +
                 "set description = ?, " +
                 "icon = ? " +
@@ -608,5 +657,60 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return playerSecret;
+    }
+
+    @Override
+    public void saveNotification(String guildId, SquadNotification squadNotification) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            saveNotification(guildId, squadNotification.getId(),
+                    squadNotification.getOrderNo(),
+                    squadNotification.getDate(),
+                    squadNotification.getPlayerId(),
+                    squadNotification.getName(),
+                    squadNotification.getType(),
+                    squadNotification.getMessage(),
+                    squadNotification.getData(),
+                    connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private void saveNotification(String guildId, SquadNotification squadNotification, Connection connection) {
+        saveNotification(guildId, squadNotification.getId(),
+                squadNotification.getOrderNo(),
+                squadNotification.getDate(),
+                squadNotification.getPlayerId(),
+                squadNotification.getName(),
+                squadNotification.getType(),
+                squadNotification.getMessage(),
+                squadNotification.getData(),
+                connection);
+    }
+
+    private void saveNotification(String guildId, String id, long orderNo, long date, String playerId, String name, SquadMsgType type,
+                                  String message, SquadNotificationData data, Connection connection) {
+        final String squadSql = "insert into squadNotifications (guildId, id, orderNo, date, playerId, name, squadMessageType, message, squadNotification) " +
+                "values (?,?,?,?,?,?,?,?,?)";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+                stmt.setString(1, guildId);
+                stmt.setString(2, id);
+                stmt.setLong(3, orderNo);
+                stmt.setLong(4, date);
+                stmt.setString(5, playerId);
+                stmt.setString(6, name);
+                stmt.setString(7, type.toString());
+                stmt.setString(8, message);
+                stmt.setString(9, data != null ? ServiceFactory.instance().getJsonParser()
+                        .toJson(data) : null);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save squad notification =" + id, ex);
+        }
     }
 }

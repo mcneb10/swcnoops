@@ -6,6 +6,7 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class SelfDonatingSquad implements GuildSettings {
@@ -116,8 +117,8 @@ public class SelfDonatingSquad implements GuildSettings {
         String playerId = botMember.playerId;
         String playerName = botMember.name;
 
-        SquadNotification squadNotification = new SquadNotification(ServiceFactory.createRandomUUID(),
-                message, playerName, playerId, SquadMsgType.troopRequest);
+        SquadNotification squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
+                ServiceFactory.createRandomUUID(), message, playerName, playerId, SquadMsgType.troopRequest);
 
         return squadNotification;
     }
@@ -125,5 +126,15 @@ public class SelfDonatingSquad implements GuildSettings {
     @Override
     public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
         return playerSession.getPlayerId();
+    }
+
+    @Override
+    public void addSquadNotification(SquadNotification squadNotification) {
+
+    }
+
+    @Override
+    public Collection<? extends SquadNotification> getSquadNotifications() {
+        return null;
     }
 }

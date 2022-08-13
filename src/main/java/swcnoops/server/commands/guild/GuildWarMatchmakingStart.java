@@ -24,9 +24,10 @@ public class GuildWarMatchmakingStart extends GuildCommandAction<GuildWarMatchma
         GuildSession guildSession = playerSession.getGuildSession();
         guildSession.warMatchmakingStart(arguments.getParticipantIds(), arguments.isSameFactionWarAllowed);
         SquadNotification squadNotification =
-                GuildSessionImpl.createNotification(playerSession, SquadMsgType.warMatchMakingBegin);
+                GuildSessionImpl.createNotification(guildSession.getGuildId(), playerSession, SquadMsgType.warMatchMakingBegin);
 
         guildSession.addNotification(squadNotification);
+        guildSession.saveNotification(squadNotification);
 
         GuildResult guildResult = new GuildResult(guildSession);
         guildResult.setSquadNotification(squadNotification);

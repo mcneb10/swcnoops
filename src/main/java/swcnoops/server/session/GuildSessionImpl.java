@@ -9,17 +9,31 @@ import swcnoops.server.model.TroopRequestData;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class GuildSessionImpl implements GuildSession {
     final private GuildSettings guildSettings;
     final private Map<String,PlayerSession> guildPlayerSessions = new ConcurrentHashMap<>();
 
+    private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
+    private AtomicLong squadNotificationOrder = new AtomicLong();
+
     public GuildSessionImpl(GuildSettings guildSettings) {
         this.guildSettings = guildSettings;
+        if (this.guildSettings.getSquadNotifications() != null) {
+            this.squadNotifications.addAll(guildSettings.getSquadNotifications());
+        }
+
+        Optional<SquadNotification> maxNotification =
+                this.squadNotifications.stream().max((a,b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
+
+        if (maxNotification.isPresent())
+            this.squadNotificationOrder.set(maxNotification.get().getOrderNo());
     }
 
     @Override
@@ -48,9 +62,9 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public void join(PlayerSession playerSession) {
         login(playerSession);
-        SquadNotification joinNotification = createNotification(playerSession, SquadMsgType.join);
+        SquadNotification joinNotification = createNotification(this.getGuildId(), playerSession, SquadMsgType.join);
         this.addNotification(joinNotification);
-        playerSession.savePlayerSession();
+        playerSession.savePlayerSession(joinNotification);
     }
 
     @Override
@@ -59,9 +73,9 @@ public class GuildSessionImpl implements GuildSession {
         this.guildSettings.removeMember(playerSession.getPlayerId());
         this.guildPlayerSessions.remove(playerSession.getPlayerId());
 
-        SquadNotification joinNotification = createNotification(playerSession, SquadMsgType.leave);
-        this.addNotification(joinNotification);
-        playerSession.savePlayerSession();
+        SquadNotification leaveNotification = createNotification(this.getGuildId(), playerSession, SquadMsgType.leave);
+        this.addNotification(leaveNotification);
+        playerSession.savePlayerSession(leaveNotification);
     }
 
     @Override
@@ -70,7 +84,7 @@ public class GuildSessionImpl implements GuildSession {
         squadNotification.setData(troopRequestData);
 
         this.addNotification(squadNotification);
-        // TODO - save notification
+        this.saveNotification(squadNotification);
         return squadNotification;
     }
 
@@ -78,7 +92,7 @@ public class GuildSessionImpl implements GuildSession {
     public SquadNotification troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession,
                                            String recipientPlayerId, long time)
     {
-        SquadNotification squadNotification = new SquadNotification(ServiceFactory.createRandomUUID(),
+        SquadNotification squadNotification = new SquadNotification(this.getGuildId(), ServiceFactory.createRandomUUID(),
                 null, playerSession.getPlayerSettings().getName(), playerSession.getPlayerId(), SquadMsgType.troopDonation);
 
         // determine recipient for self donation to work
@@ -100,9 +114,8 @@ public class GuildSessionImpl implements GuildSession {
         squadNotification.setData(troopDonationData);
 
         this.addNotification(squadNotification);
-
-        // TODO - save notification
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession, recipientPlayerSession);
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession,
+                recipientPlayerSession, squadNotification);
 
         return squadNotification;
     }
@@ -135,28 +148,28 @@ public class GuildSessionImpl implements GuildSession {
         return this.guildSettings.canSave();
     }
 
-    private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
-
     @Override
     synchronized public void addNotification(SquadNotification squadNotification) {
         squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        squadNotification.setOrderNo(squadNotificationOrder.addAndGet(1));
         this.squadNotifications.add(squadNotification);
     }
 
     public List<SquadNotification> getNotificationsSince(long since) {
         List<SquadNotification> notifications =
-                this.squadNotifications.stream().filter(n -> n.getDate() >= since).collect(Collectors.toList());
+                this.squadNotifications.stream().filter(n -> n.getDate() > since).collect(Collectors.toList());
         return notifications;
     }
 
-    final static public SquadNotification createNotification(PlayerSession playerSession, SquadMsgType squadMsgType) {
+    final static public SquadNotification createNotification(String guildId, PlayerSession playerSession, SquadMsgType squadMsgType) {
         SquadNotification squadNotification = null;
         if (squadMsgType != null) {
             switch (squadMsgType) {
                 case leave:
                 case join:
                     squadNotification =
-                            new SquadNotification(ServiceFactory.createRandomUUID(), null,
+                            new SquadNotification(guildId,
+                                    ServiceFactory.createRandomUUID(), null,
                                     playerSession.getPlayerSettings().getName(),
                                     playerSession.getPlayerId(), squadMsgType);
                     break;
@@ -166,5 +179,10 @@ public class GuildSessionImpl implements GuildSession {
         }
 
         return squadNotification;
+    }
+
+    @Override
+    public void saveNotification(SquadNotification squadNotification) {
+        ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), squadNotification);
     }
 }
