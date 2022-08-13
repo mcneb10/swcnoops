@@ -24,6 +24,18 @@ public class OkListCommandAction extends OkCommandAction {
             public Object getResult() {
                 return new ArrayList<>();
             }
+
+            @JsonIgnore
+            @Override
+            public void setRequestPlayerId(String playerId) {
+
+            }
+
+            @JsonIgnore
+            @Override
+            public String getRequestPlayerId() {
+                return null;
+            }
         };
 
         return listDataCommandResult;

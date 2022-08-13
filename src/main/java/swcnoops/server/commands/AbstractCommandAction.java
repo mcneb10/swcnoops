@@ -9,6 +9,7 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
 {
     private String playerId;
 
+    @Override
     public String getPlayerId() {
         return playerId;
     }
@@ -17,7 +18,11 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     public R execute(Object args, long time) throws Exception {
         JsonParser jsonParser = ServiceFactory.instance().getJsonParser();
         A parsedArgument = this.parseArgument(jsonParser, args);
-        return this.execute(parsedArgument, time);
+        R result = this.execute(parsedArgument, time);
+
+        if (result != null && parsedArgument != null)
+            result.setRequestPlayerId(parsedArgument.getPlayerId());
+        return result;
     }
 
     protected abstract R execute(A arguments, long time) throws Exception;

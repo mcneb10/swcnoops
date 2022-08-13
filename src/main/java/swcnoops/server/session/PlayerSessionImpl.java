@@ -43,8 +43,7 @@ public class PlayerSessionImpl implements PlayerSession {
     static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
     static final private OffenseLabFactory offenseLabFactory = new OffenseLabFactory();
 
-    private String notificationGuildId;
-    private long notificationSince;
+    private NotificationSession notificationSession = new NotificationSession();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
@@ -169,6 +168,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
+            this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
 
             if (deployablesToRemove.stream().filter(a -> a.getAction().equals("SquadTroopPlaced")).count() > 0)
@@ -234,6 +234,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void recaptureCreature(String instanceId, String creatureTroopUid, long time) {
+        this.processCompletedContracts(time);
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(creatureTroopUid);
         this.creatureManager.recaptureCreature(troopData.getUnitId(), time);
         this.savePlayerSession();
@@ -293,11 +294,14 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void playerLogin(long time) {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        this.notificationSession.playerLogin();
         this.savePlayerSession();
     }
 
     @Override
     public SquadNotification troopsRequest(boolean payToSkip, String message, long time) {
+        this.processCompletedContracts(time);
+
         TroopRequestData troopRequestData = new TroopRequestData();
         troopRequestData.totalCapacity = this.getSquadBuilding().getBuildingData().getStorage();
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
@@ -313,15 +317,25 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time) {
+        this.processCompletedContracts(time);
         SquadNotification squadNotification = this.getGuildSession().troopDonation(troopsDonated,
                 requestId, this, recipientId, time);
         return squadNotification;
     }
 
     @Override
-    public void setLastNotificationSince(String guildId, long since) {
-        this.notificationGuildId = guildId;
-        this.notificationSince = since;
+    public boolean setLastNotificationSince(String guildId, long since) {
+        return this.notificationSession.setLastNotification(guildId, since);
+    }
+
+    @Override
+    public boolean canSendNotifications() {
+        return this.notificationSession.canSendNotifications();
+    }
+
+    @Override
+    public long getNotificationsSince() {
+        return this.notificationSession.getNotificationsSince();
     }
 
     @Override
@@ -377,6 +391,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
+        this.processCompletedContracts(time);
         processCreature(attackingUnitsKilled);
         Map<String, Integer> champions = getChampions(attackingUnitsKilled);
         Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(champions);
@@ -401,12 +416,14 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingMultimove(PositionMap positions, long time) {
+        this.processCompletedContracts(time);
         positions.forEach((a,b) -> buildingMultimove(a,b));
         this.savePlayerSession();
     }
 
     @Override
     public void buildingCollect(String buildingId, long time) {
+        this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
             mapItem.collect(time);
@@ -416,6 +433,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingClear(String instanceId, long time) {
+        this.processCompletedContracts(time);
         MapItem mapItem = this.removeMapItemByKey(instanceId);
         if (mapItem != null) {
             this.savePlayerSession();
@@ -622,6 +640,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void pveCollect(String missionUid, String battleUid, long time) {
+        this.processCompletedContracts(time);
         PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         playerCampaignMission.pveCollect(missionUid);
         this.savePlayerSession();
@@ -629,6 +648,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void missionsClaimMission(String missionUid, long time) {
+        this.processCompletedContracts(time);
         PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         playerCampaignMission.missionsClaimMission(missionUid);
         this.savePlayerSession();
@@ -636,6 +656,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void storeBuy(String uid, int count, long time) {
+        this.processCompletedContracts(time);
         if (uid.equals("droids")) {
             this.getPlayerSettings().getInventoryStorage().droids.amount += count;
             this.savePlayerSession();
@@ -653,7 +674,8 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void planetRelocate(String planet, boolean payWithHardCurrency) {
+    public void planetRelocate(String planet, boolean payWithHardCurrency, long time) {
+        this.processCompletedContracts(time);
         this.playerSettings.getBaseMap().planet = planet;
         this.savePlayerSession();
     }

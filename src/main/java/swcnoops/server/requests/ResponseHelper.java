@@ -3,7 +3,7 @@ package swcnoops.server.requests;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 public class ResponseHelper {
-    final static public CommandResult SUCCESS_NULL_COMMAND_RESULT = new CommandResult() {
+    final static public CommandResult SUCCESS_NULL_COMMAND_RESULT = new AbstractCommandResult() {
         @Override
         public Integer getStatus() {
             return Integer.valueOf(0);
@@ -16,7 +16,7 @@ public class ResponseHelper {
         }
     };
 
-    final static public CommandResult SUCCESS_COMMAND_RESULT = new CommandResult() {
+    final static public CommandResult SUCCESS_COMMAND_RESULT = new AbstractCommandResult() {
         @JsonIgnore
         @Override
         public Integer getStatus() {
@@ -30,7 +30,7 @@ public class ResponseHelper {
         }
     };
 
-    final static public CommandResult FAILED_COMMAND_RESULT = new CommandResult() {
+    final static public CommandResult FAILED_COMMAND_RESULT = new AbstractCommandResult() {
         @JsonIgnore
         @Override
         public Integer getStatus() {
@@ -52,7 +52,7 @@ public class ResponseHelper {
         return new JsonElementCommandResult(jsonElement);
     }
 
-    static private class JsonElementCommandResult implements CommandResult {
+    static private class JsonElementCommandResult extends AbstractCommandResult {
         final private Object result;
 
         public JsonElementCommandResult(Object result) {
@@ -71,7 +71,7 @@ public class ResponseHelper {
         }
     }
 
-    static private class StringCommandResult implements CommandResult {
+    static private class StringCommandResult extends AbstractCommandResult {
         final private String result;
         final private boolean isSuccess;
         public StringCommandResult(String result, boolean isSuccess) {

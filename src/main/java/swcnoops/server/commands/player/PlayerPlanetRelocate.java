@@ -15,7 +15,7 @@ public class PlayerPlanetRelocate extends AbstractCommandAction<PlayerPlanetRelo
     protected CommandResult execute(PlayerPlanetRelocate arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
-        playerSession.planetRelocate(arguments.getPlanet(), arguments.getPayWithHardCurrency());
+        playerSession.planetRelocate(arguments.getPlanet(), arguments.getPayWithHardCurrency(), time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

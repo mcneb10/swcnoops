@@ -8,6 +8,9 @@ abstract public class AbstractCommandResult implements CommandResult {
     @JsonIgnore
     transient private boolean success = true;
     @JsonIgnore
+    private String requestPlayerId;
+
+    @JsonIgnore
     @Override
     public Integer getStatus() {
         if (isSuccess())
@@ -27,5 +30,17 @@ abstract public class AbstractCommandResult implements CommandResult {
     @Override
     public Object getResult() {
         return this;
+    }
+
+    @JsonIgnore
+    @Override
+    public void setRequestPlayerId(String playerId) {
+        this.requestPlayerId = playerId;
+    }
+
+    @JsonIgnore
+    @Override
+    public String getRequestPlayerId() {
+        return this.requestPlayerId;
     }
 }

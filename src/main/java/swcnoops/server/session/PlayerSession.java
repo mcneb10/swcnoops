@@ -114,9 +114,13 @@ public interface PlayerSession {
 
     void setOffenseLab(OffenseLab offenseLab);
 
-    void planetRelocate(String planet, boolean payWithHardCurrency);
+    void planetRelocate(String planet, boolean payWithHardCurrency, long time);
 
     SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time);
 
-    void setLastNotificationSince(String guildId, long since);
+    boolean setLastNotificationSince(String guildId, long since);
+
+    boolean canSendNotifications();
+
+    long getNotificationsSince();
 }
