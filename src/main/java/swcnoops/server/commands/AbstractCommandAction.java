@@ -22,13 +22,21 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     }
 
     @Override
+    public ResponseData execute(Command command) throws Exception {
+        JsonParser jsonParser = ServiceFactory.instance().getJsonParser();
+        A parsedArgument = this.parseArgument(jsonParser, command.getArgs());
+        command.setParsedArgument(parsedArgument);
+        R commandResult = this.execute(parsedArgument, command.getTime());
+        command.setResponse(commandResult);
+        ResponseData responseData = createResponse(command, commandResult);
+        return responseData;
+    }
+
+    @Override
     public R execute(Object args, long time) throws Exception {
         JsonParser jsonParser = ServiceFactory.instance().getJsonParser();
         A parsedArgument = this.parseArgument(jsonParser, args);
         R result = this.execute(parsedArgument, time);
-
-        if (result != null && parsedArgument != null)
-            result.setRequestPlayerId(parsedArgument.getPlayerId());
         return result;
     }
 
@@ -54,10 +62,14 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         PlayerSession playerSession = null;
         GuildSession guildSession = null;
 
-        if (commandResult.getRequestPlayerId() != null) {
-            playerSession = ServiceFactory.instance().getSessionManager()
-                    .getPlayerSession(commandResult.getRequestPlayerId());
+        String playerId = null;
 
+        if (command.getParsedArgument() != null && command.getParsedArgument().getPlayerId() != null) {
+            playerId = command.getParsedArgument().getPlayerId();
+        }
+
+        if (playerId != null) {
+            playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
             guildSession = playerSession.getGuildSession();
         }
 
@@ -67,7 +79,7 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
                 playerSession != null && playerSession.canSendNotifications() &&
                 guildSession != null)
         {
-            messages = createGuildMessage(guildSession, command, commandResult);
+            messages = createGuildMessage(playerSession, guildSession, command);
         } else {
             messages = new CommandMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(),
                     ServiceFactory.createRandomUUID());
@@ -76,10 +88,7 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         return messages;
     }
 
-    private Messages createGuildMessage(GuildSession guildSession, Command command, R commandResult) {
-        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
-                .getPlayerSession(commandResult.getRequestPlayerId());
-
+    private Messages createGuildMessage(PlayerSession playerSession, GuildSession guildSession, Command command) {
             List<SquadNotification> squadNotifications =
                     guildSession.getNotificationsSince(playerSession.getNotificationsSince());
 
@@ -106,7 +115,7 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         return messages;
     }
 
-    private SquadMessage createSquadMessage(String guildId, String guildName, SquadNotification squadNotification)
+    static public SquadMessage createSquadMessage(String guildId, String guildName, SquadNotification squadNotification)
     {
         SquadMessage squadMessage = new SquadMessage(squadNotification);
         squadMessage.event = squadNotification.getType();

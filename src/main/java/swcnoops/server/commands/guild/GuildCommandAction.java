@@ -37,13 +37,8 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
 
     private SquadMessage createSquadMessage(GuildResult commandResult, SquadNotification squadNotification)
     {
-        SquadMessage squadMessage = new SquadMessage(squadNotification);
-        squadMessage.event = squadNotification.getType();
-        squadMessage.guildId = commandResult.getGuildId();
-        squadMessage.guildName = commandResult.getGuildName();
-        squadMessage.level = 0;
-        squadMessage.serverTime = squadNotification.getDate();
-        return squadMessage;
+        return AbstractCommandAction.createSquadMessage(commandResult.getGuildId(),
+                commandResult.getGuildName(), squadNotification);
     }
 
     static protected SquadResult createSquadResult(GuildSession guildSession) {

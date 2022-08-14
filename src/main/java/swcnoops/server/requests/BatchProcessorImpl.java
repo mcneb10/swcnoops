@@ -56,10 +56,7 @@ public class BatchProcessorImpl implements BatchProcessor {
                 attachedGuildNotificationFound = true;
             }
 
-            CommandResult commandResult = commandAction.execute(command.getArgs(), command.getTime());
-
-            command.setResponse(commandResult);
-            ResponseData responseData = commandAction.createResponse(command, commandResult);
+            ResponseData responseData = commandAction.execute(command);
             responseDatums.add(responseData);
         }
 

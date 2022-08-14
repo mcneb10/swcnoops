@@ -13,6 +13,7 @@ public class Command {
 
     private CommandAction commandAction;
     private CommandResult commandResult;
+    private CommandArguments parsedArgument;
 
     public String getAction() {
         return action;
@@ -68,5 +69,13 @@ public class Command {
 
     public boolean getAttachGuildNotification() {
         return attachGuildNotification;
+    }
+
+    public void setParsedArgument(CommandArguments parsedArgument) {
+        this.parsedArgument = parsedArgument;
+    }
+
+    public CommandArguments getParsedArgument() {
+        return parsedArgument;
     }
 }

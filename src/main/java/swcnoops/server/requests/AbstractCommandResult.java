@@ -31,16 +31,4 @@ abstract public class AbstractCommandResult implements CommandResult {
     public Object getResult() {
         return this;
     }
-
-    @JsonIgnore
-    @Override
-    public void setRequestPlayerId(String playerId) {
-        this.requestPlayerId = playerId;
-    }
-
-    @JsonIgnore
-    @Override
-    public String getRequestPlayerId() {
-        return this.requestPlayerId;
-    }
 }
