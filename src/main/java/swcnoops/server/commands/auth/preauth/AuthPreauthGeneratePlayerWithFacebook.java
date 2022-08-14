@@ -27,4 +27,9 @@ public class AuthPreauthGeneratePlayerWithFacebook extends AbstractCommandAction
     public String getAction() {
         return "auth.preauth.generatePlayerWithFacebook";
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

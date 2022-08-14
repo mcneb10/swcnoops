@@ -4,11 +4,6 @@ import swcnoops.server.commands.Command;
 import swcnoops.server.commands.CommandAction;
 import swcnoops.server.commands.CommandFactory;
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.model.GuildMessage;
-import swcnoops.server.model.SquadMessage;
-import swcnoops.server.model.SquadNotification;
-import swcnoops.server.session.GuildSession;
-import swcnoops.server.session.PlayerSession;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -47,8 +42,7 @@ public class BatchProcessorImpl implements BatchProcessor {
     public BatchResponse executeCommands(Batch batch) throws Exception {
         List<ResponseData> responseDatums = new ArrayList<>(batch.getCommands().size());
 
-        String playerId = null;
-        long firstCommandTime = 0;
+        boolean attachedGuildNotificationFound = false;
 
         for (Command command : batch.getCommands()) {
             CommandAction commandAction = command.getCommandAction();
@@ -57,42 +51,16 @@ public class BatchProcessorImpl implements BatchProcessor {
                 throw new Exception("Command " + command.getAction() + " not supported");
             }
 
+            if (!attachedGuildNotificationFound && commandAction.canAttachGuildNotifications()) {
+                command.setAttachGuildNotification(true);
+                attachedGuildNotificationFound = true;
+            }
+
             CommandResult commandResult = commandAction.execute(command.getArgs(), command.getTime());
+
             command.setResponse(commandResult);
             ResponseData responseData = commandAction.createResponse(command, commandResult);
             responseDatums.add(responseData);
-
-            if (playerId == null && commandResult.getRequestPlayerId() != null) {
-                playerId = commandResult.getRequestPlayerId();
-                firstCommandTime = command.getTime();
-            }
-        }
-
-        // attach guild notifications
-        if (responseDatums.size() > 0 && playerId != null) {
-            ResponseData firstResponseData = responseDatums.get(0);
-            if (firstResponseData.status == Integer.valueOf(0)) {
-                boolean canReplace = true;
-                if (firstResponseData.messages instanceof GuildMessages) {
-                    GuildMessages guildMessages = (GuildMessages) firstResponseData.messages;
-                    if (guildMessages.getGuild().size() > 0) {
-                        canReplace = false;
-                    }
-                }
-
-                if (canReplace) {
-                    PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
-                    if (playerSession.getGuildSession() != null && playerSession.canSendNotifications()) {
-                        List<SquadNotification> squadNotifications =
-                                playerSession.getGuildSession().getNotificationsSince(playerSession.getNotificationsSince());
-                        GuildSession guildSession = playerSession.getGuildSession();
-                        Messages messages = createMessage(firstCommandTime, guildSession.getGuildId(),
-                                guildSession.getGuildName(), squadNotifications);
-                        if (messages != null)
-                            firstResponseData.messages = messages;
-                    }
-                }
-            }
         }
 
         BatchResponse batchResponse = new BatchResponse(responseDatums);
@@ -101,36 +69,6 @@ public class BatchProcessorImpl implements BatchProcessor {
         batchResponse.setServerTimestamp(zonedDateTime.toEpochSecond());
         batchResponse.setServerTime(dateTimeFormatter.format(zonedDateTime));
         return batchResponse;
-    }
-
-    private Messages createMessage(long firstCommandTime, String guildId, String guildName, List<SquadNotification> notifications) {
-        GuildMessages messages = null;
-
-        if (notifications != null && notifications.size() > 0) {
-            String guid = ServiceFactory.createRandomUUID();
-            long systemTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
-            messages = new GuildMessages(firstCommandTime, systemTime, guid);
-
-            // only if there is a msg do we create notification
-            for (SquadNotification squadNotification : notifications) {
-                SquadMessage squadMessage = createSquadMessage(guildId, guildName, squadNotification);
-                GuildMessage guildMessage = new GuildMessage(squadMessage, guid, firstCommandTime);
-                messages.getGuild().add(guildMessage);
-            }
-        }
-
-        return messages;
-    }
-
-    private SquadMessage createSquadMessage(String guildId, String guildName, SquadNotification squadNotification)
-    {
-        SquadMessage squadMessage = new SquadMessage(squadNotification);
-        squadMessage.event = squadNotification.getType();
-        squadMessage.guildId = guildId;
-        squadMessage.guildName = guildName;
-        squadMessage.level = 0;
-        squadMessage.serverTime = squadNotification.getDate();
-        return squadMessage;
     }
 
     @Override

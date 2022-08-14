@@ -30,4 +30,6 @@ public interface PlayerDataSource {
     PlayerSecret getPlayerSecret(String primaryId);
 
     void saveNotification(String guildId, SquadNotification squadNotification);
+
+    void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification leaveNotification);
 }

@@ -51,4 +51,9 @@ public class GuildWarMatchmakingStart extends GuildCommandAction<GuildWarMatchma
     public boolean isSameFactionWarAllowed() {
         return isSameFactionWarAllowed;
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

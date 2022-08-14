@@ -467,7 +467,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public GuildSettings loadGuildSettings(String guildId) {
-        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon " +
+        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon, leaderId " +
                 "FROM Squads s WHERE s.id = ?";
 
         final String squadPlayers = "SELECT id, name " +
@@ -493,6 +493,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                         guildSettings.setDescription(rs.getString("description"));
                         guildSettings.setIcon(rs.getString("icon"));
+                        guildSettings.setLeaderId(rs.getString("leaderId"));
                     }
                 }
 
@@ -675,6 +676,36 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    @Override
+    public void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification squadNotification) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            updateGuildLeader(guildSettings.getGuildId(), guildSettings.getLeaderId(), connection);
+            savePlayerSession(playerSession, connection);
+            if (squadNotification != null)
+                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private void updateGuildLeader(String guildId, String leaderId, Connection connection) {
+        final String squadSql = "update Squads " +
+                "set leaderId = ? " +
+                "where id = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+                stmt.setString(1, leaderId);
+                stmt.setString(2, guildId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save squad leaderId =" + guildId, ex);
         }
     }
 

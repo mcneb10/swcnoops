@@ -68,14 +68,14 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public void leave(PlayerSession playerSession) {
+    public void leave(PlayerSession playerSession, SquadMsgType leaveType) {
         playerSession.setGuildSession(null);
         this.guildSettings.removeMember(playerSession.getPlayerId());
         this.guildPlayerSessions.remove(playerSession.getPlayerId());
         this.squadNotifications.removeIf(a -> a.getPlayerId().equals(playerSession.getPlayerId()));
-        SquadNotification leaveNotification = createNotification(this.getGuildId(), playerSession, SquadMsgType.leave);
+        SquadNotification leaveNotification = createNotification(this.getGuildId(), playerSession, leaveType);
         this.addNotification(leaveNotification);
-        playerSession.savePlayerSession(leaveNotification);
+        this.saveGuildChange(playerSession, leaveNotification);
     }
 
     @Override
@@ -166,6 +166,7 @@ public class GuildSessionImpl implements GuildSession {
         if (squadMsgType != null) {
             switch (squadMsgType) {
                 case leave:
+                case ejected:
                 case join:
                     squadNotification =
                             new SquadNotification(guildId,
@@ -184,5 +185,11 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public void saveNotification(SquadNotification squadNotification) {
         ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), squadNotification);
+    }
+
+    @Override
+    public void saveGuildChange(PlayerSession playerSession, SquadNotification leaveNotification) {
+        ServiceFactory.instance().getPlayerDatasource().saveGuildChange(this.getGuildSettings(),
+                playerSession, leaveNotification);
     }
 }

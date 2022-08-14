@@ -68,6 +68,7 @@ public class CommandFactory {
         this.add(new GuildGetPublic());
         this.add(new GuildJoin());
         this.add(new GuildLeave());
+        this.add(new GuildEject());
         this.add(new GuildCreate());
         this.add(new GuildEdit());
         this.add(new GuildTroopsRequest());

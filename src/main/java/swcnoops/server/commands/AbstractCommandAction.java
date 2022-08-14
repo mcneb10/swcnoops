@@ -2,7 +2,14 @@ package swcnoops.server.commands;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.GuildMessage;
+import swcnoops.server.model.SquadMessage;
+import swcnoops.server.model.SquadNotification;
 import swcnoops.server.requests.*;
+import swcnoops.server.session.GuildSession;
+import swcnoops.server.session.PlayerSession;
+
+import java.util.List;
 
 abstract public class AbstractCommandAction<A extends CommandArguments, R extends CommandResult>
         implements CommandArguments, CommandAction<R>
@@ -44,9 +51,70 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     }
 
     protected Messages createMessage(Command command, R commandResult) {
-        Messages messages = new CommandMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(),
-                ServiceFactory.createRandomUUID());;
+        PlayerSession playerSession = null;
+        GuildSession guildSession = null;
+
+        if (commandResult.getRequestPlayerId() != null) {
+            playerSession = ServiceFactory.instance().getSessionManager()
+                    .getPlayerSession(commandResult.getRequestPlayerId());
+
+            guildSession = playerSession.getGuildSession();
+        }
+
+        Messages messages;
+
+        if (command.getAttachGuildNotification() &&
+                playerSession != null && playerSession.canSendNotifications() &&
+                guildSession != null)
+        {
+            messages = createGuildMessage(guildSession, command, commandResult);
+        } else {
+            messages = new CommandMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(),
+                    ServiceFactory.createRandomUUID());
+        }
+
         return messages;
+    }
+
+    private Messages createGuildMessage(GuildSession guildSession, Command command, R commandResult) {
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(commandResult.getRequestPlayerId());
+
+            List<SquadNotification> squadNotifications =
+                    guildSession.getNotificationsSince(playerSession.getNotificationsSince());
+
+        Messages messages = createMessage(command.getTime(), guildSession.getGuildId(),
+                    guildSession.getGuildName(), squadNotifications);
+
+        return messages;
+    }
+
+    private Messages createMessage(long firstCommandTime, String guildId, String guildName, List<SquadNotification> notifications) {
+        String guid = ServiceFactory.createRandomUUID();
+        long systemTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        GuildMessages messages = new GuildMessages(firstCommandTime, systemTime, guid);;
+
+        if (notifications != null && notifications.size() > 0) {
+            // only if there is a msg do we create notification
+            for (SquadNotification squadNotification : notifications) {
+                SquadMessage squadMessage = createSquadMessage(guildId, guildName, squadNotification);
+                GuildMessage guildMessage = new GuildMessage(squadMessage, guid, firstCommandTime);
+                messages.getGuild().add(guildMessage);
+            }
+        }
+
+        return messages;
+    }
+
+    private SquadMessage createSquadMessage(String guildId, String guildName, SquadNotification squadNotification)
+    {
+        SquadMessage squadMessage = new SquadMessage(squadNotification);
+        squadMessage.event = squadNotification.getType();
+        squadMessage.guildId = guildId;
+        squadMessage.guildName = guildName;
+        squadMessage.level = 0;
+        squadMessage.serverTime = squadNotification.getDate();
+        return squadMessage;
     }
 
     static public <T extends CommandResult> T parseJsonFile(String filename, Class<T> clazz) {
@@ -59,5 +127,10 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         }
 
         return response;
+    }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return true;
     }
 }

@@ -20,6 +20,7 @@ public class GuildSettingsImpl implements GuildSettings {
     private boolean openEnrollment;
     private Integer minScoreAtEnrollment;
     private String icon;
+    private String leaderId;
 
     public GuildSettingsImpl(String id) {
         this.id = id;
@@ -27,6 +28,12 @@ public class GuildSettingsImpl implements GuildSettings {
 
     public void afterLoad() {
         this.notifications.sort((a,b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
+        if (this.getLeaderId() != null) {
+            Member member = this.memberMap.get(this.getLeaderId());
+            if (member != null) {
+                member.isOwner = true;
+            }
+        }
     }
 
     @Override
@@ -91,9 +98,12 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     @Override
-    public void removeMember(String playerId) {
+    synchronized public void removeMember(String playerId) {
         if (this.memberMap.containsKey(playerId)) {
             this.memberMap.remove(playerId);
+
+            if (this.memberMap.size() == 0)
+                this.setLeaderId(null);
         }
     }
 
@@ -149,5 +159,14 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public Collection<? extends SquadNotification> getSquadNotifications() {
         return this.notifications;
+    }
+
+    public void setLeaderId(String leaderId) {
+        this.leaderId = leaderId;
+    }
+
+    @Override
+    public String getLeaderId() {
+        return leaderId;
     }
 }

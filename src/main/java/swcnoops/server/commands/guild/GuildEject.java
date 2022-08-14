@@ -10,24 +10,31 @@ import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.SessionManager;
 
-public class GuildLeave extends AbstractCommandAction<GuildLeave, CommandResult> {
+public class GuildEject extends AbstractCommandAction<GuildEject, CommandResult> {
+    private String memberId;
+
     @Override
-    protected CommandResult execute(GuildLeave arguments, long time) throws Exception {
+    protected CommandResult execute(GuildEject arguments, long time) throws Exception {
         SessionManager sessionManager = ServiceFactory.instance().getSessionManager();
         PlayerSession playerSession = sessionManager.getPlayerSession(arguments.getPlayerId());
-        playerSession.getDonatedTroops().clear();
+        PlayerSession ejectPlayerSession = sessionManager.getPlayerSession(arguments.getMemberId());
+        ejectPlayerSession.getDonatedTroops().clear();
         GuildSession oldSquad = playerSession.getGuildSession();
-        oldSquad.leave(playerSession, SquadMsgType.leave);
+        oldSquad.leave(ejectPlayerSession, SquadMsgType.ejected);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 
     @Override
-    protected GuildLeave parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return jsonParser.fromJsonObject(argumentObject, GuildLeave.class);
+    protected GuildEject parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, GuildEject.class);
     }
 
     @Override
     public String getAction() {
-        return "guild.leave";
+        return "guild.eject";
+    }
+
+    public String getMemberId() {
+        return memberId;
     }
 }

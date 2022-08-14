@@ -8,4 +8,6 @@ public interface CommandAction<R extends CommandResult> {
     CommandResult execute(Object args, long time) throws Exception;
 
     ResponseData createResponse(Command command, R commandResult);
+
+    boolean canAttachGuildNotifications();
 }

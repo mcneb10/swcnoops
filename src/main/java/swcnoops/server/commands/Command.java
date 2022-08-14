@@ -8,6 +8,9 @@ public class Command {
     private long requestId;
     private long time;
     private String token;
+
+    private boolean attachGuildNotification = false;
+
     private CommandAction commandAction;
     private CommandResult commandResult;
 
@@ -57,5 +60,13 @@ public class Command {
 
     public CommandResult getResponse() {
         return commandResult;
+    }
+
+    public void setAttachGuildNotification(boolean attachGuildNotification) {
+        this.attachGuildNotification = attachGuildNotification;
+    }
+
+    public boolean getAttachGuildNotification() {
+        return attachGuildNotification;
     }
 }

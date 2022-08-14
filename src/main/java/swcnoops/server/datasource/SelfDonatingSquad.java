@@ -137,4 +137,9 @@ public class SelfDonatingSquad implements GuildSettings {
     public Collection<? extends SquadNotification> getSquadNotifications() {
         return null;
     }
+
+    @Override
+    public String getLeaderId() {
+        return this.guildId;
+    }
 }

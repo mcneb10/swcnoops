@@ -51,4 +51,9 @@ public class GuildNotificationsGet extends AbstractCommandAction<GuildNotificati
     public String getBattleVersion() {
         return battleVersion;
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

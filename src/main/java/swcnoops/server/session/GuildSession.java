@@ -1,6 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.datasource.GuildSettings;
+import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.model.SquadNotification;
 import swcnoops.server.model.TroopRequestData;
 
@@ -22,7 +23,7 @@ public interface GuildSession {
 
     void warMatchmakingStart(List<String> participantIds, boolean isSameFactionWarAllowed);
 
-    void leave(PlayerSession playerSession);
+    void leave(PlayerSession playerSession, SquadMsgType leaveType);
 
     GuildSettings getGuildSettings();
 
@@ -37,4 +38,6 @@ public interface GuildSession {
     List<SquadNotification> getNotificationsSince(long since);
 
     void saveNotification(SquadNotification squadNotification);
+
+    void saveGuildChange(PlayerSession playerSession, SquadNotification leaveNotification);
 }
