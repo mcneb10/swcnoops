@@ -3,7 +3,10 @@ package swcnoops.server.datasource;
 import swcnoops.server.model.FactionType;
 import swcnoops.server.model.Squad;
 import swcnoops.server.model.SquadNotification;
+import swcnoops.server.model.SquadRole;
+import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
+
 import java.util.List;
 
 public interface PlayerDataSource {
@@ -32,4 +35,10 @@ public interface PlayerDataSource {
     void saveNotification(String guildId, SquadNotification squadNotification);
 
     void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification leaveNotification);
+
+    void joinSquad(PlayerSession playerSession, SquadNotification squadNotification);
+
+    void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification);
+
+    void changeSquadRole(GuildSession guildSession, PlayerSession memberSession, SquadNotification squadNotification, SquadRole squadRole);
 }

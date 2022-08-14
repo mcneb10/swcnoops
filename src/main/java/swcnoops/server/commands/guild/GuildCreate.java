@@ -29,7 +29,6 @@ public class GuildCreate extends AbstractCommandAction<GuildCreate, SquadResult>
         guildSettings.setOpenEnrollment(arguments.getOpenEnrollment());
         guildSettings.setMinScoreAtEnrollment(arguments.getMinScoreAtEnrollment());
         GuildSession guildSession = new GuildSessionImpl(guildSettings);
-        guildSession.login(playerSession);
 
         guildSession.createNewGuild(playerSession);
 

@@ -102,7 +102,7 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public void addMember(String playerId, String playerName) {
+    public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long jointDate, long troopsDonated, long troopsReceived) {
     }
 
     @Override
@@ -139,7 +139,7 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public String getLeaderId() {
-        return this.guildId;
+    public Member getMember(String playerId) {
+        return null;
     }
 }

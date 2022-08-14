@@ -18,8 +18,12 @@ public class Member {
     public long score;
     public int tournamentRating;
     public TournamentScores tournamentScores;
-    public int troopsDonated;
-    public int troopsReceived;
+    public long troopsDonated;
+    public long troopsReceived;
     public int warParty;
     public int xp;
+
+    public void setIsOfficer(boolean isOfficer) {
+        this.isOfficer = true;
+    }
 }

@@ -28,12 +28,6 @@ public class GuildSettingsImpl implements GuildSettings {
 
     public void afterLoad() {
         this.notifications.sort((a,b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
-        if (this.getLeaderId() != null) {
-            Member member = this.memberMap.get(this.getLeaderId());
-            if (member != null) {
-                member.isOwner = true;
-            }
-        }
     }
 
     @Override
@@ -90,9 +84,12 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     @Override
-    public void addMember(String playerId, String playerName) {
+    public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate,
+                          long troopsDonated, long troopsReceived)
+    {
         if (!this.memberMap.containsKey(playerId)) {
-            Member member = GuildHelper.createMember(playerId, playerName);
+            Member member = GuildHelper.createMember(playerId, playerName, isOwner,
+                    isOfficer, joinDate, troopsDonated, troopsReceived);
             this.memberMap.put(playerId, member);
         }
     }
@@ -101,9 +98,6 @@ public class GuildSettingsImpl implements GuildSettings {
     synchronized public void removeMember(String playerId) {
         if (this.memberMap.containsKey(playerId)) {
             this.memberMap.remove(playerId);
-
-            if (this.memberMap.size() == 0)
-                this.setLeaderId(null);
         }
     }
 
@@ -161,12 +155,8 @@ public class GuildSettingsImpl implements GuildSettings {
         return this.notifications;
     }
 
-    public void setLeaderId(String leaderId) {
-        this.leaderId = leaderId;
-    }
-
     @Override
-    public String getLeaderId() {
-        return leaderId;
+    public Member getMember(String playerId) {
+        return this.memberMap.get(playerId);
     }
 }

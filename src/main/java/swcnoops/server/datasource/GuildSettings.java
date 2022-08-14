@@ -36,7 +36,7 @@ public interface GuildSettings {
 
     boolean canSave();
 
-    void addMember(String playerId, String playerName);
+    void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long jointDate, long troopsDonated, long troopsReceived);
 
     void removeMember(String playerId);
 
@@ -48,5 +48,5 @@ public interface GuildSettings {
 
     Collection<? extends SquadNotification> getSquadNotifications();
 
-    String getLeaderId();
+    Member getMember(String playerId);
 }

@@ -3,6 +3,7 @@ package swcnoops.server.datasource;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.model.*;
+import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.Troops;
@@ -248,6 +249,74 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
+    @Override
+    public void joinSquad(PlayerSession playerSession, SquadNotification squadNotification) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            savePlayerSession(playerSession, connection);
+            GuildSession guildSession = playerSession.getGuildSession();
+
+            if (guildSession.canEdit()) {
+                insertSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(), false, false, 0, connection);
+                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+            }
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    @Override
+    public void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            savePlayerSession(playerSession, connection);
+            if (guildSession.canEdit()) {
+                deleteSquadMember(playerSession.getPlayerId(), connection);
+                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+            }
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    @Override
+    public void changeSquadRole(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification,
+                                SquadRole squadRole)
+    {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            if (guildSession.canEdit()) {
+                Member member = guildSession.getGuildSettings().getMember(playerSession.getPlayerId());
+                member.setIsOfficer(squadRole == SquadRole.Officer);
+                updateSquadMember(guildSession.getGuildId(), member, connection);
+                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+            }
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    private void updateSquadMember(String guildId, Member member, Connection connection) {
+        final String squadSql = "update SquadMembers " +
+                "set isOfficer = ?, isOwner = ? " +
+                "where guildId = ? and playerId = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+                stmt.setBoolean(1, member.isOfficer);
+                stmt.setBoolean(2, member.isOwner);
+                stmt.setString(3, guildId);
+                stmt.setString(4, member.playerId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to promote playerId =" + member.playerId, ex);
+        }
+    }
+
     private void savePlayerSession(PlayerSession playerSession, Connection connection) {
         BuildUnits allContracts = mapContractsToPlayerSettings(playerSession);
         String contractsJson = ServiceFactory.instance().getJsonParser().toJson(allContracts);
@@ -366,8 +435,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession,
-                                   SquadNotification squadNotification)
-    {
+                                   SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             savePlayerSession(playerSession, connection);
@@ -430,6 +498,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             createNewGuild(playerId, guildSettings, connection);
+            insertSquadMember(guildSettings.getGuildId(), playerId, false, true, 0, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
@@ -437,8 +506,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void createNewGuild(String playerId, GuildSettings guildSettings, Connection connection) {
-        final String squadSql = "insert into Squads (id, faction, name, icon, description, leaderId) values " +
-                "(?, ?, ?, ?, ?, ?)";
+        final String squadSql = "insert into Squads (id, faction, name, icon, description) values " +
+                "(?, ?, ?, ?, ?)";
 
         final String playerSettingsSql = "update PlayerSettings " +
                 "set guildId = ? " +
@@ -451,7 +520,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(3, guildSettings.getGuildName());
                 stmt.setString(4, guildSettings.getIcon());
                 stmt.setString(5, guildSettings.getDescription());
-                stmt.setString(6, playerId);
                 stmt.executeUpdate();
             }
 
@@ -465,13 +533,46 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
+    private void insertSquadMember(String guildId, String playerId, boolean isOfficer, boolean isOwner, long joinDate,
+                                   Connection connection) {
+        final String squadMemberSql = "insert into SquadMembers (guildId, playerId, isOfficer, isOwner, joinDate) values " +
+                "(?, ?, ?, ?, ?)";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
+                stmt.setString(1, guildId);
+                stmt.setString(2, playerId);
+                stmt.setInt(3, isOfficer ? 1 : 0);
+                stmt.setInt(4, isOwner ? 1 : 0);
+                stmt.setLong(5, joinDate);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
+        }
+    }
+
+    private void deleteSquadMember(String playerId, Connection connection) {
+        final String squadMemberSql = "delete from SquadMembers where playerId = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
+                stmt.setString(1, playerId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to delete SquadMembers for playerId=" + playerId, ex);
+        }
+    }
+
     @Override
     public GuildSettings loadGuildSettings(String guildId) {
-        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon, leaderId " +
+        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon " +
                 "FROM Squads s WHERE s.id = ?";
 
-        final String squadPlayers = "SELECT id, name " +
-                "FROM PlayerSettings s WHERE s.guildId = ?";
+        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived " +
+                "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
+                "and m.playerId = s.Id";
 
         final String notificationsSql = "SELECT id, orderNo, date, playerId, name, squadMessageType, message, squadNotification " +
                 "FROM SquadNotifications s WHERE s.guildId = ?";
@@ -493,7 +594,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                         guildSettings.setDescription(rs.getString("description"));
                         guildSettings.setIcon(rs.getString("icon"));
-                        guildSettings.setLeaderId(rs.getString("leaderId"));
                     }
                 }
 
@@ -502,9 +602,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     ResultSet rs = pstmt.executeQuery();
 
                     while (rs.next()) {
-                        String playerId = rs.getString("id");
+                        String playerId = rs.getString("playerId");
                         String playerName = rs.getString("name");
-                        guildSettings.addMember(playerId, playerName);
+                        boolean isOfficer = rs.getBoolean("isOfficer");
+                        boolean isOwner = rs.getBoolean("isOwner");
+                        long joinDate = rs.getLong("joinDate");
+                        long troopsDonated = rs.getLong("troopsDonated");
+                        long troopsReceived = rs.getLong("troopsReceived");
+                        guildSettings.addMember(playerId, playerName, isOwner, isOfficer, joinDate,
+                                troopsDonated, troopsReceived);
                     }
                 }
 
@@ -541,8 +647,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private SquadNotificationData mapSquadNotificationData(SquadMsgType squadMessageType, String squadNotificationJson)
-            throws Exception
-    {
+            throws Exception {
         SquadNotificationData squadNotificationData = null;
         if (squadMessageType != null) {
             switch (squadMessageType) {
@@ -683,7 +788,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
-            updateGuildLeader(guildSettings.getGuildId(), guildSettings.getLeaderId(), connection);
             savePlayerSession(playerSession, connection);
             if (squadNotification != null)
                 saveNotification(squadNotification.getGuildId(), squadNotification, connection);

@@ -2,10 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.GuildSettings;
-import swcnoops.server.model.SquadMsgType;
-import swcnoops.server.model.SquadNotification;
-import swcnoops.server.model.TroopDonationData;
-import swcnoops.server.model.TroopRequestData;
+import swcnoops.server.model.*;
 
 import java.util.List;
 import java.util.Map;
@@ -18,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class GuildSessionImpl implements GuildSession {
     final private GuildSettings guildSettings;
-    final private Map<String,PlayerSession> guildPlayerSessions = new ConcurrentHashMap<>();
+    final private Map<String, PlayerSession> guildPlayerSessions = new ConcurrentHashMap<>();
 
     private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
     private AtomicLong squadNotificationOrder = new AtomicLong();
@@ -30,7 +27,7 @@ public class GuildSessionImpl implements GuildSession {
         }
 
         Optional<SquadNotification> maxNotification =
-                this.squadNotifications.stream().max((a,b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
+                this.squadNotifications.stream().max((a, b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
 
         if (maxNotification.isPresent())
             this.squadNotificationOrder.set(maxNotification.get().getOrderNo());
@@ -53,18 +50,21 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void login(PlayerSession playerSession) {
-        playerSession.setGuildSession(this);
-        this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName());
-        this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
+        if (!this.guildPlayerSessions.containsKey(playerSession.getPlayerId())) {
+            playerSession.setGuildSession(this);
+            this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
+        }
     }
 
-    // TODO - needs proper handler to notify other players, or if the player is already in the squad
     @Override
     public void join(PlayerSession playerSession) {
-        login(playerSession);
+        playerSession.setGuildSession(this);
+        this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(),
+                false, false, 0, 0, 0);
+        this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
         SquadNotification joinNotification = createNotification(this.getGuildId(), playerSession, SquadMsgType.join);
         this.addNotification(joinNotification);
-        playerSession.savePlayerSession(joinNotification);
+        ServiceFactory.instance().getPlayerDatasource().joinSquad(playerSession, joinNotification);
     }
 
     @Override
@@ -75,7 +75,20 @@ public class GuildSessionImpl implements GuildSession {
         this.squadNotifications.removeIf(a -> a.getPlayerId().equals(playerSession.getPlayerId()));
         SquadNotification leaveNotification = createNotification(this.getGuildId(), playerSession, leaveType);
         this.addNotification(leaveNotification);
-        this.saveGuildChange(playerSession, leaveNotification);
+        ServiceFactory.instance().getPlayerDatasource().leaveSquad(this, playerSession, leaveNotification);
+    }
+
+    @Override
+    public void changeSquadRole(PlayerSession memberSession, SquadRole squadRole, SquadMsgType squadMsgType) {
+        SqmMemberData sqmMemberData = new SqmMemberData();
+        sqmMemberData.memberId = memberSession.getPlayerId();
+        sqmMemberData.toRank = squadRole;
+        SquadNotification roleChangeNotification =
+                createNotification(this.getGuildId(), memberSession, squadMsgType);
+        roleChangeNotification.setData(sqmMemberData);
+        this.addNotification(roleChangeNotification);
+        ServiceFactory.instance().getPlayerDatasource().changeSquadRole(this, memberSession,
+                roleChangeNotification, squadRole);
     }
 
     @Override
@@ -90,8 +103,7 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public SquadNotification troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession,
-                                           String recipientPlayerId, long time)
-    {
+                                           String recipientPlayerId, long time) {
         SquadNotification squadNotification = new SquadNotification(this.getGuildId(), ServiceFactory.createRandomUUID(),
                 null, playerSession.getPlayerSettings().getName(), playerSession.getPlayerId(), SquadMsgType.troopDonation);
 
@@ -168,6 +180,8 @@ public class GuildSessionImpl implements GuildSession {
                 case leave:
                 case ejected:
                 case join:
+                case promotion:
+                case demotion:
                     squadNotification =
                             new SquadNotification(guildId,
                                     ServiceFactory.createRandomUUID(), null,

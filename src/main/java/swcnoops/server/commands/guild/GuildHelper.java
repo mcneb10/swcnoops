@@ -30,4 +30,19 @@ public class GuildHelper {
     }
 
     static final public Perks emptyPerks = new Perks();
+
+    public static Member createMember(String playerId, String playerName, boolean isOwner,
+                                      boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived)
+    {
+        Member member = new Member();
+        member.isOfficer = isOfficer;
+        member.isOwner = isOwner;
+        member.playerId = playerId;
+        member.joinDate = joinDate;
+        member.hqLevel = 1;
+        member.name = playerName;
+        member.troopsDonated = troopsDonated;
+        member.troopsReceived = troopsReceived;
+        return member;
+    }
 }

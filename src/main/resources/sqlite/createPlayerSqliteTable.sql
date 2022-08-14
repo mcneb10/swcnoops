@@ -35,8 +35,17 @@ CREATE TABLE IF NOT EXISTS Squads
      members json,
      warId text,
      description text,
-     icon text,
-     leaderId text);
+     icon text);
+
+CREATE TABLE IF NOT EXISTS SquadMembers
+    (guildId text,
+     playerId text,
+     isOfficer NUMERIC,
+     isOwner NUMERIC,
+     joinDate NUMERIC,
+     troopsDonated NUMERIC,
+     troopsReceived NUMERIC,
+     primary key(guildId, playerId));
 
 CREATE TABLE IF NOT EXISTS "SquadNotifications" (
 	"guildId"	TEXT NOT NULL,

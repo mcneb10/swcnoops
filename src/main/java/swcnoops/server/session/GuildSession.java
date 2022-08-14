@@ -3,6 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.model.SquadNotification;
+import swcnoops.server.model.SquadRole;
 import swcnoops.server.model.TroopRequestData;
 
 import java.util.List;
@@ -40,4 +41,6 @@ public interface GuildSession {
     void saveNotification(SquadNotification squadNotification);
 
     void saveGuildChange(PlayerSession playerSession, SquadNotification leaveNotification);
+
+    void changeSquadRole(PlayerSession memberSession, SquadRole squadRole, SquadMsgType squadMsgType);
 }
