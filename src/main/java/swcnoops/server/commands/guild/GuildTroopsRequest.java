@@ -25,6 +25,7 @@ public class GuildTroopsRequest extends GuildCommandAction<GuildTroopsRequest, G
                 new GuildTroopsRequestCommandResult();
 
         guildTroopsRequestCommandResult.setSquadNotification(squadNotification);
+
         return guildTroopsRequestCommandResult;
     }
 

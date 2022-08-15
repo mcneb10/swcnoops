@@ -18,7 +18,8 @@ public interface PlayerDataSource {
 
     void savePlayerSession(PlayerSession playerSession, SquadNotification squadNotification);
 
-    void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession, SquadNotification squadNotification);
+    void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
+                            SquadNotification squadNotification);
 
     void newPlayer(String playerId, String secret);
 
@@ -36,7 +37,7 @@ public interface PlayerDataSource {
 
     void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification leaveNotification);
 
-    void joinSquad(PlayerSession playerSession, SquadNotification squadNotification);
+    void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification);
 
     void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification);
 

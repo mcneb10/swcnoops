@@ -22,12 +22,15 @@ public class GuildWarMatchmakingStart extends GuildCommandAction<GuildWarMatchma
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = playerSession.getGuildSession();
-        guildSession.warMatchmakingStart(arguments.getParticipantIds(), arguments.isSameFactionWarAllowed);
-        SquadNotification squadNotification =
-                GuildSessionImpl.createNotification(guildSession.getGuildId(), playerSession, SquadMsgType.warMatchMakingBegin);
 
-        guildSession.addNotification(squadNotification);
-        guildSession.saveNotification(squadNotification);
+        SquadNotification squadNotification = null;
+        if (guildSession != null) {
+            guildSession.warMatchmakingStart(arguments.getParticipantIds(), arguments.isSameFactionWarAllowed);
+            squadNotification = GuildSessionImpl.createNotification(guildSession.getGuildId(), guildSession.getGuildName(),
+                            playerSession, SquadMsgType.warMatchMakingBegin);
+            guildSession.addNotification(squadNotification);
+            guildSession.saveNotification(squadNotification);
+        }
 
         GuildResult guildResult = new GuildResult(guildSession);
         guildResult.setSquadNotification(squadNotification);

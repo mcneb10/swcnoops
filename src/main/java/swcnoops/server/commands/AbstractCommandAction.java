@@ -4,12 +4,14 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.GuildMessage;
 import swcnoops.server.model.SquadMessage;
+import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.model.SquadNotification;
 import swcnoops.server.requests.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 abstract public class AbstractCommandAction<A extends CommandArguments, R extends CommandResult>
         implements CommandArguments, CommandAction<R>
@@ -60,7 +62,6 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
 
     protected Messages createMessage(Command command, R commandResult) {
         PlayerSession playerSession = null;
-        GuildSession guildSession = null;
 
         String playerId = null;
 
@@ -70,16 +71,14 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
 
         if (playerId != null) {
             playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(playerId);
-            guildSession = playerSession.getGuildSession();
         }
 
         Messages messages;
 
         if (command.getAttachGuildNotification() &&
-                playerSession != null && playerSession.canSendNotifications() &&
-                guildSession != null)
+                playerSession != null && playerSession.canSendNotifications())
         {
-            messages = createGuildMessage(playerSession, guildSession, command);
+            messages = createGuildMessage(playerSession, command);
         } else {
             messages = new CommandMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(),
                     ServiceFactory.createRandomUUID());
@@ -88,17 +87,29 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         return messages;
     }
 
-    private Messages createGuildMessage(PlayerSession playerSession, GuildSession guildSession, Command command) {
-            List<SquadNotification> squadNotifications =
-                    guildSession.getNotificationsSince(playerSession.getNotificationsSince());
+    private Messages createGuildMessage(PlayerSession playerSession, Command command) {
+        GuildSession guildSession = playerSession.getGuildSession();
 
-        Messages messages = createMessage(command.getTime(), guildSession.getGuildId(),
-                    guildSession.getGuildName(), squadNotifications);
+        List<SquadNotification> squadNotifications;
+
+        if (guildSession != null)
+            squadNotifications = guildSession.getNotifications(playerSession.getNotificationsSince());
+        else {
+            squadNotifications = playerSession.getNotifications(playerSession.getNotificationsSince());
+            List<SquadNotification> ejectedNotifications = squadNotifications.stream()
+                    .filter(a -> a.getType() == SquadMsgType.ejected).collect(Collectors.toList());
+
+            if (ejectedNotifications.size() > 0) {
+                playerSession.removeEjectedNotifications(ejectedNotifications);
+            }
+        }
+
+        Messages messages = createMessage(command.getTime(), squadNotifications);
 
         return messages;
     }
 
-    private Messages createMessage(long firstCommandTime, String guildId, String guildName, List<SquadNotification> notifications) {
+    private Messages createMessage(long firstCommandTime, List<SquadNotification> notifications) {
         String guid = ServiceFactory.createRandomUUID();
         long systemTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
         GuildMessages messages = new GuildMessages(firstCommandTime, systemTime, guid);;
@@ -106,7 +117,8 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         if (notifications != null && notifications.size() > 0) {
             // only if there is a msg do we create notification
             for (SquadNotification squadNotification : notifications) {
-                SquadMessage squadMessage = createSquadMessage(guildId, guildName, squadNotification);
+                SquadMessage squadMessage = createSquadMessage(squadNotification.getGuildId(),
+                        squadNotification.getGuildName(), squadNotification);
                 GuildMessage guildMessage = new GuildMessage(squadMessage, guid, firstCommandTime);
                 messages.getGuild().add(guildMessage);
             }

@@ -62,9 +62,9 @@ public class GuildSessionImpl implements GuildSession {
         this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(),
                 false, false, 0, 0, 0);
         this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
-        SquadNotification joinNotification = createNotification(this.getGuildId(), playerSession, SquadMsgType.join);
+        SquadNotification joinNotification = createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.join);
         this.addNotification(joinNotification);
-        ServiceFactory.instance().getPlayerDatasource().joinSquad(playerSession, joinNotification);
+        ServiceFactory.instance().getPlayerDatasource().joinSquad(this, playerSession, joinNotification);
     }
 
     @Override
@@ -73,8 +73,19 @@ public class GuildSessionImpl implements GuildSession {
         this.guildSettings.removeMember(playerSession.getPlayerId());
         this.guildPlayerSessions.remove(playerSession.getPlayerId());
         this.squadNotifications.removeIf(a -> a.getPlayerId().equals(playerSession.getPlayerId()));
-        SquadNotification leaveNotification = createNotification(this.getGuildId(), playerSession, leaveType);
+        SquadNotification leaveNotification = createNotification(this.getGuildId(), this.getGuildName(), playerSession, leaveType);
         this.addNotification(leaveNotification);
+
+        // the ejected player gets their own one as they are no longer in the squad so will not see the squad message
+        if (leaveType == SquadMsgType.ejected) {
+            SquadNotification ejectedNotification = new EjectedSquadNotification(this.getGuildId(), this.getGuildName(),
+                            ServiceFactory.createRandomUUID(), null,
+                            playerSession.getPlayerSettings().getName(),
+                            playerSession.getPlayerId(), leaveType);
+            ejectedNotification.setDate(leaveNotification.getDate());
+            playerSession.addSquadNotification(ejectedNotification);
+        }
+
         ServiceFactory.instance().getPlayerDatasource().leaveSquad(this, playerSession, leaveNotification);
     }
 
@@ -84,7 +95,7 @@ public class GuildSessionImpl implements GuildSession {
         sqmMemberData.memberId = memberSession.getPlayerId();
         sqmMemberData.toRank = squadRole;
         SquadNotification roleChangeNotification =
-                createNotification(this.getGuildId(), memberSession, squadMsgType);
+                createNotification(this.getGuildId(), this.getGuildName(), memberSession, squadMsgType);
         roleChangeNotification.setData(sqmMemberData);
         this.addNotification(roleChangeNotification);
         ServiceFactory.instance().getPlayerDatasource().changeSquadRole(this, memberSession,
@@ -104,8 +115,9 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public SquadNotification troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession,
                                            String recipientPlayerId, long time) {
-        SquadNotification squadNotification = new SquadNotification(this.getGuildId(), ServiceFactory.createRandomUUID(),
-                null, playerSession.getPlayerSettings().getName(), playerSession.getPlayerId(), SquadMsgType.troopDonation);
+        SquadNotification squadNotification = new SquadNotification(this.getGuildId(), this.getGuildName(),
+                ServiceFactory.createRandomUUID(), null, playerSession.getPlayerSettings().getName(),
+                playerSession.getPlayerId(), SquadMsgType.troopDonation);
 
         // determine recipient for self donation to work
         recipientPlayerId = this.guildSettings.troopDonationRecipient(playerSession, recipientPlayerId);
@@ -126,7 +138,7 @@ public class GuildSessionImpl implements GuildSession {
         squadNotification.setData(troopDonationData);
 
         this.addNotification(squadNotification);
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(playerSession,
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(this, playerSession,
                 recipientPlayerSession, squadNotification);
 
         return squadNotification;
@@ -167,23 +179,25 @@ public class GuildSessionImpl implements GuildSession {
         this.squadNotifications.add(squadNotification);
     }
 
-    public List<SquadNotification> getNotificationsSince(long since) {
+    public List<SquadNotification> getNotifications(long since) {
         List<SquadNotification> notifications =
-                this.squadNotifications.stream().filter(n -> n.getDate() > since).collect(Collectors.toList());
+                this.squadNotifications.stream().filter(n -> n.getDate() >= since).collect(Collectors.toList());
         return notifications;
     }
 
-    final static public SquadNotification createNotification(String guildId, PlayerSession playerSession, SquadMsgType squadMsgType) {
+    final static public SquadNotification createNotification(String guildId, String guildName, PlayerSession playerSession,
+                                                             SquadMsgType squadMsgType)
+    {
         SquadNotification squadNotification = null;
         if (squadMsgType != null) {
             switch (squadMsgType) {
                 case leave:
-                case ejected:
                 case join:
                 case promotion:
                 case demotion:
+                case ejected:
                     squadNotification =
-                            new SquadNotification(guildId,
+                            new SquadNotification(guildId, guildName,
                                     ServiceFactory.createRandomUUID(), null,
                                     playerSession.getPlayerSettings().getName(),
                                     playerSession.getPlayerId(), squadMsgType);

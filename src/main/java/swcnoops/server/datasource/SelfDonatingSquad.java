@@ -118,6 +118,7 @@ public class SelfDonatingSquad implements GuildSettings {
         String playerName = botMember.name;
 
         SquadNotification squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
+                playerSession.getGuildSession().getGuildName(),
                 ServiceFactory.createRandomUUID(), message, playerName, playerId, SquadMsgType.troopRequest);
 
         return squadNotification;

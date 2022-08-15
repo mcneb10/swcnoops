@@ -250,11 +250,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void joinSquad(PlayerSession playerSession, SquadNotification squadNotification) {
+    public void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             savePlayerSession(playerSession, connection);
-            GuildSession guildSession = playerSession.getGuildSession();
 
             if (guildSession.canEdit()) {
                 insertSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(), false, false, 0, connection);
@@ -273,11 +272,27 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             savePlayerSession(playerSession, connection);
             if (guildSession.canEdit()) {
                 deleteSquadMember(playerSession.getPlayerId(), connection);
+                deleteNotifications(squadNotification.getGuildId(), playerSession.getPlayerId(), connection);
                 saveNotification(squadNotification.getGuildId(), squadNotification, connection);
             }
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    private void deleteNotifications(String guildId, String playerId, Connection connection) {
+        final String squadMemberSql = "delete from SquadNotifications where guildId = ? and playerId = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
+                stmt.setString(1, guildId);
+                stmt.setString(2, playerId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to delete SquadNotifications for playerId=" +
+                    playerId + " in guidId = " + guildId, ex);
         }
     }
 
@@ -434,13 +449,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void savePlayerSessions(PlayerSession playerSession, PlayerSession recipientPlayerSession,
+    public void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
                                    SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             savePlayerSession(playerSession, connection);
             savePlayerSession(recipientPlayerSession, connection);
-            saveNotification(playerSession.getGuildSession().getGuildId(), squadNotification, connection);
+            saveNotification(guildSession.getGuildId(), squadNotification, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId() +
@@ -631,7 +646,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             data = mapSquadNotificationData(squadMessageType, squadNotificationJson);
                         }
                         SquadNotification squadNotification =
-                                new SquadNotification(guildId, date, orderNo, id, message, name, playerId, squadMessageType, data);
+                                new SquadNotification(guildId, guildSettings.getGuildName(), date, orderNo, id, message, name, playerId, squadMessageType, data);
                         guildSettings.addSquadNotification(squadNotification);
                     }
                 }

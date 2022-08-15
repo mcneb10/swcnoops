@@ -26,11 +26,7 @@ public class NotificationSession {
     }
 
     public boolean canSendNotifications() {
-        String currentGuildId = this.notificationGuildId;
         long currentSince = this.notificationSince;
-
-        if (currentGuildId == null)
-            return false;
 
         if (currentSince == 0)
             return false;

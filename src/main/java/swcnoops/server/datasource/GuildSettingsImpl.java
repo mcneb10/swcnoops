@@ -3,6 +3,7 @@ package swcnoops.server.datasource;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.model.*;
+import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
@@ -131,9 +132,15 @@ public class GuildSettingsImpl implements GuildSettings {
         String playerId = playerSession.getPlayerId();
         String playerName = playerSession.getPlayerSettings().getName();
 
-        SquadNotification squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
-                ServiceFactory.createRandomUUID(),
-                message, playerName, playerId, SquadMsgType.troopRequest);
+        GuildSession guildSession = playerSession.getGuildSession();
+        SquadNotification squadNotification = null;
+
+        if (guildSession != null) {
+            squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
+                    playerSession.getGuildSession().getGuildName(),
+                    ServiceFactory.createRandomUUID(),
+                    message, playerName, playerId, SquadMsgType.troopRequest);
+        }
 
         return squadNotification;
     }

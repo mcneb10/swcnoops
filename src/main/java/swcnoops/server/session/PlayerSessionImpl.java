@@ -1,6 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.guild.GuildTroopsRequest;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerCampaignMission;
 import swcnoops.server.datasource.PlayerSettings;
@@ -19,7 +20,9 @@ import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
 
 /**
  * This represents the actions/commands that the game client can do for a player.
@@ -295,12 +298,23 @@ public class PlayerSessionImpl implements PlayerSession {
     public void playerLogin(long time) {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         this.notificationSession.playerLogin();
+        removeEjectedNotifications();
         this.savePlayerSession();
+    }
+
+    private void removeEjectedNotifications() {
+        this.playerNotifications.removeIf(a -> a.getType() == SquadMsgType.ejected);
     }
 
     @Override
     public SquadNotification troopsRequest(boolean payToSkip, String message, long time) {
         this.processCompletedContracts(time);
+
+        GuildSession guildSession = this.getGuildSession();
+
+        // we need to check because they might request when they have been kicked out of the squad
+        if (guildSession == null)
+            return null;
 
         TroopRequestData troopRequestData = new TroopRequestData();
         troopRequestData.totalCapacity = this.getSquadBuilding().getBuildingData().getStorage();
@@ -309,7 +323,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
         // this will save the notification for the guild for when the clients call GuildNotificationsGet they will
         // pick up the request. Will probably have to change so that notifications are sent on other requests
-        SquadNotification squadNotification = this.getGuildSession().troopsRequest(this,
+        SquadNotification squadNotification = guildSession.troopsRequest(this,
                 troopRequestData, message, time);
 
         return squadNotification;
@@ -318,8 +332,15 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time) {
         this.processCompletedContracts(time);
-        SquadNotification squadNotification = this.getGuildSession().troopDonation(troopsDonated,
-                requestId, this, recipientId, time);
+        GuildSession guildSession = this.getGuildSession();
+
+        SquadNotification squadNotification = null;
+
+        if (guildSession != null) {
+            squadNotification = guildSession.troopDonation(troopsDonated,
+                    requestId, this, recipientId, time);
+        }
+
         return squadNotification;
     }
 
@@ -336,6 +357,25 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public long getNotificationsSince() {
         return this.notificationSession.getNotificationsSince();
+    }
+
+    private Queue<SquadNotification> playerNotifications = new ConcurrentLinkedQueue<>();
+
+    @Override
+    public List<SquadNotification> getNotifications(long since) {
+        List<SquadNotification> notifications =
+                this.playerNotifications.stream().filter(n -> n.getDate() > since).collect(Collectors.toList());
+        return notifications;
+    }
+
+    @Override
+    public void removeEjectedNotifications(List<SquadNotification> ejectedNotifications) {
+        this.playerNotifications.removeAll(ejectedNotifications);
+    }
+
+    @Override
+    public void addSquadNotification(SquadNotification squadNotification) {
+        this.playerNotifications.add(squadNotification);
     }
 
     @Override

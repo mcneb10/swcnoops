@@ -25,7 +25,7 @@ public class GuildNotificationsGet extends AbstractCommandAction<GuildNotificati
 
         if (guildSession != null) {
             playerSession.setLastNotificationSince(guildSession.getGuildId(), arguments.getSince());
-            List<SquadNotification> notifications = guildSession.getNotificationsSince(arguments.getSince());
+            List<SquadNotification> notifications = guildSession.getNotifications(arguments.getSince());
             if (notifications != null && notifications.size() > 0) {
                 guildNotificationsGetResult.addNotifications(notifications);
             }

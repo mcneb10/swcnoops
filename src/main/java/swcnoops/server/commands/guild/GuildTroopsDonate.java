@@ -21,6 +21,7 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
+        // TODO - need to check and handle when player donates when they have been kicked out of the squad
         SquadNotification squadNotification = playerSession.troopsDonate(arguments.getTroopsDonated(),
                 arguments.getRequestId(), arguments.getRecipientId(), time);
 

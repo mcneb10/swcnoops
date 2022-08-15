@@ -20,7 +20,8 @@ public class GuildDemote extends AbstractCommandAction<GuildDemote, CommandResul
         PlayerSession playerSession = sessionManager.getPlayerSession(arguments.getPlayerId());
         PlayerSession memberSession = sessionManager.getPlayerSession(arguments.getMemberId());
         GuildSession guildSession = playerSession.getGuildSession();
-        guildSession.changeSquadRole(memberSession, SquadRole.Member, SquadMsgType.demotion);
+        if (guildSession != null)
+            guildSession.changeSquadRole(memberSession, SquadRole.Member, SquadMsgType.demotion);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

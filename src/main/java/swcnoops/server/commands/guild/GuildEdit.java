@@ -5,6 +5,7 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
+import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
 public class GuildEdit extends AbstractCommandAction<GuildEdit, CommandResult> {
@@ -19,8 +20,10 @@ public class GuildEdit extends AbstractCommandAction<GuildEdit, CommandResult> {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        if (playerSession.getGuildSession().canEdit()) {
-            playerSession.getGuildSession().editGuild(arguments.getDescription(),
+        GuildSession guildSession = playerSession.getGuildSession();
+
+        if (guildSession != null && guildSession.canEdit()) {
+            guildSession.editGuild(arguments.getDescription(),
                     arguments.getIcon(),
                     arguments.getMinScoreAtEnrollment(),
                     arguments.getOpenEnrollment());

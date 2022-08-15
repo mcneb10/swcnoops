@@ -6,24 +6,27 @@ public class SquadNotification {
     private long date;
     final private String id;
     final private String message;
-    final private String name;
-    final private String playerId;
+    private String name;
+    private String playerId;
     final private SquadMsgType type;
     private SquadNotificationData data;
     private long orderNo;
 
     @JsonIgnore
     final private String guildId;
+    @JsonIgnore
+    final private String guildName;
 
-    public SquadNotification(String guildId, String id, String message, String name, String playerId, SquadMsgType type)
+    public SquadNotification(String guildId, String guildName, String id, String message, String name, String playerId, SquadMsgType type)
     {
-        this(guildId, 0, -1, id, message, name, playerId, type, null);
+        this(guildId, guildName, 0, -1, id, message, name, playerId, type, null);
     }
 
-    public SquadNotification(String guildId, long date, long orderNo, String id, String message, String name, String playerId, SquadMsgType type,
-                             SquadNotificationData data)
+    public SquadNotification(String guildId, String guildName, long date, long orderNo, String id, String message,
+                             String name, String playerId, SquadMsgType type, SquadNotificationData data)
     {
         this.guildId = guildId;
+        this.guildName = guildName;
         this.date = date;
         this.orderNo = orderNo;
         this.id = id;
@@ -81,5 +84,17 @@ public class SquadNotification {
     @JsonIgnore
     public String getGuildId() {
         return guildId;
+    }
+
+    public String getGuildName() {
+        return this.guildName;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setPlayerId(String playerId) {
+        this.playerId = playerId;
     }
 }

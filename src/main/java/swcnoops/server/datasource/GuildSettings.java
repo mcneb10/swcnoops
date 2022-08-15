@@ -48,5 +48,7 @@ public interface GuildSettings {
 
     Collection<? extends SquadNotification> getSquadNotifications();
 
+    //String getLeaderId();
+
     Member getMember(String playerId);
 }

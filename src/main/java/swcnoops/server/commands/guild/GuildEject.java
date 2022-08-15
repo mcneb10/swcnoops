@@ -20,7 +20,8 @@ public class GuildEject extends AbstractCommandAction<GuildEject, CommandResult>
         PlayerSession ejectPlayerSession = sessionManager.getPlayerSession(arguments.getMemberId());
         ejectPlayerSession.getDonatedTroops().clear();
         GuildSession oldSquad = playerSession.getGuildSession();
-        oldSquad.leave(ejectPlayerSession, SquadMsgType.ejected);
+        if (oldSquad != null)
+            oldSquad.leave(ejectPlayerSession, SquadMsgType.ejected);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 
