@@ -36,7 +36,7 @@ public interface GuildSettings {
 
     boolean canSave();
 
-    void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived, boolean warParty);
+    void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived, boolean warParty, int hqLevel);
 
     void removeMember(String playerId);
 
@@ -47,8 +47,6 @@ public interface GuildSettings {
     void addSquadNotification(SquadNotification squadNotification);
 
     Collection<? extends SquadNotification> getSquadNotifications();
-
-    //String getLeaderId();
 
     Member getMember(String playerId);
 
@@ -61,4 +59,8 @@ public interface GuildSettings {
     void setWarSignUpTime(Long warSignUpTime);
 
     void warMatchmakingStart(long time, List<String> participantIds);
+
+    void addMember(Member member);
+
+    void login(Member member);
 }

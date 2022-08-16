@@ -22,7 +22,8 @@ CREATE TABLE IF NOT EXISTS PlayerSettings
      preferences json,
      currentQuest text,
      guildId text,
-     unlockedPlanets json);
+     unlockedPlanets json,
+     hqLevel NUMERIC);
 
 insert into PlayerSettings (id, upgrades) values ('2c2d4aea-7f38-11e5-a29f-069096004f69', '{}')
 on conflict(id) do nothing;

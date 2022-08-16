@@ -411,6 +411,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         UnlockedPlanets unlockedPlanets = playerSession.getPlayerSettings().getUnlockedPlanets();
         String unlockedPlanetsJson = ServiceFactory.instance().getJsonParser().toJson(unlockedPlanets);
 
+        int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
+
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
                 creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
                 playerSession.getPlayerSettings().getFaction(),
@@ -418,7 +420,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 campaignsJson,
                 preferencesJson,
                 playerSession.getPlayerSettings().getGuildId(),
-                unlockedPlanetsJson,
+                unlockedPlanetsJson, hqLevel,
                 connection);
     }
 
@@ -467,11 +469,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
                                     FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
                                     String guildId, String unlockedPlanets,
-                                    Connection connection) {
+                                    int hqLevel, Connection connection) {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
                 "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ?," +
-                "unlockedPlanets = ? " +
+                "unlockedPlanets = ?, hqLevel = ? " +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -488,7 +490,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(11, preferencesJson);
                 stmt.setString(12, guildId);
                 stmt.setString(13, unlockedPlanets);
-                stmt.setString(14, playerId);
+                stmt.setInt(14, hqLevel);
+                stmt.setString(15, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {
@@ -637,7 +640,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 "FROM Squads s WHERE s.id = ?";
 
         final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
-                "m.warParty " +
+                "m.warParty, s.hqLevel " +
                 "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
                 "and m.playerId = s.Id";
 
@@ -681,8 +684,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         long troopsDonated = rs.getLong("troopsDonated");
                         long troopsReceived = rs.getLong("troopsReceived");
                         boolean warParty = rs.getBoolean("warParty");
+                        int hqLevel = rs.getInt("hqLevel");
                         guildSettings.addMember(playerId, playerName, isOwner, isOfficer, joinDate,
-                                troopsDonated, troopsReceived, warParty);
+                                troopsDonated, troopsReceived, warParty, hqLevel);
                     }
                 }
 

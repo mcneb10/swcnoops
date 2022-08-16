@@ -1,6 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.model.*;
 
@@ -54,6 +55,8 @@ public class GuildSessionImpl implements GuildSession {
     public void login(PlayerSession playerSession) {
         if (!this.guildPlayerSessions.containsKey(playerSession.getPlayerId())) {
             playerSession.setGuildSession(this);
+            Member member = GuildHelper.createMember(playerSession);
+            this.getGuildSettings().login(member);
             this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
         }
     }
@@ -131,8 +134,8 @@ public class GuildSessionImpl implements GuildSession {
     private void addMember(PlayerSession playerSession) {
         playerSession.setGuildSession(this);
         if (!guildPlayerSessions.containsKey(playerSession.getPlayerId())) {
-            this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(),
-                    false, false, 0, 0, 0, false);
+            Member member = GuildHelper.createMember(playerSession);
+            this.guildSettings.addMember(member);
             this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
         }
     }
