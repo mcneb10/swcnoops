@@ -79,6 +79,7 @@ public class CommandFactory {
         this.add(new GuildJoinRequest());
         this.add(new GuildJoinAccept());
         this.add(new GuildJoinReject());
+        this.add(new GuildSearchByName());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());

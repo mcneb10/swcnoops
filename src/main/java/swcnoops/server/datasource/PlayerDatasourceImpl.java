@@ -779,26 +779,24 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         List<Squad> squads = new ArrayList<>();
         try {
-            try (Connection con = getConnection()) {
-                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
-                    pstmt.setString(1, faction.name());
-                    ResultSet rs = pstmt.executeQuery();
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, faction.name());
+                ResultSet rs = pstmt.executeQuery();
 
-                    while (rs.next()) {
-                        Squad squad = new Squad();
-                        squad._id = rs.getString("id");
-                        squad.name = rs.getString("name");
-                        squad.faction = FactionType.valueOf(rs.getString("faction"));
-                        squad.icon = rs.getString("icon");
-                        squad.openEnrollment = rs.getBoolean("openEnrollment");
-                        squad.minScore = rs.getInt("minScoreAtEnrollment");
-                        squad.rank = 0;
-                        squad.level = 0;
-                        squad.activeMemberCount = rs.getInt("minScoreAtEnrollment");
-                        squad.members = rs.getInt("numMembers");
-                        squad.score = 1;
-                        squads.add(squad);
-                    }
+                while (rs.next()) {
+                    Squad squad = new Squad();
+                    squad._id = rs.getString("id");
+                    squad.name = rs.getString("name");
+                    squad.faction = FactionType.valueOf(rs.getString("faction"));
+                    squad.icon = rs.getString("icon");
+                    squad.openEnrollment = rs.getBoolean("openEnrollment");
+                    squad.minScore = rs.getInt("minScoreAtEnrollment");
+                    squad.rank = 0;
+                    squad.level = 0;
+                    squad.activeMemberCount = rs.getInt("minScoreAtEnrollment");
+                    squad.members = rs.getInt("numMembers");
+                    squad.score = 1;
+                    squads.add(squad);
                 }
             }
         } catch (Exception ex) {
@@ -900,5 +898,48 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save squad notification =" + id, ex);
         }
+    }
+
+    @Override
+    public List<Squad> searchGuildByName(String searchTerm) {
+        try (Connection connection = getConnection()) {
+            return searchGuildByName(searchTerm, connection);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private List<Squad> searchGuildByName(String searchTerm, Connection connection) {
+        final String sql = "SELECT id, name, faction, description, icon, openEnrollment, minScoreAtEnrollment, " +
+                " (select count(1) from SquadMembers m where m.guildId = s.id) as numMembers " +
+                "FROM Squads s WHERE s.name like ?";
+
+        List<Squad> squads = new ArrayList<>();
+        try {
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, "%" + searchTerm + "%");
+                ResultSet rs = pstmt.executeQuery();
+
+                while (rs.next()) {
+                    Squad squad = new Squad();
+                    squad._id = rs.getString("id");
+                    squad.name = rs.getString("name");
+                    squad.faction = FactionType.valueOf(rs.getString("faction"));
+                    squad.icon = rs.getString("icon");
+                    squad.openEnrollment = rs.getBoolean("openEnrollment");
+                    squad.minScore = rs.getInt("minScoreAtEnrollment");
+                    squad.rank = 0;
+                    squad.level = 0;
+                    squad.activeMemberCount = rs.getInt("minScoreAtEnrollment");
+                    squad.members = rs.getInt("numMembers");
+                    squad.score = 1;
+                    squads.add(squad);
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to search Guild list from DB", ex);
+        }
+
+        return squads;
     }
 }

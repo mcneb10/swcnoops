@@ -46,4 +46,6 @@ public interface PlayerDataSource {
     void joinRequest(GuildSession guildSession, PlayerSession playerSession, SquadNotification joinRequestNotification);
 
     void joinRejected(GuildSession guildSession, PlayerSession memberSession, SquadNotification joinRequestRejectedNotification);
+
+    List<Squad> searchGuildByName(String searchTerm);
 }
