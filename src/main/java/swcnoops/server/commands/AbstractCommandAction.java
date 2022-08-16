@@ -10,19 +10,13 @@ import swcnoops.server.requests.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-abstract public class AbstractCommandAction<A extends CommandArguments, R extends CommandResult>
-        implements CommandArguments, CommandAction<R>
+abstract public class AbstractCommandAction<A extends CommandArguments, R extends CommandResult> extends PlayerIdArguments
+        implements CommandAction<R>
 {
-    private String playerId;
-
-    @Override
-    public String getPlayerId() {
-        return playerId;
-    }
-
     @Override
     public ResponseData execute(Command command) throws Exception {
         JsonParser jsonParser = ServiceFactory.instance().getJsonParser();
@@ -76,7 +70,7 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
         Messages messages;
 
         if (command.getAttachGuildNotification() &&
-                playerSession != null && playerSession.canSendNotifications())
+                playerSession != null && playerSession.hasNotificationsToSend())
         {
             messages = createGuildMessage(playerSession, command);
         } else {
@@ -90,21 +84,28 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     private Messages createGuildMessage(PlayerSession playerSession, Command command) {
         GuildSession guildSession = playerSession.getGuildSession();
 
-        List<SquadNotification> squadNotifications;
+        List<SquadNotification> allNotifications = new ArrayList<>();
 
-        if (guildSession != null)
-            squadNotifications = guildSession.getNotifications(playerSession.getNotificationsSince());
-        else {
-            squadNotifications = playerSession.getNotifications(playerSession.getNotificationsSince());
-            List<SquadNotification> ejectedNotifications = squadNotifications.stream()
+        if (guildSession != null) {
+            List<SquadNotification> squadNotifications = guildSession.getNotifications(playerSession.getNotificationsSince());
+            if (squadNotifications != null)
+                allNotifications.addAll(squadNotifications);
+        }
+
+        List<SquadNotification> playersNotifications = playerSession.getNotifications(playerSession.getNotificationsSince());
+
+        if (playersNotifications != null) {
+            List<SquadNotification> ejectedNotifications = playersNotifications.stream()
                     .filter(a -> a.getType() == SquadMsgType.ejected).collect(Collectors.toList());
 
             if (ejectedNotifications.size() > 0) {
                 playerSession.removeEjectedNotifications(ejectedNotifications);
             }
+
+            allNotifications.addAll(playersNotifications);
         }
 
-        Messages messages = createMessage(command.getTime(), squadNotifications);
+        Messages messages = createMessage(command.getTime(), allNotifications);
 
         return messages;
     }

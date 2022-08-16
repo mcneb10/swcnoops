@@ -46,7 +46,7 @@ public class PlayerSessionImpl implements PlayerSession {
     static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
     static final private OffenseLabFactory offenseLabFactory = new OffenseLabFactory();
 
-    private NotificationSession notificationSession = new NotificationSession();
+    private NotificationSession notificationSession = new NotificationSession(this);
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
@@ -350,7 +350,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public boolean canSendNotifications() {
+    public boolean hasNotificationsToSend() {
         return this.notificationSession.canSendNotifications();
     }
 

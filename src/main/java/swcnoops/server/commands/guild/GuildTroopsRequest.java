@@ -46,9 +46,4 @@ public class GuildTroopsRequest extends GuildCommandAction<GuildTroopsRequest, G
     public String getMessage() {
         return message;
     }
-
-    @Override
-    public boolean canAttachGuildNotifications() {
-        return false;
-    }
 }

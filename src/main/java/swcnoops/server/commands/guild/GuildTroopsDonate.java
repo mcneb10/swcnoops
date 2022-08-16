@@ -59,9 +59,4 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
     public String getRequestId() {
         return requestId;
     }
-
-    @Override
-    public boolean canAttachGuildNotifications() {
-        return false;
-    }
 }

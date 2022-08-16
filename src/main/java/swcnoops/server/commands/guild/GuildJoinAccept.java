@@ -46,9 +46,4 @@ public class GuildJoinAccept extends AbstractCommandAction<GuildJoinAccept, Guil
     public String getMemberId() {
         return memberId;
     }
-
-    @Override
-    public boolean canAttachGuildNotifications() {
-        return false;
-    }
 }

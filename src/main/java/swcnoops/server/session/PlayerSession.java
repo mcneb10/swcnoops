@@ -1,6 +1,5 @@
 package swcnoops.server.session;
 
-import swcnoops.server.commands.guild.GuildTroopsRequest;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
@@ -121,7 +120,7 @@ public interface PlayerSession {
 
     boolean setLastNotificationSince(String guildId, long since);
 
-    boolean canSendNotifications();
+    boolean hasNotificationsToSend();
 
     long getNotificationsSince();
 

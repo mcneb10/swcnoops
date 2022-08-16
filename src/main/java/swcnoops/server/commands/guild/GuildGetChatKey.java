@@ -21,4 +21,9 @@ public class GuildGetChatKey extends AbstractCommandAction<GuildGetChatKey, Guil
     protected GuildGetChatKey parseArgument(JsonParser jsonParser, Object argumentObject) {
         return jsonParser.fromJsonObject(argumentObject, GuildGetChatKey.class);
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

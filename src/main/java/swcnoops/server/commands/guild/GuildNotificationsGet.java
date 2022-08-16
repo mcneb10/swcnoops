@@ -29,6 +29,11 @@ public class GuildNotificationsGet extends AbstractCommandAction<GuildNotificati
             if (notifications != null && notifications.size() > 0) {
                 guildNotificationsGetResult.addNotifications(notifications);
             }
+        } else {
+            List<SquadNotification> notifications = playerSession.getNotifications(0);
+            if (notifications != null && notifications.size() > 0) {
+                guildNotificationsGetResult.addNotifications(notifications);
+            }
         }
 
         return guildNotificationsGetResult;

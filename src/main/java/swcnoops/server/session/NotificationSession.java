@@ -3,6 +3,12 @@ package swcnoops.server.session;
 public class NotificationSession {
     private String notificationGuildId;
     private long notificationSince;
+    final private PlayerSession playerSession;
+
+    public NotificationSession(PlayerSession playerSession) {
+        this.playerSession = playerSession;
+    }
+
     public void playerLogin() {
         notificationGuildId = null;
         notificationSince = 0;
@@ -27,6 +33,9 @@ public class NotificationSession {
 
     public boolean canSendNotifications() {
         long currentSince = this.notificationSince;
+
+        if (this.playerSession.getNotifications(currentSince).size() > 0)
+            return true;
 
         if (currentSince == 0)
             return false;
