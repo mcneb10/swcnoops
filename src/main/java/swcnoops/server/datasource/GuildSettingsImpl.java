@@ -21,7 +21,8 @@ public class GuildSettingsImpl implements GuildSettings {
     private boolean openEnrollment;
     private Integer minScoreAtEnrollment;
     private String icon;
-    private String leaderId;
+
+    private Long warSignUpTime;
 
     public GuildSettingsImpl(String id) {
         this.id = id;
@@ -29,6 +30,27 @@ public class GuildSettingsImpl implements GuildSettings {
 
     public void afterLoad() {
         this.notifications.sort((a, b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
+
+        if (ServiceFactory.instance().getConfig().createBotPlayersInGroup) {
+            if (this.memberMap.size() < 15) {
+                for (int i = 0; i < 15; i++) {
+                    Member member = createDummyBot(this.getGuildId(), i);
+                    this.memberMap.put(member.playerId, member);
+                }
+            }
+        }
+    }
+
+    private Member createDummyBot(String guildId, int botName) {
+        Member member = new Member();
+        member.isOfficer = false;
+        member.isOwner = false;
+        member.playerId = guildId + "-BOT" + botName;
+        member.planet = "planet1";
+        member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        member.hqLevel = 10;
+        member.name = member.playerId;
+        return member;
     }
 
     @Override
@@ -86,10 +108,10 @@ public class GuildSettingsImpl implements GuildSettings {
 
     @Override
     public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate,
-                          long troopsDonated, long troopsReceived) {
+                          long troopsDonated, long troopsReceived, boolean warParty) {
         if (!this.memberMap.containsKey(playerId)) {
             Member member = GuildHelper.createMember(playerId, playerName, isOwner,
-                    isOfficer, joinDate, troopsDonated, troopsReceived);
+                    isOfficer, joinDate, troopsDonated, troopsReceived, warParty);
             this.memberMap.put(playerId, member);
         }
     }
@@ -173,5 +195,25 @@ public class GuildSettingsImpl implements GuildSettings {
 
     public Integer getMinScoreAtEnrollment() {
         return minScoreAtEnrollment;
+    }
+
+    @Override
+    public Long getWarSignUpTime() {
+        return warSignUpTime;
+    }
+
+    @Override
+    public void setWarSignUpTime(Long warSignUpTime) {
+        this.warSignUpTime = warSignUpTime;
+    }
+
+    @Override
+    public void warMatchmakingStart(long time, List<String> participantIds) {
+        this.setWarSignUpTime(time);
+        for (String id : participantIds) {
+            if (this.memberMap.containsKey(id)) {
+                this.memberMap.get(id).warParty = 1;
+            }
+        }
     }
 }

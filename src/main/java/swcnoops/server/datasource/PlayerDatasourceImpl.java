@@ -632,10 +632,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public GuildSettings loadGuildSettings(String guildId) {
-        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon, openEnrollment, minScoreAtEnrollment " +
+        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon, openEnrollment, minScoreAtEnrollment, " +
+                "warSignUpTime " +
                 "FROM Squads s WHERE s.id = ?";
 
-        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived " +
+        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
+                "m.warParty " +
                 "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
                 "and m.playerId = s.Id";
 
@@ -662,6 +664,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                         guildSettings.setOpenEnrollment(rs.getBoolean("openEnrollment"));
                         guildSettings.setMinScoreAtEnrollment(rs.getInt("minScoreAtEnrollment"));
+                        guildSettings.setWarSignUpTime(rs.getLong("warSignUpTime"));
                     }
                 }
 
@@ -677,8 +680,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         long joinDate = rs.getLong("joinDate");
                         long troopsDonated = rs.getLong("troopsDonated");
                         long troopsReceived = rs.getLong("troopsReceived");
+                        boolean warParty = rs.getBoolean("warParty");
                         guildSettings.addMember(playerId, playerName, isOwner, isOfficer, joinDate,
-                                troopsDonated, troopsReceived);
+                                troopsDonated, troopsReceived, warParty);
                     }
                 }
 
@@ -748,14 +752,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                            boolean openEnrollment, Connection connection) {
         final String squadSql = "update Squads " +
                 "set description = ?, " +
-                "icon = ? " +
+                "icon = ?, " +
+                "minScoreAtEnrollment = ?, " +
+                "openEnrollment = ? " +
                 "where id = ?";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
                 stmt.setString(1, description);
                 stmt.setString(2, icon);
-                stmt.setString(3, guildId);
+                stmt.setInt(3, minScoreAtEnrollment);
+                stmt.setBoolean(4, openEnrollment);
+                stmt.setString(5, guildId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {
@@ -941,5 +949,72 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return squads;
+    }
+
+    @Override
+    public void saveWarMatchMake(String guildId, List<String> participantIds, SquadNotification squadNotification, Long time) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            saveWarMatchSignUp(guildId, participantIds, time, connection);
+            saveNotification(guildId, squadNotification, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private void saveWarMatchSignUp(String guildId, List<String> participantIds, Long time, Connection connection) {
+        final String squadSql = "update Squads " +
+                "set warSignUpTime = ? " +
+                "where id = ?";
+
+        final String squadMembersRestSql = "update SquadMembers " +
+                "set warParty = 0 " +
+                "where guildId = ?";
+
+        final String squadMembersSql = "update SquadMembers " +
+                "set warParty = ? " +
+                "where guildId = ? and playerId = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+                if (time != null)
+                    stmt.setLong(1, time);
+                else
+                    stmt.setNull(1, Types.INTEGER);
+                stmt.setString(2, guildId);
+                stmt.executeUpdate();
+            }
+
+            if (participantIds != null) {
+                try (PreparedStatement stmt = connection.prepareStatement(squadMembersRestSql)) {
+                    stmt.setString(1, guildId);
+                    stmt.executeUpdate();
+                }
+
+                for (int i = 0; i < participantIds.size(); i++) {
+                    try (PreparedStatement stmt = connection.prepareStatement(squadMembersSql)) {
+                        stmt.setBoolean(1, true);
+                        stmt.setString(2, guildId);
+                        stmt.setString(3, participantIds.get(i));
+                        stmt.executeUpdate();
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to match make for squad id=" + guildId, ex);
+        }
+    }
+
+    @Override
+    public void saveWarMatchCancel(String guildId, SquadNotification squadNotification) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            saveWarMatchSignUp(guildId, null, null, connection);
+            saveNotification(guildId, squadNotification, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
     }
 }

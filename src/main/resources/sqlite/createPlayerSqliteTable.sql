@@ -37,7 +37,8 @@ CREATE TABLE IF NOT EXISTS Squads
      description text,
      icon text,
      openEnrollment NUMERIC,
-     minScoreAtEnrollment NUMERIC);
+     minScoreAtEnrollment NUMERIC,
+     warSignUpTime NUMERIC);
 
 CREATE TABLE IF NOT EXISTS SquadMembers
     (guildId text,
@@ -47,6 +48,7 @@ CREATE TABLE IF NOT EXISTS SquadMembers
      joinDate NUMERIC,
      troopsDonated NUMERIC,
      troopsReceived NUMERIC,
+     warParty NUMERIC,
      primary key(guildId, playerId));
 
 CREATE TABLE IF NOT EXISTS "SquadNotifications" (

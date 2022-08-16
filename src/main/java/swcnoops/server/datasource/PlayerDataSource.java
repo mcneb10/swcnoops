@@ -48,4 +48,8 @@ public interface PlayerDataSource {
     void joinRejected(GuildSession guildSession, PlayerSession memberSession, SquadNotification joinRequestRejectedNotification);
 
     List<Squad> searchGuildByName(String searchTerm);
+
+    void saveWarMatchMake(String guildId, List<String> participantIds, SquadNotification squadNotification, Long time);
+
+    void saveWarMatchCancel(String guildId, SquadNotification squadNotification);
 }

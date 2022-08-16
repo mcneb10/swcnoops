@@ -36,7 +36,7 @@ public interface GuildSettings {
 
     boolean canSave();
 
-    void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long jointDate, long troopsDonated, long troopsReceived);
+    void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived, boolean warParty);
 
     void removeMember(String playerId);
 
@@ -55,4 +55,10 @@ public interface GuildSettings {
     boolean getOpenEnrollment();
 
     Integer getMinScoreAtEnrollment();
+
+    Long getWarSignUpTime();
+
+    void setWarSignUpTime(Long warSignUpTime);
+
+    void warMatchmakingStart(long time, List<String> participantIds);
 }

@@ -55,7 +55,7 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         squadResult.created = guildSession.getGuildSettings().getCreated();
         squadResult.perks = guildSession.getGuildSettings().getPerks();
         squadResult.members = guildSession.getGuildSettings().getMembers();
-        squadResult.warSignUpTime = null;
+        squadResult.warSignUpTime = guildSession.getGuildSettings().getWarSignUpTime();
         squadResult.memberCount = squadResult.members.size();
         squadResult.activeMemberCount = squadResult.members.size();
         squadResult.icon = guildSession.getGuildSettings().getIcon();
@@ -67,7 +67,7 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         squadResult.membershipRestrictions = new MembershipRestrictions();
         squadResult.membershipRestrictions.faction = guildSession.getGuildSettings().getFaction();
         squadResult.membershipRestrictions.openEnrollment = guildSession.getGuildSettings().getOpenEnrollment();
-        squadResult.membershipRestrictions.maxSize = 15;
+        squadResult.membershipRestrictions.maxSize = 20;
         squadResult.membershipRestrictions.minScoreAtEnrollment = guildSession.getGuildSettings().getMinScoreAtEnrollment();
         return squadResult;
     }

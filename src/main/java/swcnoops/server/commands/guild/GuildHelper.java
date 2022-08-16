@@ -32,7 +32,8 @@ public class GuildHelper {
     static final public Perks emptyPerks = new Perks();
 
     public static Member createMember(String playerId, String playerName, boolean isOwner,
-                                      boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived)
+                                      boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived,
+                                      boolean warParty)
     {
         Member member = new Member();
         member.isOfficer = isOfficer;
@@ -43,6 +44,7 @@ public class GuildHelper {
         member.name = playerName;
         member.troopsDonated = troopsDonated;
         member.troopsReceived = troopsReceived;
+        member.warParty = warParty ? 1: 0;
         return member;
     }
 }

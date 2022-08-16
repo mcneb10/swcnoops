@@ -102,7 +102,7 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long jointDate, long troopsDonated, long troopsReceived) {
+    public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived, boolean warParty) {
     }
 
     @Override
@@ -151,6 +151,21 @@ public class SelfDonatingSquad implements GuildSettings {
 
     @Override
     public Integer getMinScoreAtEnrollment() {
+        return Integer.valueOf(0);
+    }
+
+    @Override
+    public Long getWarSignUpTime() {
         return null;
+    }
+
+    @Override
+    public void setWarSignUpTime(Long warSignUpTime) {
+
+    }
+
+    @Override
+    public void warMatchmakingStart(long time, List<String> participantIds) {
+
     }
 }

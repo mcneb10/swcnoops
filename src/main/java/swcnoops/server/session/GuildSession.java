@@ -22,7 +22,7 @@ public interface GuildSession {
 
     SquadNotification troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession, String recipientId, long time);
 
-    void warMatchmakingStart(List<String> participantIds, boolean isSameFactionWarAllowed);
+    SquadNotification warMatchmakingStart(PlayerSession playerSession, List<String> participantIds, boolean isSameFactionWarAllowed, long time);
 
     void leave(PlayerSession playerSession, SquadMsgType leaveType);
 
@@ -49,4 +49,6 @@ public interface GuildSession {
     void joinRequestAccepted(String acceptorId, PlayerSession memberSession);
 
     void joinRequestRejected(String playerId, PlayerSession memberSession);
+
+    SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time);
 }

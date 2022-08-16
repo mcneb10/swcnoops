@@ -64,6 +64,7 @@ public class CommandFactory {
         this.add(new PlayerFactionSet());
 
         this.add(new GuildWarMatchmakingStart());
+        this.add(new GuildWarMatchmakingCancel());
         this.add(new GuildListOpen());
         this.add(new GuildGetPublic());
         this.add(new GuildJoin());

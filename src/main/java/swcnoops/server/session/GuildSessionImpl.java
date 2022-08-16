@@ -84,7 +84,6 @@ public class GuildSessionImpl implements GuildSession {
         this.squadNotifications.removeIf(a -> a.getPlayerId().equals(memberSession.getPlayerId()) && a.getType() == SquadMsgType.joinRequest);
         this.addNotification(joinRequestAcceptedNotification);
         addMember(memberSession);
-        // TODO - the new member probably needs a special notification
         memberSession.addSquadNotification(joinRequestAcceptedNotification);
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, memberSession, joinRequestAcceptedNotification);
     }
@@ -133,7 +132,7 @@ public class GuildSessionImpl implements GuildSession {
         playerSession.setGuildSession(this);
         if (!guildPlayerSessions.containsKey(playerSession.getPlayerId())) {
             this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(),
-                    false, false, 0, 0, 0);
+                    false, false, 0, 0, 0, false);
             this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
         }
     }
@@ -194,9 +193,26 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public void warMatchmakingStart(List<String> participantIds, boolean isSameFactionWarAllowed) {
-        // TODO
-        // add a guild notification to say match making has started
+    public SquadNotification warMatchmakingStart(PlayerSession playerSession, List<String> participantIds, boolean isSameFactionWarAllowed, long time) {
+        SquadNotification squadNotification = GuildSessionImpl.createNotification(this.getGuildId(), this.getGuildName(),
+                playerSession, SquadMsgType.warMatchMakingBegin);
+
+        this.addNotification(squadNotification);
+        this.getGuildSettings().warMatchmakingStart(time, participantIds);
+        ServiceFactory.instance().getPlayerDatasource().saveWarMatchMake(this.getGuildId(), participantIds,
+                squadNotification, time);
+        return squadNotification;
+    }
+
+    @Override
+    public SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time) {
+        SquadNotification squadNotification = GuildSessionImpl.createNotification(this.getGuildId(), this.getGuildName(),
+                playerSession, SquadMsgType.warMatchMakingCancel);
+
+        this.addNotification(squadNotification);
+        this.getGuildSettings().setWarSignUpTime(null);
+        ServiceFactory.instance().getPlayerDatasource().saveWarMatchCancel(this.getGuildId(), squadNotification);
+        return squadNotification;
     }
 
     @Override
@@ -254,6 +270,8 @@ public class GuildSessionImpl implements GuildSession {
                 case joinRequest:
                 case joinRequestAccepted:
                 case joinRequestRejected:
+                case warMatchMakingBegin:
+                case warMatchMakingCancel:
                     squadNotification =
                             new SquadNotification(guildId, guildName,
                                     ServiceFactory.createRandomUUID(), message,

@@ -374,7 +374,15 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void addSquadNotification(SquadNotification squadNotification) {
+    synchronized public void addSquadNotification(SquadNotification squadNotification) {
+        switch (squadNotification.getType()) {
+            case ejected:
+            case joinRequestRejected:
+            case joinRequestAccepted:
+                this.playerNotifications.clear();
+                break;
+        }
+
         this.playerNotifications.add(squadNotification);
     }
 

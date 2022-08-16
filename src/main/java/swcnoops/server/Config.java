@@ -31,6 +31,7 @@ public class Config {
     public String baseJson = "patches/manifest45/base.json";
     public String caeJson = "patches/manifest45/cae.json";
     public String cdnRoots = "http://192.168.1.142:8080/swcFiles/";
+    public boolean createBotPlayersInGroup = true;
 
     public void setFromProperties(Properties properties) throws Exception {
         Class<?> clazz = this.getClass();
