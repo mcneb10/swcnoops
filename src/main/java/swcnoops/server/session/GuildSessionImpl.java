@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 
 public class GuildSessionImpl implements GuildSession {
     final private GuildSettings guildSettings;
+
+    // TODO - can probably remove this as it does nothing accept a quick lookup
     final private Map<String, PlayerSession> guildPlayerSessions = new ConcurrentHashMap<>();
 
     private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
@@ -58,21 +60,52 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void join(PlayerSession playerSession) {
-        playerSession.setGuildSession(this);
-        this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(),
-                false, false, 0, 0, 0);
-        this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
+        addMember(playerSession);
         SquadNotification joinNotification = createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.join);
         this.addNotification(joinNotification);
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, playerSession, joinNotification);
     }
 
     @Override
+    public void joinRequest(PlayerSession playerSession, String message) {
+        SquadNotification joinRequestNotification =
+                createNotification(this.getGuildId(), this.getGuildName(), playerSession, message, SquadMsgType.joinRequest);
+        this.addNotification(joinRequestNotification);
+        ServiceFactory.instance().getPlayerDatasource().joinRequest(this, playerSession, joinRequestNotification);
+    }
+
+    @Override
+    public void joinRequestAccepted(String acceptorId, PlayerSession memberSession) {
+        SquadNotification joinRequestAcceptedNotification =
+                createNotification(this.getGuildId(), this.getGuildName(), memberSession, SquadMsgType.joinRequestAccepted);
+        AcceptorSquadMemberApplyData squadMemberApplyData = new AcceptorSquadMemberApplyData();
+        squadMemberApplyData.acceptor = acceptorId;
+        joinRequestAcceptedNotification.setData(squadMemberApplyData);
+        this.squadNotifications.removeIf(a -> a.getPlayerId().equals(memberSession.getPlayerId()) && a.getType() == SquadMsgType.joinRequest);
+        this.addNotification(joinRequestAcceptedNotification);
+        addMember(memberSession);
+        // TODO - the new member probably needs a special notification
+        memberSession.addSquadNotification(joinRequestAcceptedNotification);
+        ServiceFactory.instance().getPlayerDatasource().joinSquad(this, memberSession, joinRequestAcceptedNotification);
+    }
+
+    @Override
+    public void joinRequestRejected(String rejectorId, PlayerSession memberSession) {
+        SquadNotification joinRequestRejectedNotification =
+                createNotification(this.getGuildId(), this.getGuildName(), memberSession, SquadMsgType.joinRequestRejected);
+        RejectorSquadMemberApplyData squadMemberApplyData = new RejectorSquadMemberApplyData();
+        squadMemberApplyData.rejector = rejectorId;
+        joinRequestRejectedNotification.setData(squadMemberApplyData);
+        this.squadNotifications.removeIf(a -> a.getPlayerId().equals(memberSession.getPlayerId()) && a.getType() == SquadMsgType.joinRequest);
+        this.addNotification(joinRequestRejectedNotification);
+        // TODO - the new member probably needs a special notification
+        //memberSession.addSquadNotification(joinRequestRejectedNotification);
+        ServiceFactory.instance().getPlayerDatasource().joinRejected(this, memberSession, joinRequestRejectedNotification);
+    }
+
+    @Override
     public void leave(PlayerSession playerSession, SquadMsgType leaveType) {
-        playerSession.setGuildSession(null);
-        this.guildSettings.removeMember(playerSession.getPlayerId());
-        this.guildPlayerSessions.remove(playerSession.getPlayerId());
-        this.squadNotifications.removeIf(a -> a.getPlayerId().equals(playerSession.getPlayerId()));
+        removeMember(playerSession);
         SquadNotification leaveNotification = createNotification(this.getGuildId(), this.getGuildName(), playerSession, leaveType);
         this.addNotification(leaveNotification);
 
@@ -87,6 +120,22 @@ public class GuildSessionImpl implements GuildSession {
         }
 
         ServiceFactory.instance().getPlayerDatasource().leaveSquad(this, playerSession, leaveNotification);
+    }
+
+    private void removeMember(PlayerSession playerSession) {
+        playerSession.setGuildSession(null);
+        this.guildSettings.removeMember(playerSession.getPlayerId());
+        this.guildPlayerSessions.remove(playerSession.getPlayerId());
+        this.squadNotifications.removeIf(a -> a.getPlayerId().equals(playerSession.getPlayerId()));
+    }
+
+    private void addMember(PlayerSession playerSession) {
+        playerSession.setGuildSession(this);
+        if (!guildPlayerSessions.containsKey(playerSession.getPlayerId())) {
+            this.guildSettings.addMember(playerSession.getPlayerId(), playerSession.getPlayerSettings().getName(),
+                    false, false, 0, 0, 0);
+            this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
+        }
     }
 
     @Override
@@ -188,6 +237,12 @@ public class GuildSessionImpl implements GuildSession {
     final static public SquadNotification createNotification(String guildId, String guildName, PlayerSession playerSession,
                                                              SquadMsgType squadMsgType)
     {
+        return createNotification(guildId, guildName, playerSession, null, squadMsgType);
+    }
+
+    final static public SquadNotification createNotification(String guildId, String guildName, PlayerSession playerSession,
+                                                             String message, SquadMsgType squadMsgType)
+    {
         SquadNotification squadNotification = null;
         if (squadMsgType != null) {
             switch (squadMsgType) {
@@ -196,9 +251,12 @@ public class GuildSessionImpl implements GuildSession {
                 case promotion:
                 case demotion:
                 case ejected:
+                case joinRequest:
+                case joinRequestAccepted:
+                case joinRequestRejected:
                     squadNotification =
                             new SquadNotification(guildId, guildName,
-                                    ServiceFactory.createRandomUUID(), null,
+                                    ServiceFactory.createRandomUUID(), message,
                                     playerSession.getPlayerSettings().getName(),
                                     playerSession.getPlayerId(), squadMsgType);
                     break;

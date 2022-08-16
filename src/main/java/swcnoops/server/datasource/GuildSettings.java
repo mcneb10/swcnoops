@@ -51,4 +51,8 @@ public interface GuildSettings {
     //String getLeaderId();
 
     Member getMember(String playerId);
+
+    boolean getOpenEnrollment();
+
+    Integer getMinScoreAtEnrollment();
 }

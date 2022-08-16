@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class SquadNotification {
     private long date;
     final private String id;
-    final private String message;
+    private String message;
     private String name;
     private String playerId;
     final private SquadMsgType type;
@@ -96,5 +96,9 @@ public class SquadNotification {
 
     public void setPlayerId(String playerId) {
         this.playerId = playerId;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
     }
 }

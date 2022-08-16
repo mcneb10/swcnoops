@@ -28,7 +28,7 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     public void afterLoad() {
-        this.notifications.sort((a,b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
+        this.notifications.sort((a, b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
     }
 
     @Override
@@ -86,8 +86,7 @@ public class GuildSettingsImpl implements GuildSettings {
 
     @Override
     public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate,
-                          long troopsDonated, long troopsReceived)
-    {
+                          long troopsDonated, long troopsReceived) {
         if (!this.memberMap.containsKey(playerId)) {
             Member member = GuildHelper.createMember(playerId, playerName, isOwner,
                     isOfficer, joinDate, troopsDonated, troopsReceived);
@@ -165,5 +164,14 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public Member getMember(String playerId) {
         return this.memberMap.get(playerId);
+    }
+
+    @Override
+    public boolean getOpenEnrollment() {
+        return openEnrollment;
+    }
+
+    public Integer getMinScoreAtEnrollment() {
+        return minScoreAtEnrollment;
     }
 }

@@ -42,4 +42,8 @@ public interface PlayerDataSource {
     void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification);
 
     void changeSquadRole(GuildSession guildSession, PlayerSession memberSession, SquadNotification squadNotification, SquadRole squadRole);
+
+    void joinRequest(GuildSession guildSession, PlayerSession playerSession, SquadNotification joinRequestNotification);
+
+    void joinRejected(GuildSession guildSession, PlayerSession memberSession, SquadNotification joinRequestRejectedNotification);
 }

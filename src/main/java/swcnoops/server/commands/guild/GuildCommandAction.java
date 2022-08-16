@@ -66,9 +66,9 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         squadResult.squadWarReadyCount = 0;
         squadResult.membershipRestrictions = new MembershipRestrictions();
         squadResult.membershipRestrictions.faction = guildSession.getGuildSettings().getFaction();
-        squadResult.membershipRestrictions.openEnrollment = true;
+        squadResult.membershipRestrictions.openEnrollment = guildSession.getGuildSettings().getOpenEnrollment();
         squadResult.membershipRestrictions.maxSize = 15;
-        squadResult.membershipRestrictions.minScoreAtEnrollment = 0;
+        squadResult.membershipRestrictions.minScoreAtEnrollment = guildSession.getGuildSettings().getMinScoreAtEnrollment();
         return squadResult;
     }
 }

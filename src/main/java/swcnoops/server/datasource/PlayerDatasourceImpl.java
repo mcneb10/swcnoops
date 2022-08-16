@@ -257,11 +257,59 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
             if (guildSession.canEdit()) {
                 insertSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(), false, false, 0, connection);
+                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
                 saveNotification(squadNotification.getGuildId(), squadNotification, connection);
             }
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    @Override
+    public void joinRequest(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            savePlayerSession(playerSession, connection);
+
+            if (guildSession.canEdit()) {
+                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
+                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+            }
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    @Override
+    public void joinRejected(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+
+            if (guildSession.canEdit()) {
+                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
+                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+            }
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    private void deleteJoinRequestNotifications(String guildId, String playerId, Connection connection) {
+        final String squadMemberSql = "delete from SquadNotifications where guildId = ? and playerId = ? and squadMessageType = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
+                stmt.setString(1, guildId);
+                stmt.setString(2, playerId);
+                stmt.setString(3, SquadMsgType.joinRequest.toString());
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to delete SquadNotifications for playerId=" +
+                    playerId + " in guidId = " + guildId, ex);
         }
     }
 
@@ -521,8 +569,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void createNewGuild(String playerId, GuildSettings guildSettings, Connection connection) {
-        final String squadSql = "insert into Squads (id, faction, name, icon, description) values " +
-                "(?, ?, ?, ?, ?)";
+        final String squadSql = "insert into Squads (id, faction, name, icon, description, openEnrollment, minScoreAtEnrollment) values " +
+                "(?, ?, ?, ?, ?, ?, ?)";
 
         final String playerSettingsSql = "update PlayerSettings " +
                 "set guildId = ? " +
@@ -535,6 +583,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(3, guildSettings.getGuildName());
                 stmt.setString(4, guildSettings.getIcon());
                 stmt.setString(5, guildSettings.getDescription());
+                stmt.setBoolean(6, guildSettings.getOpenEnrollment());
+                stmt.setInt(7, guildSettings.getMinScoreAtEnrollment());
                 stmt.executeUpdate();
             }
 
@@ -582,7 +632,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public GuildSettings loadGuildSettings(String guildId) {
-        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon " +
+        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon, openEnrollment, minScoreAtEnrollment " +
                 "FROM Squads s WHERE s.id = ?";
 
         final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived " +
@@ -609,6 +659,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                         guildSettings.setDescription(rs.getString("description"));
                         guildSettings.setIcon(rs.getString("icon"));
+
+                        guildSettings.setOpenEnrollment(rs.getBoolean("openEnrollment"));
+                        guildSettings.setMinScoreAtEnrollment(rs.getInt("minScoreAtEnrollment"));
                     }
                 }
 
@@ -720,7 +773,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private List<Squad> getGuildList(FactionType faction, Connection connection) {
-        final String sql = "SELECT id, name, faction, description, icon " +
+        final String sql = "SELECT id, name, faction, description, icon, openEnrollment, minScoreAtEnrollment, " +
+                " (select count(1) from SquadMembers m where m.guildId = s.id) as numMembers " +
                 "FROM Squads s WHERE s.faction = ?";
 
         List<Squad> squads = new ArrayList<>();
@@ -736,12 +790,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         squad.name = rs.getString("name");
                         squad.faction = FactionType.valueOf(rs.getString("faction"));
                         squad.icon = rs.getString("icon");
-                        squad.openEnrollment = true;
-                        squad.minScore = 0;
+                        squad.openEnrollment = rs.getBoolean("openEnrollment");
+                        squad.minScore = rs.getInt("minScoreAtEnrollment");
                         squad.rank = 0;
                         squad.level = 0;
-                        squad.activeMemberCount = 1;
-                        squad.members = 10;
+                        squad.activeMemberCount = rs.getInt("minScoreAtEnrollment");
+                        squad.members = rs.getInt("numMembers");
                         squad.score = 1;
                         squads.add(squad);
                     }
@@ -809,22 +863,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
-        }
-    }
-
-    private void updateGuildLeader(String guildId, String leaderId, Connection connection) {
-        final String squadSql = "update Squads " +
-                "set leaderId = ? " +
-                "where id = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setString(1, leaderId);
-                stmt.setString(2, guildId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save squad leaderId =" + guildId, ex);
         }
     }
 

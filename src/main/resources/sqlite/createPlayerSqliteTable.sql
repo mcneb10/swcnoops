@@ -35,7 +35,9 @@ CREATE TABLE IF NOT EXISTS Squads
      members json,
      warId text,
      description text,
-     icon text);
+     icon text,
+     openEnrollment NUMERIC,
+     minScoreAtEnrollment NUMERIC);
 
 CREATE TABLE IF NOT EXISTS SquadMembers
     (guildId text,

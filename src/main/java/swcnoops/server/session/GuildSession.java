@@ -43,4 +43,10 @@ public interface GuildSession {
     void saveGuildChange(PlayerSession playerSession, SquadNotification leaveNotification);
 
     void changeSquadRole(PlayerSession memberSession, SquadRole squadRole, SquadMsgType squadMsgType);
+
+    void joinRequest(PlayerSession playerSession, String message);
+
+    void joinRequestAccepted(String acceptorId, PlayerSession memberSession);
+
+    void joinRequestRejected(String playerId, PlayerSession memberSession);
 }

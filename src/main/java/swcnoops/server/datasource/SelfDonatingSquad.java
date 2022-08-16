@@ -143,4 +143,14 @@ public class SelfDonatingSquad implements GuildSettings {
     public Member getMember(String playerId) {
         return null;
     }
+
+    @Override
+    public boolean getOpenEnrollment() {
+        return false;
+    }
+
+    @Override
+    public Integer getMinScoreAtEnrollment() {
+        return null;
+    }
 }
