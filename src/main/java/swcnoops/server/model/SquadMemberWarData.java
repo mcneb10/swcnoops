@@ -11,6 +11,7 @@ public class SquadMemberWarData {
     public int defensesWon;
     public int score;
     public int level;
+    public String warId;
 
     // TODO
     //public List<Object> rewards;

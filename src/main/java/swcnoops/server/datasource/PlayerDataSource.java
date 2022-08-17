@@ -57,4 +57,6 @@ public interface PlayerDataSource {
     SquadMemberWarData loadPlayerWarData(String warId, String playerId);
 
     List<SquadMemberWarData> getWarParticipants(String guildId, String warId);
+
+    void saveWarParticipant(SquadMemberWarData squadMemberWarData);
 }

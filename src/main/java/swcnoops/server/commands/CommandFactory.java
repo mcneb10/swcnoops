@@ -25,7 +25,6 @@ public class CommandFactory {
         this.add(new GuildInviteGet());
         this.add(new PlayerAccountExternalGet());
         this.add(new GuildGetChatKey());
-        this.add(new GuildWarGetParticipant());
         this.add(new GuildGet());
         this.add(new GuildWarStatus());
         this.add(new PlayerKeepAlive());
@@ -81,7 +80,11 @@ public class CommandFactory {
         this.add(new GuildJoinAccept());
         this.add(new GuildJoinReject());
         this.add(new GuildSearchByName());
+        this.add(new GuildWarBaseSave());
+
+        this.add(new GuildWarGetParticipant());
         this.add(new GuildWarGetSyncedParticipant());
+        this.add(new GuildWarScoutPlayer());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());

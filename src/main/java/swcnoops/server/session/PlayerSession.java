@@ -132,4 +132,6 @@ public interface PlayerSession {
     void removeEjectedNotifications(List<SquadNotification> ejectedNotifications);
 
     SquadMemberWarData getSquadMemberWarData();
+
+    void warBaseSave(Map<String, Position> positions);
 }

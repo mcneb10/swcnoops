@@ -774,7 +774,40 @@ public class PlayerSessionImpl implements PlayerSession {
         GuildSession guildSession = this.getGuildSession();
         if (guildSession == null)
             return null;
-        return ServiceFactory.instance().getPlayerDatasource()
+
+        SquadMemberWarData squadMemberWarData = ServiceFactory.instance().getPlayerDatasource()
                 .loadPlayerWarData(guildSession.getGuildSettings().getWarId(), this.getPlayerId());
+
+        squadMemberWarData.warMap.planet = "planet24";
+
+        // TODO - level up buildings to what the player currently has
+        return squadMemberWarData;
+    }
+
+    @Override
+    public void warBaseSave(Map<String, Position> positions) {
+        SquadMemberWarData squadMemberWarData = this.getSquadMemberWarData();
+
+        Map<String, Building> buildingMap = new HashMap<>();
+        squadMemberWarData.warMap.buildings.forEach(a -> buildingMap.put(a.key, a));
+
+
+        for (Map.Entry<String, Position> buildingChange : positions.entrySet()) {
+            Building building = buildingMap.get(buildingChange.getKey());
+            if (building != null) {
+                building.x = buildingChange.getValue().x;
+                building.z = buildingChange.getValue().z;
+            } else {
+                Building newBuilding = new Building();
+                newBuilding.key = buildingChange.getKey();
+                newBuilding.x = buildingChange.getValue().x;
+                newBuilding.z = buildingChange.getValue().z;
+                MapItem mapItem = this.getPlayerMapItems().getMapItemByKey(newBuilding.key);
+                newBuilding.uid = mapItem.getBuildingUid();
+                squadMemberWarData.warMap.buildings.add(newBuilding);
+            }
+        }
+
+        ServiceFactory.instance().getPlayerDatasource().saveWarParticipant(squadMemberWarData);
     }
 }

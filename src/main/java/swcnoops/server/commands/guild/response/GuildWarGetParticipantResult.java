@@ -3,9 +3,9 @@ package swcnoops.server.commands.guild.response;
 import swcnoops.server.model.SquadMemberWarData;
 import swcnoops.server.requests.AbstractCommandResult;
 
-public class GuildWarGetSyncedParticipantResult extends AbstractCommandResult {
+public class GuildWarGetParticipantResult extends AbstractCommandResult {
     private SquadMemberWarData squadMemberWarData;
-    public GuildWarGetSyncedParticipantResult(SquadMemberWarData squadMemberWarData) {
+    public GuildWarGetParticipantResult(SquadMemberWarData squadMemberWarData) {
         this.squadMemberWarData = squadMemberWarData;
     }
 

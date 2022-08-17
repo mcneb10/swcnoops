@@ -1244,7 +1244,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(2, warId);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
-                    squadMemberWarData = mapSquadMemberWarData(rs);
+                    squadMemberWarData = mapSquadMemberWarData(warId, rs);
                 }
             }
         } catch (Exception ex) {
@@ -1254,9 +1254,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return squadMemberWarData;
     }
 
-    private SquadMemberWarData mapSquadMemberWarData(ResultSet rs) throws Exception {
+    private SquadMemberWarData mapSquadMemberWarData(String warId, ResultSet rs) throws Exception {
         SquadMemberWarData squadMemberWarData = new SquadMemberWarData();
         squadMemberWarData.id = rs.getString("id");
+        squadMemberWarData.warId = warId;
         squadMemberWarData.name = rs.getString("name");
         squadMemberWarData.victoryPoints = rs.getInt("victoryPoints");
         squadMemberWarData.turns = rs.getInt("turns");
@@ -1306,7 +1307,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(2, warId);
                 ResultSet rs = stmt.executeQuery();
                 while (rs.next()) {
-                    SquadMemberWarData squadMemberWarData = mapSquadMemberWarData(rs);
+                    SquadMemberWarData squadMemberWarData = mapSquadMemberWarData(warId, rs);
                     participants.add(squadMemberWarData);
                 }
             }
@@ -1315,5 +1316,53 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return participants;
+    }
+
+    @Override
+    public void saveWarParticipant(SquadMemberWarData squadMemberWarData) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            saveWarParticipant(squadMemberWarData, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save war SquadMemberWarData for player id=" + squadMemberWarData.id, ex);
+        }
+    }
+
+    private void saveWarParticipant(SquadMemberWarData squadMemberWarData, Connection connection) {
+        final String warParticipantsSql = "update WarParticipants " +
+                            "set warMap = ?," +
+                            "donatedTroops = ?," +
+                            "victoryPoints = ?," +
+                            "turns = ?," +
+                            "attacksWon = ?," +
+                            "defensesWon = ?," +
+                            "score = ? " +
+                            "where playerId = ? and warId = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
+                String warMapJson = null;
+                if (squadMemberWarData.warMap != null)
+                    warMapJson = ServiceFactory.instance().getJsonParser().toJson(squadMemberWarData.warMap);
+
+                String donatedTroopsJson = null;
+                if (squadMemberWarData.donatedTroops != null)
+                    donatedTroopsJson = ServiceFactory.instance().getJsonParser().toJson(squadMemberWarData.donatedTroops);
+
+                stmt.setString(1, warMapJson);
+                stmt.setString(2, donatedTroopsJson);
+                stmt.setInt(3, squadMemberWarData.victoryPoints);
+                stmt.setInt(4, squadMemberWarData.turns);
+                stmt.setInt(5, squadMemberWarData.attacksWon);
+                stmt.setInt(6, squadMemberWarData.defensesWon);
+                stmt.setInt(7, squadMemberWarData.score);
+                stmt.setString(8, squadMemberWarData.id);
+                stmt.setString(9, squadMemberWarData.warId);
+                stmt.executeUpdate();
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to save WarParticipants for player id=" + squadMemberWarData.id, ex);
+        }
     }
 }
