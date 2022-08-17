@@ -335,4 +335,10 @@ public class GuildSessionImpl implements GuildSession {
 
         return war;
     }
+
+    @Override
+    public List<SquadMemberWarData> getWarParticipants() {
+        return ServiceFactory.instance().getPlayerDatasource()
+                .getWarParticipants(this.getGuildId(), this.getGuildSettings().getWarId());
+    }
 }

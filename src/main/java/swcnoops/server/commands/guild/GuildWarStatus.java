@@ -3,12 +3,15 @@ package swcnoops.server.commands.guild;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.guild.response.GuildWarStatusCommandResult;
+import swcnoops.server.datasource.War;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.BuffBase;
+import swcnoops.server.model.SquadMemberWarData;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildWarStatusCommandResult> {
     @Override
@@ -16,10 +19,17 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = playerSession.getGuildSession();
+        War war = guildSession.getCurrentWar();
+
+        GuildSession squad1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
+        List<SquadMemberWarData> warParticipants1 = squad1.getWarParticipants();
+
+        GuildSession squad2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
+        List<SquadMemberWarData> warParticipants2 = squad2.getWarParticipants();
 
         GuildWarStatusCommandResult guildWarStatusResponse =
                 new GuildWarStatusCommandResult(guildSession);
-        guildWarStatusResponse.inititalise(time);
+        guildWarStatusResponse.inititalise(war, warParticipants1, warParticipants2, time);
 
         // buff bases can not be null otherwise client crashes
         guildWarStatusResponse.buffBases = new ArrayList<>();

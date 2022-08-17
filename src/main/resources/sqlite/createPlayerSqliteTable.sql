@@ -23,7 +23,8 @@ CREATE TABLE IF NOT EXISTS PlayerSettings
      currentQuest text,
      guildId text,
      unlockedPlanets json,
-     hqLevel NUMERIC);
+     hqLevel NUMERIC,
+     warMap	json);
 
 insert into PlayerSettings (id, upgrades) values ('2c2d4aea-7f38-11e5-a29f-069096004f69', '{}')
 on conflict(id) do nothing;
@@ -95,5 +96,18 @@ CREATE TABLE IF NOT EXISTS "MatchMake" (
 	"faction"	NUMERIC,
 	participants JSON,
 	PRIMARY KEY("guildId")
+);
+
+CREATE TABLE IF NOT EXISTS "WarParticipants" (
+	"playerId"	TEXT,
+	"warId"	TEXT,
+	"warMap"	json,
+	"donatedTroops"	json,
+	"turns"	INTEGER,
+	"attacksWon"	INTEGER,
+	"defensesWon"	INTEGER,
+	"score"	INTEGER,
+	"victoryPoints"	INTEGER,
+	PRIMARY KEY("playerId","warId")
 );
 

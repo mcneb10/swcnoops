@@ -130,4 +130,6 @@ public interface PlayerSession {
     void addSquadNotification(SquadNotification leaveNotification);
 
     void removeEjectedNotifications(List<SquadNotification> ejectedNotifications);
+
+    SquadMemberWarData getSquadMemberWarData();
 }

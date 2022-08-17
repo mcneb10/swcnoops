@@ -994,7 +994,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 "set warSignUpTime = ? " +
                 "where id = ?";
 
-        final String squadMembersRestSql = "update SquadMembers " +
+        final String squadMembersNotSignedUpSql = "update SquadMembers " +
                 "set warParty = 0 " +
                 "where guildId = ?";
 
@@ -1013,7 +1013,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             if (participantIds != null) {
-                try (PreparedStatement stmt = connection.prepareStatement(squadMembersRestSql)) {
+                try (PreparedStatement stmt = connection.prepareStatement(squadMembersNotSignedUpSql)) {
                     stmt.setString(1, guildId);
                     stmt.executeUpdate();
                 }
@@ -1098,6 +1098,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 warId = saveWar(guildId, rivalId, connection);
                 saveSquadWar(guildId, warId, connection);
                 saveSquadWar(rivalId, warId, connection);
+                insertWarParticipants(warId, guildId, rivalId, connection);
             }
 
         } catch (SQLException ex) {
@@ -1105,6 +1106,26 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return warId;
+    }
+
+    private void insertWarParticipants(String warId, String guildId, String rivalId, Connection connection) {
+        final String warParticipantsSql = "insert into WarParticipants (playerId, warId, warMap, " +
+                "donatedTroops, turns, attacksWon, defensesWon, victoryPoints, score) " +
+                "select p.id, s.warId, ifnull(p.warMap, p.baseMap), null, 3, 0, 0, 3, 0 " +
+                "from SquadMembers m, Squads s, PlayerSettings p " +
+                "where s.id in (?,?) and s.warId = ? and m.guildId = s.id and m.warParty = 1 and p.id = m.playerId";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
+                stmt.setString(1, guildId);
+                stmt.setString(2, rivalId);
+                stmt.setString(3, warId);
+                stmt.executeUpdate();
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create WarParticipants for war id=" + warId, ex);
+        }
     }
 
     private void saveSquadWar(String guildId, String warId, Connection connection) {
@@ -1197,5 +1218,102 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return war;
+    }
+
+    @Override
+    public SquadMemberWarData loadPlayerWarData(String warId, String playerId) {
+        SquadMemberWarData squadMemberWarData;
+        try (Connection connection = getConnection()) {
+            squadMemberWarData = loadPlayerWarData(warId, playerId, connection);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to load players war data for id=" + playerId, ex);
+        }
+
+        return squadMemberWarData;
+    }
+
+    private SquadMemberWarData loadPlayerWarData(String warId, String playerId, Connection connection) {
+        final String warParticipantsSql = "select s.warMap, s.donatedTroops, s.victoryPoints, s.turns, s.attacksWon, " +
+                "s.defensesWon, s.score, p.hqLevel, p.id, p.name " +
+                "from WarParticipants s, PlayerSettings p where s.playerId = ? and s.warId = ? and s.playerId = p.id";
+
+        SquadMemberWarData squadMemberWarData = null;
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
+                stmt.setString(1, playerId);
+                stmt.setString(2, warId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    squadMemberWarData = mapSquadMemberWarData(rs);
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load WarParticipants for player id=" + playerId, ex);
+        }
+
+        return squadMemberWarData;
+    }
+
+    private SquadMemberWarData mapSquadMemberWarData(ResultSet rs) throws Exception {
+        SquadMemberWarData squadMemberWarData = new SquadMemberWarData();
+        squadMemberWarData.id = rs.getString("id");
+        squadMemberWarData.name = rs.getString("name");
+        squadMemberWarData.victoryPoints = rs.getInt("victoryPoints");
+        squadMemberWarData.turns = rs.getInt("turns");
+        squadMemberWarData.attacksWon = rs.getInt("attacksWon");
+        squadMemberWarData.defensesWon = rs.getInt("defensesWon");
+        squadMemberWarData.score = rs.getInt("score");
+        squadMemberWarData.level = rs.getInt("hqLevel");
+
+        String warMap = rs.getString("warMap");
+        if (warMap != null) {
+            squadMemberWarData.warMap = ServiceFactory.instance().getJsonParser()
+                    .fromJsonString(warMap, PlayerMap.class);
+        }
+
+        String donatedTroops = rs.getString("donatedTroops");
+        if (donatedTroops != null) {
+            squadMemberWarData.donatedTroops = ServiceFactory.instance().getJsonParser()
+                    .fromJsonString(donatedTroops, DonatedTroops.class);
+        }
+
+        return squadMemberWarData;
+    }
+
+    @Override
+    public List<SquadMemberWarData> getWarParticipants(String guildId, String warId) {
+        List<SquadMemberWarData> squadMemberWarDatums;
+        try (Connection connection = getConnection()) {
+            squadMemberWarDatums = getWarParticipants(warId, guildId, connection);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to load war participants for guild id=" + guildId, ex);
+        }
+
+        return squadMemberWarDatums;
+    }
+
+    private List<SquadMemberWarData> getWarParticipants(String warId, String guildId, Connection connection) {
+        List<SquadMemberWarData> participants = new ArrayList<>();
+
+        final String warParticipantsSql = "select p.warMap, p.donatedTroops, p.victoryPoints, p.turns, p.attacksWon, " +
+                "p.defensesWon, p.score, ps.hqLevel, ps.id, ps.name " +
+                "from WarParticipants p, Squads s, SquadMembers m, PlayerSettings ps where s.id = ? and " +
+                      "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
+                stmt.setString(1, guildId);
+                stmt.setString(2, warId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    SquadMemberWarData squadMemberWarData = mapSquadMemberWarData(rs);
+                    participants.add(squadMemberWarData);
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load WarParticipants for squad id=" + guildId, ex);
+        }
+
+        return participants;
     }
 }

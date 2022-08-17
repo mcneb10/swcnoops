@@ -1,9 +1,6 @@
 package swcnoops.server.datasource;
 
-import swcnoops.server.model.FactionType;
-import swcnoops.server.model.Squad;
-import swcnoops.server.model.SquadNotification;
-import swcnoops.server.model.SquadRole;
+import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
@@ -56,4 +53,8 @@ public interface PlayerDataSource {
     String matchMake(String guildId);
 
     War getWar(String warId);
+
+    SquadMemberWarData loadPlayerWarData(String warId, String playerId);
+
+    List<SquadMemberWarData> getWarParticipants(String guildId, String warId);
 }

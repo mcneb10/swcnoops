@@ -7,15 +7,10 @@ import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.SquadMemberWarData;
 import swcnoops.server.session.PlayerSession;
 
-public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetParticipant, GuildWarGetSyncedParticipantResult>
-{
-    @Override
-    public String getAction() {
-        return "guild.war.getParticipant";
-    }
+public class GuildWarGetSyncedParticipant extends AbstractCommandAction<GuildWarGetSyncedParticipant, GuildWarGetSyncedParticipantResult> {
 
     @Override
-    protected GuildWarGetSyncedParticipantResult execute(GuildWarGetParticipant arguments, long time) throws Exception {
+    protected GuildWarGetSyncedParticipantResult execute(GuildWarGetSyncedParticipant arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
         SquadMemberWarData squadMemberWarData = playerSession.getSquadMemberWarData();
         GuildWarGetSyncedParticipantResult result = new GuildWarGetSyncedParticipantResult(squadMemberWarData);
@@ -23,7 +18,12 @@ public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetPar
     }
 
     @Override
-    protected GuildWarGetParticipant parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return jsonParser.fromJsonObject(argumentObject, GuildWarGetParticipant.class);
+    protected GuildWarGetSyncedParticipant parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, GuildWarGetSyncedParticipant.class);
+    }
+
+    @Override
+    public String getAction() {
+        return "guild.war.getSyncedParticipant";
     }
 }

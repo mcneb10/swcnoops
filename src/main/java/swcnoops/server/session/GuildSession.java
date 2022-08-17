@@ -3,10 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.datasource.War;
-import swcnoops.server.model.SquadMsgType;
-import swcnoops.server.model.SquadNotification;
-import swcnoops.server.model.SquadRole;
-import swcnoops.server.model.TroopRequestData;
+import swcnoops.server.model.*;
 
 import java.util.List;
 import java.util.Map;
@@ -57,4 +54,6 @@ public interface GuildSession {
     void warMatched(String warId);
 
     War getCurrentWar();
+
+    List<SquadMemberWarData> getWarParticipants();
 }

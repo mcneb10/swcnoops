@@ -768,4 +768,13 @@ public class PlayerSessionImpl implements PlayerSession {
         this.playerSettings.getBaseMap().planet = planet;
         this.savePlayerSession();
     }
+
+    @Override
+    public SquadMemberWarData getSquadMemberWarData() {
+        GuildSession guildSession = this.getGuildSession();
+        if (guildSession == null)
+            return null;
+        return ServiceFactory.instance().getPlayerDatasource()
+                .loadPlayerWarData(guildSession.getGuildSettings().getWarId(), this.getPlayerId());
+    }
 }
