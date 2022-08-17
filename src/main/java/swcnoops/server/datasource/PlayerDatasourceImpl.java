@@ -956,15 +956,43 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveWarMatchMake(String guildId, List<String> participantIds, SquadNotification squadNotification, Long time) {
+    public String saveWarMatchMake(FactionType faction, String guildId, List<String> participantIds,
+                                   SquadNotification squadNotification, Long time)
+    {
+        String warId = null;
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
+            warId = saveMatchMake(faction, guildId, participantIds, time, connection);
             saveWarMatchSignUp(guildId, participantIds, time, connection);
             saveNotification(guildId, squadNotification, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
         }
+
+        return warId;
+    }
+
+    private String saveMatchMake(FactionType faction, String guildId, List<String> participantIds, Long time, Connection connection) {
+        String warId = null;
+
+        final String matchMakeSql = "insert into MatchMake (guildId, warSignUpTime, faction, participants) values " +
+                "(?,?,?,?)";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
+                stmt.setString(1, guildId);
+                stmt.setLong(2, time);
+                stmt.setString(3, faction.toString());
+                stmt.setString(4, ServiceFactory.instance().getJsonParser().toJson(participantIds));
+                stmt.executeUpdate();
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save match make for squad id=" + guildId, ex);
+        }
+
+        return warId;
     }
 
     private void saveWarMatchSignUp(String guildId, List<String> participantIds, Long time, Connection connection) {
@@ -1014,11 +1042,26 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void saveWarMatchCancel(String guildId, SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
+            deleteMatchMake(guildId, connection);
             saveWarMatchSignUp(guildId, null, null, connection);
             saveNotification(guildId, squadNotification, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
+        }
+    }
+
+    private void deleteMatchMake(String guildId, Connection connection) {
+        final String matchMakeSql = "delete from MatchMake where guildId = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
+                stmt.setString(1, guildId);
+                stmt.executeUpdate();
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to delete match make for squad id=" + guildId, ex);
         }
     }
 }

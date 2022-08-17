@@ -69,3 +69,31 @@ CREATE INDEX IF NOT EXISTS "SquadNotification_idx" ON "SquadNotifications" (
 	"guildId"
 );
 
+CREATE TABLE IF NOT EXISTS "War" (
+	"warId"	TEXT,
+	"squadIdA"	TEXT,
+	"squadIdB"	TEXT,
+	"prepGraceStartTime"	NUMERIC,
+	"prepEndTime"	NUMERIC,
+	"actionGraceStartTime"	NUMERIC,
+	"actionEndTime"	NUMERIC,
+	"cooldownEndTime"	NUMERIC,
+	PRIMARY KEY("warId")
+);
+
+CREATE INDEX IF NOT EXISTS "War_Squad1_idx" ON "War" (
+	"squadIdA"
+);
+
+CREATE INDEX IF NOT EXISTS "War_Squad2_idx" ON "War" (
+	"squadIdB"
+);
+
+CREATE TABLE IF NOT EXISTS "MatchMake" (
+	"guildId"	TEXT,
+	"warSignUpTime"	NUMERIC,
+	"faction"	NUMERIC,
+	participants JSON,
+	PRIMARY KEY("guildId")
+);
+

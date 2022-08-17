@@ -128,26 +128,22 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public void login(Member member) {
         Member oldDetails = this.memberMap.get(member.playerId);
-        if (oldDetails != member) {
-            if (oldDetails.hasPlayerSession()) {
-                member = oldDetails;
-            } else {
-                member.isOfficer = oldDetails.isOfficer;
-                member.isOwner = oldDetails.isOwner;
-                member.warParty = oldDetails.warParty;
-                member.troopsReceived = oldDetails.troopsReceived;
-                member.troopsDonated = oldDetails.troopsDonated;
-                member.joinDate = oldDetails.joinDate;
-                member.attacksWon = oldDetails.attacksWon;
-                member.defensesWon = oldDetails.defensesWon;
-                member.planet = oldDetails.planet;
-                member.hasPlanetaryCommand = oldDetails.hasPlanetaryCommand;
-                member.lastLoginTime = oldDetails.lastLoginTime;
-                member.rank = oldDetails.rank;
-                member.reputationInvested = oldDetails.reputationInvested;
-                member.score = oldDetails.score;
-                member.xp = oldDetails.xp;
-            }
+        if (oldDetails != member && oldDetails != null) {
+            member.isOfficer = oldDetails.isOfficer;
+            member.isOwner = oldDetails.isOwner;
+            member.warParty = oldDetails.warParty;
+            member.troopsReceived = oldDetails.troopsReceived;
+            member.troopsDonated = oldDetails.troopsDonated;
+            member.joinDate = oldDetails.joinDate;
+            member.attacksWon = oldDetails.attacksWon;
+            member.defensesWon = oldDetails.defensesWon;
+            member.planet = oldDetails.planet;
+            member.hasPlanetaryCommand = oldDetails.hasPlanetaryCommand;
+            member.lastLoginTime = oldDetails.lastLoginTime;
+            member.rank = oldDetails.rank;
+            member.reputationInvested = oldDetails.reputationInvested;
+            member.score = oldDetails.score;
+            member.xp = oldDetails.xp;
         }
 
         this.memberMap.put(member.playerId, member);

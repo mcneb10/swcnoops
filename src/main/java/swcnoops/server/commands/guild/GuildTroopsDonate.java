@@ -5,7 +5,6 @@ import swcnoops.server.commands.guild.response.GuildTroopsDonateCommandResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
-
 import java.util.Map;
 
 /**
@@ -21,8 +20,8 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        // TODO - need to check and handle when player donates when they have been kicked out of the squad
-        SquadNotification squadNotification = playerSession.troopsDonate(arguments.getTroopsDonated(),
+        Map<String, Integer> donatedTroops = arguments.getTroopsDonated();
+        TroopDonationResult troopDonationResult = playerSession.troopsDonate(donatedTroops,
                 arguments.getRequestId(), arguments.getRecipientId(), time);
 
         // TODO - do we need to deal with any race conditions when multiple players
@@ -31,10 +30,10 @@ public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, Gui
         // not sure about this yet, this probably controls the SC space that the client has on screen
         TroopDonationProgress troopDonationProgress = null;
         GuildTroopsDonateCommandResult guildTroopsDonateCommandResult =
-                new GuildTroopsDonateCommandResult(playerSession.getGuildSession(), arguments.getTroopsDonated(),
+                new GuildTroopsDonateCommandResult(playerSession.getGuildSession(), troopDonationResult.getDonatedTroops(),
                         false, troopDonationProgress);
 
-        guildTroopsDonateCommandResult.setSquadNotification(squadNotification);
+        guildTroopsDonateCommandResult.setSquadNotification(troopDonationResult.getSquadNotification());
         return guildTroopsDonateCommandResult;
     }
 

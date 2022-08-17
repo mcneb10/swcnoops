@@ -2,16 +2,16 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
+import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.model.*;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Queue;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 public class GuildSessionImpl implements GuildSession {
@@ -19,9 +19,10 @@ public class GuildSessionImpl implements GuildSession {
 
     // TODO - can probably remove this as it does nothing accept a quick lookup
     final private Map<String, PlayerSession> guildPlayerSessions = new ConcurrentHashMap<>();
-
+    final private TroopDonationResult failedTroopDonationResult = new TroopDonationResult(null, new HashMap<>());
     private Queue<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
     private AtomicLong squadNotificationOrder = new AtomicLong();
+    private Lock notificationLock = new ReentrantLock();
 
     public GuildSessionImpl(GuildSettings guildSettings) {
         this.guildSettings = guildSettings;
@@ -164,22 +165,26 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public SquadNotification troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession,
-                                           String recipientPlayerId, long time) {
+    public TroopDonationResult troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession,
+                                             String recipientPlayerId, long time) {
+
+        // determine recipient again for self donation to work
+        recipientPlayerId = this.guildSettings.troopDonationRecipient(playerSession, recipientPlayerId);
+        PlayerSession recipientPlayerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(recipientPlayerId);
+
+        if (recipientPlayerSession == null) {
+            return failedTroopDonationResult;
+        }
+
+        if (!recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId()))
+            return failedTroopDonationResult;
+
+        playerSession.removeDeployedTroops(troopsDonated, time);
+
         SquadNotification squadNotification = new SquadNotification(this.getGuildId(), this.getGuildName(),
                 ServiceFactory.createRandomUUID(), null, playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerId(), SquadMsgType.troopDonation);
-
-        // determine recipient for self donation to work
-        recipientPlayerId = this.guildSettings.troopDonationRecipient(playerSession, recipientPlayerId);
-
-        // remove units from the donor
-        playerSession.removeDeployedTroops(troopsDonated, time);
-
-        // move to recipient
-        PlayerSession recipientPlayerSession = ServiceFactory.instance().getSessionManager()
-                .getPlayerSession(recipientPlayerId);
-        recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId());
 
         TroopDonationData troopDonationData = new TroopDonationData();
         troopDonationData.troopsDonated = troopsDonated;
@@ -192,7 +197,7 @@ public class GuildSessionImpl implements GuildSession {
         ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(this, playerSession,
                 recipientPlayerSession, squadNotification);
 
-        return squadNotification;
+        return new TroopDonationResult(squadNotification, troopsDonated);
     }
 
     @Override
@@ -202,7 +207,7 @@ public class GuildSessionImpl implements GuildSession {
 
         this.addNotification(squadNotification);
         this.getGuildSettings().warMatchmakingStart(time, participantIds);
-        ServiceFactory.instance().getPlayerDatasource().saveWarMatchMake(this.getGuildId(), participantIds,
+        ServiceFactory.instance().getPlayerDatasource().saveWarMatchMake(playerSession.getFaction(), this.getGuildId(), participantIds,
                 squadNotification, time);
         return squadNotification;
     }
@@ -241,10 +246,15 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    synchronized public void addNotification(SquadNotification squadNotification) {
-        squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        squadNotification.setOrderNo(squadNotificationOrder.addAndGet(1));
-        this.squadNotifications.add(squadNotification);
+    public void addNotification(SquadNotification squadNotification) {
+        this.notificationLock.lock();
+        try {
+            squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+            squadNotification.setOrderNo(squadNotificationOrder.addAndGet(1));
+            this.squadNotifications.add(squadNotification);
+        } finally {
+            this.notificationLock.unlock();
+        }
     }
 
     public List<SquadNotification> getNotifications(long since) {

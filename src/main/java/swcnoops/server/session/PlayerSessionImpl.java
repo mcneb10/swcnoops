@@ -1,7 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.guild.GuildTroopsRequest;
+import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerCampaignMission;
 import swcnoops.server.datasource.PlayerSettings;
@@ -22,6 +22,8 @@ import swcnoops.server.session.training.TrainingManagerFactory;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 /**
@@ -47,6 +49,9 @@ public class PlayerSessionImpl implements PlayerSession {
     static final private OffenseLabFactory offenseLabFactory = new OffenseLabFactory();
 
     private NotificationSession notificationSession = new NotificationSession(this);
+
+    private Lock donationLock = new ReentrantLock();
+    private Lock notificationLock = new ReentrantLock();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
@@ -319,7 +324,7 @@ public class PlayerSessionImpl implements PlayerSession {
         TroopRequestData troopRequestData = new TroopRequestData();
         troopRequestData.totalCapacity = this.getSquadBuilding().getBuildingData().getStorage();
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
-        troopRequestData.amount = troopRequestData.totalCapacity - this.getDonatedTroopsTotalUnits();
+        troopRequestData.amount = getSquadBuildingAvailableSpace();
 
         // this will save the notification for the guild for when the clients call GuildNotificationsGet they will
         // pick up the request. Will probably have to change so that notifications are sent on other requests
@@ -329,19 +334,21 @@ public class PlayerSessionImpl implements PlayerSession {
         return squadNotification;
     }
 
+    public int getSquadBuildingAvailableSpace() {
+        return (this.getSquadBuilding().getBuildingData().getStorage() - this.getDonatedTroopsTotalUnits());
+    }
+
     @Override
-    public SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time) {
+    public TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time) {
         this.processCompletedContracts(time);
         GuildSession guildSession = this.getGuildSession();
 
-        SquadNotification squadNotification = null;
-
+        TroopDonationResult troopDonationResult = null;
         if (guildSession != null) {
-            squadNotification = guildSession.troopDonation(troopsDonated,
-                    requestId, this, recipientId, time);
+            troopDonationResult = guildSession.troopDonation(troopsDonated, requestId, this, recipientId, time);
         }
 
-        return squadNotification;
+        return troopDonationResult;
     }
 
     @Override
@@ -374,16 +381,21 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    synchronized public void addSquadNotification(SquadNotification squadNotification) {
-        switch (squadNotification.getType()) {
-            case ejected:
-            case joinRequestRejected:
-            case joinRequestAccepted:
-                this.playerNotifications.clear();
-                break;
-        }
+    public void addSquadNotification(SquadNotification squadNotification) {
+        this.notificationLock.lock();
+        try {
+            switch (squadNotification.getType()) {
+                case ejected:
+                case joinRequestRejected:
+                case joinRequestAccepted:
+                    this.playerNotifications.clear();
+                    break;
+            }
 
-        this.playerNotifications.add(squadNotification);
+            this.playerNotifications.add(squadNotification);
+        } finally {
+            this.notificationLock.unlock();
+        }
     }
 
     @Override
@@ -423,9 +435,38 @@ public class PlayerSessionImpl implements PlayerSession {
         return donatedTroops;
     }
 
+    /**
+     * checks there is enough space, if everything fits then it will return true
+     * else nothing gets added and returns false
+     * @param troopsDonated
+     * @param playerId
+     * @return
+     */
     @Override
-    public void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId) {
-        troopsDonated.forEach((a,b) -> addDonatedTroop(a,b,playerId));
+    public boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId) {
+        boolean donated = false;
+        this.donationLock.lock();
+        try {
+            int totalDonatedUnits = calculateTroopUnitsByUid(troopsDonated);
+            if (totalDonatedUnits <= this.getSquadBuildingAvailableSpace()) {
+                troopsDonated.forEach((a, b) -> addDonatedTroop(a, b, playerId));
+                donated = true;
+            }
+        } finally {
+            this.donationLock.unlock();
+        }
+
+        return donated;
+    }
+
+    private int calculateTroopUnitsByUid(Map<String, Integer> troopsDonated) {
+        int units = 0;
+        for (Map.Entry<String, Integer> donation : troopsDonated.entrySet()) {
+            TroopData troopData =
+                    ServiceFactory.instance().getGameDataManager().getTroopDataByUid(donation.getKey());
+            units += troopData.getSize() * donation.getValue();
+        }
+        return units;
     }
 
     @Override

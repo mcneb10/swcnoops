@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.Command;
 import swcnoops.server.commands.TokenHelper;
+import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.datasource.PlayerSecret;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
@@ -44,7 +45,8 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
         String requestToken = new String(a);
 
         String message = requestToken.substring(requestToken.indexOf("{"));
-        PlayerSecret playerSecret = ServiceFactory.instance().getPlayerDatasource().getPlayerSecret(arguments.getPlayerId());
+        String primaryAccount = PlayerIdentitySwitch.getPrimaryAccount(arguments.getPlayerId());
+        PlayerSecret playerSecret = ServiceFactory.instance().getPlayerDatasource().getPlayerSecret(primaryAccount);
 
         if (playerSecret == null)
             throw new RuntimeException("Unknown player " + arguments.getPlayerId());

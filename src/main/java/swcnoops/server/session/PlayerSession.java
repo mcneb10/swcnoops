@@ -1,5 +1,6 @@
 package swcnoops.server.session;
 
+import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
@@ -58,7 +59,7 @@ public interface PlayerSession {
 
     DonatedTroops getDonatedTroops();
 
-    void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId);
+    boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId);
 
     int getDonatedTroopsTotalUnits();
 
@@ -116,7 +117,7 @@ public interface PlayerSession {
 
     void planetRelocate(String planet, boolean payWithHardCurrency, long time);
 
-    SquadNotification troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time);
+    TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time);
 
     boolean setLastNotificationSince(String guildId, long since);
 
