@@ -27,7 +27,7 @@ public class GuildJoinAccept extends AbstractCommandAction<GuildJoinAccept, Guil
         }
 
         // TODO - to finish
-        Member member = GuildHelper.createMember(memberSession.getPlayerSettings());
+        Member member = GuildHelper.createMember(memberSession);
         GuildMemberResult guildMemberResult = new GuildMemberResult(member);
 
         return guildMemberResult;

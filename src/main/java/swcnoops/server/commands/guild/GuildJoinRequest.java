@@ -17,7 +17,7 @@ public class GuildJoinRequest extends AbstractCommandAction<GuildJoinRequest, Co
     protected CommandResult execute(GuildJoinRequest arguments, long time) throws Exception {
         SessionManager sessionManager = ServiceFactory.instance().getSessionManager();
         PlayerSession playerSession = sessionManager.getPlayerSession(arguments.getPlayerId());
-        GuildSession guildSession = sessionManager.getGuildSession(playerSession.getPlayerSettings(), arguments.getGuildId());
+        GuildSession guildSession = sessionManager.getGuildSession(playerSession, arguments.getGuildId());
         guildSession.joinRequest(playerSession, arguments.getMessage());
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;

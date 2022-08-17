@@ -63,4 +63,6 @@ public interface GuildSettings {
     void addMember(Member member);
 
     void login(Member member);
+
+    String getWarId();
 }

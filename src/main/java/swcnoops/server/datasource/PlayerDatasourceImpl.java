@@ -636,7 +636,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public GuildSettings loadGuildSettings(String guildId) {
         final String sql = "SELECT id, name, faction, perks, members, warId, description, icon, openEnrollment, minScoreAtEnrollment, " +
-                "warSignUpTime " +
+                "warSignUpTime, warId " +
                 "FROM Squads s WHERE s.id = ?";
 
         final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
@@ -668,6 +668,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         guildSettings.setOpenEnrollment(rs.getBoolean("openEnrollment"));
                         guildSettings.setMinScoreAtEnrollment(rs.getInt("minScoreAtEnrollment"));
                         guildSettings.setWarSignUpTime(rs.getLong("warSignUpTime"));
+                        guildSettings.setWarId(rs.getString("warId"));
                     }
                 }
 
@@ -956,26 +957,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public String saveWarMatchMake(FactionType faction, String guildId, List<String> participantIds,
+    public void saveWarMatchMake(FactionType faction, String guildId, List<String> participantIds,
                                    SquadNotification squadNotification, Long time)
     {
-        String warId = null;
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
-            warId = saveMatchMake(faction, guildId, participantIds, time, connection);
+            saveMatchMake(faction, guildId, participantIds, time, connection);
             saveWarMatchSignUp(guildId, participantIds, time, connection);
             saveNotification(guildId, squadNotification, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
         }
-
-        return warId;
     }
 
-    private String saveMatchMake(FactionType faction, String guildId, List<String> participantIds, Long time, Connection connection) {
-        String warId = null;
-
+    private void saveMatchMake(FactionType faction, String guildId, List<String> participantIds, Long time, Connection connection) {
         final String matchMakeSql = "insert into MatchMake (guildId, warSignUpTime, faction, participants) values " +
                 "(?,?,?,?)";
 
@@ -991,8 +987,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save match make for squad id=" + guildId, ex);
         }
-
-        return warId;
     }
 
     private void saveWarMatchSignUp(String guildId, List<String> participantIds, Long time, Connection connection) {
@@ -1063,5 +1057,145 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to delete match make for squad id=" + guildId, ex);
         }
+    }
+
+    @Override
+    public String matchMake(String guildId) {
+        String warId = null;
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            warId = matchMake(guildId, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create a new player", ex);
+        }
+
+        return warId;
+    }
+
+    private String matchMake(String guildId, Connection connection) {
+        final String matchMakeSql = "select m.guildId from MatchMake m where m.guildId != ? ORDER BY RANDOM() LIMIT 1";
+        final String deleteMakeSql = "delete from MatchMake where guildId in (?,?)";
+
+        String warId = null;
+        try {
+            String rivalId = null;
+            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
+                stmt.setString(1, guildId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    rivalId = rs.getString("guildId");
+                }
+            }
+
+            if (rivalId != null) {
+                try (PreparedStatement stmt = connection.prepareStatement(deleteMakeSql)) {
+                    stmt.setString(1, guildId);
+                    stmt.setString(2, rivalId);
+                    stmt.executeUpdate();
+                }
+
+                warId = saveWar(guildId, rivalId, connection);
+                saveSquadWar(guildId, warId, connection);
+                saveSquadWar(rivalId, warId, connection);
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to match make for squad id=" + guildId, ex);
+        }
+
+        return warId;
+    }
+
+    private void saveSquadWar(String guildId, String warId, Connection connection) {
+        final String squadSql = "update Squads " +
+                "set warId = ? " +
+                "where id = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+                stmt.setString(1, warId);
+                stmt.setString(2, guildId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save warId for squadId =" + guildId, ex);
+        }
+    }
+
+    private String saveWar(String guildId, String rivalId, Connection connection) {
+        String warId = ServiceFactory.createRandomUUID();
+
+        final String matchMakeSql = "insert into War (warId, squadIdA, squadIdB, " +
+                "prepGraceStartTime, prepEndTime, actionGraceStartTime, actionEndTime, cooldownEndTime) values " +
+                "(?,?,?,?,?,?,?,?)";
+
+        Long warMatchedTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
+                stmt.setString(1, warId);
+                stmt.setString(2, guildId);
+                stmt.setString(3, rivalId);
+
+                // preparation start time
+                // preparation end time (1 hour prep time)
+                // war start time (2 mins before start)
+                // war end time (1 hour war)
+                // war result prep (2 mins)
+                stmt.setLong(4, warMatchedTime);
+                stmt.setLong(5, warMatchedTime + (60 * 60 * 1));
+                stmt.setLong(6, warMatchedTime + (60 * 60 * 1) + (60 * 2));
+                stmt.setLong(7, warMatchedTime + (60 * 60 * 1) + (60 * 2) + (60 * 60 * 1));
+                stmt.setLong(8, warMatchedTime + (60 * 60 * 1) + (60 * 2) + (60 * 60 * 1) + (60 * 2));
+                stmt.executeUpdate();
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to create War for squad id=" + guildId, ex);
+        }
+
+        return warId;
+    }
+
+    @Override
+    public War getWar(String warId) {
+        War war;
+        try (Connection connection = getConnection()) {
+            war = loadWar(warId, connection);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to load war id=" + warId, ex);
+        }
+
+        return war;
+    }
+
+    private War loadWar(String warId, Connection connection) {
+        final String matchMakeSql = "select warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime, " +
+        "actionGraceStartTime, actionEndTime, cooldownEndTime from War w where w.warId = ?";
+
+        War war = null;
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
+                stmt.setString(1, warId);
+                ResultSet rs = stmt.executeQuery();
+                while (rs.next()) {
+                    String squadIdA = rs.getString("squadIdA");
+                    String squadIdB = rs.getString("squadIdB");
+                    Long prepGraceStartTime = rs.getLong("prepGraceStartTime");
+                    Long prepEndTime = rs.getLong("prepEndTime");
+                    Long actionGraceStartTime = rs.getLong("actionGraceStartTime");
+                    Long actionEndTime = rs.getLong("actionEndTime");
+                    Long cooldownEndTime = rs.getLong("cooldownEndTime");
+
+                    war = new War(warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime,
+                                    actionGraceStartTime, actionEndTime, cooldownEndTime);
+                }
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to load war id=" + warId, ex);
+        }
+
+        return war;
     }
 }

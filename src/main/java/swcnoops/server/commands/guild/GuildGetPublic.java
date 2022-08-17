@@ -3,7 +3,6 @@ package swcnoops.server.commands.guild;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.guild.response.SquadResult;
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.Member;
@@ -24,10 +23,10 @@ public class GuildGetPublic extends AbstractCommandAction<GuildGetPublic, SquadR
         SquadResult squadResult;
 
         if (arguments.getGuildId().equals(arguments.getPlayerId()))
-            squadResult = createSelfDonatingSquadResult(playerSession.getPlayerSettings());
+            squadResult = createSelfDonatingSquadResult(playerSession);
         else {
             GuildSession guildSession = ServiceFactory.instance().getSessionManager()
-                    .getGuildSession(playerSession.getPlayerSettings(), arguments.getGuildId());
+                    .getGuildSession(playerSession, arguments.getGuildId());
 
             squadResult = GuildCommandAction.createSquadResult(guildSession);;
         }
@@ -35,8 +34,8 @@ public class GuildGetPublic extends AbstractCommandAction<GuildGetPublic, SquadR
         return squadResult;
     }
 
-    private SquadResult createSelfDonatingSquadResult(PlayerSettings playerSettings) {
-        SelfDonatingSquad selfDonatingSquad = new SelfDonatingSquad(playerSettings);
+    private SquadResult createSelfDonatingSquadResult(PlayerSession playerSession) {
+        SelfDonatingSquad selfDonatingSquad = new SelfDonatingSquad(playerSession);
         SquadResult squadResult = new SquadResult();
         squadResult.id = selfDonatingSquad.getGuildId();
         squadResult.name = selfDonatingSquad.getGuildName();
@@ -50,7 +49,7 @@ public class GuildGetPublic extends AbstractCommandAction<GuildGetPublic, SquadR
         squadResult.warSignUpTime = null;
         squadResult.isSameFactionWarAllowed = true;
         squadResult.membershipRestrictions = new MembershipRestrictions();
-        squadResult.membershipRestrictions.faction = playerSettings.getFaction();
+        squadResult.membershipRestrictions.faction = playerSession.getFaction();
         squadResult.membershipRestrictions.openEnrollment = true;
         squadResult.membershipRestrictions.maxSize = 15;
         squadResult.membershipRestrictions.minScoreAtEnrollment = 0;

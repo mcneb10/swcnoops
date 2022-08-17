@@ -51,7 +51,7 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         squadResult.description = guildSession.getGuildSettings().getDescription();
         squadResult.faction = guildSession.getGuildSettings().getFaction();
         squadResult.warHistory = new ArrayList<>();
-        squadResult.currentWarId = null;
+        squadResult.currentWarId = guildSession.getGuildSettings().getWarId();
         squadResult.created = guildSession.getGuildSettings().getCreated();
         squadResult.perks = guildSession.getGuildSettings().getPerks();
         squadResult.members = guildSession.getGuildSettings().getMembers();

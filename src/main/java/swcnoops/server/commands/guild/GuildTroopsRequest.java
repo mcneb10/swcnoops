@@ -26,6 +26,7 @@ public class GuildTroopsRequest extends GuildCommandAction<GuildTroopsRequest, G
 
         guildTroopsRequestCommandResult.setSquadNotification(squadNotification);
 
+        ServiceFactory.instance().getCommandTriggerProcessor().process(arguments.getPlayerId(), arguments.getMessage());
         return guildTroopsRequestCommandResult;
     }
 

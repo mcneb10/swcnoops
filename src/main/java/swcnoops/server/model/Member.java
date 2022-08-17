@@ -7,7 +7,7 @@ public class Member {
     public int attacksWon;
     public int defensesWon;
     public boolean hasPlanetaryCommand;
-    public int hqLevel;
+    private int hqLevel;
     public boolean isOfficer;
     public boolean isOwner;
     public long joinDate;
@@ -56,5 +56,9 @@ public class Member {
     @JsonIgnore
     public boolean hasPlayerSession() {
         return (this.playerSession != null);
+    }
+
+    public void setLevel(int hqLevel) {
+        this.hqLevel = hqLevel;
     }
 }

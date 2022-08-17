@@ -11,6 +11,9 @@ import swcnoops.server.requests.BatchProcessor;
 import swcnoops.server.requests.BatchProcessorImpl;
 import swcnoops.server.session.SessionManager;
 import swcnoops.server.session.SessionManagerImpl;
+import swcnoops.server.trigger.CommandTriggerProcessor;
+import swcnoops.server.trigger.CommandTriggerProcessorImpl;
+import java.util.UUID;
 
 public class ServiceFactory {
     static private ServiceFactory instance;
@@ -20,6 +23,7 @@ public class ServiceFactory {
     private SessionManager sessionManager;
     private PlayerDataSource playerDatasource;
     private GameDataManager gameDataManager;
+    private CommandTriggerProcessor commandTriggerProcessor;
 
     static final public ServiceFactory instance() {
         return instance;
@@ -46,7 +50,7 @@ public class ServiceFactory {
     }
 
     static final public String createRandomUUID() {
-        return java.util.UUID.randomUUID().toString();
+        return UUID.randomUUID().toString();
     }
 
 
@@ -77,6 +81,7 @@ public class ServiceFactory {
         newInstance.sessionManager = new SessionManagerImpl();
         newInstance.playerDatasource = new PlayerDatasourceImpl();
         newInstance.gameDataManager = new GameDataManagerImpl();
+        newInstance.commandTriggerProcessor = new CommandTriggerProcessorImpl();
 
         if (config.jsonParse == Config.JsonParser.Jackson)
             newInstance.jsonParser = new JacksonJsonParser();
@@ -84,5 +89,9 @@ public class ServiceFactory {
             newInstance.jsonParser = new GsonJsonParser();
 
         return newInstance;
+    }
+
+    final public CommandTriggerProcessor getCommandTriggerProcessor() {
+        return commandTriggerProcessor;
     }
 }

@@ -22,6 +22,11 @@ public class GuildResult extends AbstractCommandResult {
     }
 
     @JsonIgnore
+    public GuildSession getGuildSession() {
+        return guildSession;
+    }
+
+    @JsonIgnore
     public String getGuildId() {
         if (this.guildSession == null)
             return null;

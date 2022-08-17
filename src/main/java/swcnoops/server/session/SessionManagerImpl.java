@@ -88,14 +88,14 @@ public class SessionManagerImpl implements SessionManager {
 
     //TODO - make it load and minimise blocking
     @Override
-    public GuildSession getGuildSession(PlayerSettings playerSettings, String guildId) {
+    public GuildSession getGuildSession(PlayerSession playerSession, String guildId) {
         GuildSession guildSession = this.guilds.get(guildId);
         if (guildSession == null) {
             try {
                 guildLock.lock();
                 guildSession = this.guilds.get(guildId);
                 if (guildSession == null) {
-                    guildSession = createGuildSession(playerSettings, guildId);
+                    guildSession = createGuildSession(playerSession, guildId);
                     this.guilds.put(guildSession.getGuildId(), guildSession);
                 }
             } finally {
@@ -106,10 +106,15 @@ public class SessionManagerImpl implements SessionManager {
         return guildSession;
     }
 
-    private GuildSession createGuildSession(PlayerSettings playerSettings, String guildId) {
+    @Override
+    public GuildSession getGuildSession(String guildId) {
+        return this.getGuildSession(null, guildId);
+    }
+
+    private GuildSession createGuildSession(PlayerSession playerSession, String guildId) {
         GuildSettings guildSettings;
-        if (playerSettings.getPlayerId().equals(guildId))
-            guildSettings = new SelfDonatingSquad(playerSettings);
+        if (playerSession != null && playerSession.getPlayerId().equals(guildId))
+            guildSettings = new SelfDonatingSquad(playerSession);
         else
             guildSettings = loadGuildSettings(guildId);
 

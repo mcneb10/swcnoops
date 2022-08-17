@@ -414,7 +414,7 @@ public class PlayerSessionImpl implements PlayerSession {
             return null;
 
         GuildSession guildSession = ServiceFactory.instance().getSessionManager()
-                .getGuildSession(this.getPlayerSettings(), guildId);
+                .getGuildSession(this, guildId);
 
         if (guildSession != null)
             guildSession.login(this);

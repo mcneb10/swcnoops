@@ -23,6 +23,7 @@ public class GuildSettingsImpl implements GuildSettings {
     private String icon;
 
     private Long warSignUpTime;
+    private String warId;
 
     public GuildSettingsImpl(String id) {
         this.id = id;
@@ -48,8 +49,8 @@ public class GuildSettingsImpl implements GuildSettings {
         member.playerId = guildId + "-BOT" + botName;
         member.planet = "planet1";
         member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.hqLevel = 10;
-        member.name = member.playerId;
+        member.setLevel(10);
+        member.name = "BOT-" + botName;
         return member;
     }
 
@@ -248,5 +249,14 @@ public class GuildSettingsImpl implements GuildSettings {
                 this.memberMap.get(id).warParty = 1;
             }
         }
+    }
+
+    public void setWarId(String warId) {
+        this.warId = warId;
+    }
+
+    @Override
+    public String getWarId() {
+        return warId;
     }
 }

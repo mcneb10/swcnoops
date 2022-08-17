@@ -33,7 +33,7 @@ public class GuildCreate extends AbstractCommandAction<GuildCreate, SquadResult>
         guildSession.createNewGuild(playerSession);
 
         guildSession = ServiceFactory.instance().getSessionManager()
-                .getGuildSession(playerSession.getPlayerSettings(), guildSettings.getGuildId());
+                .getGuildSession(playerSession, guildSettings.getGuildId());
         guildSession.login(playerSession);
         SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
         return squadResult;

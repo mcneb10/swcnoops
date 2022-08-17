@@ -2,6 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.GuildSettings;
+import swcnoops.server.datasource.War;
 import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.model.SquadNotification;
 import swcnoops.server.model.SquadRole;
@@ -52,4 +53,8 @@ public interface GuildSession {
     void joinRequestRejected(String playerId, PlayerSession memberSession);
 
     SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time);
+
+    void warMatched(String warId);
+
+    War getCurrentWar();
 }

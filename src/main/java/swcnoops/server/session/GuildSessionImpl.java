@@ -4,6 +4,8 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.GuildSettings;
+import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.datasource.War;
 import swcnoops.server.model.*;
 
 import java.util.*;
@@ -90,6 +92,15 @@ public class GuildSessionImpl implements GuildSession {
         addMember(memberSession);
         memberSession.addSquadNotification(joinRequestAcceptedNotification);
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, memberSession, joinRequestAcceptedNotification);
+    }
+
+    @Override
+    public void warMatched(String warId) {
+        SquadNotification warPreparedNotification =
+                createNotification(this.getGuildId(), this.getGuildName(), null, SquadMsgType.warPrepared);
+
+        this.addNotification(warPreparedNotification);
+        ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), warPreparedNotification);
     }
 
     @Override
@@ -273,6 +284,10 @@ public class GuildSessionImpl implements GuildSession {
                                                              String message, SquadMsgType squadMsgType)
     {
         SquadNotification squadNotification = null;
+        PlayerSettings playerSettings = null;
+        if (playerSession != null)
+            playerSettings = playerSession.getPlayerSettings();
+
         if (squadMsgType != null) {
             switch (squadMsgType) {
                 case leave:
@@ -285,11 +300,12 @@ public class GuildSessionImpl implements GuildSession {
                 case joinRequestRejected:
                 case warMatchMakingBegin:
                 case warMatchMakingCancel:
+                case warPrepared:
                     squadNotification =
                             new SquadNotification(guildId, guildName,
                                     ServiceFactory.createRandomUUID(), message,
-                                    playerSession.getPlayerSettings().getName(),
-                                    playerSession.getPlayerId(), squadMsgType);
+                                    playerSettings != null ? playerSettings.getName() : null,
+                                    playerSettings != null ? playerSettings.getPlayerId() : null, squadMsgType);
                     break;
                 default:
                     throw new RuntimeException("SquadMsgType not support yet " + squadMsgType);
@@ -308,5 +324,15 @@ public class GuildSessionImpl implements GuildSession {
     public void saveGuildChange(PlayerSession playerSession, SquadNotification leaveNotification) {
         ServiceFactory.instance().getPlayerDatasource().saveGuildChange(this.getGuildSettings(),
                 playerSession, leaveNotification);
+    }
+
+    @Override
+    public War getCurrentWar() {
+        War war = null;
+        if (this.getGuildSettings().getWarId() != null) {
+            war = ServiceFactory.instance().getPlayerDatasource().getWar(this.getGuildSettings().getWarId());
+        }
+
+        return war;
     }
 }

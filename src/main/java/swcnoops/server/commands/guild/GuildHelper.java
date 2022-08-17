@@ -7,15 +7,12 @@ import swcnoops.server.model.Perks;
 import swcnoops.server.session.PlayerSession;
 
 public class GuildHelper {
-    static public Member createMember(PlayerSettings playerSettings) {
-        int hqLevel = playerSettings.getBaseMap().buildings.size();
-        Member member = createMember(playerSettings.getPlayerId(),
-                playerSettings.getName(), false, false, ServiceFactory.getSystemTimeSecondsFromEpoch(),
-                0, 0, false, hqLevel);
+    static final public Perks emptyPerks = new Perks();
+
+    public static Member createMember(PlayerSession playerSession) {
+        Member member = new Member(playerSession);
         return member;
     }
-
-    static final public Perks emptyPerks = new Perks();
 
     public static Member createMember(String playerId, String playerName, boolean isOwner,
                                       boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived,
@@ -26,16 +23,11 @@ public class GuildHelper {
         member.isOwner = isOwner;
         member.playerId = playerId;
         member.joinDate = joinDate;
-        member.hqLevel = hqLevel;
+        member.setLevel(hqLevel);
         member.name = playerName;
         member.troopsDonated = troopsDonated;
         member.troopsReceived = troopsReceived;
         member.warParty = warParty ? 1: 0;
-        return member;
-    }
-
-    public static Member createMember(PlayerSession playerSession) {
-        Member member = new Member(playerSession);
         return member;
     }
 }

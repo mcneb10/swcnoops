@@ -16,12 +16,12 @@ public class SelfDonatingSquad implements GuildSettings {
     final private String guildId;
     final private List<Member> members = new ArrayList<>();
 
-    public SelfDonatingSquad(PlayerSettings playerSettings) {
-        this.faction = playerSettings.getFaction();
-        this.guildId = playerSettings.getPlayerId();
+    public SelfDonatingSquad(PlayerSession playerSession) {
+        this.faction = playerSession.getFaction();
+        this.guildId = playerSession.getPlayerId();
 
-        this.members.add(GuildHelper.createMember(playerSettings));
-        this.members.add(createDonateBot(playerSettings));
+        this.members.add(GuildHelper.createMember(playerSession));
+        this.members.add(createDonateBot(playerSession.getPlayerSettings()));
     }
 
     private Member createDonateBot(PlayerSettings playerSettings) {
@@ -31,7 +31,7 @@ public class SelfDonatingSquad implements GuildSettings {
         member.playerId = playerSettings.getPlayerId() + "-BOT";
         member.planet = playerSettings.getBaseMap().planet;
         member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.hqLevel = 1;
+        member.setLevel(5);
         member.name = DonateBotName;
         return member;
     }
@@ -177,5 +177,10 @@ public class SelfDonatingSquad implements GuildSettings {
     @Override
     public void login(Member member) {
 
+    }
+
+    @Override
+    public String getWarId() {
+        return null;
     }
 }
