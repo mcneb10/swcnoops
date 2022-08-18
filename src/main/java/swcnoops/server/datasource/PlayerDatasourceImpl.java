@@ -1372,4 +1372,75 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             throw new RuntimeException("Failed to save WarParticipants for player id=" + squadMemberWarData.id, ex);
         }
     }
+
+    @Override
+    public String warAttackStart(String warId, String playerId, String opponentId) {
+        String battleId = null;
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            battleId = checkAndCreateWarBattleId(warId, playerId, opponentId, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save war WarBattleId for player id=" + playerId, ex);
+        }
+
+        return battleId;
+    }
+
+    private String checkAndCreateWarBattleId(String warId, String playerId, String opponentId, Connection connection) {
+        String battleId = ServiceFactory.createRandomUUID();
+
+        final String warParticipantsSql = "update WarParticipants " +
+                "set battleId = ?, attackExpirationDate = ? " +
+                "where warId = ? and playerId = ? and (attackExpirationDate is null)";
+
+        long attackExpirationDate = ServiceFactory.getSystemTimeSecondsFromEpoch() +
+                ServiceFactory.instance().getConfig().attackDuration;
+
+        SquadMemberWarData squadMemberWarData = null;
+        int updatedRow = 0;
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
+                stmt.setString(1, battleId);
+                stmt.setLong(2, attackExpirationDate);
+                stmt.setString(3, warId);
+                stmt.setString(4, opponentId);
+                updatedRow = stmt.executeUpdate();
+
+                if (updatedRow == 1) {
+
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to checkAndCreateWarBattleId for player id=" + playerId, ex);
+        }
+
+        if (updatedRow != 1) {
+            throw new RuntimeException("Failed to checkAndCreateWarBattleId for player id=" + playerId);
+        }
+
+        return battleId;
+    }
+
+    @Override
+    public void deleteWarForSquads(War war) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            deleteWarForSquads(war, connection);
+            connection.commit();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to remove squads from warId=" + war.getWarId(), ex);
+        }
+    }
+
+    private void deleteWarForSquads(War war, Connection connection) throws Exception {
+        final String squadsSql = "update Squads " +
+                "set warId = null, warSignUpTime = null" +
+                "where warId = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
+            stmt.setString(1, war.getWarId());
+            stmt.executeUpdate();
+        }
+    }
 }

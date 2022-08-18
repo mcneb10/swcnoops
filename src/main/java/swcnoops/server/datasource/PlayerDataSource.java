@@ -62,4 +62,8 @@ public interface PlayerDataSource {
 
     void saveWarParticipant(PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
                             SquadNotification squadNotification);
+
+    String warAttackStart(String warId, String playerId, String opponentId);
+
+    void deleteWarForSquads(War war);
 }

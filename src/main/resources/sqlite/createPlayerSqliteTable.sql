@@ -108,6 +108,16 @@ CREATE TABLE IF NOT EXISTS "WarParticipants" (
 	"defensesWon"	INTEGER,
 	"score"	INTEGER,
 	"victoryPoints"	INTEGER,
+	attackExpirationDate NUMERIC,
+	battleId TEXT,
 	PRIMARY KEY("playerId","warId")
+);
+
+CREATE TABLE IF NOT EXISTS "WarBattles" (
+	"warId"	TEXT,
+	"battleId"	TEXT,
+	"attackerId"	TEXT,
+	"defenderId"	TEXT,
+	PRIMARY KEY("battleId")
 );
 
