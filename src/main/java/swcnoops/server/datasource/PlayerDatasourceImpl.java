@@ -1435,11 +1435,38 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void deleteWarForSquads(War war, Connection connection) throws Exception {
         final String squadsSql = "update Squads " +
-                "set warId = null, warSignUpTime = null" +
+                "set warId = null, warSignUpTime = null " +
                 "where warId = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
             stmt.setString(1, war.getWarId());
+            stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public void saveWar(War war) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            saveWar(war, connection);
+            connection.commit();
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to save war from warId=" + war.getWarId(), ex);
+        }
+    }
+
+    private void saveWar(War war, Connection connection) throws Exception {
+        final String squadsSql = "update War " +
+                "set prepGraceStartTime = ?, prepEndTime = ?, actionGraceStartTime = ?, actionEndTime = ?, cooldownEndTime = ? " +
+                "where warId = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
+            stmt.setLong(1, war.getPrepGraceStartTime());
+            stmt.setLong(2, war.getPrepEndTime());
+            stmt.setLong(3, war.getActionGraceStartTime());
+            stmt.setLong(4, war.getActionEndTime());
+            stmt.setLong(5, war.getCooldownEndTime());
+            stmt.setString(6, war.getWarId());
             stmt.executeUpdate();
         }
     }

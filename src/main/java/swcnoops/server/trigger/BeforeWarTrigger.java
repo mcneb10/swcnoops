@@ -21,6 +21,7 @@ public class BeforeWarTrigger implements CommandTrigger {
             war.setActionGraceStartTime(war.getPrepEndTime() + config.warPlayDuration);
             war.setActionEndTime(war.getActionGraceStartTime() + config.warResultDuration);
             war.setCooldownEndTime(war.getActionEndTime() + config.warCoolDownDuration);
+            ServiceFactory.instance().getPlayerDatasource().saveWar(war);
         }
     }
 }

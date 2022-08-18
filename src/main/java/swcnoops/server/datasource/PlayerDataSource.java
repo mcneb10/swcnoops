@@ -66,4 +66,6 @@ public interface PlayerDataSource {
     String warAttackStart(String warId, String playerId, String opponentId);
 
     void deleteWarForSquads(War war);
+
+    void saveWar(War war);
 }

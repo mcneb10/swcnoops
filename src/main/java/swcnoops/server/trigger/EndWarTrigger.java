@@ -21,6 +21,7 @@ public class EndWarTrigger implements CommandTrigger {
             war.setActionGraceStartTime(ServiceFactory.getSystemTimeSecondsFromEpoch() - (60 * 60 * 2));
             war.setActionEndTime(war.getActionGraceStartTime() + config.warResultDuration);
             war.setCooldownEndTime(war.getActionEndTime() + config.warCoolDownDuration);
+            ServiceFactory.instance().getPlayerDatasource().saveWar(war);
         }
     }
 }
