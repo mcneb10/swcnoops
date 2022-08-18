@@ -81,10 +81,12 @@ public class CommandFactory {
         this.add(new GuildJoinReject());
         this.add(new GuildSearchByName());
         this.add(new GuildWarBaseSave());
+        this.add(new GuildWarTroopsDonate());
 
         this.add(new GuildWarGetParticipant());
         this.add(new GuildWarGetSyncedParticipant());
         this.add(new GuildWarScoutPlayer());
+        this.add(new GuildWarTroopsRequest());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());

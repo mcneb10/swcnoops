@@ -13,7 +13,7 @@ public class GuildWarScoutPlayer extends AbstractCommandAction<GuildWarScoutPlay
     @Override
     protected GuildWarGetParticipantResult execute(GuildWarScoutPlayer arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getParticipantId());
-        SquadMemberWarData squadMemberWarData = playerSession.getSquadMemberWarData();
+        SquadMemberWarData squadMemberWarData = playerSession.getSquadMemberWarData(time);
         GuildWarGetParticipantResult result = new GuildWarGetParticipantResult(squadMemberWarData);
         return result;
     }

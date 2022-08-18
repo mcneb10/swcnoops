@@ -49,7 +49,7 @@ public interface PlayerSession {
 
     void buildingCancel(String buildingId, String tag, long time);
 
-    SquadNotification troopsRequest(boolean payToSkip, String message, long time);
+    SquadNotification troopsRequest(DonatedTroops donatedTroops, String warId, boolean payToSkip, String message, long time);
 
     boolean isInGuild(String guildId);
 
@@ -59,9 +59,9 @@ public interface PlayerSession {
 
     DonatedTroops getDonatedTroops();
 
-    boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId);
+    boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId, DonatedTroops troopsInSC);
 
-    int getDonatedTroopsTotalUnits();
+    int getDonatedTroopsTotalUnits(DonatedTroops donatedTroops);
 
     void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
 
@@ -117,7 +117,7 @@ public interface PlayerSession {
 
     void planetRelocate(String planet, boolean payWithHardCurrency, long time);
 
-    TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time);
+    TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, boolean forWar, long time);
 
     boolean setLastNotificationSince(String guildId, long since);
 
@@ -131,7 +131,9 @@ public interface PlayerSession {
 
     void removeEjectedNotifications(List<SquadNotification> ejectedNotifications);
 
-    SquadMemberWarData getSquadMemberWarData();
+    SquadMemberWarData getSquadMemberWarData(long time);
 
-    void warBaseSave(Map<String, Position> positions);
+    void warBaseSave(Map<String, Position> positions, long time);
+
+    void levelUpBase(PlayerMap warMap);
 }

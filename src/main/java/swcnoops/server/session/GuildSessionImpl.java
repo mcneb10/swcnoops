@@ -177,7 +177,7 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public TroopDonationResult troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession,
-                                             String recipientPlayerId, long time) {
+                                             String recipientPlayerId, boolean forWar, long time) {
 
         // determine recipient again for self donation to work
         recipientPlayerId = this.guildSettings.troopDonationRecipient(playerSession, recipientPlayerId);
@@ -188,7 +188,22 @@ public class GuildSessionImpl implements GuildSession {
             return failedTroopDonationResult;
         }
 
-        if (!recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId()))
+        DonatedTroops troopsInSC;
+        SquadMemberWarData squadMemberWarData = null;
+        if (forWar) {
+            squadMemberWarData = recipientPlayerSession.getSquadMemberWarData(time);
+            if (squadMemberWarData == null)
+                return failedTroopDonationResult;
+
+            if (squadMemberWarData.donatedTroops == null)
+                squadMemberWarData.donatedTroops = new DonatedTroops();
+
+            troopsInSC = squadMemberWarData.donatedTroops;
+        } else {
+            troopsInSC = recipientPlayerSession.getDonatedTroops();
+        }
+
+        if (!recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId(), troopsInSC))
             return failedTroopDonationResult;
 
         playerSession.removeDeployedTroops(troopsDonated, time);
@@ -205,8 +220,13 @@ public class GuildSessionImpl implements GuildSession {
         squadNotification.setData(troopDonationData);
 
         this.addNotification(squadNotification);
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(this, playerSession,
-                recipientPlayerSession, squadNotification);
+        if (forWar) {
+            ServiceFactory.instance().getPlayerDatasource().saveWarParticipant(playerSession,
+                    squadMemberWarData, squadNotification);
+        } else {
+            ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(this, playerSession,
+                    recipientPlayerSession, squadNotification);
+        }
 
         return new TroopDonationResult(squadNotification, troopsDonated);
     }
@@ -337,8 +357,17 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public List<SquadMemberWarData> getWarParticipants() {
-        return ServiceFactory.instance().getPlayerDatasource()
+    public List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession) {
+        List<SquadMemberWarData> squadMemberWarDatums = ServiceFactory.instance().getPlayerDatasource()
                 .getWarParticipants(this.getGuildId(), this.getGuildSettings().getWarId());
+
+        Optional<SquadMemberWarData> playersWarData =
+                squadMemberWarDatums.stream().filter(a -> a.id.equals(playerSession.getPlayerId())).findFirst();
+
+        if (playersWarData.isPresent()) {
+            playerSession.levelUpBase(playersWarData.get().warMap);
+        }
+
+        return squadMemberWarDatums;
     }
 }

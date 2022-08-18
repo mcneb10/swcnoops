@@ -59,4 +59,7 @@ public interface PlayerDataSource {
     List<SquadMemberWarData> getWarParticipants(String guildId, String warId);
 
     void saveWarParticipant(SquadMemberWarData squadMemberWarData);
+
+    void saveWarParticipant(PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
+                            SquadNotification squadNotification);
 }

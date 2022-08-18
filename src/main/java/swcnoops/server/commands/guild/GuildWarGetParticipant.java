@@ -17,7 +17,7 @@ public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetPar
     @Override
     protected GuildWarGetParticipantResult execute(GuildWarGetParticipant arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
-        SquadMemberWarData squadMemberWarData = playerSession.getSquadMemberWarData();
+        SquadMemberWarData squadMemberWarData = playerSession.getSquadMemberWarData(time);
         GuildWarGetParticipantResult result = new GuildWarGetParticipantResult(squadMemberWarData);
         return result;
     }

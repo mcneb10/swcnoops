@@ -19,7 +19,7 @@ public interface GuildSession {
 
     String getGuildName();
 
-    TroopDonationResult troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession, String recipientId, long time);
+    TroopDonationResult troopDonation(Map<String, Integer> troopsDonated, String requestId, PlayerSession playerSession, String recipientId, boolean forWar, long time);
 
     SquadNotification warMatchmakingStart(PlayerSession playerSession, List<String> participantIds, boolean isSameFactionWarAllowed, long time);
 
@@ -55,5 +55,5 @@ public interface GuildSession {
 
     War getCurrentWar();
 
-    List<SquadMemberWarData> getWarParticipants();
+    List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession);
 }

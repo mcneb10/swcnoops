@@ -312,7 +312,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public SquadNotification troopsRequest(boolean payToSkip, String message, long time) {
+    public SquadNotification troopsRequest(DonatedTroops donatedTroops, String warId, boolean payToSkip, String message, long time) {
         this.processCompletedContracts(time);
 
         GuildSession guildSession = this.getGuildSession();
@@ -324,7 +324,8 @@ public class PlayerSessionImpl implements PlayerSession {
         TroopRequestData troopRequestData = new TroopRequestData();
         troopRequestData.totalCapacity = this.getSquadBuilding().getBuildingData().getStorage();
         troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
-        troopRequestData.amount = getSquadBuildingAvailableSpace();
+        troopRequestData.amount = getSquadBuildingAvailableSpace(donatedTroops);
+        troopRequestData.warId = warId;
 
         // this will save the notification for the guild for when the clients call GuildNotificationsGet they will
         // pick up the request. Will probably have to change so that notifications are sent on other requests
@@ -334,18 +335,20 @@ public class PlayerSessionImpl implements PlayerSession {
         return squadNotification;
     }
 
-    public int getSquadBuildingAvailableSpace() {
-        return (this.getSquadBuilding().getBuildingData().getStorage() - this.getDonatedTroopsTotalUnits());
+    public int getSquadBuildingAvailableSpace(DonatedTroops donatedTroops) {
+        return (this.getSquadBuilding().getBuildingData().getStorage() - this.getDonatedTroopsTotalUnits(donatedTroops));
     }
 
     @Override
-    public TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, long time) {
+    public TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId,
+                                            boolean forWar, long time) {
         this.processCompletedContracts(time);
         GuildSession guildSession = this.getGuildSession();
 
         TroopDonationResult troopDonationResult = null;
         if (guildSession != null) {
-            troopDonationResult = guildSession.troopDonation(troopsDonated, requestId, this, recipientId, time);
+            troopDonationResult = guildSession.troopDonation(troopsDonated,
+                    requestId, this, recipientId, forWar, time);
         }
 
         return troopDonationResult;
@@ -438,18 +441,20 @@ public class PlayerSessionImpl implements PlayerSession {
     /**
      * checks there is enough space, if everything fits then it will return true
      * else nothing gets added and returns false
+     *
      * @param troopsDonated
      * @param playerId
+     * @param troopsInSC
      * @return
      */
     @Override
-    public boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId) {
+    public boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId, DonatedTroops troopsInSC) {
         boolean donated = false;
         this.donationLock.lock();
         try {
             int totalDonatedUnits = calculateTroopUnitsByUid(troopsDonated);
-            if (totalDonatedUnits <= this.getSquadBuildingAvailableSpace()) {
-                troopsDonated.forEach((a, b) -> addDonatedTroop(a, b, playerId));
+            if (totalDonatedUnits <= this.getSquadBuildingAvailableSpace(troopsInSC)) {
+                troopsDonated.forEach((a, b) -> addDonatedTroop(troopsInSC, a, b, playerId));
                 donated = true;
             }
         } finally {
@@ -470,11 +475,13 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public int getDonatedTroopsTotalUnits() {
+    public int getDonatedTroopsTotalUnits(DonatedTroops donatedTroops) {
         AtomicInteger totalUnits = new AtomicInteger(0);
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        this.getDonatedTroops()
-                .forEach((a,b) -> b.values().forEach(v -> totalUnits.addAndGet(gameDataManager.getTroopDataByUid(a).getSize() * v)));
+        if (donatedTroops != null) {
+            donatedTroops.forEach((a, b) -> b.values()
+                    .forEach(v -> totalUnits.addAndGet(gameDataManager.getTroopDataByUid(a).getSize() * v)));
+        }
         return totalUnits.get();
     }
 
@@ -646,11 +653,11 @@ public class PlayerSessionImpl implements PlayerSession {
      * @param numberOf
      * @param fromPlayerId
      */
-    private void addDonatedTroop(String troopUid, Integer numberOf, String fromPlayerId) {
-        GuildDonatedTroops guildDonatedTroops = this.donatedTroops.get(troopUid);
+    private void addDonatedTroop(DonatedTroops donatedTroops, String troopUid, Integer numberOf, String fromPlayerId) {
+        GuildDonatedTroops guildDonatedTroops = donatedTroops.get(troopUid);
         if (guildDonatedTroops == null) {
             guildDonatedTroops = new GuildDonatedTroops();
-            this.donatedTroops.put(troopUid, guildDonatedTroops);
+            donatedTroops.put(troopUid, guildDonatedTroops);
         }
 
         Integer troopsGivenByPlayer = guildDonatedTroops.get(fromPlayerId);
@@ -770,7 +777,8 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public SquadMemberWarData getSquadMemberWarData() {
+    public SquadMemberWarData getSquadMemberWarData(long time) {
+        this.processCompletedContracts(time);
         GuildSession guildSession = this.getGuildSession();
         if (guildSession == null)
             return null;
@@ -778,15 +786,33 @@ public class PlayerSessionImpl implements PlayerSession {
         SquadMemberWarData squadMemberWarData = ServiceFactory.instance().getPlayerDatasource()
                 .loadPlayerWarData(guildSession.getGuildSettings().getWarId(), this.getPlayerId());
 
+        // put the base onto sullust
         squadMemberWarData.warMap.planet = "planet24";
 
-        // TODO - level up buildings to what the player currently has
+        // TODO - level up buildings to what the player currently has although not sure if levelling up still should
+        // happen once war starts???
+        if (squadMemberWarData.id.equals(this.getPlayerId()))
+            levelUpBase(squadMemberWarData.warMap);
+
         return squadMemberWarData;
     }
 
+    /**
+     * This will modify the maps building to the same level as what the player currently has
+     * @param warMap
+     */
     @Override
-    public void warBaseSave(Map<String, Position> positions) {
-        SquadMemberWarData squadMemberWarData = this.getSquadMemberWarData();
+    public void levelUpBase(PlayerMap warMap) {
+        for (Building building : warMap.buildings) {
+            MapItem mapItem = this.getPlayerMapItems().getMapItemByKey(building.key);
+            building.uid = mapItem.getBuildingUid();
+        }
+    }
+
+    @Override
+    public void warBaseSave(Map<String, Position> positions, long time) {
+        this.processCompletedContracts(time);
+        SquadMemberWarData squadMemberWarData = this.getSquadMemberWarData(time);
 
         Map<String, Building> buildingMap = new HashMap<>();
         squadMemberWarData.warMap.buildings.forEach(a -> buildingMap.put(a.key, a));

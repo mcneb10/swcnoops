@@ -1,9 +1,6 @@
 package swcnoops.server.datasource;
 
-import swcnoops.server.model.FactionType;
-import swcnoops.server.model.Member;
-import swcnoops.server.model.Perks;
-import swcnoops.server.model.SquadNotification;
+import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.Collection;
@@ -36,7 +33,8 @@ public interface GuildSettings {
 
     boolean canSave();
 
-    void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived, boolean warParty, int hqLevel);
+    void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate,
+                   long troopsDonated, long troopsReceived, boolean warParty, int hqLevel);
 
     void removeMember(String playerId);
 

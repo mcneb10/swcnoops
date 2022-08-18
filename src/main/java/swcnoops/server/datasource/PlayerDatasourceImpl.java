@@ -1329,6 +1329,25 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
+    @Override
+    public void saveWarParticipant(PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
+                                   SquadNotification squadNotification)
+    {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            saveWarParticipant(squadMemberWarData, connection);
+            saveNotification(squadNotification, connection);
+            savePlayerSession(playerSession, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save war SquadMemberWarData for player id=" + squadMemberWarData.id, ex);
+        }
+    }
+
+    private void saveNotification(SquadNotification squadNotification, Connection connection) {
+        saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+    }
+
     private void saveWarParticipant(SquadMemberWarData squadMemberWarData, Connection connection) {
         final String warParticipantsSql = "update WarParticipants " +
                             "set warMap = ?," +

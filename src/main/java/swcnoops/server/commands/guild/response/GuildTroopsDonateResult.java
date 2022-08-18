@@ -5,13 +5,13 @@ import swcnoops.server.session.GuildSession;
 
 import java.util.Map;
 
-public class GuildTroopsDonateCommandResult extends GuildResult {
+public class GuildTroopsDonateResult extends GuildResult {
     private Map<String,Integer> troopsDonated;
     private boolean reputationAwarded;
     private TroopDonationProgress troopDonationProgress;
 
-    public GuildTroopsDonateCommandResult(GuildSession guildSession, Map<String, Integer> troopsDonated,
-                                          boolean reputationAwarded, TroopDonationProgress troopDonationProgress)
+    public GuildTroopsDonateResult(GuildSession guildSession, Map<String, Integer> troopsDonated,
+                                   boolean reputationAwarded, TroopDonationProgress troopDonationProgress)
     {
         super(guildSession);
         this.troopsDonated = troopsDonated;
