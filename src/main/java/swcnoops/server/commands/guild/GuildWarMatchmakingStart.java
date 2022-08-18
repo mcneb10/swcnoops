@@ -3,7 +3,7 @@ package swcnoops.server.commands.guild;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.response.GuildResult;
 import swcnoops.server.json.JsonParser;
-import swcnoops.server.model.SquadMsgType;
+import swcnoops.server.model.SquadNotification;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
@@ -15,15 +15,18 @@ public class GuildWarMatchmakingStart extends GuildCommandAction<GuildWarMatchma
 
     @Override
     protected GuildResult execute(GuildWarMatchmakingStart arguments, long time) throws Exception {
-        // TODO - not complete currently does not do much except send notification
-        // need to change login details to keep in this state
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = playerSession.getGuildSession();
-        guildSession.warMatchmakingStart(arguments.getParticipantIds(), arguments.isSameFactionWarAllowed);
-        GuildResult guildResult = new GuildResult(playerSession.getPlayerId(),
-                playerSession.getPlayer().getPlayerSettings().getName(), guildSession);
-        guildResult.setNotificationData(SquadMsgType.warMatchMakingBegin, null);
+
+        SquadNotification squadNotification = null;
+        if (guildSession != null) {
+            squadNotification = guildSession.warMatchmakingStart(playerSession, arguments.getParticipantIds(),
+                    arguments.isSameFactionWarAllowed, time);
+        }
+
+        GuildResult guildResult = new GuildResult(guildSession);
+        guildResult.setSquadNotification(squadNotification);
         return guildResult;
     }
 

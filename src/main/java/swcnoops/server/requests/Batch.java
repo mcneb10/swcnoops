@@ -3,7 +3,6 @@ package swcnoops.server.requests;
 import swcnoops.server.commands.Command;
 
 import java.util.List;
-import java.util.Optional;
 
 public class Batch {
     private String authKey;
@@ -13,5 +12,17 @@ public class Batch {
 
     public List<Command> getCommands() {
         return commands;
+    }
+
+    public String getAuthKey() {
+        return authKey;
+    }
+
+    public Boolean getPickupMessages() {
+        return pickupMessages;
+    }
+
+    public Long getLastLoginTime() {
+        return lastLoginTime;
     }
 }

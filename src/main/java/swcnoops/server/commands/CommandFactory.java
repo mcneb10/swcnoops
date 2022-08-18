@@ -25,7 +25,6 @@ public class CommandFactory {
         this.add(new GuildInviteGet());
         this.add(new PlayerAccountExternalGet());
         this.add(new GuildGetChatKey());
-        this.add(new GuildWarGetParticipant());
         this.add(new GuildGet());
         this.add(new GuildWarStatus());
         this.add(new PlayerKeepAlive());
@@ -43,8 +42,6 @@ public class CommandFactory {
         this.add(new PlayerBuildingCapture());
         this.add(new PlayerBuildingBuyout());
         this.add(new PlayerDeployableUpgradeStart());
-        this.add(new GuildTroopsRequest());
-        this.add(new GuildTroopsDonate());
 
         this.add(new PlayerBuildingCancel());
         this.add(new PlayerBuildingMultimove());
@@ -66,10 +63,35 @@ public class CommandFactory {
         this.add(new PlayerFactionSet());
 
         this.add(new GuildWarMatchmakingStart());
+        this.add(new GuildWarMatchmakingCancel());
         this.add(new GuildListOpen());
         this.add(new GuildGetPublic());
         this.add(new GuildJoin());
         this.add(new GuildLeave());
+        this.add(new GuildEject());
+        this.add(new GuildCreate());
+        this.add(new GuildEdit());
+        this.add(new GuildTroopsRequest());
+        this.add(new GuildTroopsDonate());
+        this.add(new GuildNotificationsGet());
+        this.add(new GuildPromote());
+        this.add(new GuildDemote());
+        this.add(new GuildJoinRequest());
+        this.add(new GuildJoinAccept());
+        this.add(new GuildJoinReject());
+        this.add(new GuildSearchByName());
+        this.add(new GuildWarBaseSave());
+        this.add(new GuildWarTroopsDonate());
+        this.add(new GuildWarGetBaseStatus());
+        this.add(new GuildWarAttackPlayerStart());
+        this.add(new GuildWarDeployableSpend());
+        this.add(new GuildWarAttackPlayerComplete());
+        //this.add(new GuildWarAttackBaseStart());
+
+        this.add(new GuildWarGetParticipant());
+        this.add(new GuildWarGetSyncedParticipant());
+        this.add(new GuildWarScoutPlayer());
+        this.add(new GuildWarTroopsRequest());
 
         this.add(new PlayerMissionsActivateMission());
         this.add(new PlayerMissionsClaimCampaign());
@@ -93,14 +115,13 @@ public class CommandFactory {
         this.add(new PlayerStoreCrateBuy());
         this.add(new PlayerCrateAward());
 
+        this.add(new PlayerNeighborVisit());
+
         // TODO - this command looks like it will bring up some sort of dialog on the client related to CommandCenterVO
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
 
         // TODO - this command looks like it will give an update on war etc.. related to TransmissionVO
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
-
-        // TODO - squad messages and notifications from a point in time
-        this.add(new OkListCommandAction("guild.notifications.get"));
 
         // TODO - planet population stats maybe
         this.add(new OkCommandAction("player.planet.stats"));

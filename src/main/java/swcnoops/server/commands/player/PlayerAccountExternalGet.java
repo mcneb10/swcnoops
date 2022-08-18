@@ -6,4 +6,9 @@ public class PlayerAccountExternalGet extends OkListCommandAction {
     public PlayerAccountExternalGet() {
         super("player.account.external.get");
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

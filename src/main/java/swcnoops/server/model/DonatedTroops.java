@@ -1,6 +1,6 @@
 package swcnoops.server.model;
 
-import java.util.HashMap;
+import java.util.concurrent.ConcurrentHashMap;
 
-public class DonatedTroops extends HashMap<String, GuildDonatedTroops> {
+public class DonatedTroops extends ConcurrentHashMap<String, GuildDonatedTroops> {
 }

@@ -3,6 +3,7 @@ package swcnoops.server.commands.guild;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.GuildSession;
@@ -16,7 +17,8 @@ public class GuildLeave extends AbstractCommandAction<GuildLeave, CommandResult>
         PlayerSession playerSession = sessionManager.getPlayerSession(arguments.getPlayerId());
         playerSession.getDonatedTroops().clear();
         GuildSession oldSquad = playerSession.getGuildSession();
-        oldSquad.leave(playerSession);
+        if (oldSquad != null)
+            oldSquad.leave(playerSession, SquadMsgType.leave);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

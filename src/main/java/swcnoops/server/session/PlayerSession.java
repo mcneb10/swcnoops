@@ -1,5 +1,6 @@
 package swcnoops.server.session;
 
+import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.*;
@@ -48,7 +49,7 @@ public interface PlayerSession {
 
     void buildingCancel(String buildingId, String tag, long time);
 
-    void troopsRequest(boolean payToSkip, String message, long time);
+    SquadNotification troopsRequest(DonatedTroops donatedTroops, String warId, boolean payToSkip, String message, long time);
 
     boolean isInGuild(String guildId);
 
@@ -58,9 +59,9 @@ public interface PlayerSession {
 
     DonatedTroops getDonatedTroops();
 
-    void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId);
+    boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId, DonatedTroops troopsInSC);
 
-    int getDonatedTroopsTotalUnits();
+    int getDonatedTroopsTotalUnits(DonatedTroops donatedTroops);
 
     void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
 
@@ -98,6 +99,8 @@ public interface PlayerSession {
 
     void savePlayerSession();
 
+    void savePlayerSession(SquadNotification squadNotification);
+
     MapItem removeMapItemByKey(String instanceId);
 
     void buildingInstantUpgrade(String instanceId, String tag, long time);
@@ -112,5 +115,25 @@ public interface PlayerSession {
 
     void setOffenseLab(OffenseLab offenseLab);
 
-    void planetRelocate(String planet, boolean payWithHardCurrency);
+    void planetRelocate(String planet, boolean payWithHardCurrency, long time);
+
+    TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, boolean forWar, long time);
+
+    boolean setLastNotificationSince(String guildId, long since);
+
+    boolean hasNotificationsToSend();
+
+    long getNotificationsSince();
+
+    List<SquadNotification> getNotifications(long notificationsSince);
+
+    void addSquadNotification(SquadNotification leaveNotification);
+
+    void removeEjectedNotifications(List<SquadNotification> ejectedNotifications);
+
+    SquadMemberWarData getSquadMemberWarData(long time);
+
+    void warBaseSave(Map<String, Position> positions, long time);
+
+    void levelUpBase(PlayerMap warMap);
 }

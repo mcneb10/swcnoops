@@ -20,7 +20,7 @@ public class OkCommandAction extends AbstractCommandAction<CommandArguments, Com
 
     @Override
     protected CommandArguments parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return null;
+        return jsonParser.fromJsonObject(argumentObject, PlayerIdArguments.class);
     }
 
     @Override

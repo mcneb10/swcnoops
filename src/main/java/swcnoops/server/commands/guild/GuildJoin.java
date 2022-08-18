@@ -1,25 +1,22 @@
 package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.guild.response.SquadResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.SessionManager;
 
-public class GuildJoin extends AbstractCommandAction<GuildJoin, SquadResult> {
+public class GuildJoin extends GuildCommandAction<GuildJoin, SquadResult> {
     private String guildId;
 
     @Override
     protected SquadResult execute(GuildJoin arguments, long time) throws Exception {
         SessionManager sessionManager = ServiceFactory.instance().getSessionManager();
         PlayerSession playerSession = sessionManager.getPlayerSession(arguments.getPlayerId());
-        GuildSession guildSession = sessionManager.getGuildSession(playerSession.getPlayerSettings(), arguments.getGuildId());
-        GuildSession oldSquad = playerSession.getGuildSession();
-        if (oldSquad != null)
-            oldSquad.leave(playerSession);
+        GuildSession guildSession = sessionManager.getGuildSession(playerSession, arguments.getGuildId());
         guildSession.join(playerSession);
+
         SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
         return squadResult;
     }

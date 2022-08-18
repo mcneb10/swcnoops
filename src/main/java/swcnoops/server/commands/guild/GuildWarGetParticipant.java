@@ -2,9 +2,12 @@ package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
+import swcnoops.server.commands.guild.response.GuildWarGetParticipantResult;
 import swcnoops.server.json.JsonParser;
-import swcnoops.server.commands.guild.response.GuildWarGetParticipantCommandResult;
-public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetParticipant, GuildWarGetParticipantCommandResult>
+import swcnoops.server.model.SquadMemberWarData;
+import swcnoops.server.session.PlayerSession;
+
+public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetParticipant, GuildWarGetParticipantResult>
 {
     @Override
     public String getAction() {
@@ -12,11 +15,10 @@ public class GuildWarGetParticipant extends AbstractCommandAction<GuildWarGetPar
     }
 
     @Override
-    protected GuildWarGetParticipantCommandResult execute(GuildWarGetParticipant arguments, long time) throws Exception {
-        // TODO - not complete
-        GuildWarGetParticipantCommandResult result =
-                parseJsonFile(ServiceFactory.instance().getConfig().guildWarGetParticipantTemplate, GuildWarGetParticipantCommandResult.class);
-        result.id = arguments.getPlayerId();
+    protected GuildWarGetParticipantResult execute(GuildWarGetParticipant arguments, long time) throws Exception {
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
+        SquadMemberWarData squadMemberWarData = playerSession.getSquadMemberWarData(time);
+        GuildWarGetParticipantResult result = new GuildWarGetParticipantResult(squadMemberWarData);
         return result;
     }
 

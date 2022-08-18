@@ -1,9 +1,9 @@
 package swcnoops.server.model;
 
-public class BuffBas {
+public class BuffBase {
     public boolean battleInProgress;
     public String buffUid;
-    public Object currentlyDefending;
+    public String currentlyDefending;
     public int level;
-    public Object ownerId;
+    public String ownerId;
 }

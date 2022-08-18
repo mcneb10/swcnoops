@@ -17,19 +17,8 @@ public class GuildGet extends AbstractCommandAction<GuildGet, SquadResult> {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        String guildId = playerSession.getPlayerSettings().getGuildId();
-        if (guildId == null || guildId.isEmpty())
-            return null;
-
-        // TODO - maybe move this and make it part of login or loading the players session
-        GuildSession guildSession = ServiceFactory.instance().getSessionManager()
-                .getGuildSession(playerSession.getPlayerSettings(), guildId);
-        if (guildSession == null)
-            throw new RuntimeException("Unknown guild " + guildId);
-
-        guildSession.join(playerSession);
-        SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
-        return squadResult;
+        GuildSession guildSession = playerSession.getGuildSession();
+        return GuildCommandAction.createSquadResult(guildSession);
     }
 
     @Override

@@ -10,9 +10,6 @@ import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseData;
 import org.junit.Test;
 
-import java.util.List;
-import java.util.Map;
-
 public class PlayerLoginResponseTest {
     static {
         ServiceFactory.instance(new Config());

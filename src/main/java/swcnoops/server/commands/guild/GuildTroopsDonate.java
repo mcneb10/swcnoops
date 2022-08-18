@@ -1,52 +1,40 @@
 package swcnoops.server.commands.guild;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.guild.response.GuildTroopsDonateCommandResult;
-import swcnoops.server.datasource.SelfDonatingSquad;
+import swcnoops.server.commands.guild.response.GuildTroopsDonateResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
-
 import java.util.Map;
 
 /**
  * TODO - finish this properly, for now it is self donating
  */
-public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, GuildTroopsDonateCommandResult> {
+public class GuildTroopsDonate extends GuildCommandAction<GuildTroopsDonate, GuildTroopsDonateResult> {
     private Map<String, Integer> troopsDonated;
     private String recipientId;
     private String requestId;
 
     @Override
-    protected GuildTroopsDonateCommandResult execute(GuildTroopsDonate arguments, long time) throws Exception {
+    protected GuildTroopsDonateResult execute(GuildTroopsDonate arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        String recipientPlayerId = arguments.getRecipientId();
-        if (playerSession.getGuildSession().getGuildName().equals(SelfDonatingSquad.NAME))
-            recipientPlayerId = arguments.getPlayerId();
+        Map<String, Integer> donatedTroops = arguments.getTroopsDonated();
 
-        playerSession.getGuildSession().processDonations(arguments.getTroopsDonated(), arguments.getRequestId(),
-                playerSession, recipientPlayerId, time);
+        TroopDonationResult troopDonationResult = playerSession.troopsDonate(donatedTroops,
+                arguments.getRequestId(), arguments.getRecipientId(), false, time);
 
         // TODO - do we need to deal with any race conditions when multiple players
         // are trying to donate to the same player, a problem to be solved when doing squad support
 
         // not sure about this yet, this probably controls the SC space that the client has on screen
         TroopDonationProgress troopDonationProgress = null;
-        GuildTroopsDonateCommandResult guildTroopsDonateCommandResult =
-                new GuildTroopsDonateCommandResult(recipientPlayerId, playerSession.getPlayer().getPlayerSettings().getName(),
-                        playerSession.getGuildSession(), arguments.getTroopsDonated(), false, troopDonationProgress);
+        GuildTroopsDonateResult guildTroopsDonateCommandResult =
+                new GuildTroopsDonateResult(playerSession.getGuildSession(), troopDonationResult.getDonatedTroops(),
+                        false, troopDonationProgress);
 
-        guildTroopsDonateCommandResult.setRequestId(requestId);
-
-        TroopDonationData troopDonationData = new TroopDonationData();
-        troopDonationData.troopsDonated = arguments.getTroopsDonated();
-        troopDonationData.amount = arguments.getTroopsDonated().size();
-        troopDonationData.requestId = arguments.getRequestId();
-        troopDonationData.recipientId = recipientPlayerId;
-
-        guildTroopsDonateCommandResult.setNotificationData(SquadMsgType.troopDonation, troopDonationData);
+        guildTroopsDonateCommandResult.setSquadNotification(troopDonationResult.getSquadNotification());
         return guildTroopsDonateCommandResult;
     }
 

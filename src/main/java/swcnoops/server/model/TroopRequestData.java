@@ -13,4 +13,5 @@ public class TroopRequestData implements SquadNotificationData {
      * Some limiter to number of troops, set this to totalCapacity
      */
     public int troopDonationLimit;
+    public String warId;
 }

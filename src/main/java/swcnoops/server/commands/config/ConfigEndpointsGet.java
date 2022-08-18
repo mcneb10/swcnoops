@@ -26,13 +26,16 @@ public class ConfigEndpointsGet extends AbstractCommandAction<ConfigEndpointsGet
         String ipAddress = ServiceFactory.instance().getConfig().event2BiLoggingIpAddress;
         configEndpointsGetResponse.event2BiLogging = ipAddress + "/bi_event2";
         configEndpointsGetResponse.event2NoProxyBiLogging = ipAddress + "/bi_event2";
-//        configEndpointsGetResponse.event2BiLogging = null;
-//        configEndpointsGetResponse.event2NoProxyBiLogging = null;
         return configEndpointsGetResponse;
     }
 
     @Override
     protected Messages createMessage(Command command, ConfigEndpointsGetCommandResult commandResult) {
         return EmptyMessage.instance;
+    }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
     }
 }

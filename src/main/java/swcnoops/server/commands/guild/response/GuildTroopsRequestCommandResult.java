@@ -1,14 +1,10 @@
 package swcnoops.server.commands.guild.response;
 
-import swcnoops.server.session.GuildSession;
-
 public class GuildTroopsRequestCommandResult extends GuildResult {
 
-    public GuildTroopsRequestCommandResult(GuildSession guildSession, String message, String playerId,
-                                           String name)
+    public GuildTroopsRequestCommandResult()
     {
-        super(playerId, name, guildSession);
-        this.setSquadMessage(message);
+        super();
     }
 
 

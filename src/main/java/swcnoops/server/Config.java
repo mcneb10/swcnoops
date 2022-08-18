@@ -23,7 +23,7 @@ public class Config {
     public String swcFolderName = "swcFiles";
     public String swcRootPath = "c:/swcnoops/";
     public String layoutsPath = swcRootPath + "layouts";
-    public String event2BiLoggingIpAddress = "http://0.0.0.0";
+    public String event2BiLoggingIpAddress = "http://192.168.1.142:8080";
     public String playerSqliteDB = "jdbc:sqlite:" + swcRootPath + "players.db";
     public String playerCreatePlayerDBSqlResource = "sqlite/createPlayerSqliteTable.sql";
 
@@ -31,6 +31,15 @@ public class Config {
     public String baseJson = "patches/manifest45/base.json";
     public String caeJson = "patches/manifest45/cae.json";
     public String cdnRoots = "http://192.168.1.142:8080/swcFiles/";
+    public boolean createBotPlayersInGroup = true;
+    public boolean commandTriggerProcessorEnabled = true;
+    public long attackDuration = 60 * 2;            // 2 minutes
+    public boolean modifyWarPhasesForDebug = false;
+    public long warPlayerPreparationDuration = 60 * 60 * 24;     // war players prep time
+    public long warServerPreparationDuration = 60 * 2;     // war server prep time
+    public long warPlayDuration = 60 * 60 * 23;            // war duration
+    public long warResultDuration = 60 * 2;                // server result duration
+    public long warCoolDownDuration = 60 * 60 * 24;        // war cool down
 
     public void setFromProperties(Properties properties) throws Exception {
         Class<?> clazz = this.getClass();

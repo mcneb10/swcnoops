@@ -1,6 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerCampaignMission;
 import swcnoops.server.datasource.PlayerSettings;
@@ -19,7 +20,11 @@ import swcnoops.server.session.training.TrainingManager;
 import swcnoops.server.session.training.TrainingManagerFactory;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.Collectors;
 
 /**
  * This represents the actions/commands that the game client can do for a player.
@@ -42,6 +47,11 @@ public class PlayerSessionImpl implements PlayerSession {
     static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
     static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
     static final private OffenseLabFactory offenseLabFactory = new OffenseLabFactory();
+
+    private NotificationSession notificationSession = new NotificationSession(this);
+
+    private Lock donationLock = new ReentrantLock();
+    private Lock notificationLock = new ReentrantLock();
 
     public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
         this.player = player;
@@ -166,6 +176,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
+            this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
 
             if (deployablesToRemove.stream().filter(a -> a.getAction().equals("SquadTroopPlaced")).count() > 0)
@@ -203,7 +214,13 @@ public class PlayerSessionImpl implements PlayerSession {
     // thinking maybe save squad first then player, on load check that the player is still in squad
     @Override
     public void savePlayerSession() {
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this);
+        savePlayerSession(null);
+    }
+
+
+    @Override
+    public void savePlayerSession(SquadNotification squadNotification) {
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this, squadNotification);
     }
 
     private void processCompletedContracts(long time) {
@@ -225,6 +242,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void recaptureCreature(String instanceId, String creatureTroopUid, long time) {
+        this.processCompletedContracts(time);
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(creatureTroopUid);
         this.creatureManager.recaptureCreature(troopData.getUnitId(), time);
         this.savePlayerSession();
@@ -284,22 +302,109 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void playerLogin(long time) {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        this.notificationSession.playerLogin();
+        removeEjectedNotifications();
         this.savePlayerSession();
     }
 
+    private void removeEjectedNotifications() {
+        this.playerNotifications.removeIf(a -> a.getType() == SquadMsgType.ejected);
+    }
+
     @Override
-    public void troopsRequest(boolean payToSkip, String message, long time) {
-        // TODO - this will need to forward a message to the squad for requests
-        // it will be something along the lines of putting a command onto a queue for the guild
-        // every player request that can send messages in the response, checks that guild queue to create
-        // that message type. For now we do nothing as not supporting multiple players and squads yet.
-        this.getGuildSession().troopsRequest(this.getPlayerId(), message, time);
+    public SquadNotification troopsRequest(DonatedTroops donatedTroops, String warId, boolean payToSkip, String message, long time) {
+        this.processCompletedContracts(time);
+
+        GuildSession guildSession = this.getGuildSession();
+
+        // we need to check because they might request when they have been kicked out of the squad
+        if (guildSession == null)
+            return null;
+
+        TroopRequestData troopRequestData = new TroopRequestData();
+        troopRequestData.totalCapacity = this.getSquadBuilding().getBuildingData().getStorage();
+        troopRequestData.troopDonationLimit = troopRequestData.totalCapacity;
+        troopRequestData.amount = getSquadBuildingAvailableSpace(donatedTroops);
+        troopRequestData.warId = warId;
+
+        // this will save the notification for the guild for when the clients call GuildNotificationsGet they will
+        // pick up the request. Will probably have to change so that notifications are sent on other requests
+        SquadNotification squadNotification = guildSession.troopsRequest(this,
+                troopRequestData, message, time);
+
+        return squadNotification;
+    }
+
+    public int getSquadBuildingAvailableSpace(DonatedTroops donatedTroops) {
+        return (this.getSquadBuilding().getBuildingData().getStorage() - this.getDonatedTroopsTotalUnits(donatedTroops));
+    }
+
+    @Override
+    public TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId,
+                                            boolean forWar, long time) {
+        this.processCompletedContracts(time);
+        GuildSession guildSession = this.getGuildSession();
+
+        TroopDonationResult troopDonationResult = null;
+        if (guildSession != null) {
+            troopDonationResult = guildSession.troopDonation(troopsDonated,
+                    requestId, this, recipientId, forWar, time);
+        }
+
+        return troopDonationResult;
+    }
+
+    @Override
+    public boolean setLastNotificationSince(String guildId, long since) {
+        return this.notificationSession.setLastNotification(guildId, since);
+    }
+
+    @Override
+    public boolean hasNotificationsToSend() {
+        return this.notificationSession.canSendNotifications();
+    }
+
+    @Override
+    public long getNotificationsSince() {
+        return this.notificationSession.getNotificationsSince();
+    }
+
+    private Queue<SquadNotification> playerNotifications = new ConcurrentLinkedQueue<>();
+
+    @Override
+    public List<SquadNotification> getNotifications(long since) {
+        List<SquadNotification> notifications =
+                this.playerNotifications.stream().filter(n -> n.getDate() > since).collect(Collectors.toList());
+        return notifications;
+    }
+
+    @Override
+    public void removeEjectedNotifications(List<SquadNotification> ejectedNotifications) {
+        this.playerNotifications.removeAll(ejectedNotifications);
+    }
+
+    @Override
+    public void addSquadNotification(SquadNotification squadNotification) {
+        this.notificationLock.lock();
+        try {
+            switch (squadNotification.getType()) {
+                case ejected:
+                case joinRequestRejected:
+                case joinRequestAccepted:
+                    this.playerNotifications.clear();
+                    break;
+            }
+
+            this.playerNotifications.add(squadNotification);
+        } finally {
+            this.notificationLock.unlock();
+        }
     }
 
     @Override
     public boolean isInGuild(String guildId) {
-        if (this.getGuildSession() != null) {
-            GuildSession guild = this.getGuildSession();
+        GuildSession guild = this.getGuildSession();
+        if (guild != null) {
             return guildId.equals(guild.getGuildId());
         }
 
@@ -312,7 +417,11 @@ public class PlayerSessionImpl implements PlayerSession {
             return null;
 
         GuildSession guildSession = ServiceFactory.instance().getSessionManager()
-                .getGuildSession(this.getPlayerSettings(), guildId);
+                .getGuildSession(this, guildId);
+
+        if (guildSession != null)
+            guildSession.login(this);
+
         return guildSession;
     }
 
@@ -329,22 +438,56 @@ public class PlayerSessionImpl implements PlayerSession {
         return donatedTroops;
     }
 
+    /**
+     * checks there is enough space, if everything fits then it will return true
+     * else nothing gets added and returns false
+     *
+     * @param troopsDonated
+     * @param playerId
+     * @param troopsInSC
+     * @return
+     */
     @Override
-    public void processDonatedTroops(Map<String, Integer> troopsDonated, String playerId) {
-        troopsDonated.forEach((a,b) -> addDonatedTroop(a,b,playerId));
+    public boolean processDonatedTroops(Map<String, Integer> troopsDonated, String playerId, DonatedTroops troopsInSC) {
+        boolean donated = false;
+        this.donationLock.lock();
+        try {
+            int totalDonatedUnits = calculateTroopUnitsByUid(troopsDonated);
+            if (totalDonatedUnits <= this.getSquadBuildingAvailableSpace(troopsInSC)) {
+                troopsDonated.forEach((a, b) -> addDonatedTroop(troopsInSC, a, b, playerId));
+                donated = true;
+            }
+        } finally {
+            this.donationLock.unlock();
+        }
+
+        return donated;
+    }
+
+    private int calculateTroopUnitsByUid(Map<String, Integer> troopsDonated) {
+        int units = 0;
+        for (Map.Entry<String, Integer> donation : troopsDonated.entrySet()) {
+            TroopData troopData =
+                    ServiceFactory.instance().getGameDataManager().getTroopDataByUid(donation.getKey());
+            units += troopData.getSize() * donation.getValue();
+        }
+        return units;
     }
 
     @Override
-    public int getDonatedTroopsTotalUnits() {
+    public int getDonatedTroopsTotalUnits(DonatedTroops donatedTroops) {
         AtomicInteger totalUnits = new AtomicInteger(0);
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        this.getDonatedTroops()
-                .forEach((a,b) -> b.values().forEach(v -> totalUnits.addAndGet(gameDataManager.getTroopDataByUid(a).getSize() * v)));
+        if (donatedTroops != null) {
+            donatedTroops.forEach((a, b) -> b.values()
+                    .forEach(v -> totalUnits.addAndGet(gameDataManager.getTroopDataByUid(a).getSize() * v)));
+        }
         return totalUnits.get();
     }
 
     @Override
     public void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
+        this.processCompletedContracts(time);
         processCreature(attackingUnitsKilled);
         Map<String, Integer> champions = getChampions(attackingUnitsKilled);
         Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(champions);
@@ -369,12 +512,14 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingMultimove(PositionMap positions, long time) {
+        this.processCompletedContracts(time);
         positions.forEach((a,b) -> buildingMultimove(a,b));
         this.savePlayerSession();
     }
 
     @Override
     public void buildingCollect(String buildingId, long time) {
+        this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
             mapItem.collect(time);
@@ -384,6 +529,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingClear(String instanceId, long time) {
+        this.processCompletedContracts(time);
         MapItem mapItem = this.removeMapItemByKey(instanceId);
         if (mapItem != null) {
             this.savePlayerSession();
@@ -507,11 +653,11 @@ public class PlayerSessionImpl implements PlayerSession {
      * @param numberOf
      * @param fromPlayerId
      */
-    private void addDonatedTroop(String troopUid, Integer numberOf, String fromPlayerId) {
-        GuildDonatedTroops guildDonatedTroops = this.donatedTroops.get(troopUid);
+    private void addDonatedTroop(DonatedTroops donatedTroops, String troopUid, Integer numberOf, String fromPlayerId) {
+        GuildDonatedTroops guildDonatedTroops = donatedTroops.get(troopUid);
         if (guildDonatedTroops == null) {
             guildDonatedTroops = new GuildDonatedTroops();
-            this.donatedTroops.put(troopUid, guildDonatedTroops);
+            donatedTroops.put(troopUid, guildDonatedTroops);
         }
 
         Integer troopsGivenByPlayer = guildDonatedTroops.get(fromPlayerId);
@@ -590,6 +736,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void pveCollect(String missionUid, String battleUid, long time) {
+        this.processCompletedContracts(time);
         PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         playerCampaignMission.pveCollect(missionUid);
         this.savePlayerSession();
@@ -597,6 +744,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void missionsClaimMission(String missionUid, long time) {
+        this.processCompletedContracts(time);
         PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         playerCampaignMission.missionsClaimMission(missionUid);
         this.savePlayerSession();
@@ -604,6 +752,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void storeBuy(String uid, int count, long time) {
+        this.processCompletedContracts(time);
         if (uid.equals("droids")) {
             this.getPlayerSettings().getInventoryStorage().droids.amount += count;
             this.savePlayerSession();
@@ -621,8 +770,72 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void planetRelocate(String planet, boolean payWithHardCurrency) {
+    public void planetRelocate(String planet, boolean payWithHardCurrency, long time) {
+        this.processCompletedContracts(time);
         this.playerSettings.getBaseMap().planet = planet;
         this.savePlayerSession();
+    }
+
+    @Override
+    public SquadMemberWarData getSquadMemberWarData(long time) {
+        this.processCompletedContracts(time);
+        GuildSession guildSession = this.getGuildSession();
+        if (guildSession == null)
+            return null;
+
+        SquadMemberWarData squadMemberWarData = ServiceFactory.instance().getPlayerDatasource()
+                .loadPlayerWarData(guildSession.getGuildSettings().getWarId(), this.getPlayerId());
+
+        // put the base onto sullust
+        if (squadMemberWarData != null) {
+            squadMemberWarData.warMap.planet = "planet24";
+
+            // TODO - level up buildings to what the player currently has although not sure if levelling up still should
+            // happen once war starts???
+            if (squadMemberWarData.id.equals(this.getPlayerId()))
+                levelUpBase(squadMemberWarData.warMap);
+        }
+
+        return squadMemberWarData;
+    }
+
+    /**
+     * This will modify the maps building to the same level as what the player currently has
+     * @param warMap
+     */
+    @Override
+    public void levelUpBase(PlayerMap warMap) {
+        for (Building building : warMap.buildings) {
+            MapItem mapItem = this.getPlayerMapItems().getMapItemByKey(building.key);
+            building.uid = mapItem.getBuildingUid();
+        }
+    }
+
+    @Override
+    public void warBaseSave(Map<String, Position> positions, long time) {
+        this.processCompletedContracts(time);
+        SquadMemberWarData squadMemberWarData = this.getSquadMemberWarData(time);
+
+        Map<String, Building> buildingMap = new HashMap<>();
+        squadMemberWarData.warMap.buildings.forEach(a -> buildingMap.put(a.key, a));
+
+
+        for (Map.Entry<String, Position> buildingChange : positions.entrySet()) {
+            Building building = buildingMap.get(buildingChange.getKey());
+            if (building != null) {
+                building.x = buildingChange.getValue().x;
+                building.z = buildingChange.getValue().z;
+            } else {
+                Building newBuilding = new Building();
+                newBuilding.key = buildingChange.getKey();
+                newBuilding.x = buildingChange.getValue().x;
+                newBuilding.z = buildingChange.getValue().z;
+                MapItem mapItem = this.getPlayerMapItems().getMapItemByKey(newBuilding.key);
+                newBuilding.uid = mapItem.getBuildingUid();
+                squadMemberWarData.warMap.buildings.add(newBuilding);
+            }
+        }
+
+        ServiceFactory.instance().getPlayerDatasource().saveWarParticipant(squadMemberWarData);
     }
 }

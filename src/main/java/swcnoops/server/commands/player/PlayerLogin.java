@@ -291,4 +291,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         return new LoginMessages(command.getTime(), ServiceFactory.getSystemTimeSecondsFromEpoch(),
                 ServiceFactory.createRandomUUID());
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

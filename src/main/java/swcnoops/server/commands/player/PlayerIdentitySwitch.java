@@ -75,4 +75,9 @@ public class PlayerIdentitySwitch extends AbstractCommandAction<PlayerIdentitySw
     public String getAction() {
         return "player.identity.switch";
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

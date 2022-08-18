@@ -42,6 +42,8 @@ public class BatchProcessorImpl implements BatchProcessor {
     public BatchResponse executeCommands(Batch batch) throws Exception {
         List<ResponseData> responseDatums = new ArrayList<>(batch.getCommands().size());
 
+        boolean attachedGuildNotificationFound = false;
+
         for (Command command : batch.getCommands()) {
             CommandAction commandAction = command.getCommandAction();
 
@@ -49,9 +51,12 @@ public class BatchProcessorImpl implements BatchProcessor {
                 throw new Exception("Command " + command.getAction() + " not supported");
             }
 
-            CommandResult commandResult = commandAction.execute(command.getArgs(), command.getTime());
-            command.setResponse(commandResult);
-            ResponseData responseData = commandAction.createResponse(command, commandResult);
+            if (!attachedGuildNotificationFound && commandAction.canAttachGuildNotifications()) {
+                command.setAttachGuildNotification(true);
+                attachedGuildNotificationFound = true;
+            }
+
+            ResponseData responseData = commandAction.execute(command);
             responseDatums.add(responseData);
         }
 

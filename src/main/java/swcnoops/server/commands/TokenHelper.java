@@ -5,15 +5,18 @@ import javax.crypto.spec.SecretKeySpec;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
 public class TokenHelper {
 
     static public String generateToken(long timestamp, String playerId, String secret) throws InvalidKeyException, NoSuchAlgorithmException {
         String str = String.format("{\"userId\":\"%s\",\"expires\":%s}", playerId, timestamp);
+        return generateToken(str, secret);
+    }
+
+    static public String generateToken(String str, String secret) throws InvalidKeyException, NoSuchAlgorithmException {
         String token = generateHmac256(str, secret.getBytes(StandardCharsets.UTF_8));
         String allToken = String.format("%s.%s", token, str);
-        return Base64.getEncoder().encodeToString(allToken.getBytes());
+        return allToken;
     }
 
     static public String generateHmac256(String message, byte[] key) throws InvalidKeyException, NoSuchAlgorithmException {

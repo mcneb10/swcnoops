@@ -31,4 +31,9 @@ public class GeneratePlayer extends AbstractCommandAction<GeneratePlayer, Genera
     protected Messages createMessage(Command command, GeneratePlayerCommandResult commandResult) {
         return EmptyMessage.instance;
     }
+
+    @Override
+    public boolean canAttachGuildNotifications() {
+        return false;
+    }
 }

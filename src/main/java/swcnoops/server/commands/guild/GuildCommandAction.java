@@ -25,8 +25,8 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         GuildMessages messages = new GuildMessages(command.getTime(), systemTime, guid);
 
         // only if there is a msg do we create notification
-        if (guildResult.getSquadMsgType() != null) {
-            SquadNotification squadNotification = createSquadNotification(systemTime, guid, guildResult);
+        if (guildResult.getSquadNotification() != null) {
+            SquadNotification squadNotification = guildResult.getSquadNotification();
             SquadMessage squadMessage = createSquadMessage(guildResult, squadNotification);
             GuildMessage guildMessage = new GuildMessage(squadMessage, guid, command.getTime());
             messages.getGuild().add(guildMessage);
@@ -35,43 +35,29 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         return messages;
     }
 
-    private SquadNotification createSquadNotification(long systemTime, String guid, GuildResult guildResult)
-    {
-        SquadNotification squadNotification =
-                new SquadNotification(systemTime, guid,
-                        guildResult.getSquadMessage(),
-                        guildResult.getPlayerName(),
-                        guildResult.getPlayerId(),
-                        guildResult.getSquadMsgType(),
-                        guildResult.getNotificationData());
-        return squadNotification;
-    }
-
     private SquadMessage createSquadMessage(GuildResult commandResult, SquadNotification squadNotification)
     {
-        SquadMessage squadMessage = new SquadMessage(squadNotification);
-        squadMessage.event = squadNotification.getType();
-        squadMessage.guildId = commandResult.getGuildId();
-        squadMessage.guildName = commandResult.getGuildName();
-        squadMessage.level = 0;
-        squadMessage.serverTime = squadNotification.getDate();
-        return squadMessage;
+        return AbstractCommandAction.createSquadMessage(commandResult.getGuildId(),
+                commandResult.getGuildName(), squadNotification);
     }
 
     static protected SquadResult createSquadResult(GuildSession guildSession) {
+        if (guildSession == null)
+            return null;
+
         SquadResult squadResult = new SquadResult();
         squadResult.id = guildSession.getGuildId();
         squadResult.name = guildSession.getGuildName();
         squadResult.description = guildSession.getGuildSettings().getDescription();
         squadResult.faction = guildSession.getGuildSettings().getFaction();
         squadResult.warHistory = new ArrayList<>();
-        squadResult.currentWarId = null;
+        squadResult.currentWarId = guildSession.getGuildSettings().getWarId();
         squadResult.created = guildSession.getGuildSettings().getCreated();
         squadResult.perks = guildSession.getGuildSettings().getPerks();
         squadResult.members = guildSession.getGuildSettings().getMembers();
-        squadResult.warSignUpTime = null;
-        squadResult.memberCount = guildSession.getGuildSettings().getMembers().size();
-        squadResult.activeMemberCount = guildSession.getGuildSettings().getMembers().size();
+        squadResult.warSignUpTime = guildSession.getGuildSettings().getWarSignUpTime();
+        squadResult.memberCount = squadResult.members.size();
+        squadResult.activeMemberCount = squadResult.members.size();
         squadResult.icon = guildSession.getGuildSettings().getIcon();
         squadResult.rank = 1;
         squadResult.level = 1;
@@ -80,9 +66,9 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         squadResult.squadWarReadyCount = 0;
         squadResult.membershipRestrictions = new MembershipRestrictions();
         squadResult.membershipRestrictions.faction = guildSession.getGuildSettings().getFaction();
-        squadResult.membershipRestrictions.openEnrollment = true;
-        squadResult.membershipRestrictions.maxSize = 15;
-        squadResult.membershipRestrictions.minScoreAtEnrollment = 0;
+        squadResult.membershipRestrictions.openEnrollment = guildSession.getGuildSettings().getOpenEnrollment();
+        squadResult.membershipRestrictions.maxSize = 20;
+        squadResult.membershipRestrictions.minScoreAtEnrollment = guildSession.getGuildSettings().getMinScoreAtEnrollment();
         return squadResult;
     }
 }

@@ -7,6 +7,7 @@ import swcnoops.server.datasource.SelfDonatingSquad;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.Squad;
 import swcnoops.server.session.PlayerSession;
+import java.util.List;
 
 public class GuildListOpen extends AbstractCommandAction<GuildListOpen, GuildListOpenResult> {
 
@@ -18,13 +19,16 @@ public class GuildListOpen extends AbstractCommandAction<GuildListOpen, GuildLis
         GuildListOpenResult guildListOpenResult = new GuildListOpenResult();
         Squad squad = createSelfDonateSquad(playerSession);
         guildListOpenResult.addSquad(squad);
+        List<Squad> squads = ServiceFactory.instance().getPlayerDatasource().getGuildList(playerSession.getFaction());
 
-        // TODO - read from DB and add the other squads
+        if (squads != null)
+            guildListOpenResult.getSquadData().addAll(squads);
+
         return guildListOpenResult;
     }
 
     private Squad createSelfDonateSquad(PlayerSession playerSession) {
-        SelfDonatingSquad selfDonatingSquad = new SelfDonatingSquad(playerSession.getPlayerSettings());
+        SelfDonatingSquad selfDonatingSquad = new SelfDonatingSquad(playerSession);
         Squad squad = new Squad();
         squad._id = selfDonatingSquad.getGuildId();
         squad.name = selfDonatingSquad.getGuildName();
@@ -32,7 +36,7 @@ public class GuildListOpen extends AbstractCommandAction<GuildListOpen, GuildLis
         squad.openEnrollment = true;
         squad.level = 1;
         squad.members = selfDonatingSquad.getMembers().size();
-        squad.activeMemberCount = selfDonatingSquad.getMembers().size();
+        squad.activeMemberCount = squad.members;
         return squad;
     }
 

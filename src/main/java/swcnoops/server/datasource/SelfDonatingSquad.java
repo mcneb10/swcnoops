@@ -1,11 +1,12 @@
 package swcnoops.server.datasource;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.model.FactionType;
-import swcnoops.server.model.Member;
-import swcnoops.server.model.Perks;
+import swcnoops.server.commands.guild.GuildHelper;
+import swcnoops.server.model.*;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public class SelfDonatingSquad implements GuildSettings {
@@ -15,12 +16,12 @@ public class SelfDonatingSquad implements GuildSettings {
     final private String guildId;
     final private List<Member> members = new ArrayList<>();
 
-    public SelfDonatingSquad(PlayerSettings playerSettings) {
-        this.faction = playerSettings.getFaction();
-        this.guildId = playerSettings.getPlayerId();
+    public SelfDonatingSquad(PlayerSession playerSession) {
+        this.faction = playerSession.getFaction();
+        this.guildId = playerSession.getPlayerId();
 
-        this.members.add(createMember(playerSettings));
-        this.members.add(createDonateBot(playerSettings));
+        this.members.add(GuildHelper.createMember(playerSession));
+        this.members.add(createDonateBot(playerSession.getPlayerSettings()));
     }
 
     private Member createDonateBot(PlayerSettings playerSettings) {
@@ -30,24 +31,10 @@ public class SelfDonatingSquad implements GuildSettings {
         member.playerId = playerSettings.getPlayerId() + "-BOT";
         member.planet = playerSettings.getBaseMap().planet;
         member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.hqLevel = 1;
+        member.setLevel(5);
         member.name = DonateBotName;
         return member;
     }
-
-    private Member createMember(PlayerSettings playerSettings) {
-        Member member = new Member();
-        member.isOfficer = true;
-        member.isOwner = true;
-        member.playerId = playerSettings.getPlayerId();
-        member.planet = playerSettings.getBaseMap().planet;
-        member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.hqLevel = 1;
-        member.name = playerSettings.getName();
-        return member;
-    }
-
-    static final public Perks emptyPerks = new Perks();
 
     @Override
     public String getGuildId() {
@@ -76,7 +63,7 @@ public class SelfDonatingSquad implements GuildSettings {
 
     @Override
     public Perks getPerks() {
-        return emptyPerks;
+        return GuildHelper.emptyPerks;
     }
 
     @Override
@@ -87,5 +74,118 @@ public class SelfDonatingSquad implements GuildSettings {
     @Override
     public String getIcon() {
         return "SquadSymbols_11";
+    }
+
+    @Override
+    public void setDescription(String description) {
+
+    }
+
+    @Override
+    public void setIcon(String icon) {
+
+    }
+
+    @Override
+    public void setMinScoreAtEnrollment(Integer minScoreAtEnrollment) {
+
+    }
+
+    @Override
+    public void setOpenEnrollment(boolean openEnrollment) {
+
+    }
+
+    @Override
+    public boolean canSave() {
+        return false;
+    }
+
+    @Override
+    public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived, boolean warParty, int hqLevel) {
+    }
+
+    @Override
+    public void addMember(Member member) {
+
+    }
+
+    @Override
+    public void removeMember(String playerId) {
+    }
+
+    @Override
+    public SquadNotification createTroopRequest(PlayerSession playerSession, String message) {
+        Member botMember = playerSession.getGuildSession().getGuildSettings().getMembers()
+                .stream().filter(m -> m.name.equals(SelfDonatingSquad.DonateBotName)).findFirst().get();
+
+        String playerId = botMember.playerId;
+        String playerName = botMember.name;
+
+        SquadNotification squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
+                playerSession.getGuildSession().getGuildName(),
+                ServiceFactory.createRandomUUID(), message, playerName, playerId, SquadMsgType.troopRequest);
+
+        return squadNotification;
+    }
+
+    @Override
+    public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
+        return playerSession.getPlayerId();
+    }
+
+    @Override
+    public void addSquadNotification(SquadNotification squadNotification) {
+
+    }
+
+    @Override
+    public Collection<? extends SquadNotification> getSquadNotifications() {
+        return null;
+    }
+
+    @Override
+    public Member getMember(String playerId) {
+        return null;
+    }
+
+    @Override
+    public boolean getOpenEnrollment() {
+        return false;
+    }
+
+    @Override
+    public Integer getMinScoreAtEnrollment() {
+        return Integer.valueOf(0);
+    }
+
+    @Override
+    public Long getWarSignUpTime() {
+        return null;
+    }
+
+    @Override
+    public void setWarSignUpTime(Long warSignUpTime) {
+
+    }
+
+    @Override
+    public void warMatchmakingStart(long time, List<String> participantIds) {
+
+    }
+
+    @Override
+    public void login(Member member) {
+
+    }
+
+    @Override
+    public String getWarId() {
+        return null;
+    }
+
+    @Override
+    public void setWarId(String warId) {
+
     }
 }
