@@ -83,6 +83,10 @@ public class CommandFactory {
         this.add(new GuildWarBaseSave());
         this.add(new GuildWarTroopsDonate());
         this.add(new GuildWarGetBaseStatus());
+        this.add(new GuildWarAttackPlayerStart());
+        this.add(new GuildWarDeployableSpend());
+        this.add(new GuildWarAttackPlayerComplete());
+        //this.add(new GuildWarAttackBaseStart());
 
         this.add(new GuildWarGetParticipant());
         this.add(new GuildWarGetSyncedParticipant());

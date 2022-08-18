@@ -251,6 +251,7 @@ public class GuildSettingsImpl implements GuildSettings {
         }
     }
 
+    @Override
     public void setWarId(String warId) {
         this.warId = warId;
     }

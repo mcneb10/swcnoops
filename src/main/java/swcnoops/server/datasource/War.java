@@ -58,4 +58,24 @@ public class War {
     public void setWarId(String warId) {
         this.warId = warId;
     }
+
+    public void setPrepGraceStartTime(Long prepGraceStartTime) {
+        this.prepGraceStartTime = prepGraceStartTime;
+    }
+
+    public void setPrepEndTime(Long prepEndTime) {
+        this.prepEndTime = prepEndTime;
+    }
+
+    public void setActionGraceStartTime(Long actionGraceStartTime) {
+        this.actionGraceStartTime = actionGraceStartTime;
+    }
+
+    public void setActionEndTime(Long actionEndTime) {
+        this.actionEndTime = actionEndTime;
+    }
+
+    public void setCooldownEndTime(Long cooldownEndTime) {
+        this.cooldownEndTime = cooldownEndTime;
+    }
 }

@@ -787,12 +787,14 @@ public class PlayerSessionImpl implements PlayerSession {
                 .loadPlayerWarData(guildSession.getGuildSettings().getWarId(), this.getPlayerId());
 
         // put the base onto sullust
-        squadMemberWarData.warMap.planet = "planet24";
+        if (squadMemberWarData != null) {
+            squadMemberWarData.warMap.planet = "planet24";
 
-        // TODO - level up buildings to what the player currently has although not sure if levelling up still should
-        // happen once war starts???
-        if (squadMemberWarData.id.equals(this.getPlayerId()))
-            levelUpBase(squadMemberWarData.warMap);
+            // TODO - level up buildings to what the player currently has although not sure if levelling up still should
+            // happen once war starts???
+            if (squadMemberWarData.id.equals(this.getPlayerId()))
+                levelUpBase(squadMemberWarData.warMap);
+        }
 
         return squadMemberWarData;
     }

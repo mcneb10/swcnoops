@@ -3,8 +3,8 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.guild.TroopDonationResult;
+import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.datasource.GuildSettings;
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.datasource.War;
 import swcnoops.server.model.*;
 
@@ -15,6 +15,8 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
+
+import static swcnoops.server.session.NotificationFactory.createNotification;
 
 public class GuildSessionImpl implements GuildSession {
     final private GuildSettings guildSettings;
@@ -94,11 +96,13 @@ public class GuildSessionImpl implements GuildSession {
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, memberSession, joinRequestAcceptedNotification);
     }
 
+    // TODO - this really should move a WarSession
     @Override
     public void warMatched(String warId) {
         SquadNotification warPreparedNotification =
                 createNotification(this.getGuildId(), this.getGuildName(), null, SquadMsgType.warPrepared);
 
+        warPreparedNotification.setData(new WarNotificationData(warId));
         this.addNotification(warPreparedNotification);
         ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), warPreparedNotification);
     }
@@ -233,7 +237,7 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public SquadNotification warMatchmakingStart(PlayerSession playerSession, List<String> participantIds, boolean isSameFactionWarAllowed, long time) {
-        SquadNotification squadNotification = GuildSessionImpl.createNotification(this.getGuildId(), this.getGuildName(),
+        SquadNotification squadNotification = createNotification(this.getGuildId(), this.getGuildName(),
                 playerSession, SquadMsgType.warMatchMakingBegin);
 
         this.addNotification(squadNotification);
@@ -245,7 +249,7 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time) {
-        SquadNotification squadNotification = GuildSessionImpl.createNotification(this.getGuildId(), this.getGuildName(),
+        SquadNotification squadNotification = createNotification(this.getGuildId(), this.getGuildName(),
                 playerSession, SquadMsgType.warMatchMakingCancel);
 
         this.addNotification(squadNotification);
@@ -294,47 +298,6 @@ public class GuildSessionImpl implements GuildSession {
         return notifications;
     }
 
-    final static public SquadNotification createNotification(String guildId, String guildName, PlayerSession playerSession,
-                                                             SquadMsgType squadMsgType)
-    {
-        return createNotification(guildId, guildName, playerSession, null, squadMsgType);
-    }
-
-    final static public SquadNotification createNotification(String guildId, String guildName, PlayerSession playerSession,
-                                                             String message, SquadMsgType squadMsgType)
-    {
-        SquadNotification squadNotification = null;
-        PlayerSettings playerSettings = null;
-        if (playerSession != null)
-            playerSettings = playerSession.getPlayerSettings();
-
-        if (squadMsgType != null) {
-            switch (squadMsgType) {
-                case leave:
-                case join:
-                case promotion:
-                case demotion:
-                case ejected:
-                case joinRequest:
-                case joinRequestAccepted:
-                case joinRequestRejected:
-                case warMatchMakingBegin:
-                case warMatchMakingCancel:
-                case warPrepared:
-                    squadNotification =
-                            new SquadNotification(guildId, guildName,
-                                    ServiceFactory.createRandomUUID(), message,
-                                    playerSettings != null ? playerSettings.getName() : null,
-                                    playerSettings != null ? playerSettings.getPlayerId() : null, squadMsgType);
-                    break;
-                default:
-                    throw new RuntimeException("SquadMsgType not support yet " + squadMsgType);
-            }
-        }
-
-        return squadNotification;
-    }
-
     @Override
     public void saveNotification(SquadNotification squadNotification) {
         ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), squadNotification);
@@ -369,5 +332,59 @@ public class GuildSessionImpl implements GuildSession {
         }
 
         return squadMemberWarDatums;
+    }
+
+    @Override
+    public void warAttackComplete(PlayerBattleComplete playerBattleComplete, PlayerSession playerSession) {
+        SquadNotification attackCompleteNotification =
+                createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.warPlayerAttackComplete);
+
+//        WarNotificationData warNotificationData = new WarNotificationData(this.getGuildSettings().getWarId());
+//        PlayerSession opponentSession = ServiceFactory.instance().getSessionManager().getPlayerSession(opponentId);
+//        warNotificationData.setOpponentId(opponentId);
+//        warNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
+//        attackCompleteNotification.setData(warNotificationData);
+
+        this.addNotification(attackCompleteNotification);
+        ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), attackCompleteNotification);
+    }
+
+    @Override
+    public String warAttackStart(PlayerSession playerSession, String opponentId, long time) {
+        PlayerSession opponentSession = ServiceFactory.instance().getSessionManager().getPlayerSession(opponentId);
+
+        WarNotificationData warNotificationData = new WarNotificationData(this.getGuildSettings().getWarId());
+        warNotificationData.setOpponentId(opponentId);
+        warNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
+        warNotificationData.setAttackExpirationDate(time + ServiceFactory.instance().getConfig().attackDuration);
+
+        SquadNotification attackCompleteNotification =
+                createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.warPlayerAttackStart);
+        attackCompleteNotification.setData(warNotificationData);
+        this.addNotification(attackCompleteNotification);
+
+        ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), attackCompleteNotification);
+
+        return ServiceFactory.createRandomUUID();
+    }
+
+    static final Set<String> warIdsStarted = new HashSet<>();
+    @Override
+    public void warStarted(long time) {
+        return;
+
+//        String warId = this.getGuildSettings().getWarId();
+//
+//        if (warIdsStarted.contains(warId))
+//            return;
+//
+//        warIdsStarted.add(warId);
+//        SquadNotification warStartedNotification =
+//                createNotification(this.getGuildId(), this.getGuildName(), null, SquadMsgType.warStarted);
+//
+//        WarNotificationData warNotificationData = new WarNotificationData(this.getGuildSettings().getWarId());
+//        warStartedNotification.setData(warNotificationData);
+//        this.addNotification(warStartedNotification);
+//        ServiceFactory.instance().getPlayerDatasource().saveNotification(this.getGuildId(), warStartedNotification);
     }
 }

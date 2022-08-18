@@ -11,9 +11,15 @@ import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildWarStatusCommandResult> {
+
+    // TODO - temp hack to work out how war notifications work
+    static private Map<String, WarPhases> warPhasesMap = new HashMap<>();
+
     @Override
     protected GuildWarStatusCommandResult execute(GuildWarStatus arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
@@ -21,11 +27,42 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
         GuildSession guildSession = playerSession.getGuildSession();
         War war = guildSession.getCurrentWar();
 
+        if (ServiceFactory.instance().getConfig().modifyWarPhasesForDebug) {
+            if (!warPhasesMap.containsKey(war.getWarId())) {
+                // override it for testing
+                war.setPrepGraceStartTime(ServiceFactory.getSystemTimeSecondsFromEpoch() + (60 * 5));    // the end of preparation stage
+                war.setPrepEndTime(war.getPrepGraceStartTime() + (60 * 1));  // server preparation time
+                war.setActionGraceStartTime(war.getPrepEndTime() + (60 * 60 * 24)); // war length
+                war.setActionEndTime(war.getActionGraceStartTime() + (60 * 5));
+                war.setCooldownEndTime(war.getActionEndTime() + (60 * 60 * 24));
+//            war.setActionsStarted(false);        // TODO - not sure what these are yet
+//            war.setRewardsProcessed(false);
+
+                WarPhases warPhases = new WarPhases();
+                warPhases.prepGraceStartTime = war.getPrepGraceStartTime();
+                warPhases.prepEndTime = war.getPrepEndTime();
+                warPhases.actionGraceStartTime = war.getActionGraceStartTime();
+                warPhases.actionEndTime = war.getActionEndTime();
+                warPhases.cooldownEndTime = war.getCooldownEndTime();
+
+                warPhasesMap.put(war.getWarId(), warPhases);
+            } else {
+                WarPhases warPhases = warPhasesMap.get(war.getWarId());
+                war.setPrepGraceStartTime(warPhases.prepGraceStartTime);
+                war.setPrepEndTime(warPhases.prepEndTime);
+                war.setActionGraceStartTime(warPhases.actionGraceStartTime);
+                war.setActionEndTime(warPhases.actionEndTime);
+                war.setCooldownEndTime(warPhases.cooldownEndTime);
+            }
+        }
+
         GuildSession squad1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
         List<SquadMemberWarData> warParticipants1 = squad1.getWarParticipants(playerSession);
+        squad1.warStarted(time);
 
         GuildSession squad2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
         List<SquadMemberWarData> warParticipants2 = squad2.getWarParticipants(playerSession);
+        squad2.warStarted(time);
 
         GuildWarStatusCommandResult guildWarStatusResponse =
                 new GuildWarStatusCommandResult(guildSession);
@@ -39,6 +76,7 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
 
         // if war has finished then must set this to true otherwise squad can not start war
         guildWarStatusResponse.rewardsProcessed = false;
+        guildWarStatusResponse.actionsStarted = false;
         return guildWarStatusResponse;
     }
 
@@ -60,5 +98,14 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
     @Override
     public String getAction() {
         return "guild.war.status";
+    }
+
+    public class WarPhases {
+        public String warId;
+        public long prepGraceStartTime;
+        public long prepEndTime;
+        public long actionGraceStartTime;
+        public long actionEndTime;
+        public long cooldownEndTime;
     }
 }

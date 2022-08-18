@@ -1,6 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.commands.guild.TroopDonationResult;
+import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.datasource.War;
 import swcnoops.server.model.*;
@@ -56,4 +57,10 @@ public interface GuildSession {
     War getCurrentWar();
 
     List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession);
+
+    void warAttackComplete(PlayerBattleComplete playerBattleComplete, PlayerSession playerSession);
+
+    String warAttackStart(PlayerSession playerSession, String opponentId, long time);
+
+    void warStarted(long time);
 }

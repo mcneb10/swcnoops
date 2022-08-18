@@ -183,4 +183,9 @@ public class SelfDonatingSquad implements GuildSettings {
     public String getWarId() {
         return null;
     }
+
+    @Override
+    public void setWarId(String warId) {
+
+    }
 }

@@ -1,5 +1,6 @@
 package swcnoops.server.datasource;
 
+import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.model.*;
@@ -18,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static swcnoops.server.session.NotificationFactory.mapSquadNotificationData;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
     public PlayerDatasourceImpl() {
@@ -708,7 +711,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             data = mapSquadNotificationData(squadMessageType, squadNotificationJson);
                         }
                         SquadNotification squadNotification =
-                                new SquadNotification(guildId, guildSettings.getGuildName(), date, orderNo, id, message, name, playerId, squadMessageType, data);
+                                new SquadNotification(guildId, guildSettings.getGuildName(), date, orderNo, id,
+                                        message, name, playerId, squadMessageType, data);
                         guildSettings.addSquadNotification(squadNotification);
                     }
                 }
@@ -721,24 +725,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return guildSettings;
-    }
-
-    private SquadNotificationData mapSquadNotificationData(SquadMsgType squadMessageType, String squadNotificationJson)
-            throws Exception {
-        SquadNotificationData squadNotificationData = null;
-        if (squadMessageType != null) {
-            switch (squadMessageType) {
-                case troopRequest:
-                    squadNotificationData = ServiceFactory.instance().getJsonParser()
-                            .fromJsonString(squadNotificationJson, TroopRequestData.class);
-                    break;
-                case troopDonation:
-                    squadNotificationData = ServiceFactory.instance().getJsonParser()
-                            .fromJsonString(squadNotificationJson, TroopDonationData.class);
-                    break;
-            }
-        }
-        return squadNotificationData;
     }
 
     @Override
@@ -1130,7 +1116,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void saveSquadWar(String guildId, String warId, Connection connection) {
         final String squadSql = "update Squads " +
-                "set warId = ? " +
+                "set warId = ?, warSignUpTime = null " +
                 "where id = ?";
 
         try {
@@ -1158,16 +1144,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(2, guildId);
                 stmt.setString(3, rivalId);
 
-                // preparation start time
-                // preparation end time (1 hour prep time)
+                // TODO - not sure what values should be, but the order is correct
+                // preparation start time - the end of preparation for base
+                // preparation end time (server base prep time)
                 // war start time (2 mins before start)
                 // war end time (1 hour war)
                 // war result prep (2 mins)
-                stmt.setLong(4, warMatchedTime);
-                stmt.setLong(5, warMatchedTime + (60 * 60 * 1));
-                stmt.setLong(6, warMatchedTime + (60 * 60 * 1) + (60 * 2));
-                stmt.setLong(7, warMatchedTime + (60 * 60 * 1) + (60 * 2) + (60 * 60 * 1));
-                stmt.setLong(8, warMatchedTime + (60 * 60 * 1) + (60 * 2) + (60 * 60 * 1) + (60 * 2));
+                Config config = ServiceFactory.instance().getConfig();
+                stmt.setLong(4, warMatchedTime += config.warPlayerPreparationDuration);
+                stmt.setLong(5, warMatchedTime += config.warServerPreparationDuration);
+                stmt.setLong(6, warMatchedTime += config.warPlayDuration);
+                stmt.setLong(7, warMatchedTime += config.warResultDuration);
+                stmt.setLong(8, warMatchedTime += config.warCoolDownDuration);
                 stmt.executeUpdate();
             }
 

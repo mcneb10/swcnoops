@@ -6,7 +6,6 @@ import swcnoops.server.model.BuffBase;
 import swcnoops.server.model.SquadMemberWarData;
 import swcnoops.server.model.WarSquad;
 import swcnoops.server.session.GuildSession;
-
 import java.util.List;
 
 public class GuildWarStatusCommandResult extends GuildResult {
@@ -27,6 +26,7 @@ public class GuildWarStatusCommandResult extends GuildResult {
         super(guildSession);
     }
 
+    // TODO - need to move this logic out
     public void inititalise(War war, List<SquadMemberWarData> warParticipants1,
                             List<SquadMemberWarData> warParticipants2, long time)
     {
@@ -39,15 +39,6 @@ public class GuildWarStatusCommandResult extends GuildResult {
                 this.actionGraceStartTime = war.getActionGraceStartTime();
                 this.actionEndTime = war.getActionEndTime();
                 this.cooldownEndTime = war.getCooldownEndTime();
-
-                // override it for testing
-                this.prepGraceStartTime = ServiceFactory.getSystemTimeSecondsFromEpoch() + (60 * 60 * 5);
-                this.prepEndTime = this.prepGraceStartTime + (60 * 2);
-                this.actionGraceStartTime = this.prepEndTime + (60 * 60 * 24);
-                this.actionEndTime = this.actionGraceStartTime + (60 * 5);
-                this.cooldownEndTime = this.actionEndTime + (60 * 60 * 24);
-                this.actionsStarted = false;        // TODO - not sure what these are yet
-                this.rewardsProcessed = false;
 
                 GuildSession guildSession1 = ServiceFactory.instance().getSessionManager()
                         .getGuildSession(war.getSquadIdA());
