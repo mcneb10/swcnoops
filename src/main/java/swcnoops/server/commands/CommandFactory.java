@@ -82,6 +82,7 @@ public class CommandFactory {
         this.add(new GuildSearchByName());
         this.add(new GuildWarBaseSave());
         this.add(new GuildWarTroopsDonate());
+        this.add(new GuildWarGetBaseStatus());
 
         this.add(new GuildWarGetParticipant());
         this.add(new GuildWarGetSyncedParticipant());
