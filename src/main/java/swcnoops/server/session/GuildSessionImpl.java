@@ -142,17 +142,6 @@ public class GuildSessionImpl implements GuildSession {
         this.setNotificationDirty(joinRequestAcceptedNotification.getDate());
     }
 
-    // TODO - this really should move a WarSession
-    @Override
-    public void warMatched(String warId) {
-        SquadNotification warPreparedNotification =
-                createNotification(this.getGuildId(), this.getGuildName(), null, SquadMsgType.warPrepared);
-
-        warPreparedNotification.setData(new WarNotificationData(warId));
-        ServiceFactory.instance().getPlayerDatasource().saveNotification(this, warPreparedNotification);
-        this.setNotificationDirty(warPreparedNotification.getDate());
-    }
-
     @Override
     public void joinRequestRejected(String rejectorId, PlayerSession memberSession) {
         SquadNotification joinRequestRejectedNotification =

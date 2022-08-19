@@ -1,6 +1,6 @@
 package swcnoops.server.datasource;
 
-public class AttackDetail {
+public class AttackDetail extends WarNotification {
     final private String battleId;
     final private long expirationDate;
     public AttackDetail(String battleId, long expirationDate) {

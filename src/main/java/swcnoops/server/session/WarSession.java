@@ -10,4 +10,6 @@ public interface WarSession {
     GuildSession getGuildASession();
 
     GuildSession getGuildBSession();
+
+    void warMatched();
 }

@@ -3,6 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.AttackDetail;
 import swcnoops.server.datasource.War;
+import swcnoops.server.datasource.WarNotification;
 import swcnoops.server.model.SquadMsgType;
 import swcnoops.server.model.SquadNotification;
 import swcnoops.server.model.WarNotificationData;
@@ -62,10 +63,30 @@ public class WarSessionImpl implements WarSession {
                 playerSession.getPlayerId(), opponentId, attackStartNotification);
 
         if (attackDetail.getBattleId() != null) {
-            this.squadA.setNotificationDirty(attackStartNotification.getDate());
-            this.squadB.setNotificationDirty(attackStartNotification.getDate());
+            setGuildDirtyNotifcation(attackDetail);
         }
 
         return attackDetail.getBattleId();
+    }
+
+    @Override
+    public void warMatched() {
+        GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(this.getGuildIdA());
+        SquadNotification warPreparedNotification =
+                createNotification(guildSession1.getGuildId(), guildSession1.getGuildName(),
+                        null, SquadMsgType.warPrepared);
+        warPreparedNotification.setData(new WarNotificationData(warId));
+
+        WarNotification warNotification = ServiceFactory.instance().getPlayerDatasource()
+                .warPrepared(this, getWarId(), warPreparedNotification);
+
+        this.squadA.getGuildSettings().setWarId(warId);
+        this.squadB.getGuildSettings().setWarId(warId);
+        setGuildDirtyNotifcation(warNotification);
+    }
+
+    private void setGuildDirtyNotifcation(WarNotification warNotification) {
+        this.squadA.setNotificationDirty(warNotification.getGuildANotificationDate());
+        this.squadB.setNotificationDirty(warNotification.getGuildBNotificationDate());
     }
 }

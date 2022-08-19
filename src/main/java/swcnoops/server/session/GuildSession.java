@@ -50,8 +50,6 @@ public interface GuildSession {
 
     SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time);
 
-    void warMatched(String warId);
-
     War getCurrentWar();
 
     List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession);

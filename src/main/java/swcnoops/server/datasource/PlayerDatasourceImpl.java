@@ -7,6 +7,7 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.WarSession;
+import swcnoops.server.session.WarSessionImpl;
 import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
@@ -1360,7 +1361,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             if (attackDetail.getBattleId() != null) {
                 WarNotificationData warNotificationData = (WarNotificationData) attackStartNotification.getData();
                 warNotificationData.setAttackExpirationDate(attackDetail.getExpirationDate());
-                setAndSaveWarNotification(warSession, attackStartNotification, connection);
+                setAndSaveWarNotification(attackDetail, warSession, attackStartNotification, connection);
             }
             connection.commit();
         } catch (SQLException ex) {
@@ -1370,13 +1371,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return attackDetail;
     }
 
-    private void setAndSaveWarNotification(WarSession warSession, SquadNotification squadNotification, Connection connection) {
+    private void setAndSaveWarNotification(WarNotification warNotification, WarSession warSession,
+                                           SquadNotification squadNotification, Connection connection)
+    {
         synchronized (warSession) {
-            squadNotification.setDate(0);
             GuildSession guildSessionA = warSession.getGuildASession();
+            squadNotification.setDate(0);
             setAndSaveGuildNotification(guildSessionA, squadNotification, connection);
+            warNotification.setGuildANotificationDate(squadNotification.getDate());
             GuildSession guildSessionB = warSession.getGuildBSession();
+            squadNotification.setDate(0);
             setAndSaveGuildNotification(guildSessionB, squadNotification, connection);
+            warNotification.setGuildBNotificationDate(squadNotification.getDate());
         }
     }
 
@@ -1513,5 +1519,19 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return notifications;
+    }
+
+    @Override
+    public WarNotification warPrepared(WarSessionImpl warSession, String warId, SquadNotification warPreparedNotification) {
+        WarNotification warNotification = new WarNotification();
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            setAndSaveWarNotification(warNotification, warSession, warPreparedNotification, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save war notification for war id=" + warId, ex);
+        }
+
+        return warNotification;
     }
 }

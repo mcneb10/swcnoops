@@ -4,6 +4,7 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.WarSession;
+import swcnoops.server.session.WarSessionImpl;
 
 import java.util.Collection;
 import java.util.List;
@@ -73,4 +74,6 @@ public interface PlayerDataSource {
     void saveWar(War war);
 
     Collection<SquadNotification> getSquadNotificationsSince(String guildId, String guildName, long latestNotificationDate);
+
+    WarNotification warPrepared(WarSessionImpl warSession, String warId, SquadNotification warPreparedNotification);
 }
