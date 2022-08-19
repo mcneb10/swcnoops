@@ -36,4 +36,9 @@ public class GeneratePlayer extends AbstractCommandAction<GeneratePlayer, Genera
     public boolean canAttachGuildNotifications() {
         return false;
     }
+
+    @Override
+    public boolean isAuthCommand() {
+        return true;
+    }
 }

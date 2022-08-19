@@ -30,8 +30,6 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     public void afterLoad() {
-        this.notifications.sort((a, b) -> Long.compare(a.getOrderNo(), b.getOrderNo()));
-
         if (ServiceFactory.instance().getConfig().createBotPlayersInGroup) {
             if (this.memberMap.size() < 15) {
                 for (int i = 0; i < 15; i++) {
@@ -203,18 +201,6 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
         return recipientPlayerId;
-    }
-
-    private List<SquadNotification> notifications = new ArrayList<>();
-
-    @Override
-    public void addSquadNotification(SquadNotification squadNotification) {
-        this.notifications.add(squadNotification);
-    }
-
-    @Override
-    public Collection<? extends SquadNotification> getSquadNotifications() {
-        return this.notifications;
     }
 
     @Override

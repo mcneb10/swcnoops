@@ -12,4 +12,6 @@ public interface SessionManager {
     void removePlayerSession(String playerId);
 
     GuildSession getGuildSession(String squadId);
+
+    WarSession getWarSession(String warId);
 }

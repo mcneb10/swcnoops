@@ -135,16 +135,6 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public void addSquadNotification(SquadNotification squadNotification) {
-
-    }
-
-    @Override
-    public Collection<? extends SquadNotification> getSquadNotifications() {
-        return null;
-    }
-
-    @Override
     public Member getMember(String playerId) {
         return null;
     }

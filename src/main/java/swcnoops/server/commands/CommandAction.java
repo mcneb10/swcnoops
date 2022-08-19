@@ -11,4 +11,6 @@ public interface CommandAction<R extends CommandResult> {
     ResponseData createResponse(Command command, R commandResult);
 
     boolean canAttachGuildNotifications();
+
+    boolean isAuthCommand();
 }

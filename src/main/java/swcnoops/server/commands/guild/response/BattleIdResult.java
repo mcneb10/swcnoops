@@ -10,7 +10,7 @@ public class BattleIdResult extends AbstractCommandResult {
     @JsonIgnore
     private Integer returnStatus;
 
-    protected BattleIdResult(Integer errorStatus) {
+    public BattleIdResult(Integer errorStatus) {
         this.returnStatus = errorStatus;
     }
 

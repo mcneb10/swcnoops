@@ -4,6 +4,9 @@ import swcnoops.server.commands.Command;
 import swcnoops.server.commands.CommandAction;
 import swcnoops.server.commands.CommandFactory;
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.session.AuthenticationService;
+import swcnoops.server.session.BatchAction;
+import swcnoops.server.session.BatchResponseReplayer;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
@@ -42,30 +45,59 @@ public class BatchProcessorImpl implements BatchProcessor {
     public BatchResponse executeCommands(Batch batch) throws Exception {
         List<ResponseData> responseDatums = new ArrayList<>(batch.getCommands().size());
 
-        boolean attachedGuildNotificationFound = false;
+        AuthenticationService authenticationService = ServiceFactory.instance().getAuthenticationService();
+        authenticationService.validateBatch(batch);
 
-        for (Command command : batch.getCommands()) {
-            CommandAction commandAction = command.getCommandAction();
+        BatchResponseReplayer batchResponseReplayer = ServiceFactory.instance().getBatchResponseReplayer();
+        BatchAction batchAction = batchResponseReplayer.waitOrProcessBatch(batch);
 
-            if (commandAction == null) {
-                throw new Exception("Command " + command.getAction() + " not supported");
+        if (batchAction.shouldWaitForResponse()) {
+            batchAction.waitForResponse(ServiceFactory.instance().getConfig().batchResponseReplayWait);
+            if (batchAction.hasResponse()) {
+                return batchAction.getResponse();
             }
 
-            if (!attachedGuildNotificationFound && commandAction.canAttachGuildNotifications()) {
-                command.setAttachGuildNotification(true);
-                attachedGuildNotificationFound = true;
-            }
+            if (batchAction.hasException())
+                throw batchAction.getException();
 
-            ResponseData responseData = commandAction.execute(command);
-            responseDatums.add(responseData);
+            throw new Exception("Server seems to be slow processing");
         }
 
-        BatchResponse batchResponse = new BatchResponse(responseDatums);
-        batchResponse.setProtocolVersion(ServiceFactory.instance().getConfig().PROTOCOL_VERSION);
-        ZonedDateTime zonedDateTime = ZonedDateTime.now();
-        batchResponse.setServerTimestamp(zonedDateTime.toEpochSecond());
-        batchResponse.setServerTime(dateTimeFormatter.format(zonedDateTime));
-        return batchResponse;
+        BatchResponse batchResponse = null;
+        Exception exceptionResponse = null;
+
+        try {
+            boolean attachedGuildNotificationFound = false;
+            for (Command command : batch.getCommands()) {
+                CommandAction commandAction = command.getCommandAction();
+
+                if (commandAction == null) {
+                    throw new Exception("Command " + command.getAction() + " not supported");
+                }
+
+                if (!attachedGuildNotificationFound && commandAction.canAttachGuildNotifications()) {
+                    command.setAttachGuildNotification(true);
+                    attachedGuildNotificationFound = true;
+                }
+
+                ResponseData responseData = commandAction.execute(command);
+                responseDatums.add(responseData);
+            }
+
+            batchResponse = new BatchResponse(responseDatums);
+            batchResponse.setProtocolVersion(ServiceFactory.instance().getConfig().PROTOCOL_VERSION);
+            ZonedDateTime zonedDateTime = ZonedDateTime.now();
+            batchResponse.setServerTimestamp(zonedDateTime.toEpochSecond());
+            batchResponse.setServerTime(dateTimeFormatter.format(zonedDateTime));
+            return batchResponse;
+        } catch (Exception exception) {
+            exceptionResponse = exception;
+            throw exception;
+        } finally {
+            if (batchAction.canSaveResponse()) {
+                batchResponseReplayer.saveResponse(batch, batchResponse, exceptionResponse);
+            }
+        }
     }
 
     @Override
