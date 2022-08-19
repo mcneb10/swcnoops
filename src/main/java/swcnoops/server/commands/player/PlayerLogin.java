@@ -5,6 +5,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
@@ -145,10 +146,15 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory.capacity = -1;
         playerModel.inventory.storage = playerSession.getPlayerSettings().getInventoryStorage();
-//        playerModel.inventory.storage.credits.amount = 0L;
-//        playerModel.inventory.storage.crystals.amount = 9999999L;
-//        playerModel.inventory.storage.contraband.amount = 9999999L;
-//        playerModel.inventory.storage.materials.amount = 0L;
+
+        if (playerModel.currentQuest != null && playerModel.currentQuest.trim().isEmpty()
+                && playerSession.getPlayerSettings().getName() != null && !playerSession.getPlayerSettings().getName().isEmpty()) {
+            playerModel.inventory.storage.credits.amount = 9999999L;
+            playerModel.inventory.storage.crystals.amount = 9999999L;
+            playerModel.inventory.storage.contraband.amount = 9999999L;
+            playerModel.inventory.storage.materials.amount = 9999999L;
+        }
+
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 
@@ -175,7 +181,39 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     private void mapDonatedTroops(PlayerModel playerModel, PlayerSession playerSession) {
-        playerModel.donatedTroops = playerSession.getDonatedTroops();
+        playerModel.donatedTroops = levelUpTroopsByUid(playerSession.getDonatedTroops(), playerSession);
+    }
+
+    private DonatedTroops levelUpTroopsByUid(DonatedTroops donatedTroops, PlayerSession playerSession) {
+        DonatedTroops levelUpTroops = new DonatedTroops();
+
+        if (donatedTroops != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            donatedTroops.forEach((donatedUid,donatedByGroup) -> {
+                TroopData troopData = gameDataManager.getTroopDataByUid(donatedUid);
+                TroopData playersTroopData = playerSession.getTroopInventory().getTroopByUnitId(troopData.getUnitId());
+                if (playersTroopData != null) {
+                    if (playersTroopData.getLevel() > troopData.getLevel()) {
+                        donatedUid = playersTroopData.getUid();
+                    }
+                }
+
+                if (levelUpTroops.containsKey(donatedUid)) {
+                    GuildDonatedTroops guildDonatedTroops = levelUpTroops.get(donatedUid);
+                    donatedByGroup.forEach((donatedBy, numberOfTroops) ->
+                    {
+                        if (guildDonatedTroops.containsKey(donatedBy))
+                            guildDonatedTroops.put(donatedBy, guildDonatedTroops.get(donatedBy) + numberOfTroops);
+                        else
+                            guildDonatedTroops.put(donatedBy, numberOfTroops);
+                    });
+                } else {
+                    levelUpTroops.put(donatedUid, donatedByGroup);
+                }
+            });
+        }
+
+        return levelUpTroops;
     }
 
     /**
