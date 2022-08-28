@@ -58,11 +58,9 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
 
         GuildSession squad1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
         List<SquadMemberWarData> warParticipants1 = squad1.getWarParticipants(playerSession);
-        squad1.warStarted(time);
 
         GuildSession squad2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
         List<SquadMemberWarData> warParticipants2 = squad2.getWarParticipants(playerSession);
-        squad2.warStarted(time);
 
         GuildWarStatusCommandResult guildWarStatusResponse =
                 new GuildWarStatusCommandResult(guildSession);

@@ -37,6 +37,7 @@ public class ResponseHelper {
     static final public int STATUS_CODE_TOO_SOON_TO_REQUEST_TROOPS_AGAIN = 2320;
     static final public int STATUS_CODE_PLAYER_IS_IN_SQUAD_WAR = 2321;
     static final public int STATUS_CODE_GUILD_MAX = 2322;
+    // this one looks like it is for outpost
     static final public int STATUS_CODE_GUILD_WAR_BASE_ALREADY_OWNED = 2402;
     static final public int STATUS_CODE_GUILD_WAR_BASE_UNDER_ATTACK = 2403;
     static final public int STATUS_CODE_GUILD_WAR_PARTICIPANT_IN_ATTACK = 2404;

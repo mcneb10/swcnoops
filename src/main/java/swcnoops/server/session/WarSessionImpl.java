@@ -1,7 +1,9 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.datasource.AttackDetail;
+import swcnoops.server.datasource.DefendingWarParticipant;
 import swcnoops.server.datasource.War;
 import swcnoops.server.datasource.WarNotification;
 import swcnoops.server.model.SquadMsgType;
@@ -23,6 +25,7 @@ public class WarSessionImpl implements WarSession {
         this.squadB = ServiceFactory.instance().getSessionManager().getGuildSession(this.war.getSquadIdB());
     }
 
+    @Override
     public String getWarId() {
         return warId;
     }
@@ -48,7 +51,7 @@ public class WarSessionImpl implements WarSession {
     }
 
     @Override
-    public String warAttackStart(PlayerSession playerSession, String opponentId) {
+    public AttackDetail warAttackStart(PlayerSession playerSession, String opponentId, long time) {
         PlayerSession opponentSession = ServiceFactory.instance().getSessionManager().getPlayerSession(opponentId);
         WarNotificationData warNotificationData = new WarNotificationData(this.getWarId());
         warNotificationData.setOpponentId(opponentId);
@@ -59,14 +62,14 @@ public class WarSessionImpl implements WarSession {
                         playerSession.getGuildSession().getGuildName(), playerSession, SquadMsgType.warPlayerAttackStart);
         attackStartNotification.setData(warNotificationData);
 
-        AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackStart(this, getWarId(),
-                playerSession.getPlayerId(), opponentId, attackStartNotification);
+        AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackStart(this,
+                playerSession.getPlayerId(), opponentId, attackStartNotification, time);
 
         if (attackDetail.getBattleId() != null) {
             setGuildDirtyNotifcation(attackDetail);
         }
 
-        return attackDetail.getBattleId();
+        return attackDetail;
     }
 
     @Override
@@ -88,5 +91,29 @@ public class WarSessionImpl implements WarSession {
     private void setGuildDirtyNotifcation(WarNotification warNotification) {
         this.squadA.setNotificationDirty(warNotification.getGuildANotificationDate());
         this.squadB.setNotificationDirty(warNotification.getGuildBNotificationDate());
+    }
+
+    @Override
+    public AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete playerBattleComplete) {
+        WarNotificationData warNotificationData = new WarNotificationData(this.getWarId());
+        SquadNotification attackCompleteNotification =
+                createNotification(playerSession.getGuildSession().getGuildId(),
+                        playerSession.getGuildSession().getGuildName(), playerSession, SquadMsgType.warPlayerAttackComplete);
+        attackCompleteNotification.setData(warNotificationData);
+
+        DefendingWarParticipant defendingWarParticipant = ServiceFactory.instance().getPlayerDatasource()
+                .getDefendingWarParticipantByBattleId(playerBattleComplete.getBattleId());
+
+        PlayerSession opponentSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(defendingWarParticipant.getPlayerId());
+        warNotificationData.setOpponentId(defendingWarParticipant.getPlayerId());
+        warNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
+
+        AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackComplete(this,
+                playerSession.getPlayerId(), playerBattleComplete, attackCompleteNotification, defendingWarParticipant);
+
+        setGuildDirtyNotifcation(attackDetail);
+
+        return attackDetail;
     }
 }

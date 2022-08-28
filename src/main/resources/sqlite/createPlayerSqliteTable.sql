@@ -121,11 +121,20 @@ CREATE TABLE IF NOT EXISTS "WarParticipants" (
 	PRIMARY KEY("playerId","warId")
 );
 
+CREATE INDEX IF NOT EXISTS "warDefenseBattleId_idx" ON "WarParticipants" (
+	"defenseBattleId"
+);
+
+CREATE INDEX IF NOT EXISTS "warAttackBattleId_idx" ON "WarParticipants" (
+	"attackBattleId"
+);
+
 CREATE TABLE IF NOT EXISTS "WarBattles" (
 	"warId"	TEXT,
 	"battleId"	TEXT,
 	"attackerId"	TEXT,
 	"defenderId"	TEXT,
+	battleResponse  JSON,
 	attackExpirationDate NUMERIC,
 	attackResponseDate NUMERIC,
 	attackerScore NUMERIC,

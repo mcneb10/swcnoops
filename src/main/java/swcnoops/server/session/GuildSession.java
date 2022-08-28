@@ -54,11 +54,5 @@ public interface GuildSession {
 
     List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession);
 
-    void warAttackComplete(PlayerBattleComplete playerBattleComplete, PlayerSession playerSession);
-
-    String warAttackStart(PlayerSession playerSession, String opponentId, long time);
-
-    void warStarted(long time);
-
     void setNotificationDirty(long date);
 }

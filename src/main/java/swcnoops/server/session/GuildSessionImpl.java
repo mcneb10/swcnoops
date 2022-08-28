@@ -56,7 +56,6 @@ public class GuildSessionImpl implements GuildSession {
                             .getSquadNotificationsSince(this.getGuildId(), this.getGuildName(), this.latestNotificationDate);
                     if (!latestNotifications.isEmpty()) {
                         this.latestNotificationDate = getMaxNotificationDate(latestNotifications);
-                        this.squadNotifications.addAll(latestNotifications);
                         latestNotifications.forEach(a -> {
                             if (this.messageIds.contains(a.getId())) {
                                 System.out.println("message already in");
@@ -348,51 +347,5 @@ public class GuildSessionImpl implements GuildSession {
         }
 
         return squadMemberWarDatums;
-    }
-
-    @Override
-    public void warAttackComplete(PlayerBattleComplete playerBattleComplete, PlayerSession playerSession) {
-        SquadNotification attackCompleteNotification =
-                createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.warPlayerAttackComplete);
-
-//        WarNotificationData warNotificationData = new WarNotificationData(this.getGuildSettings().getWarId());
-//        PlayerSession opponentSession = ServiceFactory.instance().getSessionManager().getPlayerSession(opponentId);
-//        warNotificationData.setOpponentId(opponentId);
-//        warNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
-//        attackCompleteNotification.setData(warNotificationData);
-
-        ServiceFactory.instance().getPlayerDatasource().saveNotification(this, attackCompleteNotification);
-        this.setNotificationDirty(attackCompleteNotification.getDate());
-    }
-
-    @Override
-    public String warAttackStart(PlayerSession playerSession, String opponentId, long time) {
-        PlayerSession opponentSession = ServiceFactory.instance().getSessionManager().getPlayerSession(opponentId);
-
-        // TODO - finish
-//        String battleId = ServiceFactory.instance().getPlayerDatasource()
-//                .warAttackStart(this.getGuildSettings().getWarId(), playerSession.getPlayerId(), opponentId);
-        String battleId = ServiceFactory.createRandomUUID();
-
-        WarNotificationData warNotificationData = new WarNotificationData(this.getGuildSettings().getWarId());
-        warNotificationData.setOpponentId(opponentId);
-        warNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
-
-        // we use the time now as there could of been a delay for the command to reach the server
-        time = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        warNotificationData.setAttackExpirationDate(time + ServiceFactory.instance().getConfig().attackDuration);
-
-        SquadNotification attackStartNotification =
-                createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.warPlayerAttackStart);
-        attackStartNotification.setData(warNotificationData);
-        ServiceFactory.instance().getPlayerDatasource().saveNotification(this, attackStartNotification);
-        this.setNotificationDirty(attackStartNotification.getDate());
-        return battleId;
-    }
-
-    static final Set<String> warIdsStarted = new HashSet<>();
-    @Override
-    public void warStarted(long time) {
-        return;
     }
 }

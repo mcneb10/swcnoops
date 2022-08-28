@@ -60,4 +60,12 @@ public class WarNotificationData implements SquadNotificationData {
     public void setAttackExpirationDate(long attackExpirationDate) {
         this.attackExpirationDate = attackExpirationDate;
     }
+
+    public void setStars(int stars) {
+        this.stars = stars;
+    }
+
+    public void setVictoryPoints(int victoryPoints) {
+        this.victoryPoints = victoryPoints;
+    }
 }

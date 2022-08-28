@@ -1,7 +1,10 @@
 package swcnoops.server.session;
 
+import swcnoops.server.commands.player.PlayerBattleComplete;
+import swcnoops.server.datasource.AttackDetail;
+
 public interface WarSession {
-    String warAttackStart(PlayerSession playerSession, String opponentId);
+    AttackDetail warAttackStart(PlayerSession playerSession, String opponentId, long time);
 
     String getGuildIdA();
 
@@ -12,4 +15,8 @@ public interface WarSession {
     GuildSession getGuildBSession();
 
     void warMatched();
+
+    AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete arguments);
+
+    String getWarId();
 }

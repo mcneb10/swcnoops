@@ -12,6 +12,7 @@ public class SquadMemberWarData {
     public int score;
     public int level;
     public String warId;
+    public long defenseExpirationDate;
 
     // TODO
     //public List<Object> rewards;
