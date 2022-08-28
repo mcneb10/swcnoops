@@ -159,9 +159,9 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void leave(PlayerSession playerSession, SquadMsgType leaveType) {
-        removeMember(playerSession);
         SquadNotification leaveNotification = createNotification(this.getGuildId(), this.getGuildName(), playerSession, leaveType);
         ServiceFactory.instance().getPlayerDatasource().leaveSquad(this, playerSession, leaveNotification);
+        removeMember(playerSession);
         this.setNotificationDirty(leaveNotification.getDate());
 
         // the ejected player gets their own one as they are no longer in the squad so will not see the squad message
