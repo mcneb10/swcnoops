@@ -1479,13 +1479,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                                 PlayerBattleComplete playerBattleComplete,
                                                 int victoryPointsEarned, Connection connection)
     {
-        final String warParticipantsAttackSql = "update WarParticipants " +
-                "set attackBattleId = null, attackExpirationDate = null, score = score + ? " +
-                "where warId = ? and attackBattleId = ?";
-
         final String warParticipantsDefenseSql = "update WarParticipants " +
                 "set defenseBattleId = null, defenseExpirationDate = null, victoryPoints = victoryPoints - ? " +
                 "where warId = ? and defenseBattleId = ?";
+
+        final String warParticipantsAttackSql = "update WarParticipants " +
+                "set attackBattleId = null, attackExpirationDate = null, score = score + ? " +
+                "where warId = ? and attackBattleId = ?";
 
         AttackDetail attackDetail;
         try {

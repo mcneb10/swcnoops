@@ -15,8 +15,8 @@ public class BeforeWarTrigger implements CommandTrigger {
         if (guildSession != null) {
             Config config = ServiceFactory.instance().getConfig();
             War war = guildSession.getCurrentWar();
-            // we move it 5 mins before war start
-            war.setPrepGraceStartTime(ServiceFactory.getSystemTimeSecondsFromEpoch() + (60 * 5));
+            // we move it 1 mins before war start
+            war.setPrepGraceStartTime(ServiceFactory.getSystemTimeSecondsFromEpoch() + (60 * 1));
             war.setPrepEndTime(war.getPrepGraceStartTime() + config.warServerPreparationDuration);
             war.setActionGraceStartTime(war.getPrepEndTime() + config.warPlayDuration);
             war.setActionEndTime(war.getActionGraceStartTime() + config.warResultDuration);

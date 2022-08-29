@@ -34,7 +34,6 @@ public class Config {
     public boolean createBotPlayersInGroup = true;
     public boolean commandTriggerProcessorEnabled = true;
     public long attackDuration = 60 * 2;            // 2 minutes
-    public boolean modifyWarPhasesForDebug = false;
     public long warPlayerPreparationDuration = 60 * 60 * 24;     // war players prep time
     public long warServerPreparationDuration = 60 * 2;     // war server prep time
     public long warPlayDuration = 60 * 60 * 23;            // war duration

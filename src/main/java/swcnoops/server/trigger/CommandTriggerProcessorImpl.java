@@ -9,6 +9,7 @@ public class CommandTriggerProcessorImpl implements CommandTriggerProcessor {
     private CommandTrigger beforewarend = new BeforeWarEndTrigger();
     private CommandTrigger endwar = new EndWarTrigger();
     private CommandTrigger deleteWar = new DeleteWarTrigger();
+    private CommandTrigger afterCoolDownTrigger = new AfterCoolDownTrigger();
 
     @Override
     public void process(String playerId, String message) {
@@ -34,6 +35,9 @@ public class CommandTriggerProcessorImpl implements CommandTriggerProcessor {
                     break;
                 case "endwar" :
                     endwar.process(playerId);
+                    break;
+                case "aftercooldown" :
+                    afterCoolDownTrigger.process(playerId);
                     break;
                 case "deletewar" :
                     deleteWar.process(playerId);
