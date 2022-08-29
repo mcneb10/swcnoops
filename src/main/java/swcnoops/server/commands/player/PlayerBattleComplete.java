@@ -58,4 +58,16 @@ abstract public class PlayerBattleComplete<A extends PlayerBattleComplete, B ext
     public ReplayData getReplayData() {
         return replayData;
     }
+
+    public String getCmsVersion() {
+        return cmsVersion;
+    }
+
+    public String getBattleVersion() {
+        return battleVersion;
+    }
+
+    public int getBaseDamagePercent() {
+        return baseDamagePercent;
+    }
 }

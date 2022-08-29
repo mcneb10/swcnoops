@@ -139,3 +139,6 @@ CREATE TABLE IF NOT EXISTS "WarBattles" (
 	PRIMARY KEY("battleId")
 );
 
+CREATE INDEX IF NOT EXISTS "warBattlesBattleId_idx" ON "WarBattles" (
+	"battleId"
+);

@@ -2,6 +2,7 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.player.PlayerBattleArguments;
 import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.model.*;
@@ -1378,6 +1379,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public AttackDetail warAttackComplete(WarSession warSession, String playerId,
                                           PlayerBattleComplete playerBattleComplete,
                                           SquadNotification attackCompleteNotification,
+                                          SquadNotification attackReplayNotification,
                                           DefendingWarParticipant defendingWarParticipant, long time)
     {
         AttackDetail attackDetail;
@@ -1400,6 +1402,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 warNotificationData.setStars(playerBattleComplete.getStars());
                 warNotificationData.setVictoryPoints(victoryPointsEarned);
                 setAndSaveWarNotification(attackDetail, warSession, attackCompleteNotification, connection);
+                setAndSaveWarNotification(attackDetail, warSession, attackReplayNotification, connection);
                 saveWarBattle(playerBattleComplete, warSession.getWarId(), warNotificationData.getOpponentId(), time, connection);
                 connection.commit();
             } else {
@@ -1442,6 +1445,49 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return defendingWarParticipant;
+    }
+
+    @Override
+    public WarBattle getWarBattle(String battleId) {
+        WarBattle warBattle;
+        try (Connection connection = getConnection()) {
+            warBattle = getWarBattle(battleId, connection);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get war battle by battleId=" + battleId, ex);
+        }
+
+        return warBattle;
+    }
+
+    private WarBattle getWarBattle(String battleId, Connection connection) {
+        final String warBattlesSql = "select warId, battleId, attackerId, defenderId, battleResponse, battleCompleteTime " +
+                "from WarBattles w " +
+                "where w.battleId = ?";
+
+        WarBattle warBattle = null;
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(warBattlesSql)) {
+                stmt.setString(1, battleId);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    if (rs.next()) {
+                        String warId = rs.getString("warId");
+                        String attackerId = rs.getString("attackerId");
+                        String defenderId = rs.getString("defenderId");
+                        String battleResponseJson = rs.getString("battleResponse");
+                        PlayerBattleComplete battleResponse = ServiceFactory.instance().getJsonParser()
+                                .fromJsonString(battleResponseJson, PlayerBattleArguments.class);
+
+                        long battleCompleteTime = rs.getLong("battleCompleteTime");
+                        warBattle = new WarBattle(battleId, attackerId, defenderId, battleResponse, battleCompleteTime);
+                    }
+                }
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to getDefendingWarParticipantByBattleId for player id=" + battleId, ex);
+        }
+
+        return warBattle;
     }
 
     private DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId, Connection connection) {
