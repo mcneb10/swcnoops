@@ -1378,7 +1378,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public AttackDetail warAttackComplete(WarSession warSession, String playerId,
                                           PlayerBattleComplete playerBattleComplete,
                                           SquadNotification attackCompleteNotification,
-                                          DefendingWarParticipant defendingWarParticipant)
+                                          DefendingWarParticipant defendingWarParticipant, long time)
     {
         AttackDetail attackDetail;
         try (Connection connection = getConnection()) {
@@ -1400,7 +1400,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 warNotificationData.setStars(playerBattleComplete.getStars());
                 warNotificationData.setVictoryPoints(victoryPointsEarned);
                 setAndSaveWarNotification(attackDetail, warSession, attackCompleteNotification, connection);
-                saveWarBattle(playerBattleComplete, warSession.getWarId(), warNotificationData.getOpponentId(), connection);
+                saveWarBattle(playerBattleComplete, warSession.getWarId(), warNotificationData.getOpponentId(), time, connection);
                 connection.commit();
             } else {
                 connection.rollback();;
@@ -1412,9 +1412,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return attackDetail;
     }
 
-    private void saveWarBattle(PlayerBattleComplete playerBattleComplete, String warId, String defenderId, Connection connection) {
-        final String squadMemberSql = "insert into WarBattles (warId, battleId, attackerId, defenderId, battleResponse) values " +
-                "(?, ?, ?, ?, ?)";
+    private void saveWarBattle(PlayerBattleComplete playerBattleComplete, String warId, String defenderId, long time, Connection connection) {
+        final String squadMemberSql = "insert into WarBattles (warId, battleId, attackerId, defenderId, battleResponse, battleCompleteTime) values " +
+                "(?, ?, ?, ?, ?, ?)";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
@@ -1424,6 +1424,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(4, defenderId);
                 String responseJson = ServiceFactory.instance().getJsonParser().toJson(playerBattleComplete);
                 stmt.setString(5, responseJson);
+                stmt.setLong(6, time);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {

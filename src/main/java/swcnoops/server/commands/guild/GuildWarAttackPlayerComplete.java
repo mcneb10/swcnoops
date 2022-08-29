@@ -21,7 +21,7 @@ public class GuildWarAttackPlayerComplete extends PlayerBattleComplete<GuildWarA
             WarSession warSession = ServiceFactory.instance().getSessionManager()
                     .getWarSession(guildSession.getGuildSettings().getWarId());
 
-            attackDetail = warSession.warAttackComplete(playerSession, arguments);
+            attackDetail = warSession.warAttackComplete(playerSession, arguments, time);
         }
 
         return new BattleIdResult(attackDetail.getReturnCode());

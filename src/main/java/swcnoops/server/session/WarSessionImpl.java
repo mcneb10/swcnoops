@@ -94,7 +94,7 @@ public class WarSessionImpl implements WarSession {
     }
 
     @Override
-    public AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete playerBattleComplete) {
+    public AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete playerBattleComplete, long time) {
         WarNotificationData warNotificationData = new WarNotificationData(this.getWarId());
         SquadNotification attackCompleteNotification =
                 createNotification(playerSession.getGuildSession().getGuildId(),
@@ -110,7 +110,8 @@ public class WarSessionImpl implements WarSession {
         warNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
 
         AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackComplete(this,
-                playerSession.getPlayerId(), playerBattleComplete, attackCompleteNotification, defendingWarParticipant);
+                playerSession.getPlayerId(), playerBattleComplete, attackCompleteNotification, defendingWarParticipant,
+                time);
 
         setGuildDirtyNotifcation(attackDetail);
 

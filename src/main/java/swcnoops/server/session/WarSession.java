@@ -16,7 +16,7 @@ public interface WarSession {
 
     void warMatched();
 
-    AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete arguments);
+    AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete arguments, long time);
 
     String getWarId();
 }

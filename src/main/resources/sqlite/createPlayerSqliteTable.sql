@@ -135,9 +135,7 @@ CREATE TABLE IF NOT EXISTS "WarBattles" (
 	"attackerId"	TEXT,
 	"defenderId"	TEXT,
 	battleResponse  JSON,
-	attackExpirationDate NUMERIC,
-	attackResponseDate NUMERIC,
-	attackerScore NUMERIC,
+	battleCompleteTime NUMERIC,
 	PRIMARY KEY("battleId")
 );
 

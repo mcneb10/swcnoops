@@ -79,7 +79,7 @@ public interface PlayerDataSource {
     WarNotification warPrepared(WarSessionImpl warSession, String warId, SquadNotification warPreparedNotification);
 
     AttackDetail warAttackComplete(WarSession warSession, String playerId, PlayerBattleComplete playerBattleComplete,
-                                   SquadNotification attackCompleteNotification, DefendingWarParticipant defendingWarParticipant);
+                                   SquadNotification attackCompleteNotification, DefendingWarParticipant defendingWarParticipant, long time);
 
     DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);
 }
