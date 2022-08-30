@@ -5,7 +5,7 @@ public class Defender {
     public long attackRatingDelta;
     public long defenseRating;
     public long defenseRatingDelta;
-    public String faction;
+    public FactionType faction;
     public String guildId;
     public String guildName;
     public String name;

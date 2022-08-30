@@ -2,8 +2,6 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.player.PlayerBattleArguments;
-import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -1377,7 +1375,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public AttackDetail warAttackComplete(WarSession warSession, String playerId,
-                                          PlayerBattleComplete playerBattleComplete,
+                                          BattleReplay battleReplay,
                                           SquadNotification attackCompleteNotification,
                                           SquadNotification attackReplayNotification,
                                           DefendingWarParticipant defendingWarParticipant, long time)
@@ -1388,22 +1386,22 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
             // calculate how many stars earned in the attack
             int victoryPointsRemaining = defendingWarParticipant.getVictoryPoints();
-            int victoryPointsEarned = (3 - victoryPointsRemaining) - playerBattleComplete.getStars();
+            int victoryPointsEarned = (3 - victoryPointsRemaining) - battleReplay.battleLog.stars;
             if (victoryPointsEarned < 0)
                 victoryPointsEarned = Math.abs(victoryPointsEarned);
             else
                 victoryPointsEarned = 0;
 
-            attackDetail = saveAndUpdateWarBattle(warSession.getWarId(), playerId, playerBattleComplete,
+            attackDetail = saveAndUpdateWarBattle(warSession.getWarId(), playerId, battleReplay,
                     victoryPointsEarned, connection);
 
             if (attackDetail.getReturnCode() == ResponseHelper.RECEIPT_STATUS_COMPLETE) {
                 WarNotificationData warNotificationData = (WarNotificationData) attackCompleteNotification.getData();
-                warNotificationData.setStars(playerBattleComplete.getStars());
+                warNotificationData.setStars(battleReplay.battleLog.stars);
                 warNotificationData.setVictoryPoints(victoryPointsEarned);
                 setAndSaveWarNotification(attackDetail, warSession, attackCompleteNotification, connection);
                 setAndSaveWarNotification(attackDetail, warSession, attackReplayNotification, connection);
-                saveWarBattle(playerBattleComplete, warSession.getWarId(), warNotificationData.getOpponentId(), time, connection);
+                saveWarBattle(battleReplay, warSession.getWarId(), time, connection);
                 connection.commit();
             } else {
                 connection.rollback();;
@@ -1415,23 +1413,23 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return attackDetail;
     }
 
-    private void saveWarBattle(PlayerBattleComplete playerBattleComplete, String warId, String defenderId, long time, Connection connection) {
+    private void saveWarBattle(BattleReplay battleReplay, String warId, long time, Connection connection) {
         final String squadMemberSql = "insert into WarBattles (warId, battleId, attackerId, defenderId, battleResponse, battleCompleteTime) values " +
                 "(?, ?, ?, ?, ?, ?)";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
                 stmt.setString(1, warId);
-                stmt.setString(2, playerBattleComplete.getBattleId());
-                stmt.setString(3, playerBattleComplete.getPlayerId());
-                stmt.setString(4, defenderId);
-                String responseJson = ServiceFactory.instance().getJsonParser().toJson(playerBattleComplete);
+                stmt.setString(2, battleReplay.battleLog.battleId);
+                stmt.setString(3, battleReplay.battleLog.attacker.playerId);
+                stmt.setString(4, battleReplay.battleLog.defender.playerId);
+                String responseJson = ServiceFactory.instance().getJsonParser().toJson(battleReplay);
                 stmt.setString(5, responseJson);
                 stmt.setLong(6, time);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war battle for battleId=" + playerBattleComplete.getBattleId(), ex);
+            throw new RuntimeException("Failed to save war battle for battleId=" + battleReplay.battleLog.battleId, ex);
         }
     }
 
@@ -1475,11 +1473,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         String attackerId = rs.getString("attackerId");
                         String defenderId = rs.getString("defenderId");
                         String battleResponseJson = rs.getString("battleResponse");
-                        PlayerBattleComplete battleResponse = ServiceFactory.instance().getJsonParser()
-                                .fromJsonString(battleResponseJson, PlayerBattleArguments.class);
+                        BattleReplay battleReplay = ServiceFactory.instance().getJsonParser()
+                                .fromJsonString(battleResponseJson, BattleReplay.class);
 
                         long battleCompleteTime = rs.getLong("battleCompleteTime");
-                        warBattle = new WarBattle(battleId, attackerId, defenderId, battleResponse, battleCompleteTime);
+                        warBattle = new WarBattle(battleId, attackerId, defenderId, battleReplay, battleCompleteTime);
                     }
                 }
             }
@@ -1523,7 +1521,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private AttackDetail saveAndUpdateWarBattle(String warId, String playerId,
-                                                PlayerBattleComplete playerBattleComplete,
+                                                BattleReplay battleReplay,
                                                 int victoryPointsEarned, Connection connection)
     {
         final String warParticipantsDefenseSql = "update WarParticipants " +
@@ -1541,7 +1539,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             try (PreparedStatement stmt = connection.prepareStatement(warParticipantsDefenseSql)) {
                 stmt.setInt(1, victoryPointsEarned);
                 stmt.setString(2, warId);
-                stmt.setString(3, playerBattleComplete.getBattleId());
+                stmt.setString(3, battleReplay.battleLog.battleId);
                 if (stmt.executeUpdate() == 1)
                     updated = true;
             }
@@ -1551,7 +1549,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 try (PreparedStatement stmt = connection.prepareStatement(warParticipantsAttackSql)) {
                     stmt.setInt(1, victoryPointsEarned);
                     stmt.setString(2, warId);
-                    stmt.setString(3, playerBattleComplete.getBattleId());
+                    stmt.setString(3, battleReplay.battleLog.battleId);
                     if (stmt.executeUpdate() == 1)
                         updated = true;
                 }

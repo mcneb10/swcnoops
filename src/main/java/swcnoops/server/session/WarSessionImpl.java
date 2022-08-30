@@ -1,7 +1,6 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.datasource.AttackDetail;
 import swcnoops.server.datasource.DefendingWarParticipant;
 import swcnoops.server.datasource.War;
@@ -92,9 +91,12 @@ public class WarSessionImpl implements WarSession {
     }
 
     @Override
-    public AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete playerBattleComplete, long time) {
+    public AttackDetail warAttackComplete(PlayerSession playerSession, PlayerSession defenderSession,
+                                          BattleReplay battleReplay, DefendingWarParticipant defendingWarParticipant, long time)
+    {
         // we override the planet as this is war which is on sullust
-        playerBattleComplete.getReplayData().combatEncounter.map.planet = "planet24";
+        battleReplay.battleLog.planetId = "planet24";
+        battleReplay.replayData.combatEncounter.map.planet = battleReplay.battleLog.planetId;
 
         WarNotificationData warNotificationData = new WarNotificationData(this.getWarId());
         SquadNotification attackCompleteNotification =
@@ -102,19 +104,14 @@ public class WarSessionImpl implements WarSession {
                         playerSession.getGuildSession().getGuildName(), playerSession, SquadMsgType.warPlayerAttackComplete);
         attackCompleteNotification.setData(warNotificationData);
 
-        DefendingWarParticipant defendingWarParticipant = ServiceFactory.instance().getPlayerDatasource()
-                .getDefendingWarParticipantByBattleId(playerBattleComplete.getBattleId());
-
-        PlayerSession opponentSession = ServiceFactory.instance().getSessionManager()
-                .getPlayerSession(defendingWarParticipant.getPlayerId());
-        warNotificationData.setOpponentId(defendingWarParticipant.getPlayerId());
-        warNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
+        warNotificationData.setOpponentId(battleReplay.battleLog.defender.playerId);
+        warNotificationData.setOpponentName(battleReplay.battleLog.defender.name);
 
         SquadNotification attackReplayNotification =
-                createWarReplayNotification(playerSession, opponentSession, playerBattleComplete);
+                createWarReplayNotification(playerSession, defenderSession, battleReplay);
 
         AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackComplete(this,
-                playerSession.getPlayerId(), playerBattleComplete, attackCompleteNotification, attackReplayNotification,
+                playerSession.getPlayerId(), battleReplay, attackCompleteNotification, attackReplayNotification,
                 defendingWarParticipant,
                 time);
 
@@ -125,10 +122,10 @@ public class WarSessionImpl implements WarSession {
 
     private SquadNotification createWarReplayNotification(PlayerSession playerSession,
                                                           PlayerSession opponentSession,
-                                                          PlayerBattleComplete playerBattleComplete)
+                                                          BattleReplay battleReplay)
     {
         ShareBattleNotificationData shareBattleNotificationData =
-                createBattleNotification(playerSession, opponentSession, playerBattleComplete);
+                createBattleNotification(playerSession, opponentSession, battleReplay);
 
         SquadNotification attackReplayNotification =
                 createNotification(playerSession.getGuildSession().getGuildId(),
@@ -142,17 +139,17 @@ public class WarSessionImpl implements WarSession {
 
     private ShareBattleNotificationData createBattleNotification(PlayerSession playerSession,
                                                                  PlayerSession opponentSession,
-                                                                 PlayerBattleComplete playerBattleComplete)
+                                                                 BattleReplay battleReplay)
     {
         ShareBattleNotificationData shareBattleNotificationData =
-                new ShareBattleNotificationData(playerBattleComplete.getBattleId());
+                new ShareBattleNotificationData(battleReplay.battleLog.battleId);
 
-        shareBattleNotificationData.setBattleVersion(playerBattleComplete.getBattleVersion());
-        shareBattleNotificationData.setCmsVersion(playerBattleComplete.getCmsVersion());
+        shareBattleNotificationData.setBattleVersion(battleReplay.battleLog.battleVersion);
+        shareBattleNotificationData.setCmsVersion(battleReplay.battleLog.cmsVersion);
         shareBattleNotificationData.setBattleScoreDelta(0);
         shareBattleNotificationData.setFaction(playerSession.getFaction());
-        shareBattleNotificationData.setStars(playerBattleComplete.getStars());
-        shareBattleNotificationData.setDamagePercent(playerBattleComplete.getBaseDamagePercent());
+        shareBattleNotificationData.setStars(battleReplay.battleLog.stars);
+        shareBattleNotificationData.setDamagePercent(battleReplay.battleLog.baseDamagePercent);
         shareBattleNotificationData.setType(SquadBattleReplayType.Attack);
         shareBattleNotificationData.setOpponentId(opponentSession.getPlayerId());
         shareBattleNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());

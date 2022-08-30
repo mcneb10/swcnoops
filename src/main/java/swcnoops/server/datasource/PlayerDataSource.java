@@ -1,6 +1,5 @@
 package swcnoops.server.datasource;
 
-import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
@@ -78,7 +77,7 @@ public interface PlayerDataSource {
 
     WarNotification warPrepared(WarSessionImpl warSession, String warId, SquadNotification warPreparedNotification);
 
-    AttackDetail warAttackComplete(WarSession warSession, String playerId, PlayerBattleComplete playerBattleComplete,
+    AttackDetail warAttackComplete(WarSession warSession, String playerId, BattleReplay playerBattleComplete,
                                    SquadNotification attackCompleteNotification, SquadNotification attackReplayNotification, DefendingWarParticipant defendingWarParticipant, long time);
 
     DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);

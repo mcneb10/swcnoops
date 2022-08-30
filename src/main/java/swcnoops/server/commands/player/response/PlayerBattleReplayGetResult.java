@@ -1,16 +1,16 @@
 package swcnoops.server.commands.player.response;
 
-import swcnoops.server.model.BattleReplayResponse;
+import swcnoops.server.model.BattleReplay;
 import swcnoops.server.requests.AbstractCommandResult;
 
 public class PlayerBattleReplayGetResult extends AbstractCommandResult {
-    private BattleReplayResponse battleReplayResponse;
-    public PlayerBattleReplayGetResult(BattleReplayResponse battleReplayResponse) {
-        this.battleReplayResponse = battleReplayResponse;
+    private BattleReplay battleReplay;
+    public PlayerBattleReplayGetResult(BattleReplay battleReplay) {
+        this.battleReplay = battleReplay;
     }
 
     @Override
     public Object getResult() {
-        return this.battleReplayResponse;
+        return this.battleReplay;
     }
 }

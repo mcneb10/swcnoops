@@ -1,7 +1,8 @@
 package swcnoops.server.session;
 
-import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.datasource.AttackDetail;
+import swcnoops.server.datasource.DefendingWarParticipant;
+import swcnoops.server.model.BattleReplay;
 
 public interface WarSession {
     AttackDetail warAttackStart(PlayerSession playerSession, String opponentId, long time);
@@ -16,7 +17,7 @@ public interface WarSession {
 
     void warMatched();
 
-    AttackDetail warAttackComplete(PlayerSession playerSession, PlayerBattleComplete arguments, long time);
+    AttackDetail warAttackComplete(PlayerSession playerSession, PlayerSession defenderSession, BattleReplay arguments, DefendingWarParticipant defendingWarParticipant, long time);
 
     String getWarId();
 }

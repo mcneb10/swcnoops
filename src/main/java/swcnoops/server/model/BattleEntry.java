@@ -8,7 +8,7 @@ public class BattleEntry {
     public Attacker attacker;
     public List<String> attackerEquipment;
     public Map<String, Integer> attackerGuildTroopsExpended;
-    public long baseDamagePercent;
+    public int baseDamagePercent;
     public String battleId;
     public String battleVersion;
     public String cmsVersion;
@@ -26,6 +26,6 @@ public class BattleEntry {
     public long potentialMedalGain;
     public boolean revenged;
     public boolean server;
-    public long stars;
+    public int stars;
     public Map<String, Integer> troopsExpended;
 }

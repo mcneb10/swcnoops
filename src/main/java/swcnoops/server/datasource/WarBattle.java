@@ -1,6 +1,6 @@
 package swcnoops.server.datasource;
 
-import swcnoops.server.commands.player.PlayerBattleComplete;
+import swcnoops.server.model.BattleReplay;
 
 import java.util.ArrayList;
 
@@ -8,27 +8,27 @@ public class WarBattle {
     private String battleId;
     private String attackerId;
     private String defenderId;
-    private PlayerBattleComplete battleResponse;
+    private BattleReplay battleResponse;
     private long battleCompleteTime;
 
-    public WarBattle(String battleId, String attackerId, String defenderId, PlayerBattleComplete battleResponse,
+    public WarBattle(String battleId, String attackerId, String defenderId, BattleReplay battleReplay,
                      long battleCompleteTime)
     {
         this.battleId = battleId;
         this.attackerId = attackerId;
         this.defenderId = defenderId;
-        this.battleResponse = battleResponse;
+        this.battleResponse = battleReplay;
         this.battleCompleteTime = battleCompleteTime;
 
         fixNullProperties(this.battleResponse);
     }
 
-    private void fixNullProperties(PlayerBattleComplete battleResponse) {
-        if (battleResponse.getReplayData().defenderCreatureTraps == null)
-            battleResponse.getReplayData().defenderCreatureTraps = new ArrayList<>();
+    private void fixNullProperties(BattleReplay battleReplay) {
+        if (battleReplay.replayData.defenderCreatureTraps == null)
+            battleReplay.replayData.defenderCreatureTraps = new ArrayList<>();
 
-        if (battleResponse.getReplayData().attackerCreatureTraps == null)
-            battleResponse.getReplayData().attackerCreatureTraps = new ArrayList<>();
+        if (battleReplay.replayData.attackerCreatureTraps == null)
+            battleReplay.replayData.attackerCreatureTraps = new ArrayList<>();
     }
 
     public String getBattleId() {
@@ -43,7 +43,7 @@ public class WarBattle {
         return defenderId;
     }
 
-    public PlayerBattleComplete getBattleResponse() {
+    public BattleReplay getBattleReplay() {
         return battleResponse;
     }
 
