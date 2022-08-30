@@ -32,4 +32,9 @@ public class AuthPreauthGeneratePlayerWithFacebook extends AbstractCommandAction
     public boolean canAttachGuildNotifications() {
         return false;
     }
+
+    @Override
+    public boolean isAuthCommand() {
+        return true;
+    }
 }

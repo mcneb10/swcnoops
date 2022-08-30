@@ -3,7 +3,10 @@ package swcnoops.server.datasource;
 import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.WarSession;
+import swcnoops.server.session.WarSessionImpl;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface PlayerDataSource {
@@ -30,7 +33,7 @@ public interface PlayerDataSource {
 
     PlayerSecret getPlayerSecret(String primaryId);
 
-    void saveNotification(String guildId, SquadNotification squadNotification);
+    void saveNotification(GuildSession guildSession, SquadNotification squadNotification);
 
     void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification leaveNotification);
 
@@ -46,9 +49,9 @@ public interface PlayerDataSource {
 
     List<Squad> searchGuildByName(String searchTerm);
 
-    void saveWarMatchMake(FactionType faction, String guildId, List<String> participantIds, SquadNotification squadNotification, Long time);
+    void saveWarMatchMake(FactionType faction, GuildSession guildId, List<String> participantIds, SquadNotification squadNotification, Long time);
 
-    void saveWarMatchCancel(String guildId, SquadNotification squadNotification);
+    void saveWarMatchCancel(GuildSession guildSession, SquadNotification squadNotification);
 
     String matchMake(String guildId);
 
@@ -60,12 +63,24 @@ public interface PlayerDataSource {
 
     void saveWarParticipant(SquadMemberWarData squadMemberWarData);
 
-    void saveWarParticipant(PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
+    void saveWarParticipant(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
                             SquadNotification squadNotification);
 
-    String warAttackStart(String warId, String playerId, String opponentId);
+    AttackDetail warAttackStart(WarSession warSession, String playerId,
+                                String opponentId, SquadNotification attackStartNotification, long time);
 
     void deleteWarForSquads(War war);
 
     void saveWar(War war);
+
+    Collection<SquadNotification> getSquadNotificationsSince(String guildId, String guildName, long latestNotificationDate);
+
+    WarNotification warPrepared(WarSessionImpl warSession, String warId, SquadNotification warPreparedNotification);
+
+    AttackDetail warAttackComplete(WarSession warSession, String playerId, BattleReplay playerBattleComplete,
+                                   SquadNotification attackCompleteNotification, SquadNotification attackReplayNotification, DefendingWarParticipant defendingWarParticipant, long time);
+
+    DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);
+
+    WarBattle getWarBattle(String battleId);
 }

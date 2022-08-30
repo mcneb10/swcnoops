@@ -1,9 +1,14 @@
 package swcnoops.server.trigger;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.datasource.War;
+import swcnoops.server.model.SquadMsgType;
+import swcnoops.server.model.SquadNotification;
+import swcnoops.server.model.WarNotificationData;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.WarSession;
+
+import static swcnoops.server.session.NotificationFactory.createNotification;
 
 /**
  * To simulate match making for the players squad
@@ -17,22 +22,17 @@ public class MatchMakeTrigger implements CommandTrigger {
         if (guildSession != null) {
             String warId = doMatchMake(guildSession);
             if (warId != null) {
-                // have to set the warId for current war to be retrievable
-                guildSession.getGuildSettings().setWarId(warId);
-                War war = guildSession.getCurrentWar();
-
-                GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
-                GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
-
-                guildSession1.getGuildSettings().setWarId(warId);
-                guildSession1.warMatched(warId);
-                guildSession2.getGuildSettings().setWarId(warId);
-                guildSession2.warMatched(warId);
+                WarSession warSession = ServiceFactory.instance().getSessionManager().getWarSession(warId);
+                warSession.warMatched();
             }
         }
     }
 
     private String doMatchMake(GuildSession guildSession) {
-        return ServiceFactory.instance().getPlayerDatasource().matchMake(guildSession.getGuildId());
+        SquadNotification warPreparedNotification =
+                createNotification(guildSession.getGuildId(), guildSession.getGuildName(), null, SquadMsgType.warPrepared);
+        warPreparedNotification.setData(new WarNotificationData());
+        return ServiceFactory.instance().getPlayerDatasource()
+                .matchMake(guildSession.getGuildId());
     }
 }

@@ -53,11 +53,12 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
 
         String expectedToken = TokenHelper.generateToken(message, playerSecret.getSecret());
 
-//        if (!expectedToken.equals(requestToken))
-//            throw new RuntimeException("Invalid requestToken by player " + arguments.getPlayerId());
+        if (ServiceFactory.instance().getConfig().validateAuthKey && !expectedToken.equals(requestToken))
+            throw new RuntimeException("Invalid requestToken by player " + arguments.getPlayerId());
 
-        // we send back what they gave us
-        return ResponseHelper.newStringResponse(arguments.getRequestToken(), true);
+        // we send back a token
+        String token = ServiceFactory.instance().getAuthenticationService().createToken(arguments.getPlayerId());
+        return ResponseHelper.newStringResponse(token, true);
     }
 
     @Override
@@ -68,5 +69,10 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
     @Override
     public boolean canAttachGuildNotifications() {
         return false;
+    }
+
+    @Override
+    public boolean isAuthCommand() {
+        return true;
     }
 }

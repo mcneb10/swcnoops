@@ -34,6 +34,7 @@ public class NotificationFactory {
                 case warPrepared:
                 case warPlayerAttackStart:
                 case warPlayerAttackComplete:
+                case shareBattle:
                     squadNotification =
                             new SquadNotification(guildId, guildName,
                                     ServiceFactory.createRandomUUID(), message,
@@ -89,6 +90,10 @@ public class NotificationFactory {
                 case joinRequestRejected:
                     squadNotificationData = ServiceFactory.instance().getJsonParser()
                             .fromJsonString(squadNotificationJson, RejectorSquadMemberApplyData.class);
+                    break;
+                case shareBattle:
+                    squadNotificationData = ServiceFactory.instance().getJsonParser()
+                            .fromJsonString(squadNotificationJson, ShareBattleNotificationData.class);
                     break;
                 case leave:
                 case join:

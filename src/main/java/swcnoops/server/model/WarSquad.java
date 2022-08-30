@@ -43,6 +43,9 @@ public class WarSquad {
         participant.score = squadMemberWarData.score;
         participant.victoryPoints = squadMemberWarData.victoryPoints;
         participant.level = squadMemberWarData.level;
+
+        if (squadMemberWarData.defenseExpirationDate != 0)
+            participant.currentlyDefending.put("expiration", squadMemberWarData.defenseExpirationDate);
         return participant;
     }
 }

@@ -63,11 +63,16 @@ CREATE TABLE IF NOT EXISTS "SquadNotifications" (
 	"squadMessageType"	TEXT,
 	"message"	TEXT,
 	"squadNotification"	json,
-	PRIMARY KEY("id")
+	PRIMARY KEY("id", "guildId")
 );
 
 CREATE INDEX IF NOT EXISTS "SquadNotification_idx" ON "SquadNotifications" (
 	"guildId"
+);
+
+CREATE INDEX IF NOT EXISTS "squadNotification_date_idx" ON "SquadNotifications" (
+	"guildId",
+	"date"
 );
 
 CREATE TABLE IF NOT EXISTS "War" (
@@ -109,8 +114,19 @@ CREATE TABLE IF NOT EXISTS "WarParticipants" (
 	"score"	INTEGER,
 	"victoryPoints"	INTEGER,
 	attackExpirationDate NUMERIC,
-	battleId TEXT,
+	attackBattleId TEXT,
+	defenseExpirationDate NUMERIC,
+	defenseBattleId TEXT,
+	"defenseRemaining"	INTEGER,
 	PRIMARY KEY("playerId","warId")
+);
+
+CREATE INDEX IF NOT EXISTS "warDefenseBattleId_idx" ON "WarParticipants" (
+	"defenseBattleId"
+);
+
+CREATE INDEX IF NOT EXISTS "warAttackBattleId_idx" ON "WarParticipants" (
+	"attackBattleId"
 );
 
 CREATE TABLE IF NOT EXISTS "WarBattles" (
@@ -118,6 +134,11 @@ CREATE TABLE IF NOT EXISTS "WarBattles" (
 	"battleId"	TEXT,
 	"attackerId"	TEXT,
 	"defenderId"	TEXT,
+	battleResponse  JSON,
+	battleCompleteTime NUMERIC,
 	PRIMARY KEY("battleId")
 );
 
+CREATE INDEX IF NOT EXISTS "warBattlesBattleId_idx" ON "WarBattles" (
+	"battleId"
+);

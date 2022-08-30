@@ -34,8 +34,6 @@ public interface GuildSession {
 
     void createNewGuild(PlayerSession playerSession);
 
-    void addNotification(SquadNotification squadNotification);
-
     List<SquadNotification> getNotifications(long since);
 
     void saveNotification(SquadNotification squadNotification);
@@ -52,15 +50,9 @@ public interface GuildSession {
 
     SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time);
 
-    void warMatched(String warId);
-
     War getCurrentWar();
 
     List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession);
 
-    void warAttackComplete(PlayerBattleComplete playerBattleComplete, PlayerSession playerSession);
-
-    String warAttackStart(PlayerSession playerSession, String opponentId, long time);
-
-    void warStarted(long time);
+    void setNotificationDirty(long date);
 }

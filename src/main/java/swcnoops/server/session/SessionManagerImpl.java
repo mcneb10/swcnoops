@@ -14,6 +14,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class SessionManagerImpl implements SessionManager {
     final private Map<String, PlayerSession> players = new ConcurrentHashMap<>();
     final private Map<String, GuildSession> guilds = new ConcurrentHashMap<>();
+    final private Map<String, WarSession> wars = new ConcurrentHashMap<>();
     final private Lock guildLock = new ReentrantLock();
 
     @Override
@@ -109,6 +110,22 @@ public class SessionManagerImpl implements SessionManager {
     @Override
     public GuildSession getGuildSession(String guildId) {
         return this.getGuildSession(null, guildId);
+    }
+
+    @Override
+    public WarSession getWarSession(String warId) {
+        WarSession warSession = this.wars.get(warId);
+
+        if (warSession == null) {
+            synchronized (this.wars) {
+                warSession = this.wars.get(warId);
+                if (warSession == null) {
+                    warSession = new WarSessionImpl(warId);
+                    this.wars.put(warId, warSession);
+                }
+            }
+        }
+        return warSession;
     }
 
     private GuildSession createGuildSession(PlayerSession playerSession, String guildId) {

@@ -155,4 +155,9 @@ abstract public class AbstractCommandAction<A extends CommandArguments, R extend
     public boolean canAttachGuildNotifications() {
         return true;
     }
+
+    @Override
+    public boolean isAuthCommand() {
+        return false;
+    }
 }

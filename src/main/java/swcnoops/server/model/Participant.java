@@ -19,6 +19,6 @@ public class Participant {
     public int score;
     public int level;
 
-    // TODO - dont know what this does yet
+    // this tells the client if the base is being attacked and when to enable the attack button again
     public Map<String, Long> currentlyDefending = new HashMap<>();
 }

@@ -42,10 +42,6 @@ public interface GuildSettings {
 
     String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId);
 
-    void addSquadNotification(SquadNotification squadNotification);
-
-    Collection<? extends SquadNotification> getSquadNotifications();
-
     Member getMember(String playerId);
 
     boolean getOpenEnrollment();
