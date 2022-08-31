@@ -13,7 +13,7 @@ import java.util.Map;
 public interface TrainingManager {
     CurrencyDelta trainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long startTime);
     CurrencyDelta cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long time);
-    void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time);
+    CurrencyDelta buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, int crystals, long time);
     void moveCompletedBuildUnits(long clientTime);
 
     DeployableQueue getDeployableTroops();

@@ -26,12 +26,13 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, CampaignMissionData> missionDataMap = new HashMap<>();
     private Map<String, CampaignMissionSet> campaignMissionSets = new HashMap<>();
     private Map<FactionType, Map<Integer, List<TroopData>>> troopSizeMapByFaction = new HashMap<>();
+    private GameConstants gameConstants;
 
     @Override
     public void initOnStartup() {
         try {
             loadTroops();
-            this.buildings = loadBuildings();
+            loadBaseJson();
             this.traps = loadTraps();
             loadCampaigns();
             buildCustomTroopMaps();
@@ -240,15 +241,26 @@ public class GameDataManagerImpl implements GameDataManager {
         }
     }
 
-    private Map<String, BuildingData> loadBuildings() throws Exception {
-        Map<String, BuildingData> map = new HashMap<>();
-
+    private void loadBaseJson() throws Exception {
         Map result = ServiceFactory.instance().getJsonParser()
                 .toObjectFromResource(ServiceFactory.instance().getConfig().baseJson, Map.class);
         Map<String, Map> jsonSpreadSheet = (Map<String, Map>) result;
         Map<String, Map> contentMap = jsonSpreadSheet.get("content");
         Map<String, Map> objectsMap = contentMap.get("objects");
         List<Map<String,String>> buildingDataMap = (List<Map<String,String>>) objectsMap.get("BuildingData");
+        this.buildings = readBuildingData(buildingDataMap);
+
+        List<Map<String,String>> gameConstants = (List<Map<String,String>>) objectsMap.get("GameConstants");
+        this.gameConstants = readGameConstants(gameConstants);
+    }
+
+    private GameConstants readGameConstants(List<Map<String, String>> gameConstants) throws Exception {
+        GameConstants constants = GameConstants.createFromBaseJson(gameConstants);
+        return constants;
+    }
+
+    private Map<String, BuildingData> readBuildingData(List<Map<String, String>> buildingDataMap) {
+        Map<String, BuildingData> map = new HashMap<>();
 
         Set<String> buildingIdsNeedsSorting = new HashSet<>();
 
@@ -300,7 +312,6 @@ public class GameDataManagerImpl implements GameDataManager {
 
         buildingIdsNeedsSorting.forEach(a -> this.buildingLevelsByBuildingId.get(a)
                 .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
-
         return map;
     }
 
@@ -391,5 +402,10 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public int getMaxlevelForTroopUnitId(String unitId) {
         return this.troopLevelsByUnitId.get(unitId).size();
+    }
+
+    @Override
+    public GameConstants getGameConstants() {
+        return this.gameConstants;
     }
 }

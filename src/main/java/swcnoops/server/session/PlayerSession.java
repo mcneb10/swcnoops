@@ -27,7 +27,7 @@ public interface PlayerSession {
 
     void cancelTrainTroops(String constructor, String unitTypeId, int quantity, int credits, int contraband, long time);
 
-    void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, long time);
+    void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, int crystals, long time);
 
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);

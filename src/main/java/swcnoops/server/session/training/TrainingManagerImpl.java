@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Deployables;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.game.CrystalHelper;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.model.*;
@@ -187,7 +188,7 @@ public class TrainingManagerImpl implements TrainingManager {
      * @param time
      */
     @Override
-    public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
+    public CurrencyDelta buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, int crystals, long time) {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> boughtOutContracts =
@@ -197,6 +198,17 @@ public class TrainingManagerImpl implements TrainingManager {
             transport.moveUnitToDeployable(boughtOutContracts);
             transport.sortUnitsInQueue();
         }
+
+        // calculate how much time is being bought out with crystals
+        int expectedCrystals = 0;
+        if (boughtOutContracts != null && boughtOutContracts.size() > 0) {
+            long contractEnd = boughtOutContracts.get(boughtOutContracts.size() - 1).getEndTime();
+            int secondsToBuy = (int) (contractEnd - time);
+            expectedCrystals = CrystalHelper.secondsToCrystals(secondsToBuy, troopData);
+        }
+
+        int givenCrystalsDelta = this.playerSession.getPlayerSettings().getInventoryStorage().crystals.amount - crystals;
+        return new CurrencyDelta(givenCrystalsDelta,expectedCrystals, CurrencyType.crystals);
     }
 
     @Override

@@ -154,9 +154,10 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
+    public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, int crystals, long time) {
         this.processCompletedContracts(time);
-        this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, time);
+        CurrencyDelta currencyDelta = this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, crystals, time);
+        this.removeFromInventoryStorage(currencyDelta, this);
         this.savePlayerSession();
     }
 
@@ -553,6 +554,9 @@ public class PlayerSessionImpl implements PlayerSession {
                     break;
                 case contraband:
                     playerSession.getPlayerSettings().getInventoryStorage().contraband.amount -= currencyDelta.getGivenDelta();
+                    break;
+                case crystals:
+                    playerSession.getPlayerSettings().getInventoryStorage().crystals.amount -= currencyDelta.getGivenDelta();
                     break;
             }
         }
