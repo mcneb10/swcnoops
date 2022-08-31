@@ -1,5 +1,6 @@
 package swcnoops.server.game;
 
+import swcnoops.server.model.CurrencyType;
 import swcnoops.server.model.FactionType;
 
 public class BuildingData implements GameData {
@@ -15,6 +16,9 @@ public class BuildingData implements GameData {
     private StoreTab storeTab;
     private BuildingSubType subType;
     private long crossTime;
+    private CurrencyType currency;
+    private float produce;
+    private float cycleTime;
 
     public BuildingData(String uid) {
         this.uid = uid;
@@ -110,5 +114,29 @@ public class BuildingData implements GameData {
 
     public void setCrossTime(long crossTime) {
         this.crossTime = crossTime;
+    }
+
+    public void setCurrency(CurrencyType currency) {
+        this.currency = currency;
+    }
+
+    public CurrencyType getCurrency() {
+        return currency;
+    }
+
+    public void setProduce(float produce) {
+        this.produce = produce;
+    }
+
+    public float getProduce() {
+        return produce;
+    }
+
+    public void setCycleTime(float cycleTime) {
+        this.cycleTime = cycleTime;
+    }
+
+    public float getCycleTime() {
+        return cycleTime;
     }
 }

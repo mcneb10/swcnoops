@@ -23,9 +23,9 @@ public interface PlayerSession {
 
     TroopInventory getTroopInventory();
 
-    void trainTroops(String constructor, String unitTypeId, int quantity, long time);
+    void trainTroops(String constructor, String unitTypeId, int quantity, int credits, int contraband, long time);
 
-    void cancelTrainTroops(String constructor, String unitTypeId, int quantity, long time);
+    void cancelTrainTroops(String constructor, String unitTypeId, int quantity, int credits, int contraband, long time);
 
     void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, long time);
 
@@ -69,7 +69,7 @@ public interface PlayerSession {
 
     MapItem getMapItemByKey(String key);
 
-    void buildingCollect(String buildingId, long time);
+    void buildingCollect(String buildingId, int credits, int materials, int contraband, int crystals, long time);
 
     void buildingClear(String instanceId, long time);
 

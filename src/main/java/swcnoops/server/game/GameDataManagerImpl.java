@@ -1,7 +1,7 @@
 package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.CommandFactory;
+import swcnoops.server.model.CurrencyType;
 import swcnoops.server.model.FactionType;
 import swcnoops.server.model.TroopType;
 
@@ -150,6 +150,12 @@ public class GameDataManagerImpl implements GameDataManager {
             String upgradeShardUid = troop.get("upgradeShardUid");
             int upgradeShards = Integer.valueOf(troop.get("upgradeShards") == null ? "0" : troop.get("upgradeShards")).intValue();
             String specialAttackID = troop.get("specialAttackID");
+            int credits = Integer.valueOf(troop.get("credits") == null ? "0" : troop.get("credits"));
+            int materials = Integer.valueOf(troop.get("materials") == null ? "0" : troop.get("materials"));
+            int contraband = Integer.valueOf(troop.get("contraband") == null ? "0" : troop.get("contraband"));
+            int upgradeCredits = Integer.valueOf(troop.get("upgradeCredits") == null ? "0" : troop.get("upgradeCredits"));
+            int upgradeMaterials = Integer.valueOf(troop.get("upgradeMaterials") == null ? "0" : troop.get("upgradeMaterials"));
+            int upgradeContraband = Integer.valueOf(troop.get("upgradeContraband") == null ? "0" : troop.get("upgradeContraband"));
 
             TroopData troopData = new TroopData(uid);
             troopData.setFaction(FactionType.valueOf(faction));
@@ -162,6 +168,12 @@ public class GameDataManagerImpl implements GameDataManager {
             troopData.setUpgradeShardUid(upgradeShardUid);
             troopData.setUpgradeShards(upgradeShards);
             troopData.setSpecialAttackID(specialAttackID);
+            troopData.setCredits(credits);
+            troopData.setMaterials(materials);
+            troopData.setContraband(contraband);
+            troopData.setUpgradeCredits(upgradeCredits);
+            troopData.setUpgradeMaterials(upgradeMaterials);
+            troopData.setUpgradeContraband(upgradeContraband);
 
             this.troops.put(troopData.getUid(), troopData);
             addToLowestLevelTroopUnitId(troopData);
@@ -259,6 +271,18 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setFaction(FactionType.valueOf(faction));
             buildingData.setLevel(lvl);
             buildingData.setType(BuildingType.valueOf(type));
+
+            if (buildingData.getType() == BuildingType.resource) {
+                float produce = Float.valueOf(building.get("produce"));
+                float cycleTime = Float.valueOf(building.get("cycleTime"));
+                String currency = building.get("currency");
+                buildingData.setProduce(produce);
+                buildingData.setCycleTime(cycleTime);
+                buildingData.setCurrency(CurrencyType.valueOf(currency));
+            } else {
+                buildingData.setCurrency(CurrencyType.none);
+            }
+
             buildingData.setStorage(storage);
             buildingData.setTime(time);
             buildingData.setCrossTime(crossTime);

@@ -1,5 +1,7 @@
 package swcnoops.server.session;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.Player;
@@ -32,6 +34,8 @@ import java.util.stream.Collectors;
  * to the response. Player State changes should be done in classes of package sessions.
  */
 public class PlayerSessionImpl implements PlayerSession {
+    private static final Logger LOG = LoggerFactory.getLogger(PlayerSessionImpl.class);
+
     final private Player player;
     final private PlayerSettings playerSettings;
     final private TrainingManager trainingManager;
@@ -133,16 +137,19 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
+    public void trainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long startTime) {
         this.processCompletedContracts(startTime);
-        this.trainingManager.trainTroops(buildingId, unitTypeId, quantity, startTime);
+        CurrencyDelta currencyDelta =
+                this.trainingManager.trainTroops(buildingId, unitTypeId, quantity, credits, contraband, startTime);
+        removeFromInventoryStorage(currencyDelta, this);
         savePlayerSession();
     }
 
     @Override
-    public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
+    public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long time) {
         this.processCompletedContracts(time);
-        this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, time);
+        CurrencyDelta currencyDelta = this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, credits, contraband, time);
+        this.addToInventoryStorage(currencyDelta, this);
         savePlayerSession();
     }
 
@@ -518,12 +525,59 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void buildingCollect(String buildingId, long time) {
+    public void buildingCollect(String buildingId, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
-            mapItem.collect(time);
+            CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time);
+            addToInventoryStorage(currencyDelta, this);
             this.savePlayerSession();
+        }
+    }
+
+    private void removeFromInventoryStorage(CurrencyDelta currencyDelta, PlayerSession playerSession) {
+        if (currencyDelta != null && currencyDelta.getCurrency() != null) {
+            // they dont match so we log for now
+            if (currencyDelta.getGivenDelta() != currencyDelta.getExpectedDelta()) {
+                LOG.warn("expected to remove " + currencyDelta.getCurrency() + " " +
+                        currencyDelta.getExpectedDelta() + " but was given " +
+                        currencyDelta.getGivenDelta() + " for player " + playerSession.getPlayerId());
+            }
+
+            switch (currencyDelta.getCurrency()) {
+                case credits:
+                    playerSession.getPlayerSettings().getInventoryStorage().credits.amount -= currencyDelta.getGivenDelta();
+                    break;
+                case materials:
+                    playerSession.getPlayerSettings().getInventoryStorage().materials.amount -= currencyDelta.getGivenDelta();
+                    break;
+                case contraband:
+                    playerSession.getPlayerSettings().getInventoryStorage().contraband.amount -= currencyDelta.getGivenDelta();
+                    break;
+            }
+        }
+    }
+
+    private void addToInventoryStorage(CurrencyDelta currencyDelta, PlayerSession playerSession) {
+        if (currencyDelta != null && currencyDelta.getCurrency() != null) {
+            // they dont match so we log for now
+            if (currencyDelta.getGivenDelta() != currencyDelta.getExpectedDelta()) {
+                LOG.warn("expected to add " + currencyDelta.getCurrency() + " " +
+                        currencyDelta.getExpectedDelta() + " but was given " +
+                        currencyDelta.getGivenDelta() + " for player " + playerSession.getPlayerId());
+            }
+
+            switch (currencyDelta.getCurrency()) {
+                case credits:
+                    playerSession.getPlayerSettings().getInventoryStorage().credits.amount += currencyDelta.getGivenDelta();
+                    break;
+                case materials:
+                    playerSession.getPlayerSettings().getInventoryStorage().materials.amount += currencyDelta.getGivenDelta();
+                    break;
+                case contraband:
+                    playerSession.getPlayerSettings().getInventoryStorage().contraband.amount += currencyDelta.getGivenDelta();
+                    break;
+            }
         }
     }
 
@@ -807,7 +861,8 @@ public class PlayerSessionImpl implements PlayerSession {
     public void levelUpBase(PlayerMap warMap) {
         for (Building building : warMap.buildings) {
             MapItem mapItem = this.getPlayerMapItems().getMapItemByKey(building.key);
-            building.uid = mapItem.getBuildingUid();
+            if (mapItem != null)
+                building.uid = mapItem.getBuildingUid();
         }
     }
 

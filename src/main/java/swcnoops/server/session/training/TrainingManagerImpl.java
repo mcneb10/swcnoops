@@ -8,10 +8,12 @@ import swcnoops.server.game.ContractType;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.model.*;
+import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TrainingManagerImpl implements TrainingManager {
     private static final Logger LOG = LoggerFactory.getLogger(TrainingManagerImpl.class);
@@ -52,14 +54,20 @@ public class TrainingManagerImpl implements TrainingManager {
     }
 
     @Override
-    public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
+    public CurrencyDelta trainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long startTime)
+    {
         // we create build units using the unitId and not the uid of the troop
         // this is to handle upgrades done in the middle of training
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
+        CurrencyType trainingCurrency = getTrainingCurrency(troopData);
+        int trainCost = getTrainCost(trainingCurrency, troopData);
+        int givenTrainCost = calculateGivenTrainingCost(this.playerSession, credits, contraband, trainingCurrency);
         List<BuildUnit> buildUnits = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
-            BuildUnit buildUnit = new BuildUnit(builder, buildingId, troopData.getUnitId(), builder.getContractType(), null);
+            BuildUnit buildUnit =
+                    new BuildUnit(builder, buildingId, troopData.getUnitId(), trainCost,
+                            builder.getContractType(), null);
             buildUnits.add(buildUnit);
         }
 
@@ -69,6 +77,71 @@ public class TrainingManagerImpl implements TrainingManager {
             transport.addUnitsToQueue(buildUnits);
             transport.sortUnitsInQueue();
         }
+
+        return new CurrencyDelta(givenTrainCost, trainCost, trainingCurrency);
+    }
+
+    private int calculateGivenTrainingCost(PlayerSession playerSession, int credits, int contraband, CurrencyType trainingCurrency) {
+        int givenCost = 0;
+        if (trainingCurrency != null) {
+            switch (trainingCurrency) {
+                case credits:
+                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().credits.amount - credits;
+                    break;
+                case contraband:
+                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount - contraband;
+                    break;
+            }
+        }
+
+        return givenCost;
+    }
+
+    private int calculateGivenRefund(PlayerSession playerSession, int credits, int contraband, CurrencyType trainingCurrency) {
+        int givenRefund = 0;
+        if (trainingCurrency != null) {
+            switch (trainingCurrency) {
+                case credits:
+                    givenRefund = credits - playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
+                    break;
+                case contraband:
+                    givenRefund = contraband - playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
+                    break;
+            }
+        }
+
+        return givenRefund;
+    }
+
+    private CurrencyType getTrainingCurrency(TroopData troopData) {
+        CurrencyType currencyType = CurrencyType.credits;
+        if (troopData.getType() != null) {
+            switch (troopData.getType()) {
+                case mercenary:
+                    currencyType = CurrencyType.contraband;
+                    break;
+                default:
+                    currencyType = CurrencyType.credits;
+                    break;
+            }
+        }
+        return currencyType;
+    }
+
+    private int getTrainCost(CurrencyType currencyType, TroopData troopData) {
+        int cost = 0;
+        if (currencyType != null) {
+            switch (currencyType) {
+                case contraband:
+                    cost = troopData.getContraband();
+                    break;
+                case credits:
+                default:
+                    cost = troopData.getCredits();
+                    break;
+            }
+        }
+        return cost;
     }
 
     /**
@@ -81,7 +154,7 @@ public class TrainingManagerImpl implements TrainingManager {
      * @param time
      */
     @Override
-    public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
+    public CurrencyDelta cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long time) {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> cancelledContracts =
@@ -96,6 +169,12 @@ public class TrainingManagerImpl implements TrainingManager {
             transport.removeUnitsFromQueue(cancelledContracts);
             transport.sortUnitsInQueue();
         }
+
+        CurrencyType trainingCurrency = getTrainingCurrency(troopData);
+        AtomicInteger totalRefund = new AtomicInteger(0);
+        int givenDelta = calculateGivenRefund(this.playerSession, credits, contraband, trainingCurrency);
+        cancelledContracts.forEach(c -> totalRefund.addAndGet(c.getCost()));
+        return new CurrencyDelta(givenDelta, totalRefund.get(), trainingCurrency);
     }
 
     /**

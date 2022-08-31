@@ -74,7 +74,7 @@ public class DroidManager implements Constructor {
 
     public void constructBuildUnit(MapItem mapItem, String tag, long time) {
         BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
-                mapItem.getBuildingData().getUid(), ContractType.Build, tag);
+                mapItem.getBuildingData().getUid(), 0, ContractType.Build, tag);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + mapItem.getBuildingData().getTime());
         this.addBuildUnit(buildUnit);
@@ -85,7 +85,7 @@ public class DroidManager implements Constructor {
                 .getBuildingDataByBuildingId(mapItem.getBuildingData().getBuildingID(),
                         mapItem.getBuildingData().getLevel() + 1);
         BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
-                nextLevelBuildingData.getUid(), ContractType.Upgrade, tag);
+                nextLevelBuildingData.getUid(), 0, ContractType.Upgrade, tag);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + nextLevelBuildingData.getTime());
         this.addBuildUnit(buildUnit);
@@ -99,7 +99,7 @@ public class DroidManager implements Constructor {
 
     public void buildingSwap(MapItem mapItem, String buildingUid, long time) {
         BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
-                buildingUid, ContractType.Upgrade, null);
+                buildingUid, 0, ContractType.Upgrade, null);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + mapItem.getBuildingData().getCrossTime());
         this.addBuildUnit(buildUnit);

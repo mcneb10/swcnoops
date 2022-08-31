@@ -42,6 +42,7 @@ public class Config {
     public int batchResponseReplayWait = 1000 * 5;
     public boolean validateAuthKey = false;
     public boolean enableBatchResponseReplayer = false;
+    public boolean freeResources = true;
 
     public void setFromProperties(Properties properties) throws Exception {
         Class<?> clazz = this.getClass();

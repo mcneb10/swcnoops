@@ -14,7 +14,8 @@ public class PlayerBuildingCollect extends PlayerChecksum<PlayerBuildingCollect,
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.buildingCollect(arguments.getBuildingId(), time);
+        playerSession.buildingCollect(arguments.getBuildingId(), arguments.getCredits(),
+                arguments.getMaterials(), arguments.getContraband(), arguments.getCrystals(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

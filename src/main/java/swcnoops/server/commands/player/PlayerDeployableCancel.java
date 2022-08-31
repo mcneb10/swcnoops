@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerDeployableCancel extends AbstractCommandAction<PlayerDeployableCancel, CommandResult> {
+public class PlayerDeployableCancel extends PlayerChecksum<PlayerDeployableCancel, CommandResult> {
     private String constructor;
     private String unitTypeId;
     private int quantity;
@@ -18,7 +17,10 @@ public class PlayerDeployableCancel extends AbstractCommandAction<PlayerDeployab
                 .getPlayerSession(arguments.getPlayerId());
 
         playerSession.cancelTrainTroops(arguments.getConstructor(), arguments.getUnitTypeId(),
-                arguments.getQuantity(), time);
+                arguments.getQuantity(),
+                arguments.getCredits(),
+                arguments.getContraband(),
+                time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

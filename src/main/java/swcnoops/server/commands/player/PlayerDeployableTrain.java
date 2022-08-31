@@ -1,7 +1,6 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
@@ -10,7 +9,7 @@ import swcnoops.server.session.PlayerSession;
 /**
  * This command builds troops, special attacks and repairs dekas.
  */
-public class PlayerDeployableTrain extends AbstractCommandAction<PlayerDeployableTrain, CommandResult> {
+public class PlayerDeployableTrain extends PlayerChecksum<PlayerDeployableTrain, CommandResult> {
     private String constructor;
     private String unitTypeId;
     private int quantity;
@@ -22,7 +21,7 @@ public class PlayerDeployableTrain extends AbstractCommandAction<PlayerDeployabl
                 .getPlayerSession(arguments.getPlayerId());
 
         playerSession.trainTroops(arguments.getConstructor(), arguments.getUnitTypeId(),
-                arguments.getQuantity(), time);
+                arguments.getQuantity(), arguments.getCredits(), arguments.getContraband(), time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

@@ -1,12 +1,17 @@
 package swcnoops.server.commands.player;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.requests.CommandResult;
 
 abstract public class PlayerChecksum<A extends PlayerChecksum, B extends CommandResult> extends AbstractCommandAction<A,B> {
+    @JsonProperty("_credits")
     private int credits;
+    @JsonProperty("_materials")
     private int materials;
+    @JsonProperty("_contraband")
     private int contraband;
+    @JsonProperty("_crystals")
     private int crystals;
     private long resourceChecksum;
     private long infoChecksum;

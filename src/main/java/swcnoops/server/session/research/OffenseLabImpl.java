@@ -6,6 +6,7 @@ import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.Position;
+import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.inventory.TroopUpgrade;
 import swcnoops.server.session.inventory.Troops;
@@ -122,7 +123,7 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void collect(long time) {
+    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time) {
         throw new NotImplementedException();
     }
 
