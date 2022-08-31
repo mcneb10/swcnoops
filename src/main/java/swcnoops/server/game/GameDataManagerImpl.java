@@ -62,9 +62,9 @@ public class GameDataManagerImpl implements GameDataManager {
             troopList.add(b);
         });
 
-        // map used to group troops by unit size for SC populating, does not include special attack
+        // map used to group troops by unit size for SC populating, does not include special attacks or champions
         this.lowestLevelTroopByUnitId.forEach((a,b) -> {
-            if (!b.isSpecialAttack()) {
+            if (!b.isSpecialAttack() && !(b.getType() == TroopType.champion)) {
                 Map<Integer, List<TroopData>> troopBySizeMap = this.troopSizeMapByFaction.get(b.getFaction());
                 if (troopBySizeMap == null) {
                     troopBySizeMap = new HashMap<>();

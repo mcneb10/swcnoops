@@ -6,14 +6,14 @@ import swcnoops.server.commands.guild.response.GuildWarStatusCommandResult;
 import swcnoops.server.datasource.War;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.BuffBase;
+import swcnoops.server.model.Participant;
 import swcnoops.server.model.SquadMemberWarData;
+import swcnoops.server.model.WarSquad;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildWarStatusCommandResult> {
 
@@ -33,6 +33,7 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
         GuildWarStatusCommandResult guildWarStatusResponse =
                 new GuildWarStatusCommandResult(guildSession);
         guildWarStatusResponse.inititalise(war, warParticipants1, warParticipants2, time);
+        patchWarParticipants(guildWarStatusResponse);
 
         // buff bases can not be null otherwise client crashes
         guildWarStatusResponse.buffBases = new ArrayList<>();
@@ -48,6 +49,30 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
 
         guildWarStatusResponse.actionsStarted = false;
         return guildWarStatusResponse;
+    }
+
+    private void patchWarParticipants(GuildWarStatusCommandResult guildWarStatusResponse) {
+        patchParticipantsWithBots(guildWarStatusResponse.guild);
+        patchParticipantsWithBots(guildWarStatusResponse.rival);
+    }
+
+    private void patchParticipantsWithBots(WarSquad guild) {
+        if (guild.participants.size() != 15) {
+            for (int i = guild.participants.size(); i < 15; i++) {
+                guild.participants.add(createBotParticipant(guild.guildId, i));
+            }
+        }
+    }
+
+    private Participant createBotParticipant(String guildId, int i) {
+        Participant participant = new Participant();
+        participant.score = 0;
+        participant.level = 3;
+        participant.id = guildId + "_BOT" + i;
+        participant.name = "BOT" + i;
+        participant.victoryPoints = 0;
+        participant.turns = 0;
+        return participant;
     }
 
     private BuffBase create(String warBuff) {

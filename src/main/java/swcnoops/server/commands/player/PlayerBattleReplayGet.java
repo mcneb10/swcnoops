@@ -6,6 +6,7 @@ import swcnoops.server.commands.player.response.PlayerBattleReplayGetResult;
 import swcnoops.server.datasource.WarBattle;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
+import swcnoops.server.requests.ResponseHelper;
 
 public class PlayerBattleReplayGet extends AbstractCommandAction<PlayerBattleReplayGet, PlayerBattleReplayGetResult> {
     private String battleId;
@@ -13,7 +14,10 @@ public class PlayerBattleReplayGet extends AbstractCommandAction<PlayerBattleRep
 
     @Override
     protected PlayerBattleReplayGetResult execute(PlayerBattleReplayGet arguments, long time) throws Exception {
+        // TODO - support PvP replays, only war for now
         WarBattle warBattle = ServiceFactory.instance().getPlayerDatasource().getWarBattle(arguments.getBattleId());
+        if (warBattle == null)
+            return new PlayerBattleReplayGetResult(ResponseHelper.REPLAY_DATA_NOT_FOUND);
 
         BattleReplay battleReplay = warBattle.getBattleReplay();
         stopClientCrash(battleReplay);
