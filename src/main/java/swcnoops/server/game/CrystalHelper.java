@@ -39,6 +39,11 @@ public class CrystalHelper {
         return givenCrystalsDelta;
     }
 
+    public static int calculateGivenCrystalDeltaToAdd(PlayerSession playerSession, int crystals) {
+        int givenCrystalsDelta = crystals - playerSession.getPlayerSettings().getInventoryStorage().crystals.amount;
+        return givenCrystalsDelta;
+    }
+
     public static int crystalCostToUpgradeAllWalls(int oneWallCost, int numWalls)
     {
         GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();

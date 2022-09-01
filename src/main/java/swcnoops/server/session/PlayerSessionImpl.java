@@ -76,15 +76,17 @@ public class PlayerSessionImpl implements PlayerSession {
 
     private void mapBuildingContracts(PlayerSettings playerSettings) {
         for (BuildUnit buildUnit : playerSettings.getBuildContracts()) {
-            if (isBuilding(buildUnit.getContractType()))
+            if (isDroidContract(buildUnit.getContractType()))
                 this.droidManager.addBuildUnit(buildUnit);
         }
     }
 
-    private boolean isBuilding(ContractType contractType) {
+    private boolean isDroidContract(ContractType contractType) {
         if (contractType == ContractType.Build)
             return true;
         if (contractType == ContractType.Upgrade)
+            return true;
+        if (contractType == ContractType.Clear)
             return true;
 
         return false;
@@ -238,7 +240,7 @@ public class PlayerSessionImpl implements PlayerSession {
         if (this.offenseLab != null && this.offenseLab.processCompletedUpgrades(time))
             this.trainingManager.recalculateContracts(time);
         this.trainingManager.moveCompletedBuildUnits(time);
-        this.droidManager.moveCompletedBuildUnits(time);
+        this.droidManager.processCompletedBuildUnits(time);
     }
 
     @Override
@@ -590,15 +592,32 @@ public class PlayerSessionImpl implements PlayerSession {
                 case contraband:
                     playerSession.getPlayerSettings().getInventoryStorage().contraband.amount += currencyDelta.getGivenDelta();
                     break;
+                case crystals:
+                    playerSession.getPlayerSettings().getInventoryStorage().crystals.amount += currencyDelta.getGivenDelta();
+                    break;
             }
         }
     }
 
+    /**
+     * TODO - to get this working properly it needs to work as a contract where at the end of the contract
+     * the crystals found are then added. For now we just add the number of crystals
+     *
+     * @param instanceId
+     * @param credits
+     * @param materials
+     * @param contraband
+     * @param crystals
+     * @param time
+     */
     @Override
-    public void buildingClear(String instanceId, long time) {
+    public void buildingClear(String instanceId, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
-        MapItem mapItem = this.removeMapItemByKey(instanceId);
+        MapItem mapItem = this.getMapItemByKey(instanceId);
         if (mapItem != null) {
+            // create a contract to clear and process the cost
+            CurrencyDelta currencyDelta = this.droidManager.clearMapItem(mapItem, credits, materials, contraband, time);
+            this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
     }
@@ -627,7 +646,8 @@ public class PlayerSessionImpl implements PlayerSession {
         savePlayerSession();
     }
 
-    private void processInventoryStorage(CurrencyDelta currencyDelta) {
+    @Override
+    public void processInventoryStorage(CurrencyDelta currencyDelta) {
         if (currencyDelta != null) {
             if (currencyDelta.getRemoveFromInventory())
                 this.removeFromInventoryStorage(currencyDelta, this);
@@ -655,11 +675,13 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void buildingSwap(String buildingId, String buildingUid, long time) {
+    public void buildingSwap(String buildingId, String buildingUid, int credits, int materials, int contraband, long time) {
         this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
-            this.droidManager.buildingSwap(mapItem, buildingUid, time);
+            CurrencyDelta currencyDelta = this.droidManager.buildingSwap(mapItem, buildingUid, credits, materials,
+                    contraband, time);
+            this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
     }

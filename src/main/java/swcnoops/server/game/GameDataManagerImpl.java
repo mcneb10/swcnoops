@@ -274,6 +274,8 @@ public class GameDataManagerImpl implements GameDataManager {
             int storage = Integer.valueOf(building.get("storage") == null ? "0" : building.get("storage")).intValue();
             int time = Integer.valueOf(building.get("time")).intValue();
             int crossTime = Integer.valueOf(building.get("crossTime") == null ? "0" : building.get("crossTime")).intValue();
+            int crossCredits = Integer.valueOf(building.get("crossCredits") == null ? "0" : building.get("crossCredits")).intValue();
+            int crossMaterials = Integer.valueOf(building.get("crossMaterials") == null ? "0" : building.get("crossMaterials")).intValue();
             int materials = Integer.valueOf(building.get("materials") == null ? "0" : building.get("materials")).intValue();
             int credits = Integer.valueOf(building.get("credits") == null ? "0" : building.get("credits")).intValue();
             int contraband = Integer.valueOf(building.get("contraband") == null ? "0" : building.get("contraband")).intValue();
@@ -301,6 +303,8 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setStorage(storage);
             buildingData.setTime(time);
             buildingData.setCrossTime(crossTime);
+            buildingData.setCrossCredits(crossCredits);
+            buildingData.setCrossMaterials(crossMaterials);
             buildingData.setBuildingID(buildingID);
             buildingData.setTrapId(trapId);
             buildingData.setLinkedUnit(linkedUnit);

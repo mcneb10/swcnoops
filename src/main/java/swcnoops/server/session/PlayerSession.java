@@ -71,7 +71,7 @@ public interface PlayerSession {
 
     void buildingCollect(String buildingId, int credits, int materials, int contraband, int crystals, long time);
 
-    void buildingClear(String instanceId, long time);
+    void buildingClear(String instanceId, int credits, int materials, int contraband, int crystals, long time);
 
     void buildingConstruct(String buildingUid, String tag, Position position, int credits, int materials, int contraband, long time);
 
@@ -109,7 +109,7 @@ public interface PlayerSession {
 
     void buildingUpgradeAll(String buildingUid, int credits, int materials, int contraband, int crystals, long time);
 
-    void buildingSwap(String buildingId, String buildingUid, long time);
+    void buildingSwap(String buildingId, String buildingUid, int credits, int materials, int contraband, long time);
 
     FactionType getFaction();
 
@@ -136,4 +136,6 @@ public interface PlayerSession {
     void warBaseSave(Map<String, Position> positions, long time);
 
     void levelUpBase(PlayerMap warMap);
+
+    void processInventoryStorage(CurrencyDelta currencyDelta);
 }

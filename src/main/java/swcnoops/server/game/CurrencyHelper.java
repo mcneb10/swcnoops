@@ -55,12 +55,28 @@ public class CurrencyHelper {
         return cost;
     }
 
+    static public int getCrossCost(BuildingData buildingData, CurrencyType currencyType) {
+        int cost = 0;
+        if (buildingData != null && currencyType != null) {
+            switch (currencyType) {
+                case credits:
+                    cost = buildingData.getCrossCredits();
+                    break;
+                case materials:
+                    cost = buildingData.getCrossMaterials();
+                    break;
+            }
+        }
+
+        return cost;
+    }
+
     static public int calculateGivenConstructionCost(PlayerSession playerSession, int givenTotal,
-                                               CurrencyType trainingCurrency)
+                                               CurrencyType currencyType)
     {
         int givenCost = 0;
-        if (trainingCurrency != null) {
-            switch (trainingCurrency) {
+        if (currencyType != null) {
+            switch (currencyType) {
                 case credits:
                     givenCost = playerSession.getPlayerSettings().getInventoryStorage().credits.amount - givenTotal;
                     break;

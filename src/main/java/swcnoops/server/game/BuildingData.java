@@ -22,6 +22,8 @@ public class BuildingData implements GameData {
     private int materials;
     private int credits;
     private int contraband;
+    private int crossCredits;
+    private int crossMaterials;
 
     public BuildingData(String uid) {
         this.uid = uid;
@@ -165,5 +167,21 @@ public class BuildingData implements GameData {
 
     public void setContraband(int contraband) {
         this.contraband = contraband;
+    }
+
+    public int getCrossCredits() {
+        return crossCredits;
+    }
+
+    public void setCrossCredits(int crossCredits) {
+        this.crossCredits = crossCredits;
+    }
+
+    public int getCrossMaterials() {
+        return crossMaterials;
+    }
+
+    public void setCrossMaterials(int crossMaterials) {
+        this.crossMaterials = crossMaterials;
     }
 }
