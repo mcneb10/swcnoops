@@ -141,7 +141,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(startTime);
         CurrencyDelta currencyDelta =
                 this.trainingManager.trainTroops(buildingId, unitTypeId, quantity, credits, contraband, startTime);
-        removeFromInventoryStorage(currencyDelta, this);
+        this.processInventoryStorage(currencyDelta);
         savePlayerSession();
     }
 
@@ -149,7 +149,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long time) {
         this.processCompletedContracts(time);
         CurrencyDelta currencyDelta = this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, credits, contraband, time);
-        this.addToInventoryStorage(currencyDelta, this);
+        this.processInventoryStorage(currencyDelta);
         savePlayerSession();
     }
 
@@ -157,7 +157,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, int crystals, long time) {
         this.processCompletedContracts(time);
         CurrencyDelta currencyDelta = this.trainingManager.buyOutTrainTroops(buildingId, unitTypeId, quantity, crystals, time);
-        this.removeFromInventoryStorage(currencyDelta, this);
+        this.processInventoryStorage(currencyDelta);
         this.savePlayerSession();
     }
 
@@ -531,7 +531,7 @@ public class PlayerSessionImpl implements PlayerSession {
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
             CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time);
-            addToInventoryStorage(currencyDelta, this);
+            this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
     }
@@ -601,20 +601,28 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
         MapItem mapItem = this.playerMapItems.createMapItem(buildingUid, tag, position);
 
-        // add the building to the map
-        this.playerMapItems.constructNewBuilding(mapItem);
-        this.droidManager.constructBuildUnit(mapItem, tag, time);
-
         CurrencyType currencyType = getCurrencyType(mapItem);
         if (currencyType == null)
             throw new RuntimeException("Can not determine currency type to build");
 
+        int expectedCost = getConstructionCost(mapItem, currencyType);
+
+        // add the building to the map
+        this.playerMapItems.constructNewBuilding(mapItem);
+        this.droidManager.constructBuildUnit(mapItem, tag, time, expectedCost);
+
         int givenTotal = getGivenTotal(currencyType, credits, materials, contraband);
         int givenDelta = calculateGivenConstructionCost(this, givenTotal, currencyType);
-        int expectedDelta = getConstructionCost(mapItem, currencyType);
-        CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, expectedDelta, currencyType);
-        this.removeFromInventoryStorage(currencyDelta, this);
+        CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, expectedCost, currencyType, true);
+        this.processInventoryStorage(currencyDelta);
         savePlayerSession();
+    }
+
+    private void processInventoryStorage(CurrencyDelta currencyDelta) {
+        if (currencyDelta.getRemoveFromInventory())
+            this.removeFromInventoryStorage(currencyDelta, this);
+        else
+            this.addToInventoryStorage(currencyDelta, this);
     }
 
     private int getConstructionCost(MapItem mapItem, CurrencyType currencyType) {

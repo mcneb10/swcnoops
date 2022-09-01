@@ -72,9 +72,9 @@ public class DroidManager implements Constructor {
         return buildUnit;
     }
 
-    public void constructBuildUnit(MapItem mapItem, String tag, long time) {
+    public void constructBuildUnit(MapItem mapItem, String tag, long time, int expectedCost) {
         BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
-                mapItem.getBuildingData().getUid(), 0, ContractType.Build, tag);
+                mapItem.getBuildingData().getUid(), expectedCost, ContractType.Build, tag);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + mapItem.getBuildingData().getTime());
         this.addBuildUnit(buildUnit);

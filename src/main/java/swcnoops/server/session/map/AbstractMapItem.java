@@ -49,7 +49,7 @@ abstract public class AbstractMapItem implements MapItem {
         int expectedDelta = calculateExpectedDeltaCollect(this.building, this.buildingData, time);
         this.building.currentStorage = 0;
         this.building.lastCollectTime = time;
-        return new CurrencyDelta(givenDelta, expectedDelta, this.getBuildingData().getCurrency());
+        return new CurrencyDelta(givenDelta, expectedDelta, this.getBuildingData().getCurrency(), false);
     }
 
     private int calculateExpectedDeltaCollect(Building building, BuildingData buildingData, long time) {

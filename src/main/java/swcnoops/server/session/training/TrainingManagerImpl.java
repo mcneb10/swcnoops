@@ -79,7 +79,7 @@ public class TrainingManagerImpl implements TrainingManager {
             transport.sortUnitsInQueue();
         }
 
-        return new CurrencyDelta(givenTrainCost, trainCost, trainingCurrency);
+        return new CurrencyDelta(givenTrainCost, trainCost, trainingCurrency, true);
     }
 
     private int calculateGivenTrainingCost(PlayerSession playerSession, int credits, int contraband, CurrencyType trainingCurrency) {
@@ -175,7 +175,7 @@ public class TrainingManagerImpl implements TrainingManager {
         AtomicInteger totalRefund = new AtomicInteger(0);
         int givenDelta = calculateGivenRefund(this.playerSession, credits, contraband, trainingCurrency);
         cancelledContracts.forEach(c -> totalRefund.addAndGet(c.getCost()));
-        return new CurrencyDelta(givenDelta, totalRefund.get(), trainingCurrency);
+        return new CurrencyDelta(givenDelta, totalRefund.get(), trainingCurrency, false);
     }
 
     /**
@@ -208,7 +208,7 @@ public class TrainingManagerImpl implements TrainingManager {
         }
 
         int givenCrystalsDelta = this.playerSession.getPlayerSettings().getInventoryStorage().crystals.amount - crystals;
-        return new CurrencyDelta(givenCrystalsDelta,expectedCrystals, CurrencyType.crystals);
+        return new CurrencyDelta(givenCrystalsDelta,expectedCrystals, CurrencyType.crystals, true);
     }
 
     @Override
