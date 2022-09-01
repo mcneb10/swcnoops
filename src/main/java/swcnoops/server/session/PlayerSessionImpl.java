@@ -669,12 +669,15 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
         List<MapItem> allMapItems = this.playerMapItems.getMapItemsByBuildingUid(buildingUid);
         for (MapItem mapItem : allMapItems) {
-//            CurrencyDelta collectedCurrencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time);
-//            this.processInventoryStorage(collectedCurrencyDelta);
             this.droidManager.upgradeBuildUnit(mapItem, null, credits, materials, contraband, time);
-            CurrencyDelta currencyDelta = this.droidManager.buyout(mapItem.getBuildingKey(), crystals, time);
-            this.processInventoryStorage(currencyDelta);
+            this.droidManager.buyout(mapItem.getBuildingKey(), crystals, time);
         }
+
+        int givenDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this, crystals);
+        int costOfWall = allMapItems.get(0).getBuildingData().getMaterials();
+        int expectedCost = CrystalHelper.crystalCostToUpgradeAllWalls(costOfWall, allMapItems.size());
+        CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, expectedCost, CurrencyType.crystals, true);
+        this.processInventoryStorage(currencyDelta);
         this.savePlayerSession();
     }
 
@@ -691,7 +694,14 @@ public class PlayerSessionImpl implements PlayerSession {
             }
 
             this.droidManager.upgradeBuildUnit(mapItem, tag, credits, materials, contraband, time);
-            CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
+            this.droidManager.buyout(buildingId, crystals, time);
+
+            int givenDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this, crystals);
+            CurrencyType currencyType = CurrencyHelper.getCurrencyType(mapItem.getBuildingData());
+            int upgradeCost = CurrencyHelper.getConstructionCost(mapItem.getBuildingData(), currencyType);
+            int expectedCost = CrystalHelper.creditsCrystalCost(upgradeCost) +
+                    CrystalHelper.secondsToCrystals(mapItem.getBuildingData().getTime(), mapItem.getBuildingData());
+            CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, expectedCost, CurrencyType.crystals, true);
             this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }

@@ -38,4 +38,28 @@ public class CrystalHelper {
         int givenCrystalsDelta = playerSession.getPlayerSettings().getInventoryStorage().crystals.amount - crystals;
         return givenCrystalsDelta;
     }
+
+    public static int crystalCostToUpgradeAllWalls(int oneWallCost, int numWalls)
+    {
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+        int num = oneWallCost * numWalls;
+        int upgrade_ALL_WALLS_COEFFICIENT = constants.upgrade_all_walls_coefficient;
+        int upgrade_ALL_WALL_EXPONENT = constants.upgrade_all_wall_exponent;
+        int num2 = currencyPow((float)num, upgrade_ALL_WALLS_COEFFICIENT, upgrade_ALL_WALL_EXPONENT, constants);
+        return (int)Math.ceil((float)num2 * constants.upgrade_all_walls_convenience_tax);
+    }
+
+    public static int creditsCrystalCost(int credits)
+    {
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+        int credits_COEFFICIENT = constants.credits_coefficient;
+        int credits_EXPONENT = constants.credits_exponent;
+        int num = currencyPow((float)credits, credits_COEFFICIENT, credits_EXPONENT, constants);
+//        if (applySale)
+//        {
+//            int credits_LEVER_PERCENTAGE = GameConstants.CREDITS_LEVER_PERCENTAGE;
+//            num = GameUtils.ScaleByPercentage(num, credits_LEVER_PERCENTAGE);
+//        }
+        return num;
+    }
 }

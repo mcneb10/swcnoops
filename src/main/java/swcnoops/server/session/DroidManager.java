@@ -94,11 +94,12 @@ public class DroidManager implements Constructor {
         if (currencyType == null)
             throw new RuntimeException("Can not determine currency type to build");
 
-        int expectedCost = CurrencyHelper.getConstructionCost(mapItem, currencyType);
-
         BuildingData nextLevelBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByBuildingId(mapItem.getBuildingData().getBuildingID(),
                         mapItem.getBuildingData().getLevel() + 1);
+
+        int expectedCost = CurrencyHelper.getConstructionCost(nextLevelBuildingData, currencyType);
+
         BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
                 nextLevelBuildingData.getUid(), expectedCost, ContractType.Upgrade, tag);
         buildUnit.setStartTime(time);

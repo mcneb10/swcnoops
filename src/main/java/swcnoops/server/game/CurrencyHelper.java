@@ -29,16 +29,25 @@ public class CurrencyHelper {
 
     static public int getConstructionCost(MapItem mapItem, CurrencyType currencyType) {
         int cost = 0;
-        if (currencyType != null) {
+        if (mapItem != null) {
+            cost = getConstructionCost(mapItem.getBuildingData(), currencyType);
+        }
+
+        return cost;
+    }
+
+    static public int getConstructionCost(BuildingData buildingData, CurrencyType currencyType) {
+        int cost = 0;
+        if (buildingData != null && currencyType != null) {
             switch (currencyType) {
                 case credits:
-                    cost = mapItem.getBuildingData().getCredits();
+                    cost = buildingData.getCredits();
                     break;
                 case materials:
-                    cost = mapItem.getBuildingData().getMaterials();
+                    cost = buildingData.getMaterials();
                     break;
                 case contraband:
-                    cost = mapItem.getBuildingData().getContraband();
+                    cost = buildingData.getContraband();
                     break;
             }
         }

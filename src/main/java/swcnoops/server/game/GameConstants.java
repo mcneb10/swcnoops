@@ -14,6 +14,11 @@ public class GameConstants {
     public Integer coef_exp_accuracy;
     public Float contract_refund_percentage_buildings;
     public Float contract_refund_percentage_troops;
+    public Integer upgrade_all_walls_coefficient;
+    public Integer upgrade_all_wall_exponent;
+    public Integer upgrade_all_walls_convenience_tax;
+    public Integer credits_coefficient;
+    public Integer credits_exponent;
 
     public static GameConstants createFromBaseJson(List<Map<String, String>> gameConstants) throws Exception {
         GameConstants constants = new GameConstants();
