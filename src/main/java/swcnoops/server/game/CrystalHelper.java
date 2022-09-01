@@ -1,9 +1,10 @@
 package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.session.PlayerSession;
 
 public class CrystalHelper {
-    public static int secondsToCrystals(int seconds, boolean prestige)
+    private static int secondsToCrystals(int seconds, boolean prestige)
     {
         GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
         float baseValue = (float)seconds / 3600f;
@@ -26,5 +27,15 @@ public class CrystalHelper {
     public static int secondsToCrystals(int secondsToBuy, TroopData troopData) {
         boolean isPrestige = troopData.getLevel() > 10;
         return secondsToCrystals(secondsToBuy, isPrestige);
+    }
+
+    public static int secondsToCrystals(int secondsToBuy, BuildingData buildingData) {
+        boolean isPrestige = buildingData.getLevel() > 10;
+        return secondsToCrystals(secondsToBuy, isPrestige);
+    }
+
+    public static int calculateGivenCrystalDeltaToRemove(PlayerSession playerSession, int crystals) {
+        int givenCrystalsDelta = playerSession.getPlayerSettings().getInventoryStorage().crystals.amount - crystals;
+        return givenCrystalsDelta;
     }
 }

@@ -271,11 +271,13 @@ public class PlayerSessionImpl implements PlayerSession {
                 this.trainingManager.recalculateContracts(time);
             } else {
                 CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
+                this.processInventoryStorage(currencyDelta);
             }
 
             this.savePlayerSession();
         } else {
             CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
+            this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
     }
@@ -667,8 +669,11 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
         List<MapItem> allMapItems = this.playerMapItems.getMapItemsByBuildingUid(buildingUid);
         for (MapItem mapItem : allMapItems) {
+//            CurrencyDelta collectedCurrencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time);
+//            this.processInventoryStorage(collectedCurrencyDelta);
             this.droidManager.upgradeBuildUnit(mapItem, null, credits, materials, contraband, time);
-            this.droidManager.buyout(mapItem.getBuildingKey(), crystals, time);
+            CurrencyDelta currencyDelta = this.droidManager.buyout(mapItem.getBuildingKey(), crystals, time);
+            this.processInventoryStorage(currencyDelta);
         }
         this.savePlayerSession();
     }
@@ -687,7 +692,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
             this.droidManager.upgradeBuildUnit(mapItem, tag, credits, materials, contraband, time);
             CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
-            //this.processInventoryStorage(currencyDelta);
+            this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
     }

@@ -102,7 +102,7 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time) {
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override

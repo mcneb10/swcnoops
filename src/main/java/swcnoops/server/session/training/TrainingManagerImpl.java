@@ -192,7 +192,7 @@ public class TrainingManagerImpl implements TrainingManager {
             expectedCrystals = CrystalHelper.secondsToCrystals(secondsToBuy, troopData);
         }
 
-        int givenCrystalsDelta = this.playerSession.getPlayerSettings().getInventoryStorage().crystals.amount - crystals;
+        int givenCrystalsDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this.playerSession, crystals);
         return new CurrencyDelta(givenCrystalsDelta,expectedCrystals, CurrencyType.crystals, true);
     }
 

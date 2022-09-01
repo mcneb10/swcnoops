@@ -1,10 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.game.BuildingData;
-import swcnoops.server.game.ContractType;
-import swcnoops.server.game.CurrencyHelper;
-import swcnoops.server.game.GameConstants;
+import swcnoops.server.game.*;
 import swcnoops.server.model.CurrencyType;
 import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.training.BuildUnit;
@@ -58,12 +55,18 @@ public class DroidManager implements Constructor {
 
     public CurrencyDelta buyout(String buildingId, int crystals, long time) {
         BuildUnit buildUnit = getBuildUnitById(buildingId);
+        CurrencyDelta currencyDelta = null;
         if (buildUnit != null) {
+            int secondsBuyingOut = (int)(buildUnit.getEndTime() - time);
             buildUnit.setEndTime(time);
             moveCompletedBuildUnits(time);
+            BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildUnit.getUnitId());
+            int crystalsToBuy = CrystalHelper.secondsToCrystals(secondsBuyingOut, buildingData);
+            int givenDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this.playerSession, crystals);
+            currencyDelta = new CurrencyDelta(givenDelta, crystalsToBuy, CurrencyType.crystals, true);
         }
 
-        return null;
+        return currencyDelta;
     }
 
     private BuildUnit getBuildUnitById(String buildingId) {

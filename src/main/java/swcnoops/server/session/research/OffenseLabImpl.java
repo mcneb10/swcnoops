@@ -126,11 +126,10 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time) {
-        throw new NotImplementedException();
+        return null;
     }
 
     @Override
     public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
-        throw new NotImplementedException();
     }
 }
