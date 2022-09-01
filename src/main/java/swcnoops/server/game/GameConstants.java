@@ -12,6 +12,8 @@ public class GameConstants {
     public Integer crystals_speed_up_prestige_exponent;
     public Integer crystals_speed_up_building_lever_percentage;
     public Integer coef_exp_accuracy;
+    public Float contract_refund_percentage_buildings;
+    public Float contract_refund_percentage_troops;
 
     public static GameConstants createFromBaseJson(List<Map<String, String>> gameConstants) throws Exception {
         GameConstants constants = new GameConstants();
@@ -41,6 +43,12 @@ public class GameConstants {
             return Integer.valueOf(property);
         } else if (type == String.class) {
             return property;
+        } else if (type == Float.class) {
+            return Float.valueOf(property);
+        } else if (type == Double.class) {
+            return Double.valueOf(property);
+        } else if (type == Long.class) {
+            return Long.valueOf(property);
         }
 
         return null;

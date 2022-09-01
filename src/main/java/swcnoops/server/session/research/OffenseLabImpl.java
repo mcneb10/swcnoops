@@ -64,11 +64,13 @@ public class OffenseLabImpl implements OffenseLab {
     }
 
     @Override
-    public void cancel(long time) {
+    public CurrencyDelta cancel(long time, int credits, int materials, int contraband) {
         if (isResearchingTroop()) {
             Troops troops = this.playerSession.getTroopInventory().getTroops();
             troops.getUpgrades().clear();
         }
+
+        return null;
     }
 
     @Override

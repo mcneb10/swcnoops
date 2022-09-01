@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerBuildingBuyout extends AbstractCommandAction<PlayerBuildingBuyout, CommandResult> {
+public class PlayerBuildingBuyout extends PlayerChecksum<PlayerBuildingBuyout, CommandResult> {
     private String instanceId;
     private String tag;
 
@@ -16,7 +15,9 @@ public class PlayerBuildingBuyout extends AbstractCommandAction<PlayerBuildingBu
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.buildingBuyout(arguments.getInstanceId(), arguments.getTag(), time);
+        playerSession.buildingBuyout(arguments.getInstanceId(), arguments.getTag(), arguments.getCredits(),
+                arguments.getMaterials(), arguments.getContraband(), arguments.getCrystals(), time);
+
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

@@ -74,7 +74,7 @@ public class PlayerMapItems {
         this.map.next++;
         building.x = position.x;
         building.z = position.z;
-        building.currentStorage = buildingData.getStorage();
+        building.currentStorage = 0;
         MapItem mapItem = createMapItem(building, buildingData);
         return mapItem;
     }
@@ -96,6 +96,9 @@ public class PlayerMapItems {
                 break;
             case champion_platform:
                 mapItem = new ChampionPlatform(building, buildingData);
+                break;
+            case resource:
+                mapItem = new ResourceBuilding(building, buildingData);
                 break;
             case HQ:
                 mapItem = new HeadQuarter(building, buildingData);

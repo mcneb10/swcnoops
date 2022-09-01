@@ -25,7 +25,7 @@ public interface PlayerSession {
 
     void trainTroops(String constructor, String unitTypeId, int quantity, int credits, int contraband, long time);
 
-    void cancelTrainTroops(String constructor, String unitTypeId, int quantity, int credits, int contraband, long time);
+    void cancelTrainTroops(String constructor, String unitTypeId, int quantity, int credits, int materials, int contraband, long time);
 
     void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, int crystals, long time);
 
@@ -41,13 +41,13 @@ public interface PlayerSession {
 
     CreatureManager getCreatureManager();
 
-    void buildingBuyout(String instanceId, String tag, long time);
+    void buildingBuyout(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
 
     void deployableUpgradeStart(String buildingId, String troopUid, long time);
 
     void playerLogin(long time);
 
-    void buildingCancel(String buildingId, String tag, long time);
+    void buildingCancel(String buildingId, String tag, int credits, int materials, int contraband, long time);
 
     SquadNotification troopsRequest(DonatedTroops donatedTroops, String warId, boolean payToSkip, String message, long time);
 
@@ -75,7 +75,7 @@ public interface PlayerSession {
 
     void buildingConstruct(String buildingUid, String tag, Position position, int credits, int materials, int contraband, long time);
 
-    void buildingUpgrade(String buildingId, String tag, long time);
+    void buildingUpgrade(String buildingId, String tag, int credits, int materials, int contraband, long time);
 
     void factionSet(FactionType faction, long time);
 
@@ -103,11 +103,11 @@ public interface PlayerSession {
 
     MapItem removeMapItemByKey(String instanceId);
 
-    void buildingInstantUpgrade(String instanceId, String tag, long time);
+    void buildingInstantUpgrade(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
     
     void storeBuy(String uid, int count, long time);
 
-    void buildingUpgradeAll(String buildingUid, long time);
+    void buildingUpgradeAll(String buildingUid, int credits, int materials, int contraband, int crystals, long time);
 
     void buildingSwap(String buildingId, String buildingUid, long time);
 

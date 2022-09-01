@@ -3,6 +3,9 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.ContractType;
+import swcnoops.server.game.CurrencyHelper;
+import swcnoops.server.game.GameConstants;
+import swcnoops.server.model.CurrencyType;
 import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.training.BuildUnit;
 import swcnoops.server.session.training.TrainingManagerFactory;
@@ -53,12 +56,14 @@ public class DroidManager implements Constructor {
         }
     }
 
-    public void buyout(String buildingId, long time) {
+    public CurrencyDelta buyout(String buildingId, int crystals, long time) {
         BuildUnit buildUnit = getBuildUnitById(buildingId);
         if (buildUnit != null) {
             buildUnit.setEndTime(time);
             moveCompletedBuildUnits(time);
         }
+
+        return null;
     }
 
     private BuildUnit getBuildUnitById(String buildingId) {
@@ -77,24 +82,47 @@ public class DroidManager implements Constructor {
                 mapItem.getBuildingData().getUid(), expectedCost, ContractType.Build, tag);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + mapItem.getBuildingData().getTime());
+        mapItem.getBuilding().lastCollectTime = buildUnit.getEndTime();
         this.addBuildUnit(buildUnit);
     }
 
-    public void upgradeBuildUnit(MapItem mapItem, String tag, long time) {
+    public CurrencyDelta upgradeBuildUnit(MapItem mapItem, String tag, int credits, int materials, int contraband, long time) {
+        CurrencyType currencyType = CurrencyHelper.getCurrencyType(mapItem);
+        if (currencyType == null)
+            throw new RuntimeException("Can not determine currency type to build");
+
+        int expectedCost = CurrencyHelper.getConstructionCost(mapItem, currencyType);
+
         BuildingData nextLevelBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByBuildingId(mapItem.getBuildingData().getBuildingID(),
                         mapItem.getBuildingData().getLevel() + 1);
         BuildUnit buildUnit = new BuildUnit(this, mapItem.getBuildingKey(),
-                nextLevelBuildingData.getUid(), 0, ContractType.Upgrade, tag);
+                nextLevelBuildingData.getUid(), expectedCost, ContractType.Upgrade, tag);
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + nextLevelBuildingData.getTime());
         this.addBuildUnit(buildUnit);
+
+        int givenTotal = CurrencyHelper.getGivenTotal(currencyType, credits, materials, contraband);
+        int givenDelta = CurrencyHelper.calculateGivenConstructionCost(this.playerSession, givenTotal, currencyType);
+        CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, expectedCost, currencyType, true);
+        return currencyDelta;
     }
 
-    public void cancel(String buildingId) {
+    public CurrencyDelta cancel(String buildingId, int credits, int materials, int contraband) {
         BuildUnit buildUnit = getBuildUnitById(buildingId);
-        if (buildUnit != null)
+        CurrencyDelta currencyDelta = null;
+        if (buildUnit != null) {
             this.unitsInQueue.remove(buildUnit);
+
+            BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(buildUnit.getUnitId());
+            CurrencyType buildCurrency = CurrencyHelper.getCurrencyType(buildingData);
+            int givenDelta = CurrencyHelper.calculateGivenRefund(this.playerSession, credits, materials, contraband, buildCurrency);
+            GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+            int expectedRefund = (int)((float) buildUnit.getCost() * constants.contract_refund_percentage_buildings / 100f);
+            currencyDelta = new CurrencyDelta(givenDelta, expectedRefund, buildCurrency, false);
+        }
+
+        return currencyDelta;
     }
 
     public void buildingSwap(MapItem mapItem, String buildingUid, long time) {

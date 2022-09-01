@@ -19,6 +19,7 @@ public class PlayerDeployableCancel extends PlayerChecksum<PlayerDeployableCance
         playerSession.cancelTrainTroops(arguments.getConstructor(), arguments.getUnitTypeId(),
                 arguments.getQuantity(),
                 arguments.getCredits(),
+                arguments.getMaterials(),
                 arguments.getContraband(),
                 time);
 

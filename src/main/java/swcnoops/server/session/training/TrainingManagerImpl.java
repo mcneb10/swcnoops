@@ -4,10 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Deployables;
-import swcnoops.server.game.ContractType;
-import swcnoops.server.game.CrystalHelper;
-import swcnoops.server.game.GameDataManager;
-import swcnoops.server.game.TroopData;
+import swcnoops.server.game.*;
 import swcnoops.server.model.*;
 import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
@@ -98,22 +95,6 @@ public class TrainingManagerImpl implements TrainingManager {
         return givenCost;
     }
 
-    private int calculateGivenRefund(PlayerSession playerSession, int credits, int contraband, CurrencyType trainingCurrency) {
-        int givenRefund = 0;
-        if (trainingCurrency != null) {
-            switch (trainingCurrency) {
-                case credits:
-                    givenRefund = credits - playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
-                    break;
-                case contraband:
-                    givenRefund = contraband - playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
-                    break;
-            }
-        }
-
-        return givenRefund;
-    }
-
     private CurrencyType getTrainingCurrency(TroopData troopData) {
         CurrencyType currencyType = CurrencyType.credits;
         if (troopData.getType() != null) {
@@ -155,7 +136,9 @@ public class TrainingManagerImpl implements TrainingManager {
      * @param time
      */
     @Override
-    public CurrencyDelta cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long time) {
+    public CurrencyDelta cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int materials,
+                                           int contraband, long time)
+    {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> cancelledContracts =
@@ -173,9 +156,11 @@ public class TrainingManagerImpl implements TrainingManager {
 
         CurrencyType trainingCurrency = getTrainingCurrency(troopData);
         AtomicInteger totalRefund = new AtomicInteger(0);
-        int givenDelta = calculateGivenRefund(this.playerSession, credits, contraband, trainingCurrency);
+        int givenDelta = CurrencyHelper.calculateGivenRefund(this.playerSession, credits, materials, contraband, trainingCurrency);
         cancelledContracts.forEach(c -> totalRefund.addAndGet(c.getCost()));
-        return new CurrencyDelta(givenDelta, totalRefund.get(), trainingCurrency, false);
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+        int expectedRefund = (int) ((float)totalRefund.get() * constants.contract_refund_percentage_troops / 100f);
+        return new CurrencyDelta(givenDelta, expectedRefund, trainingCurrency, false);
     }
 
     /**

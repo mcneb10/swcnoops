@@ -146,9 +146,12 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long time) {
+    public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int materials,
+                                  int contraband, long time)
+    {
         this.processCompletedContracts(time);
-        CurrencyDelta currencyDelta = this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity, credits, contraband, time);
+        CurrencyDelta currencyDelta = this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity,
+                credits, materials, contraband, time);
         this.processInventoryStorage(currencyDelta);
         savePlayerSession();
     }
@@ -257,7 +260,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void buildingBuyout(String buildingId, String tag, long time) {
+    public void buildingBuyout(String buildingId, String tag, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
         if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(buildingId)) {
             this.creatureManager.buyout(time);
@@ -267,30 +270,34 @@ public class PlayerSessionImpl implements PlayerSession {
                 this.offenseLab.buyout(time);
                 this.trainingManager.recalculateContracts(time);
             } else {
-                this.droidManager.buyout(buildingId, time);
+                CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
             }
 
             this.savePlayerSession();
         } else {
-            this.droidManager.buyout(buildingId, time);
+            CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
             this.savePlayerSession();
         }
     }
 
     @Override
-    public void buildingCancel(String buildingId, String tag, long time) {
+    public void buildingCancel(String buildingId, String tag, int credits, int materials, int contraband, long time) {
         this.processCompletedContracts(time);
+
+        // for cancels on offenseLab, it could be cancelling the building or the research of troops
+        CurrencyDelta currencyDelta;
         if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
             if (offenseLab.isResearchingTroop()) {
-                this.offenseLab.cancel(time);
+                currencyDelta = this.offenseLab.cancel(time, credits, materials, contraband);
             } else {
-                this.droidManager.cancel(buildingId);
+                currencyDelta = this.droidManager.cancel(buildingId, credits, materials, contraband);
             }
-            this.savePlayerSession();
         } else {
-            this.droidManager.cancel(buildingId);
-            this.savePlayerSession();
+            currencyDelta = this.droidManager.cancel(buildingId, credits, materials, contraband);
         }
+
+        this.processInventoryStorage(currencyDelta);
+        this.savePlayerSession();
     }
 
     @Override
@@ -601,107 +608,46 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
         MapItem mapItem = this.playerMapItems.createMapItem(buildingUid, tag, position);
 
-        CurrencyType currencyType = getCurrencyType(mapItem);
+        CurrencyType currencyType = CurrencyHelper.getCurrencyType(mapItem);
         if (currencyType == null)
             throw new RuntimeException("Can not determine currency type to build");
 
-        int expectedCost = getConstructionCost(mapItem, currencyType);
+        int expectedCost = CurrencyHelper.getConstructionCost(mapItem, currencyType);
 
         // add the building to the map
         this.playerMapItems.constructNewBuilding(mapItem);
         this.droidManager.constructBuildUnit(mapItem, tag, time, expectedCost);
 
-        int givenTotal = getGivenTotal(currencyType, credits, materials, contraband);
-        int givenDelta = calculateGivenConstructionCost(this, givenTotal, currencyType);
+        int givenTotal = CurrencyHelper.getGivenTotal(currencyType, credits, materials, contraband);
+        int givenDelta = CurrencyHelper.calculateGivenConstructionCost(this, givenTotal, currencyType);
         CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, expectedCost, currencyType, true);
         this.processInventoryStorage(currencyDelta);
         savePlayerSession();
     }
 
     private void processInventoryStorage(CurrencyDelta currencyDelta) {
-        if (currencyDelta.getRemoveFromInventory())
-            this.removeFromInventoryStorage(currencyDelta, this);
-        else
-            this.addToInventoryStorage(currencyDelta, this);
-    }
-
-    private int getConstructionCost(MapItem mapItem, CurrencyType currencyType) {
-        int cost = 0;
-        if (currencyType != null) {
-            switch (currencyType) {
-                case credits:
-                    cost = mapItem.getBuildingData().getCredits();
-                    break;
-                case materials:
-                    cost = mapItem.getBuildingData().getMaterials();
-                    break;
-                case contraband:
-                    cost = mapItem.getBuildingData().getContraband();
-                    break;
-            }
+        if (currencyDelta != null) {
+            if (currencyDelta.getRemoveFromInventory())
+                this.removeFromInventoryStorage(currencyDelta, this);
+            else
+                this.addToInventoryStorage(currencyDelta, this);
         }
-
-        return cost;
-    }
-
-    private int calculateGivenConstructionCost(PlayerSession playerSession, int givenTotal,
-                                               CurrencyType trainingCurrency)
-    {
-        int givenCost = 0;
-        if (trainingCurrency != null) {
-            switch (trainingCurrency) {
-                case credits:
-                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().credits.amount - givenTotal;
-                    break;
-                case materials:
-                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().materials.amount - givenTotal;
-                    break;
-                case contraband:
-                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount - givenTotal;
-                    break;
-            }
-        }
-
-        return givenCost;
-    }
-
-    private int getGivenTotal(CurrencyType currency, int credits, int materials, int contraband) {
-        int givenTotal = 0;
-        if (currency != null) {
-            switch (currency) {
-                case credits:
-                    givenTotal = credits;
-                    break;
-                case materials:
-                    givenTotal = materials;
-                    break;
-                case contraband:
-                    givenTotal = contraband;
-                    break;
-            }
-        }
-        return givenTotal;
-    }
-
-    private CurrencyType getCurrencyType(MapItem mapItem) {
-        CurrencyType currencyType = null;
-        if (mapItem.getBuildingData() != null) {
-            if (mapItem.getBuildingData().getMaterials() != 0)
-                currencyType = CurrencyType.materials;
-            else if (mapItem.getBuildingData().getCredits() != 0)
-                currencyType = CurrencyType.credits;
-            else if (mapItem.getBuildingData().getContraband() != 0)
-                currencyType = CurrencyType.contraband;
-        }
-        return currencyType;
     }
 
     @Override
-    public void buildingUpgrade(String buildingId, String tag, long time) {
+    public void buildingUpgrade(String buildingId, String tag, int credits, int materials, int contraband, long time) {
         this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
-            this.droidManager.upgradeBuildUnit(mapItem, tag, time);
+            // if a resource we collect it first
+            if (mapItem.getBuildingData().getType() == BuildingType.resource) {
+                CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, 0, time);
+                this.processInventoryStorage(currencyDelta);
+            }
+
+            CurrencyDelta currencyDelta = this.droidManager.upgradeBuildUnit(mapItem, tag, credits,
+                    materials, contraband, time);
+            this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
     }
@@ -717,23 +663,31 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void buildingUpgradeAll(String buildingUid, long time) {
+    public void buildingUpgradeAll(String buildingUid, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
         List<MapItem> allMapItems = this.playerMapItems.getMapItemsByBuildingUid(buildingUid);
         for (MapItem mapItem : allMapItems) {
-            this.droidManager.upgradeBuildUnit(mapItem, null, time);
-            this.droidManager.buyout(mapItem.getBuildingKey(), time);
+            this.droidManager.upgradeBuildUnit(mapItem, null, credits, materials, contraband, time);
+            this.droidManager.buyout(mapItem.getBuildingKey(), crystals, time);
         }
         this.savePlayerSession();
     }
 
     @Override
-    public void buildingInstantUpgrade(String buildingId, String tag, long time) {
+    public void buildingInstantUpgrade(String buildingId, String tag, int credits, int materials, int contraband,
+                                       int crystals, long time)
+    {
         this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
-            this.droidManager.upgradeBuildUnit(mapItem, tag, time);
-            this.droidManager.buyout(buildingId, time);
+            if (mapItem.getBuildingData().getType() == BuildingType.resource) {
+                CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time);
+                this.processInventoryStorage(currencyDelta);
+            }
+
+            this.droidManager.upgradeBuildUnit(mapItem, tag, credits, materials, contraband, time);
+            CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
+            //this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
     }

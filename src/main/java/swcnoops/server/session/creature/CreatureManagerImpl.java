@@ -86,7 +86,7 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public void cancel(long time) {
+    public CurrencyDelta cancel(long time, int credits, int materials, int contraband) {
         throw new UnsupportedOperationException();
     }
 
