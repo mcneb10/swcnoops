@@ -19,6 +19,9 @@ public class BuildingData implements GameData {
     private CurrencyType currency;
     private float produce;
     private float cycleTime;
+    private int materials;
+    private int credits;
+    private int contraband;
 
     public BuildingData(String uid) {
         this.uid = uid;
@@ -138,5 +141,29 @@ public class BuildingData implements GameData {
 
     public float getCycleTime() {
         return cycleTime;
+    }
+
+    public int getMaterials() {
+        return materials;
+    }
+
+    public void setMaterials(int materials) {
+        this.materials = materials;
+    }
+
+    public int getCredits() {
+        return credits;
+    }
+
+    public void setCredits(int credits) {
+        this.credits = credits;
+    }
+
+    public int getContraband() {
+        return contraband;
+    }
+
+    public void setContraband(int contraband) {
+        this.contraband = contraband;
     }
 }

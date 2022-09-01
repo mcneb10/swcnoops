@@ -73,7 +73,7 @@ public interface PlayerSession {
 
     void buildingClear(String instanceId, long time);
 
-    void buildingConstruct(String buildingUid, String tag, Position position, long time);
+    void buildingConstruct(String buildingUid, String tag, Position position, int credits, int materials, int contraband, long time);
 
     void buildingUpgrade(String buildingId, String tag, long time);
 

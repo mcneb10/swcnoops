@@ -45,14 +45,14 @@ abstract public class AbstractMapItem implements MapItem {
     @Override
     public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time) {
         int givenTotal = getGivenTotal(this.getBuildingData().getCurrency(), credits, materials, contraband);
-        int givenDelta = calculateGivenDelta(this.getBuildingData().getCurrency(), givenTotal, playerSession);
-        int expectedDelta = calculateExpectedDelta(this.building, this.buildingData, time);
+        int givenDelta = calculateGivenDeltaCollected(this.getBuildingData().getCurrency(), givenTotal, playerSession);
+        int expectedDelta = calculateExpectedDeltaCollect(this.building, this.buildingData, time);
         this.building.currentStorage = 0;
         this.building.lastCollectTime = time;
         return new CurrencyDelta(givenDelta, expectedDelta, this.getBuildingData().getCurrency());
     }
 
-    private int calculateExpectedDelta(Building building, BuildingData buildingData, long time) {
+    private int calculateExpectedDeltaCollect(Building building, BuildingData buildingData, long time) {
         float timeDelta = time - building.lastCollectTime;
         int delta = (int)(timeDelta * (buildingData.getProduce()/buildingData.getCycleTime()));
         delta += building.currentStorage;
@@ -61,7 +61,7 @@ abstract public class AbstractMapItem implements MapItem {
         return delta;
     }
 
-    private int calculateGivenDelta(CurrencyType currency, int givenTotal, PlayerSession playerSession) {
+    private int calculateGivenDeltaCollected(CurrencyType currency, int givenTotal, PlayerSession playerSession) {
         int givenDelta = givenTotal;
         if (currency != null) {
             switch (currency) {

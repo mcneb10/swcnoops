@@ -274,6 +274,9 @@ public class GameDataManagerImpl implements GameDataManager {
             int storage = Integer.valueOf(building.get("storage") == null ? "0" : building.get("storage")).intValue();
             int time = Integer.valueOf(building.get("time")).intValue();
             int crossTime = Integer.valueOf(building.get("crossTime") == null ? "0" : building.get("crossTime")).intValue();
+            int materials = Integer.valueOf(building.get("materials") == null ? "0" : building.get("materials")).intValue();
+            int credits = Integer.valueOf(building.get("credits") == null ? "0" : building.get("credits")).intValue();
+            int contraband = Integer.valueOf(building.get("contraband") == null ? "0" : building.get("contraband")).intValue();
             String linkedUnit = building.get("linkedUnit");
             StoreTab storeTab = building.get("storeTab") != null ? StoreTab.valueOf(building.get("storeTab")) : null;
             BuildingSubType buildingSubType = building.get("subType") != null ?
@@ -303,6 +306,9 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setLinkedUnit(linkedUnit);
             buildingData.setStoreTab(storeTab);
             buildingData.setSubType(buildingSubType);
+            buildingData.setMaterials(materials);
+            buildingData.setCredits(credits);
+            buildingData.setContraband(contraband);
 
             map.put(buildingData.getUid(), buildingData);
             String needToSort = addToLevelMaps(buildingData);

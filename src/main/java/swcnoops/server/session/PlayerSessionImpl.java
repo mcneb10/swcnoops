@@ -595,14 +595,97 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void buildingConstruct(String buildingUid, String tag, Position position, long time) {
+    public void buildingConstruct(String buildingUid, String tag, Position position, int credits, int materials,
+                                  int contraband, long time)
+    {
         this.processCompletedContracts(time);
         MapItem mapItem = this.playerMapItems.createMapItem(buildingUid, tag, position);
 
         // add the building to the map
         this.playerMapItems.constructNewBuilding(mapItem);
         this.droidManager.constructBuildUnit(mapItem, tag, time);
+
+        CurrencyType currencyType = getCurrencyType(mapItem);
+        if (currencyType == null)
+            throw new RuntimeException("Can not determine currency type to build");
+
+        int givenTotal = getGivenTotal(currencyType, credits, materials, contraband);
+        int givenDelta = calculateGivenConstructionCost(this, givenTotal, currencyType);
+        int expectedDelta = getConstructionCost(mapItem, currencyType);
+        CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, expectedDelta, currencyType);
+        this.removeFromInventoryStorage(currencyDelta, this);
         savePlayerSession();
+    }
+
+    private int getConstructionCost(MapItem mapItem, CurrencyType currencyType) {
+        int cost = 0;
+        if (currencyType != null) {
+            switch (currencyType) {
+                case credits:
+                    cost = mapItem.getBuildingData().getCredits();
+                    break;
+                case materials:
+                    cost = mapItem.getBuildingData().getMaterials();
+                    break;
+                case contraband:
+                    cost = mapItem.getBuildingData().getContraband();
+                    break;
+            }
+        }
+
+        return cost;
+    }
+
+    private int calculateGivenConstructionCost(PlayerSession playerSession, int givenTotal,
+                                               CurrencyType trainingCurrency)
+    {
+        int givenCost = 0;
+        if (trainingCurrency != null) {
+            switch (trainingCurrency) {
+                case credits:
+                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().credits.amount - givenTotal;
+                    break;
+                case materials:
+                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().materials.amount - givenTotal;
+                    break;
+                case contraband:
+                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount - givenTotal;
+                    break;
+            }
+        }
+
+        return givenCost;
+    }
+
+    private int getGivenTotal(CurrencyType currency, int credits, int materials, int contraband) {
+        int givenTotal = 0;
+        if (currency != null) {
+            switch (currency) {
+                case credits:
+                    givenTotal = credits;
+                    break;
+                case materials:
+                    givenTotal = materials;
+                    break;
+                case contraband:
+                    givenTotal = contraband;
+                    break;
+            }
+        }
+        return givenTotal;
+    }
+
+    private CurrencyType getCurrencyType(MapItem mapItem) {
+        CurrencyType currencyType = null;
+        if (mapItem.getBuildingData() != null) {
+            if (mapItem.getBuildingData().getMaterials() != 0)
+                currencyType = CurrencyType.materials;
+            else if (mapItem.getBuildingData().getCredits() != 0)
+                currencyType = CurrencyType.credits;
+            else if (mapItem.getBuildingData().getContraband() != 0)
+                currencyType = CurrencyType.contraband;
+        }
+        return currencyType;
     }
 
     @Override
