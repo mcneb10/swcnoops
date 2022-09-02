@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerPlanetRelocate extends AbstractCommandAction<PlayerPlanetRelocate, CommandResult> {
+public class PlayerPlanetRelocate extends PlayerChecksum<PlayerPlanetRelocate, CommandResult> {
     private String planet;
     private boolean payWithHardCurrency;
 
@@ -15,7 +14,10 @@ public class PlayerPlanetRelocate extends AbstractCommandAction<PlayerPlanetRelo
     protected CommandResult execute(PlayerPlanetRelocate arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
-        playerSession.planetRelocate(arguments.getPlanet(), arguments.getPayWithHardCurrency(), time);
+        playerSession.planetRelocate(arguments.getPlanet(),
+                arguments.getPayWithHardCurrency(),
+                arguments.getCrystals(),
+                time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

@@ -920,9 +920,21 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void planetRelocate(String planet, boolean payWithHardCurrency, long time) {
+    public void planetRelocate(String planet, boolean payWithHardCurrency, int crystals, long time) {
         this.processCompletedContracts(time);
         this.playerSettings.getBaseMap().planet = planet;
+
+        if (payWithHardCurrency) {
+            int givenDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this, crystals);
+            if (givenDelta < 0) {
+                LOG.warn("PlayerId " + this.getPlayerId() + " is relocating with a given delta that looks suspicious " + givenDelta);
+            }
+
+            CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, givenDelta,
+                    CurrencyType.crystals, true);
+            this.processInventoryStorage(currencyDelta);
+        }
+
         this.savePlayerSession();
     }
 
