@@ -12,6 +12,7 @@ public class CrystalHelper {
         int exponent = (!prestige) ? constants.crystals_speed_up_exponent : constants.crystals_speed_up_prestige_exponent;
         return currencyPow(baseValue, coefficient, exponent, constants);
     }
+
     static private int currencyPow(float baseValue, int coefficient, int exponent, GameConstants constants)
     {
         int coef_EXP_ACCURACY = constants.coef_exp_accuracy;
@@ -27,6 +28,10 @@ public class CrystalHelper {
     public static int secondsToCrystals(int secondsToBuy, TroopData troopData) {
         boolean isPrestige = troopData.getLevel() > 10;
         return secondsToCrystals(secondsToBuy, isPrestige);
+    }
+
+    public static int secondsToCrystalsForResearch(int secondsToBuy) {
+        return secondsToCrystals(secondsToBuy, false);
     }
 
     public static int secondsToCrystals(int secondsToBuy, BuildingData buildingData) {

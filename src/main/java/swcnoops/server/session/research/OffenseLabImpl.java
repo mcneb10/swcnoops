@@ -62,9 +62,7 @@ public class OffenseLabImpl implements OffenseLab {
                 int secondsToBuy = (int)(troopUpgrade.getEndTime() - time);
                 troopUpgrade.buyout(time);
                 this.processCompletedUpgrades(time);
-                TroopData troopData = ServiceFactory.instance().getGameDataManager()
-                        .getTroopDataByUid(troopUpgrade.getTroopUId());
-                int expectedDelta = CrystalHelper.secondsToCrystals(secondsToBuy, troopData);
+                int expectedDelta = CrystalHelper.secondsToCrystalsForResearch(secondsToBuy);
                 int givenDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this.playerSession, crystals);
                 currencyDelta = new CurrencyDelta(givenDelta, expectedDelta, CurrencyType.crystals, true);
             }
