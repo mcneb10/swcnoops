@@ -2,9 +2,10 @@ package swcnoops.server.game;
 
 public class TrapData implements GameData {
     final String uid;
-    private Long rearmTime;
+    private long rearmTime;
     private TrapEventType eventType;
     private String eventData;
+    private int rearmMaterialsCost;
 
     public TrapData(String uid) {
         this.uid = uid;
@@ -15,11 +16,11 @@ public class TrapData implements GameData {
         return uid;
     }
 
-    public Long getRearmTime() {
+    public long getRearmTime() {
         return rearmTime;
     }
 
-    public void setRearmTime(Long rearmTime) {
+    public void setRearmTime(long rearmTime) {
         this.rearmTime = rearmTime;
     }
 
@@ -38,5 +39,13 @@ public class TrapData implements GameData {
 
     public void setEventData(String eventData) {
         this.eventData = eventData;
+    }
+
+    public int getRearmMaterialsCost() {
+        return rearmMaterialsCost;
+    }
+
+    public void setRearmMaterialsCost(int rearmMaterialsCost) {
+        this.rearmMaterialsCost = rearmMaterialsCost;
     }
 }

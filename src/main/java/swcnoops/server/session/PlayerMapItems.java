@@ -120,7 +120,7 @@ public class PlayerMapItems {
                 if (CreatureManagerFactory.isCreatureTrap(building.uid)) {
                     mapItem = new StrixBeacon(building, buildingData);
                 } else {
-                    mapItem = new MapItemImpl(building, buildingData);
+                    mapItem = new TrapBuilding(building, buildingData);
                 }
                 break;
             default:

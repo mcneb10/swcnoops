@@ -140,4 +140,9 @@ public class CreatureManagerImpl implements CreatureManager {
         this.creature.setCreatureUnitId(unitId);
         this.buyout(0, endTime);
     }
+
+    @Override
+    public void setupForConstruction() {
+
+    }
 }

@@ -81,7 +81,7 @@ public interface PlayerSession {
 
     DroidManager getDroidManager();
 
-    void rearm(List<String> buildingIds, long time);
+    void rearm(List<String> buildingIds, int credits, int materials, int contraband, long time);
 
     PlayerMapItems getPlayerMapItems();
 

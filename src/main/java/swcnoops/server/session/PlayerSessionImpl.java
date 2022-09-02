@@ -812,15 +812,22 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void rearm(List<String> buildingIds, long time) {
+    public void rearm(List<String> buildingIds, int credits, int materials, int contraband, long time) {
         this.processCompletedContracts(time);
+        int totalRearm = 0;
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         for (String buildingId : buildingIds) {
             MapItem mapItem = this.getMapItemByKey(buildingId);
             if (mapItem != null) {
                 mapItem.getBuilding().currentStorage = 1;
+                TrapData trapData = gameDataManager.getTrapDataByUid(mapItem.getBuildingData().getTrapId());
+                totalRearm += trapData.getRearmMaterialsCost();
             }
         }
 
+        int givenDelta = CurrencyHelper.calculateGivenConstructionCost(this, materials, CurrencyType.materials);
+        CurrencyDelta currencyDelta = new CurrencyDelta(givenDelta, totalRearm, CurrencyType.materials, true);
+        this.processInventoryStorage(currencyDelta);
         this.savePlayerSession();
     }
 

@@ -145,4 +145,9 @@ public class Builder implements MapItem, Constructor {
     public ContractType getContractType() {
         return this.contractType;
     }
+
+    @Override
+    public void setupForConstruction() {
+
+    }
 }

@@ -91,6 +91,7 @@ public class DroidManager implements Constructor {
         buildUnit.setStartTime(time);
         buildUnit.setEndTime(time + mapItem.getBuildingData().getTime());
         mapItem.getBuilding().lastCollectTime = buildUnit.getEndTime();
+        mapItem.setupForConstruction();
         this.addBuildUnit(buildUnit);
     }
 

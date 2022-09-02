@@ -62,4 +62,9 @@ abstract public class AbstractMapItem implements MapItem {
         this.getBuilding().uid = buildingData.getUid();
         this.buildingData = buildingData;
     }
+
+    @Override
+    public void setupForConstruction() {
+
+    }
 }

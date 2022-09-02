@@ -163,4 +163,9 @@ public class OffenseLabImpl implements OffenseLab {
     @Override
     public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
     }
+
+    @Override
+    public void setupForConstruction() {
+
+    }
 }
