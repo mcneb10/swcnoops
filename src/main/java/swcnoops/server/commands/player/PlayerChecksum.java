@@ -69,6 +69,31 @@ abstract public class PlayerChecksum<A extends PlayerChecksum, B extends Command
                 .getPlayerSession(parsedArgument.getPlayerId());
 
         if (playerSession != null) {
+            boolean acceptedClientValues = false;
+            if (acceptCredits() && playerSession.getPlayerSettings().getInventoryStorage().credits.amount != parsedArgument.getCredits()) {
+                playerSession.getPlayerSettings().getInventoryStorage().credits.amount = parsedArgument.getCredits();
+                acceptedClientValues = true;
+            }
+
+            if (acceptMaterials() && playerSession.getPlayerSettings().getInventoryStorage().materials.amount != parsedArgument.getMaterials()) {
+                playerSession.getPlayerSettings().getInventoryStorage().materials.amount = parsedArgument.getMaterials();
+                acceptedClientValues = true;
+            }
+
+            if (acceptContraband() && playerSession.getPlayerSettings().getInventoryStorage().contraband.amount != parsedArgument.getContraband()) {
+                playerSession.getPlayerSettings().getInventoryStorage().contraband.amount = parsedArgument.getContraband();
+                acceptedClientValues = true;
+            }
+
+            if (acceptCrystals() && playerSession.getPlayerSettings().getInventoryStorage().crystals.amount != parsedArgument.getCrystals()) {
+                playerSession.getPlayerSettings().getInventoryStorage().crystals.amount = parsedArgument.getCrystals();
+                acceptedClientValues = true;
+            }
+
+            if (acceptedClientValues) {
+                playerSession.savePlayerSession();
+            }
+
             if (playerSession.getPlayerSettings().getInventoryStorage().credits.amount != parsedArgument.getCredits()) {
                 LOG.warn(action + " from Player " + parsedArgument.getPlayerId() + " credits is different to servers " +
                         playerSession.getPlayerSettings().getInventoryStorage().credits.amount + ", " +
@@ -93,5 +118,21 @@ abstract public class PlayerChecksum<A extends PlayerChecksum, B extends Command
                         parsedArgument.getCrystals());
             }
         }
+    }
+
+    protected boolean acceptCredits() {
+        return false;
+    }
+
+    protected boolean acceptMaterials() {
+        return false;
+    }
+
+    protected boolean acceptContraband() {
+        return false;
+    }
+
+    protected boolean acceptCrystals() {
+        return false;
     }
 }

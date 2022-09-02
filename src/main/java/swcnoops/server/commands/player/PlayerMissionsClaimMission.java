@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerMissionsClaimMission extends AbstractCommandAction<PlayerMissionsClaimMission, CommandResult> {
+public class PlayerMissionsClaimMission extends PlayerChecksum<PlayerMissionsClaimMission, CommandResult> {
     private String missionUid;
 
     @Override
@@ -31,5 +30,25 @@ public class PlayerMissionsClaimMission extends AbstractCommandAction<PlayerMiss
 
     public String getMissionUid() {
         return missionUid;
+    }
+
+    @Override
+    protected boolean acceptCredits() {
+        return true;
+    }
+
+    @Override
+    protected boolean acceptMaterials() {
+        return true;
+    }
+
+    @Override
+    protected boolean acceptContraband() {
+        return true;
+    }
+
+    @Override
+    protected boolean acceptCrystals() {
+        return true;
     }
 }
