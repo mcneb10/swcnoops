@@ -17,7 +17,7 @@ public interface MapItem {
 
     void moveTo(Position newPosition);
 
-    CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time);
+    CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time, boolean collectAll);
 
     void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime);
 

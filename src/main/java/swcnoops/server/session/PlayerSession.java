@@ -138,4 +138,6 @@ public interface PlayerSession {
     void levelUpBase(PlayerMap warMap);
 
     void processInventoryStorage(CurrencyDelta currencyDelta);
+
+    void buildingCollectAll(List<String> buildingIds, int credits, int materials, int contraband, int crystals, long time);
 }

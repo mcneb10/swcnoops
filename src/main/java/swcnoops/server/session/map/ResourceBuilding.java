@@ -13,17 +13,27 @@ public class ResourceBuilding extends MapItemImpl {
     }
 
     @Override
-    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time) {
+    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals,
+                                 long time, boolean collectAll)
+    {
         int givenTotal = getGivenTotal(this.getBuildingData().getCurrency(), credits, materials, contraband);
         int givenDelta = calculateGivenDeltaCollected(this.getBuildingData().getCurrency(), givenTotal, playerSession);
         int estimatedStorageAmount = estimateStorageAmount(this.building, this.buildingData, time);
         int storageAvailable = calculateStorageAvailable(this.getBuildingData().getCurrency(), playerSession);
 
         int expectedDelta = estimatedStorageAmount;
-        if (storageAvailable < estimatedStorageAmount)
+        if (storageAvailable < expectedDelta)
             expectedDelta = storageAvailable;
 
+        if (collectAll)
+            givenDelta = expectedDelta;
+
         this.building.currentStorage = estimatedStorageAmount - givenDelta;
+
+        if (this.building.currentStorage < 0) {
+            this.building.currentStorage = 0;
+        }
+
         this.building.lastCollectTime = time;
         return new CurrencyDelta(givenDelta, expectedDelta, this.getBuildingData().getCurrency(), false);
     }

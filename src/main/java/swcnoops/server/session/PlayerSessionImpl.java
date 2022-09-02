@@ -544,10 +544,50 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
-            CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time);
+            CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time, false);
             this.processInventoryStorage(currencyDelta);
             this.savePlayerSession();
         }
+    }
+
+    @Override
+    public void buildingCollectAll(List<String> buildingIds, int credits, int materials, int contraband, int crystals, long time) {
+        this.processCompletedContracts(time);
+        int expectedCredits = 0;
+        int expectedMaterials = 0;
+        int expectedContraband = 0;
+        if (buildingIds != null) {
+            for (String buildingId : buildingIds) {
+                MapItem mapItem = this.getMapItemByKey(buildingId);
+                if (mapItem != null) {
+                    CurrencyDelta currencyDelta =
+                            mapItem.collect(this, credits, materials, contraband, crystals, time, true);
+                    switch (currencyDelta.getCurrency()) {
+                        case credits:
+                            expectedCredits += currencyDelta.getExpectedDelta();
+                            break;
+                        case materials:
+                            expectedMaterials += currencyDelta.getExpectedDelta();
+                            break;
+                        case contraband:
+                            expectedContraband += currencyDelta.getExpectedDelta();
+                            break;
+                    }
+                }
+            }
+        }
+
+        int givenCredits = CurrencyHelper.calculateGivenRefund(this, credits, materials, contraband, CurrencyType.credits);
+        CurrencyDelta currencyDelta = new CurrencyDelta(givenCredits, expectedCredits, CurrencyType.credits, false);
+        this.processInventoryStorage(currencyDelta);
+        int givenMaterials = CurrencyHelper.calculateGivenRefund(this, credits, materials, contraband, CurrencyType.materials);
+        currencyDelta = new CurrencyDelta(givenMaterials, expectedMaterials, CurrencyType.materials, false);
+        this.processInventoryStorage(currencyDelta);
+        int givenContraband = CurrencyHelper.calculateGivenRefund(this, credits, materials, contraband, CurrencyType.contraband);
+        currencyDelta = new CurrencyDelta(givenContraband, expectedContraband, CurrencyType.contraband, false);
+        this.processInventoryStorage(currencyDelta);
+
+        this.savePlayerSession();
     }
 
     private void removeFromInventoryStorage(CurrencyDelta currencyDelta, PlayerSession playerSession) {
@@ -666,7 +706,7 @@ public class PlayerSessionImpl implements PlayerSession {
         if (mapItem != null) {
             // if a resource we collect it first
             if (mapItem.getBuildingData().getType() == BuildingType.resource) {
-                CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, 0, time);
+                CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, 0, time, false);
                 this.processInventoryStorage(currencyDelta);
             }
 
@@ -714,7 +754,7 @@ public class PlayerSessionImpl implements PlayerSession {
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
             if (mapItem.getBuildingData().getType() == BuildingType.resource) {
-                CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time);
+                CurrencyDelta currencyDelta = mapItem.collect(this, credits, materials, contraband, crystals, time, false);
                 this.processInventoryStorage(currencyDelta);
             }
 
