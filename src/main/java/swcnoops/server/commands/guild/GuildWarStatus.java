@@ -42,7 +42,7 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
         guildWarStatusResponse.buffBases.add(create("warBuff6"));
 
         // if war has finished then must set this to true otherwise squad can not start war
-        if (ServiceFactory.getSystemTimeSecondsFromEpoch() > war.getCooldownEndTime())
+        if (ServiceFactory.getSystemTimeSecondsFromEpoch() >= war.getActionEndTime())
             guildWarStatusResponse.rewardsProcessed = true;
         else
             guildWarStatusResponse.rewardsProcessed = false;
