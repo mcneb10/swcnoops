@@ -1,14 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-// TODO - to finish off properly
-public class PlayerStoreBuy extends AbstractCommandAction<PlayerStoreBuy, CommandResult> {
+public class PlayerStoreBuy extends PlayerChecksum<PlayerStoreBuy, CommandResult> {
     private String uid;
     private String currency;
     private String type;
@@ -19,7 +17,12 @@ public class PlayerStoreBuy extends AbstractCommandAction<PlayerStoreBuy, Comman
     protected CommandResult execute(PlayerStoreBuy arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
-        playerSession.storeBuy(arguments.getUid(), arguments.getCount(), time);
+        playerSession.storeBuy(arguments.getUid(), arguments.getCount(),
+                arguments.getCredits(),
+                arguments.getMaterials(),
+                arguments.getContraband(),
+                arguments.getCrystals(),
+                time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

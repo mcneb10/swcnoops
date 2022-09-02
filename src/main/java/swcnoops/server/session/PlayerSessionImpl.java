@@ -266,17 +266,12 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
 
         CurrencyDelta currencyDelta;
-        if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(buildingId)) {
-            // TODO
-            currencyDelta = null;
-            this.creatureManager.buyout(crystals, time);
-        } else if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
-            if (offenseLab.isResearchingTroop()) {
-                currencyDelta = this.offenseLab.buyout(crystals, time);
-                this.trainingManager.recalculateContracts(time);
-            } else {
-                currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
-            }
+        if (this.creatureManager.isRecapturing() && this.creatureManager.getBuildingKey().equals(buildingId)) {
+            currencyDelta = this.creatureManager.buyout(crystals, time);
+        } else if (this.offenseLab != null && offenseLab.isResearchingTroop()
+                && this.offenseLab.getBuildingKey().equals(buildingId)) {
+            currencyDelta = this.offenseLab.buyout(crystals, time);
+            this.trainingManager.recalculateContracts(time);
         } else {
             currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
         }
@@ -941,12 +936,19 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void storeBuy(String uid, int count, long time) {
+    public void storeBuy(String uid, int count, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
         if (uid.equals("droids")) {
             this.getPlayerSettings().getInventoryStorage().droids.amount += count;
-            this.savePlayerSession();
         }
+
+        // TODO - do this properly, for now just going to accept what the client says
+        this.playerSettings.getInventoryStorage().credits.amount = credits;
+        this.playerSettings.getInventoryStorage().materials.amount = materials;
+        this.playerSettings.getInventoryStorage().contraband.amount = contraband;
+        this.playerSettings.getInventoryStorage().crystals.amount = crystals;
+
+        this.savePlayerSession();
     }
 
     @Override

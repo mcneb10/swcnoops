@@ -4,9 +4,11 @@ import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Creature;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.CrystalHelper;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TrapData;
 import swcnoops.server.model.Building;
+import swcnoops.server.model.CurrencyType;
 import swcnoops.server.model.Position;
 import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
@@ -15,8 +17,10 @@ import swcnoops.server.session.map.StrixBeacon;
 public class CreatureManagerImpl implements CreatureManager {
     private CreatureDataMap creatureDataMap;
     private Creature creature;
+    final private PlayerSession playerSession;
 
-    protected CreatureManagerImpl(CreatureDataMap creatureDataMap, Creature creature) {
+    protected CreatureManagerImpl(PlayerSession playerSession, CreatureDataMap creatureDataMap, Creature creature) {
+        this.playerSession = playerSession;
         this.creatureDataMap = creatureDataMap;
         this.creature = creature;
     }
@@ -82,8 +86,12 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public CurrencyDelta buyout(int crystals, long time) {
+        long endTime = this.getRecaptureEndTime();
         this.creature.setCreatureStatus(CreatureStatus.Alive);
-        return null;
+        int secondsToBuy = (int)(endTime - time);
+        int expectedCrystals = CrystalHelper.secondsToCrystals(secondsToBuy, this.getBuildingData());
+        int givenCrystals = CrystalHelper.calculateGivenCrystalDeltaToRemove(this.playerSession, crystals);
+        return new CurrencyDelta(givenCrystals, expectedCrystals, CurrencyType.crystals, true);
     }
 
     @Override

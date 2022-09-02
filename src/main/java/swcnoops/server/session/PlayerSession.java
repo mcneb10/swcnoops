@@ -105,7 +105,7 @@ public interface PlayerSession {
 
     void buildingInstantUpgrade(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
     
-    void storeBuy(String uid, int count, long time);
+    void storeBuy(String uid, int count, int credits, int materials, int contraband, int crystals, long time);
 
     void buildingUpgradeAll(String buildingUid, int credits, int materials, int contraband, int crystals, long time);
 

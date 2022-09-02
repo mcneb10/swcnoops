@@ -30,7 +30,7 @@ public class CrystalHelper {
     }
 
     public static int secondsToCrystals(int secondsToBuy, BuildingData buildingData) {
-        boolean isPrestige = buildingData.getLevel() > 10;
+        boolean isPrestige = buildingData.getPrestige();
         return secondsToCrystals(secondsToBuy, isPrestige);
     }
 

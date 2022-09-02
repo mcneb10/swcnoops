@@ -288,6 +288,7 @@ public class GameDataManagerImpl implements GameDataManager {
                     BuildingSubType.valueOf(building.get("subType")) : null;
             float produce = Float.valueOf(building.get("produce") != null ? building.get("produce") : "0");
             float cycleTime = Float.valueOf(building.get("cycleTime") != null ? building.get("cycleTime") : "0");
+            boolean prestige = Boolean.valueOf(building.get("prestige") != null ? building.get("prestige") : "false");
 
             BuildingData buildingData = new BuildingData(uid);
             buildingData.setFaction(FactionType.valueOf(faction));
@@ -309,6 +310,7 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setMaterials(materials);
             buildingData.setCredits(credits);
             buildingData.setContraband(contraband);
+            buildingData.setPrestige(prestige);
 
             map.put(buildingData.getUid(), buildingData);
             String needToSort = addToLevelMaps(buildingData);
