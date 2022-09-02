@@ -131,4 +131,35 @@ public class CurrencyHelper {
 
         return givenRefund;
     }
+
+    public static CurrencyType getCurrencyType(TroopData troopData) {
+        CurrencyType currencyType = null;
+        if (troopData != null) {
+            if (troopData.getMaterials() != 0)
+                currencyType = CurrencyType.materials;
+            else if (troopData.getCredits() != 0)
+                currencyType = CurrencyType.credits;
+            else if (troopData.getContraband() != 0)
+                currencyType = CurrencyType.contraband;
+        }
+        return currencyType;
+    }
+
+    public static int getUpgradeCost(TroopData troopData, CurrencyType currencyType) {
+        int upgradeCost = 0;
+        if (currencyType != null && troopData != null) {
+            switch (currencyType) {
+                case credits:
+                    upgradeCost = troopData.getUpgradeCredits();
+                    break;
+                case materials:
+                    upgradeCost = troopData.getUpgradeMaterials();
+                    break;
+                case contraband:
+                    upgradeCost = troopData.getUpgradeContraband();
+                    break;
+            }
+        }
+        return upgradeCost;
+    }
 }

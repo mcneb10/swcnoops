@@ -58,7 +58,7 @@ public class CreatureManagerImpl implements CreatureManager {
     public boolean isCreatureAlive() {
         if (this.getCreatureStatus() != CreatureStatus.Alive) {
             if (this.creature.hasBeenRecaptured()) {
-                this.buyout(0);
+                this.buyout(0, 0);
             }
         }
 
@@ -81,8 +81,9 @@ public class CreatureManagerImpl implements CreatureManager {
     }
 
     @Override
-    public void buyout(long time) {
+    public CurrencyDelta buyout(int crystals, long time) {
         this.creature.setCreatureStatus(CreatureStatus.Alive);
+        return null;
     }
 
     @Override
@@ -137,6 +138,6 @@ public class CreatureManagerImpl implements CreatureManager {
         this.creatureDataMap = new CreatureDataMap(strixBeacon.getBuilding(), strixBeacon.getBuildingData(), trapData);
         String unitId = CreatureManagerFactory.getDefaultCreatureUnitId(strixBeacon.getBuildingData().getFaction());
         this.creature.setCreatureUnitId(unitId);
-        this.buyout(endTime);
+        this.buyout(0, endTime);
     }
 }

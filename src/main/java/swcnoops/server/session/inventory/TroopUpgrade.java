@@ -1,25 +1,27 @@
 package swcnoops.server.session.inventory;
 
 public class TroopUpgrade {
+    private int upgradeCost;
     private String buildingKey;
-    private String troopUnitId;
+    private String troopUId;
     private long endTime;
 
     public TroopUpgrade() {
     }
 
-    public TroopUpgrade(String buildingKey, String troopUnitId, long endTime) {
+    public TroopUpgrade(String buildingKey, String troopUId, long endTime, int upgradeCost) {
         this.buildingKey = buildingKey;
-        this.troopUnitId = troopUnitId;
+        this.troopUId = troopUId;
         this.endTime = endTime;
+        this.upgradeCost = upgradeCost;
     }
 
     public String getBuildingKey() {
         return buildingKey;
     }
 
-    public String getTroopUnitId() {
-        return troopUnitId;
+    public String getTroopUId() {
+        return troopUId;
     }
 
     public long getEndTime() {
@@ -28,5 +30,9 @@ public class TroopUpgrade {
 
     public void buyout(long time) {
         this.endTime = time;
+    }
+
+    public int getUpgradeCost() {
+        return upgradeCost;
     }
 }

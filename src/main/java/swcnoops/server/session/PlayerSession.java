@@ -43,7 +43,7 @@ public interface PlayerSession {
 
     void buildingBuyout(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
 
-    void deployableUpgradeStart(String buildingId, String troopUid, long time);
+    void deployableUpgradeStart(String buildingId, String troopUid, int credits, int materials, int contraband, long time);
 
     void playerLogin(long time);
 

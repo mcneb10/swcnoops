@@ -247,7 +247,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
                 Contract contract = new Contract();
                 contract.contractType = ContractType.Research.name();
                 contract.buildingId = troopUpgrade.getBuildingKey();
-                contract.uid = troopUpgrade.getTroopUnitId();
+                contract.uid = troopUpgrade.getTroopUId();
                 contract.endTime = troopUpgrade.getEndTime();
                 contracts.add(contract);
             }

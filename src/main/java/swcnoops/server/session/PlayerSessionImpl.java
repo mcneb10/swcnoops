@@ -264,24 +264,25 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingBuyout(String buildingId, String tag, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
+
+        CurrencyDelta currencyDelta;
         if (this.creatureManager.hasCreature() && this.creatureManager.getBuildingKey().equals(buildingId)) {
-            this.creatureManager.buyout(time);
-            this.savePlayerSession();
+            // TODO
+            currencyDelta = null;
+            this.creatureManager.buyout(crystals, time);
         } else if (this.offenseLab != null && this.offenseLab.getBuildingKey().equals(buildingId)) {
             if (offenseLab.isResearchingTroop()) {
-                this.offenseLab.buyout(time);
+                currencyDelta = this.offenseLab.buyout(crystals, time);
                 this.trainingManager.recalculateContracts(time);
             } else {
-                CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
-                this.processInventoryStorage(currencyDelta);
+                currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
             }
-
-            this.savePlayerSession();
         } else {
-            CurrencyDelta currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
-            this.processInventoryStorage(currencyDelta);
-            this.savePlayerSession();
+            currencyDelta = this.droidManager.buyout(buildingId, crystals, time);
         }
+
+        this.processInventoryStorage(currencyDelta);
+        this.savePlayerSession();
     }
 
     @Override
@@ -310,10 +311,12 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void deployableUpgradeStart(String buildingId, String troopUid, long time) {
+    public void deployableUpgradeStart(String buildingId, String troopUid, int credits, int materials, int contraband, long time) {
         this.processCompletedContracts(time);
-        if (this.offenseLab != null)
-            this.offenseLab.upgradeStart(buildingId, troopUid, time);
+        if (this.offenseLab != null) {
+            CurrencyDelta currencyDelta = this.offenseLab.upgradeStart(buildingId, troopUid, credits, materials, contraband, time);
+            this.processInventoryStorage(currencyDelta);
+        }
 
         this.savePlayerSession();
     }

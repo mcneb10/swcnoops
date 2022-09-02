@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerDeployableUpgradeStart extends AbstractCommandAction<PlayerDeployableUpgradeStart, CommandResult> {
+public class PlayerDeployableUpgradeStart extends PlayerChecksum<PlayerDeployableUpgradeStart, CommandResult> {
     private String buildingId;
     private String troopUid;
 
@@ -16,7 +15,9 @@ public class PlayerDeployableUpgradeStart extends AbstractCommandAction<PlayerDe
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.deployableUpgradeStart(arguments.getBuildingId(), arguments.getTroopUid(), time);
+        playerSession.deployableUpgradeStart(arguments.getBuildingId(), arguments.getTroopUid(),
+                arguments.getCredits(), arguments.getMaterials(), arguments.getContraband(), time);
+
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 
