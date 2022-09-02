@@ -60,7 +60,8 @@ abstract public class PlayerChecksum<A extends PlayerChecksum, B extends Command
         ResponseData responseData = createResponse(command, commandResult);
 
         // we do a simple check here to see what the client thinks it has compared to the server
-        checkIfInSync(command.getAction(), parsedArgument);
+        if (doResourceSyncCheck())
+            checkIfInSync(command.getAction(), parsedArgument);
         return responseData;
     }
 
@@ -134,5 +135,9 @@ abstract public class PlayerChecksum<A extends PlayerChecksum, B extends Command
 
     protected boolean acceptCrystals() {
         return false;
+    }
+
+    protected boolean doResourceSyncCheck() {
+        return true;
     }
 }

@@ -26,4 +26,9 @@ public class PlayerPveComplete extends PlayerBattleComplete<PlayerPveComplete, C
     public String getAction() {
         return "player.pve.complete";
     }
+
+    @Override
+    protected boolean doResourceSyncCheck() {
+        return false;
+    }
 }
