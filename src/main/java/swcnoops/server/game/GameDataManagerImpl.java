@@ -279,27 +279,21 @@ public class GameDataManagerImpl implements GameDataManager {
             int materials = Integer.valueOf(building.get("materials") == null ? "0" : building.get("materials")).intValue();
             int credits = Integer.valueOf(building.get("credits") == null ? "0" : building.get("credits")).intValue();
             int contraband = Integer.valueOf(building.get("contraband") == null ? "0" : building.get("contraband")).intValue();
+            String currency = building.get("currency") != null ? building.get("currency") : "none";
             String linkedUnit = building.get("linkedUnit");
             StoreTab storeTab = building.get("storeTab") != null ? StoreTab.valueOf(building.get("storeTab")) : null;
             BuildingSubType buildingSubType = building.get("subType") != null ?
                     BuildingSubType.valueOf(building.get("subType")) : null;
+            float produce = Float.valueOf(building.get("produce") != null ? building.get("produce") : "0");
+            float cycleTime = Float.valueOf(building.get("cycleTime") != null ? building.get("cycleTime") : "0");
 
             BuildingData buildingData = new BuildingData(uid);
             buildingData.setFaction(FactionType.valueOf(faction));
             buildingData.setLevel(lvl);
             buildingData.setType(BuildingType.valueOf(type));
-
-            if (buildingData.getType() == BuildingType.resource) {
-                float produce = Float.valueOf(building.get("produce"));
-                float cycleTime = Float.valueOf(building.get("cycleTime"));
-                String currency = building.get("currency");
-                buildingData.setProduce(produce);
-                buildingData.setCycleTime(cycleTime);
-                buildingData.setCurrency(CurrencyType.valueOf(currency));
-            } else {
-                buildingData.setCurrency(CurrencyType.none);
-            }
-
+            buildingData.setCurrency(CurrencyType.valueOf(currency.equals("0") ? "none" : currency));
+            buildingData.setProduce(produce);
+            buildingData.setCycleTime(cycleTime);
             buildingData.setStorage(storage);
             buildingData.setTime(time);
             buildingData.setCrossTime(crossTime);

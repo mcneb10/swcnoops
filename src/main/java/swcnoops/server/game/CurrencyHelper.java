@@ -3,6 +3,10 @@ package swcnoops.server.game;
 import swcnoops.server.model.CurrencyType;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
+import swcnoops.server.session.map.StorageBuilding;
+
+import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class CurrencyHelper {
 
@@ -161,5 +165,12 @@ public class CurrencyHelper {
             }
         }
         return upgradeCost;
+    }
+
+    public static int getTotalCapacity(PlayerSession playerSession, CurrencyType currency) {
+        List<StorageBuilding> storageBuildings = playerSession.getPlayerMapItems().getStorageMapItemsByCurrency(currency);
+        AtomicInteger totalStorage = new AtomicInteger();
+        storageBuildings.forEach(a -> totalStorage.addAndGet(a.getBuildingData().getStorage()));
+        return totalStorage.get();
     }
 }

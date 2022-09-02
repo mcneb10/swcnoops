@@ -4,15 +4,16 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
+import swcnoops.server.model.CurrencyType;
 import swcnoops.server.model.PlayerMap;
 import swcnoops.server.model.Position;
 import swcnoops.server.session.creature.CreatureManagerFactory;
 import swcnoops.server.session.map.*;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -22,14 +23,18 @@ public class PlayerMapItems {
     /**
      * Lookup by key
      */
-    final private Map<String, MapItem> mapItemsByKey = new HashMap<>();
-    final private Map<BuildingType, MapItem> mapItemsByType = new HashMap<>();
+    final private Map<String, MapItem> mapItemsByKey = new ConcurrentHashMap<>();
+    final private Map<BuildingType, MapItem> mapItemsByType = new ConcurrentHashMap<>();
+    final private Map<CurrencyType, List<StorageBuilding>> storageBuildingsByCurrency = new ConcurrentHashMap<>();
     /**
      * This is the real map that is from the DB
      */
     final private PlayerMap map;
     public PlayerMapItems(PlayerMap playerMap) {
         this.map = playerMap;
+        this.storageBuildingsByCurrency.put(CurrencyType.credits, new ArrayList<>());
+        this.storageBuildingsByCurrency.put(CurrencyType.materials, new ArrayList<>());
+        this.storageBuildingsByCurrency.put(CurrencyType.contraband, new ArrayList<>());
     }
 
     public void add(String buildingKey, MapItem mapItem) {
@@ -41,6 +46,11 @@ public class PlayerMapItems {
             case droid_hut:
             case scout_tower:
                 this.mapItemsByType.put(mapItem.getBuildingData().getType(), mapItem);
+                break;
+            case storage:
+                CurrencyType currencyType = mapItem.getBuildingData().getCurrency();
+                List<StorageBuilding> storageMapItems = this.storageBuildingsByCurrency.get(currencyType);
+                storageMapItems.add((StorageBuilding) mapItem);
                 break;
         }
     }
@@ -97,6 +107,9 @@ public class PlayerMapItems {
             case champion_platform:
                 mapItem = new ChampionPlatform(building, buildingData);
                 break;
+            case storage:
+                mapItem = new StorageBuilding(building, buildingData);
+                break;
             case resource:
                 mapItem = new ResourceBuilding(building, buildingData);
                 break;
@@ -115,5 +128,9 @@ public class PlayerMapItems {
                 break;
         }
         return mapItem;
+    }
+
+    public List<StorageBuilding> getStorageMapItemsByCurrency(CurrencyType currency) {
+        return this.storageBuildingsByCurrency.get(currency);
     }
 }

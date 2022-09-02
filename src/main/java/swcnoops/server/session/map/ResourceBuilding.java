@@ -1,6 +1,7 @@
 package swcnoops.server.session.map;
 
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.CurrencyHelper;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.CurrencyType;
 import swcnoops.server.session.CurrencyDelta;
@@ -15,13 +16,25 @@ public class ResourceBuilding extends MapItemImpl {
     public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time) {
         int givenTotal = getGivenTotal(this.getBuildingData().getCurrency(), credits, materials, contraband);
         int givenDelta = calculateGivenDeltaCollected(this.getBuildingData().getCurrency(), givenTotal, playerSession);
-        int expectedDelta = calculateExpectedDeltaCollect(this.building, this.buildingData, time);
-        this.building.currentStorage = 0;
+        int estimatedStorageAmount = estimateStorageAmount(this.building, this.buildingData, time);
+        int storageAvailable = calculateStorageAvailable(this.getBuildingData().getCurrency(), playerSession);
+
+        int expectedDelta = estimatedStorageAmount;
+        if (storageAvailable < estimatedStorageAmount)
+            expectedDelta = storageAvailable;
+
+        this.building.currentStorage = estimatedStorageAmount - givenDelta;
         this.building.lastCollectTime = time;
         return new CurrencyDelta(givenDelta, expectedDelta, this.getBuildingData().getCurrency(), false);
     }
 
-    private int calculateExpectedDeltaCollect(Building building, BuildingData buildingData, long time) {
+    private int calculateStorageAvailable(CurrencyType currency, PlayerSession playerSession) {
+        int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
+        int available = calculateGivenDeltaCollected(currency, totalCapacity, playerSession);
+        return available;
+    }
+
+    private int estimateStorageAmount(Building building, BuildingData buildingData, long time) {
         float timeDelta = time - building.lastCollectTime;
         int delta = (int)(timeDelta * (buildingData.getProduce()/buildingData.getCycleTime()));
         delta += building.currentStorage;
