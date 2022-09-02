@@ -295,10 +295,10 @@ public class PlayerSessionImpl implements PlayerSession {
             if (offenseLab.isResearchingTroop()) {
                 currencyDelta = this.offenseLab.cancel(time, credits, materials, contraband);
             } else {
-                currencyDelta = this.droidManager.cancel(buildingId, credits, materials, contraband);
+                currencyDelta = this.droidManager.cancel(buildingId, credits, materials, contraband, time);
             }
         } else {
-            currencyDelta = this.droidManager.cancel(buildingId, credits, materials, contraband);
+            currencyDelta = this.droidManager.cancel(buildingId, credits, materials, contraband, time);
         }
 
         this.processInventoryStorage(currencyDelta);

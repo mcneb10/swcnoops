@@ -173,4 +173,26 @@ public class CurrencyHelper {
         storageBuildings.forEach(a -> totalStorage.addAndGet(a.getBuildingData().getStorage()));
         return totalStorage.get();
     }
+
+    public static int calculateStorageAvailable(CurrencyType currency, PlayerSession playerSession) {
+        int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
+        int available = totalCapacity;
+
+        switch (currency) {
+            case credits:
+                available -= playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
+                break;
+            case materials:
+                available -= playerSession.getPlayerSettings().getInventoryStorage().materials.amount;
+                break;
+            case contraband:
+                available -= playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
+                break;
+            default:
+                available = 0;
+                break;
+        }
+
+        return available;
+    }
 }

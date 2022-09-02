@@ -148,6 +148,9 @@ public class Builder implements MapItem, Constructor {
 
     @Override
     public void setupForConstruction() {
+    }
 
+    @Override
+    public void upgradeCancelled(long time) {
     }
 }

@@ -22,4 +22,6 @@ public interface MapItem {
     void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime);
 
     void setupForConstruction();
+
+    void upgradeCancelled(long time);
 }

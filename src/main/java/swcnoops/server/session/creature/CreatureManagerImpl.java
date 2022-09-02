@@ -143,6 +143,9 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public void setupForConstruction() {
+    }
 
+    @Override
+    public void upgradeCancelled(long time) {
     }
 }

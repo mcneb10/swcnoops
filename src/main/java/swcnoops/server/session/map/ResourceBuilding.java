@@ -19,7 +19,7 @@ public class ResourceBuilding extends MapItemImpl {
         int givenTotal = getGivenTotal(this.getBuildingData().getCurrency(), credits, materials, contraband);
         int givenDelta = calculateGivenDeltaCollected(this.getBuildingData().getCurrency(), givenTotal, playerSession);
         int estimatedStorageAmount = estimateStorageAmount(this.building, this.buildingData, time);
-        int storageAvailable = calculateStorageAvailable(this.getBuildingData().getCurrency(), playerSession);
+        int storageAvailable = CurrencyHelper.calculateStorageAvailable(this.getBuildingData().getCurrency(), playerSession);
 
         int expectedDelta = estimatedStorageAmount;
         if (storageAvailable < expectedDelta)
@@ -36,12 +36,6 @@ public class ResourceBuilding extends MapItemImpl {
 
         this.building.lastCollectTime = time;
         return new CurrencyDelta(givenDelta, expectedDelta, this.getBuildingData().getCurrency(), false);
-    }
-
-    private int calculateStorageAvailable(CurrencyType currency, PlayerSession playerSession) {
-        int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
-        int available = calculateGivenDeltaCollected(currency, totalCapacity, playerSession);
-        return available;
     }
 
     private int estimateStorageAmount(Building building, BuildingData buildingData, long time) {
@@ -101,5 +95,10 @@ public class ResourceBuilding extends MapItemImpl {
     @Override
     public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         this.building.lastCollectTime = endTime;
+    }
+
+    @Override
+    public void upgradeCancelled(long time) {
+        this.building.lastCollectTime = time;
     }
 }

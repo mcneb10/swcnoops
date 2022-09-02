@@ -160,6 +160,9 @@ public class TrainingManagerImpl implements TrainingManager {
         cancelledContracts.forEach(c -> totalRefund.addAndGet(c.getCost()));
         GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
         int expectedRefund = (int) ((float)totalRefund.get() * constants.contract_refund_percentage_troops / 100f);
+        int availableStorage = CurrencyHelper.calculateStorageAvailable(trainingCurrency, playerSession);
+        if (expectedRefund > availableStorage)
+            expectedRefund = availableStorage;
         return new CurrencyDelta(givenDelta, expectedRefund, trainingCurrency, false);
     }
 

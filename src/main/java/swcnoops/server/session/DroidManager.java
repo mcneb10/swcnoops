@@ -134,7 +134,7 @@ public class DroidManager implements Constructor {
         return currencyDelta;
     }
 
-    public CurrencyDelta cancel(String buildingId, int credits, int materials, int contraband) {
+    public CurrencyDelta cancel(String buildingId, int credits, int materials, int contraband, long time) {
         BuildUnit buildUnit = getBuildUnitById(buildingId);
         CurrencyDelta currencyDelta = null;
         if (buildUnit != null) {
@@ -145,7 +145,15 @@ public class DroidManager implements Constructor {
             int givenDelta = CurrencyHelper.calculateGivenRefund(this.playerSession, credits, materials, contraband, buildCurrency);
             GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
             int expectedRefund = (int)((float) buildUnit.getCost() * constants.contract_refund_percentage_buildings / 100f);
+
+            int availableStorage = CurrencyHelper.calculateStorageAvailable(buildCurrency, playerSession);
+            if (expectedRefund > availableStorage)
+                expectedRefund = availableStorage;
             currencyDelta = new CurrencyDelta(givenDelta, expectedRefund, buildCurrency, false);
+            MapItem mapItem = this.playerSession.getPlayerMapItems().getMapItemByKey(buildingId);
+            if (mapItem != null) {
+                mapItem.upgradeCancelled(time);
+            }
         }
 
         return currencyDelta;

@@ -65,6 +65,9 @@ abstract public class AbstractMapItem implements MapItem {
 
     @Override
     public void setupForConstruction() {
+    }
 
+    @Override
+    public void upgradeCancelled(long time) {
     }
 }

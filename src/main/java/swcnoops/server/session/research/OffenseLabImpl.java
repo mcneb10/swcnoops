@@ -87,6 +87,9 @@ public class OffenseLabImpl implements OffenseLab {
                 int givenDelta = CurrencyHelper.calculateGivenRefund(this.playerSession, credits, materials, contraband, currencyType);
                 GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
                 int expectedRefund = (int) ((float) troopUpgrade.getUpgradeCost() * constants.contract_refund_percentage_buildings / 100f);
+                int availableStorage = CurrencyHelper.calculateStorageAvailable(currencyType, playerSession);
+                if (expectedRefund > availableStorage)
+                    expectedRefund = availableStorage;
                 currencyDelta = new CurrencyDelta(givenDelta, expectedRefund, currencyType, false);
             }
         }
@@ -166,6 +169,9 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public void setupForConstruction() {
+    }
 
+    @Override
+    public void upgradeCancelled(long time) {
     }
 }
