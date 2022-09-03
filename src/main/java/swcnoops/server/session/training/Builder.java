@@ -75,8 +75,8 @@ public class Builder implements MapItem, Constructor {
     }
 
     @Override
-    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time, boolean collectAll) {
-        return this.mapItem.collect(playerSession, credits, materials, contraband, crystals, time, collectAll);
+    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, long time, boolean collectAll) {
+        return this.mapItem.collect(playerSession, credits, materials, contraband, time, collectAll);
     }
 
     protected void train(List<BuildUnit> buildUnits, long startTime) {
