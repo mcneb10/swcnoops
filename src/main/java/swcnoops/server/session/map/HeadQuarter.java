@@ -20,8 +20,9 @@ public class HeadQuarter extends MapItemImpl {
         if (this.getBuildingData().getLevel() == 11) {
             MapItem droidHut = playerSession.getPlayerMapItems().getMapItemByType(BuildingType.droid_hut);
             if (droidHut.getBuildingData().getLevel() == 1) {
-                BuildingData nextDroidHut = ServiceFactory.instance().getGameDataManager().getBuildingData(droidHut.getBuildingData().getType(), droidHut
-                        .getBuildingData().getFaction(), droidHut.getBuildingData().getLevel() + 1);
+                BuildingData nextDroidHut = ServiceFactory.instance().getGameDataManager()
+                        .getBuildingDataByBuildingId(droidHut.getBuildingData().getBuildingID(),
+                                droidHut.getBuildingData().getLevel() + 1);
 
                 droidHut.upgradeComplete(playerSession, nextDroidHut.getUid(), null, endTime);
 

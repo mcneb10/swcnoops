@@ -778,7 +778,7 @@ public class PlayerSessionImpl implements PlayerSession {
             BuildingData oldBuildingData = mapItem.getBuildingData();
             if (mapItem.getBuildingData().getFaction() == oldFaction) {
                 BuildingData buildingData = ServiceFactory.instance().getGameDataManager()
-                        .getBuildingData(oldBuildingData.getType(), faction, oldBuildingData.getLevel());
+                        .getFactionEquivalentOfBuilding(oldBuildingData, faction);
                 mapItem.changeBuildingData(buildingData);
             }
         }
