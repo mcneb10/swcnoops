@@ -85,4 +85,8 @@ public interface PlayerDataSource {
     WarBattle getWarBattle(String battleId);
 
     List<Member> loadSquadMembers(String guildId);
+
+    War processWarEnd(String id, String squadIdA, String warId);
+
+    void resetWarPartyForParticipants(String warId);
 }

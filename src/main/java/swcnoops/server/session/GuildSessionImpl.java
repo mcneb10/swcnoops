@@ -79,6 +79,17 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
+    public void processGuildGet(long time) {
+        War currentWar = this.getCurrentWar();
+        if (currentWar != null) {
+            WarSession warSession = ServiceFactory.instance().getSessionManager().getWarSession(currentWar.getWarId());
+            if (warSession != null) {
+                warSession.processGuildGet(time);
+            }
+        }
+    }
+
+    @Override
     public GuildSettings getGuildSettings() {
         return this.guildSettings;
     }

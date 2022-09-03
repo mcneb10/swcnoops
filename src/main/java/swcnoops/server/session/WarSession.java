@@ -20,4 +20,8 @@ public interface WarSession {
     AttackDetail warAttackComplete(PlayerSession playerSession, PlayerSession defenderSession, BattleReplay arguments, DefendingWarParticipant defendingWarParticipant, long time);
 
     String getWarId();
+
+    void processGuildGet(long time);
+
+    void setDirty();
 }

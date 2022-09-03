@@ -55,4 +55,6 @@ public interface GuildSession {
     List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession);
 
     void setNotificationDirty(long date);
+
+    void processGuildGet(long time);
 }

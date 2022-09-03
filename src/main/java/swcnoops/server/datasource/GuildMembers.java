@@ -79,7 +79,6 @@ public class GuildMembers {
 
     private List<Member> reloadData() {
         List<Member> members = ServiceFactory.instance().getPlayerDatasource().loadSquadMembers(this.getGuildId());
-        List<Member> map = new ArrayList<>(members);
-        return map;
+        return members;
     }
 }
