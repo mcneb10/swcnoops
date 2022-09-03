@@ -2,6 +2,7 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -358,9 +359,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             if (guildSession.canEdit()) {
-                Member member = guildSession.getGuildSettings().getMember(playerSession.getPlayerId());
-                member.setIsOfficer(squadRole == SquadRole.Officer);
-                updateSquadMember(guildSession.getGuildId(), member, connection);
+                updateSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(),
+                        squadRole == SquadRole.Officer, connection);
                 setAndSaveGuildNotification(guildSession, squadNotification, connection);
             }
             connection.commit();
@@ -369,21 +369,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void updateSquadMember(String guildId, Member member, Connection connection) {
+    private void updateSquadMember(String guildId, String playerId, boolean isOfficer, Connection connection) {
         final String squadSql = "update SquadMembers " +
-                "set isOfficer = ?, isOwner = ? " +
+                "set isOfficer = ? " +
                 "where guildId = ? and playerId = ?";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setBoolean(1, member.isOfficer);
-                stmt.setBoolean(2, member.isOwner);
-                stmt.setString(3, guildId);
-                stmt.setString(4, member.playerId);
+                stmt.setBoolean(1, isOfficer);
+                stmt.setString(2, guildId);
+                stmt.setString(3, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to promote playerId =" + member.playerId, ex);
+            throw new RuntimeException("Failed to promote playerId =" + playerId, ex);
         }
     }
 
@@ -646,11 +645,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 "warSignUpTime, warId " +
                 "FROM Squads s WHERE s.id = ?";
 
-        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
-                "m.warParty, s.hqLevel " +
-                "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
-                "and m.playerId = s.Id";
-
         GuildSettingsImpl guildSettings = null;
         try {
             try (Connection con = getConnection()) {
@@ -676,33 +670,58 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     }
                 }
 
-                try (PreparedStatement pstmt = con.prepareStatement(squadPlayers)) {
-                    pstmt.setString(1, guildId);
-                    ResultSet rs = pstmt.executeQuery();
+                List<Member> members = loadSquadMembers(guildSettings.getGuildId(), con);
 
-                    while (rs.next()) {
-                        String playerId = rs.getString("playerId");
-                        String playerName = rs.getString("name");
-                        boolean isOfficer = rs.getBoolean("isOfficer");
-                        boolean isOwner = rs.getBoolean("isOwner");
-                        long joinDate = rs.getLong("joinDate");
-                        long troopsDonated = rs.getLong("troopsDonated");
-                        long troopsReceived = rs.getLong("troopsReceived");
-                        boolean warParty = rs.getBoolean("warParty");
-                        int hqLevel = rs.getInt("hqLevel");
-                        guildSettings.addMember(playerId, playerName, isOwner, isOfficer, joinDate,
-                                troopsDonated, troopsReceived, warParty, hqLevel);
-                    }
+                if (guildSettings != null) {
+                    GuildMembers guildMembers = new GuildMembers(guildSettings.getGuildId(), members);
+                    guildSettings.setGuildMembers(guildMembers);
                 }
-
-                if (guildSettings != null)
-                    guildSettings.afterLoad();
             }
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load Guild settings from DB id=" + guildId, ex);
         }
 
         return guildSettings;
+    }
+
+    @Override
+    public List<Member> loadSquadMembers(String guildId) {
+        try (Connection connection = getConnection()) {
+            return loadSquadMembers(guildId, connection);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load squad members", ex);
+        }
+    }
+
+    private List<Member> loadSquadMembers(String guildId, Connection connection) throws Exception {
+        List<Member> members = new ArrayList<>();
+
+        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
+                "m.warParty, s.hqLevel " +
+                "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
+                "and m.playerId = s.Id";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(squadPlayers)) {
+            pstmt.setString(1, guildId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String playerId = rs.getString("playerId");
+                String playerName = rs.getString("name");
+                boolean isOfficer = rs.getBoolean("isOfficer");
+                boolean isOwner = rs.getBoolean("isOwner");
+                long joinDate = rs.getLong("joinDate");
+                long troopsDonated = rs.getLong("troopsDonated");
+                long troopsReceived = rs.getLong("troopsReceived");
+                boolean warParty = rs.getBoolean("warParty");
+                int hqLevel = rs.getInt("hqLevel");
+                Member member = GuildHelper.createMember(playerId, playerName, isOwner,
+                        isOfficer, joinDate, troopsDonated, troopsReceived, warParty, hqLevel);
+                members.add(member);
+            }
+        }
+
+        return members;
     }
 
     @Override

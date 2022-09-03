@@ -83,4 +83,6 @@ public interface PlayerDataSource {
     DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);
 
     WarBattle getWarBattle(String battleId);
+
+    List<Member> loadSquadMembers(String guildId);
 }

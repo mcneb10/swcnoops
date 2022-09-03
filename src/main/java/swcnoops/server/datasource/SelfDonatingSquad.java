@@ -102,19 +102,6 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate, long troopsDonated, long troopsReceived, boolean warParty, int hqLevel) {
-    }
-
-    @Override
-    public void addMember(Member member) {
-
-    }
-
-    @Override
-    public void removeMember(String playerId) {
-    }
-
-    @Override
     public SquadNotification createTroopRequest(PlayerSession playerSession, String message) {
         Member botMember = playerSession.getGuildSession().getGuildSettings().getMembers()
                 .stream().filter(m -> m.name.equals(SelfDonatingSquad.DonateBotName)).findFirst().get();
@@ -132,11 +119,6 @@ public class SelfDonatingSquad implements GuildSettings {
     @Override
     public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
         return playerSession.getPlayerId();
-    }
-
-    @Override
-    public Member getMember(String playerId) {
-        return null;
     }
 
     @Override
@@ -165,17 +147,17 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public void login(Member member) {
-
-    }
-
-    @Override
     public String getWarId() {
         return null;
     }
 
     @Override
     public void setWarId(String warId) {
+
+    }
+
+    @Override
+    public void setDirty() {
 
     }
 }

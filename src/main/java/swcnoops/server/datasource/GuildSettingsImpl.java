@@ -5,51 +5,23 @@ import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
-
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class GuildSettingsImpl implements GuildSettings {
     private String id;
     private String name;
     private String description;
     private FactionType faction;
-    private Map<String, Member> memberMap = new ConcurrentHashMap<>();
     private boolean openEnrollment;
     private Integer minScoreAtEnrollment;
     private String icon;
 
     private Long warSignUpTime;
     private String warId;
+    private GuildMembers guildMembers;
 
     public GuildSettingsImpl(String id) {
         this.id = id;
-    }
-
-    public void afterLoad() {
-        if (ServiceFactory.instance().getConfig().createBotPlayersInGroup) {
-            if (this.memberMap.size() < 15) {
-                for (int i = 0; i < 15; i++) {
-                    Member member = createDummyBot(this.getGuildId(), i);
-                    this.memberMap.put(member.playerId, member);
-                }
-            }
-        }
-    }
-
-    private Member createDummyBot(String guildId, int botName) {
-        Member member = new Member();
-        member.isOfficer = false;
-        member.isOwner = false;
-        member.playerId = guildId + "-BOT" + botName;
-        member.planet = "planet1";
-        member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.setLevel(10);
-        member.name = "BOT-" + botName;
-        return member;
     }
 
     @Override
@@ -85,7 +57,7 @@ public class GuildSettingsImpl implements GuildSettings {
 
     @Override
     public List<Member> getMembers() {
-        return new ArrayList<>(this.memberMap.values());
+        return guildMembers.getMembers();
     }
 
     @Override
@@ -106,53 +78,8 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     @Override
-    public void addMember(String playerId, String playerName, boolean isOwner, boolean isOfficer, long joinDate,
-                          long troopsDonated, long troopsReceived, boolean warParty, int hqLevel) {
-        if (!this.memberMap.containsKey(playerId)) {
-            Member member = GuildHelper.createMember(playerId, playerName, isOwner,
-                    isOfficer, joinDate, troopsDonated, troopsReceived, warParty, hqLevel);
-            this.memberMap.put(playerId, member);
-        }
-    }
-
-    @Override
-    public void addMember(Member member) {
-        if (member.hasPlayerSession())
-            this.login(member);
-        else if (!this.memberMap.containsKey(member.playerId)) {
-            this.memberMap.put(member.playerId, member);
-        }
-    }
-
-    @Override
-    public void login(Member member) {
-        Member oldDetails = this.memberMap.get(member.playerId);
-        if (oldDetails != member && oldDetails != null) {
-            member.isOfficer = oldDetails.isOfficer;
-            member.isOwner = oldDetails.isOwner;
-            member.warParty = oldDetails.warParty;
-            member.troopsReceived = oldDetails.troopsReceived;
-            member.troopsDonated = oldDetails.troopsDonated;
-            member.joinDate = oldDetails.joinDate;
-            member.attacksWon = oldDetails.attacksWon;
-            member.defensesWon = oldDetails.defensesWon;
-            member.planet = oldDetails.planet;
-            member.hasPlanetaryCommand = oldDetails.hasPlanetaryCommand;
-            member.lastLoginTime = oldDetails.lastLoginTime;
-            member.rank = oldDetails.rank;
-            member.reputationInvested = oldDetails.reputationInvested;
-            member.score = oldDetails.score;
-            member.xp = oldDetails.xp;
-        }
-
-        this.memberMap.put(member.playerId, member);
-    }
-
-    @Override
-    synchronized public void removeMember(String playerId) {
-        if (this.memberMap.containsKey(playerId)) {
-            this.memberMap.remove(playerId);
-        }
+    public void setDirty() {
+        this.guildMembers.setDirty();
     }
 
     @Override
@@ -204,11 +131,6 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     @Override
-    public Member getMember(String playerId) {
-        return this.memberMap.get(playerId);
-    }
-
-    @Override
     public boolean getOpenEnrollment() {
         return openEnrollment;
     }
@@ -230,11 +152,7 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public void warMatchmakingStart(long time, List<String> participantIds) {
         this.setWarSignUpTime(time);
-        for (String id : participantIds) {
-            if (this.memberMap.containsKey(id)) {
-                this.memberMap.get(id).warParty = 1;
-            }
-        }
+        this.guildMembers.setDirty();
     }
 
     @Override
@@ -245,5 +163,9 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public String getWarId() {
         return warId;
+    }
+
+    protected void setGuildMembers(GuildMembers guildMembers) {
+        this.guildMembers = guildMembers;
     }
 }
