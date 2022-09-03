@@ -147,12 +147,10 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerModel.inventory.capacity = -1;
         playerModel.inventory.storage = playerSession.getPlayerSettings().getInventoryStorage();
 
-        if (playerModel.currentQuest != null && playerModel.currentQuest.trim().isEmpty()
+        if (ServiceFactory.instance().getConfig().freeResources &&
+                playerModel.currentQuest != null && playerModel.currentQuest.trim().isEmpty()
                 && playerSession.getPlayerSettings().getName() != null && !playerSession.getPlayerSettings().getName().isEmpty()) {
-            playerModel.inventory.storage.credits.amount = 9999999L;
-            playerModel.inventory.storage.crystals.amount = 9999999L;
-            playerModel.inventory.storage.contraband.amount = 9999999L;
-            playerModel.inventory.storage.materials.amount = 9999999L;
+            playerModel.inventory.storage.crystals.amount = 9999999;
         }
 
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
@@ -249,7 +247,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
                 Contract contract = new Contract();
                 contract.contractType = ContractType.Research.name();
                 contract.buildingId = troopUpgrade.getBuildingKey();
-                contract.uid = troopUpgrade.getTroopUnitId();
+                contract.uid = troopUpgrade.getTroopUId();
                 contract.endTime = troopUpgrade.getEndTime();
                 contracts.add(contract);
             }

@@ -6,7 +6,7 @@ import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
 import swcnoops.server.session.PlayerSession;
 
-public class HeadQuarter extends AbstractMapItem {
+public class HeadQuarter extends MapItemImpl {
     public HeadQuarter(Building building, BuildingData buildingData)
     {
         super(building, buildingData);

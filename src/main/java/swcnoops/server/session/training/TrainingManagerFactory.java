@@ -93,6 +93,8 @@ public class TrainingManagerFactory {
             return true;
         if (contractType == ContractType.Upgrade)
             return true;
+        if (contractType == ContractType.Clear)
+            return true;
 
         return false;
     }

@@ -8,29 +8,27 @@ import swcnoops.server.session.PlayerSession;
 
 import java.util.List;
 
-public class PlayerBuildingRearm extends PlayerChecksum<PlayerBuildingRearm, CommandResult> {
+public class PlayerBuildingCollectAll extends PlayerChecksum<PlayerBuildingCollectAll, CommandResult> {
     private List<String> buildingIds;
 
     @Override
-    protected CommandResult execute(PlayerBuildingRearm arguments, long time) throws Exception {
+    protected CommandResult execute(PlayerBuildingCollectAll arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
-        playerSession.rearm(arguments.getBuildingIds(),
-                arguments.getCredits(),
-                arguments.getMaterials(),
-                arguments.getContraband(),
-                time);
+
+        playerSession.buildingCollectAll(arguments.getBuildingIds(), arguments.getCredits(),
+                arguments.getMaterials(), arguments.getContraband(), arguments.getCrystals(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 
     @Override
-    protected PlayerBuildingRearm parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return jsonParser.fromJsonObject(argumentObject, PlayerBuildingRearm.class);
+    protected PlayerBuildingCollectAll parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, PlayerBuildingCollectAll.class);
     }
 
     @Override
     public String getAction() {
-        return "player.building.rearm";
+        return "player.building.collect.all";
     }
 
     public List<String> getBuildingIds() {

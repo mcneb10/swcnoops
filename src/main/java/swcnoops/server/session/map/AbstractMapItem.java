@@ -4,11 +4,12 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.Position;
+import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 
 abstract public class AbstractMapItem implements MapItem {
-    private Building building;
-    private BuildingData buildingData;
+    protected Building building;
+    protected BuildingData buildingData;
 
     public AbstractMapItem(Building building, BuildingData buildingData) {
         this.building = building;
@@ -40,13 +41,12 @@ abstract public class AbstractMapItem implements MapItem {
         this.building.z = newPosition.z;
     }
 
-    public void collect(long time) {
-        this.building.currentStorage = 0;
-        this.building.lastCollectTime = time;
-
-        // TODO - work out how much to collect and move to inventory
+    @Override
+    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time, boolean collectAll) {
+        return null;
     }
 
+    @Override
     public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
         BuildingData upgradeBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByUid(unitId);
@@ -55,12 +55,19 @@ abstract public class AbstractMapItem implements MapItem {
 
     @Override
     public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
-
     }
 
     @Override
     public void changeBuildingData(BuildingData buildingData) {
         this.getBuilding().uid = buildingData.getUid();
         this.buildingData = buildingData;
+    }
+
+    @Override
+    public void setupForConstruction() {
+    }
+
+    @Override
+    public void upgradeCancelled(long time) {
     }
 }

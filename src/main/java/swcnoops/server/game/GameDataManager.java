@@ -47,4 +47,6 @@ public interface GameDataManager {
     Map<Integer, List<TroopData>> getTroopSizeMap(FactionType faction);
 
     int getMaxlevelForTroopUnitId(String unitId);
+
+    GameConstants getGameConstants();
 }

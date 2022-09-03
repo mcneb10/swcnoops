@@ -4,14 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Deployables;
-import swcnoops.server.game.ContractType;
-import swcnoops.server.game.GameDataManager;
-import swcnoops.server.game.TroopData;
+import swcnoops.server.game.*;
 import swcnoops.server.model.*;
+import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TrainingManagerImpl implements TrainingManager {
     private static final Logger LOG = LoggerFactory.getLogger(TrainingManagerImpl.class);
@@ -52,14 +52,20 @@ public class TrainingManagerImpl implements TrainingManager {
     }
 
     @Override
-    public void trainTroops(String buildingId, String unitTypeId, int quantity, long startTime) {
+    public CurrencyDelta trainTroops(String buildingId, String unitTypeId, int quantity, int credits, int contraband, long startTime)
+    {
         // we create build units using the unitId and not the uid of the troop
         // this is to handle upgrades done in the middle of training
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
+        CurrencyType trainingCurrency = getTrainingCurrency(troopData);
+        int trainCost = getTrainCost(trainingCurrency, troopData);
+        int givenTrainCost = calculateGivenTrainingCost(this.playerSession, credits, contraband, trainingCurrency);
         List<BuildUnit> buildUnits = new ArrayList<>(quantity);
         for (int i = 0; i < quantity; i++) {
-            BuildUnit buildUnit = new BuildUnit(builder, buildingId, troopData.getUnitId(), builder.getContractType(), null);
+            BuildUnit buildUnit =
+                    new BuildUnit(builder, buildingId, troopData.getUnitId(), trainCost,
+                            builder.getContractType(), null);
             buildUnits.add(buildUnit);
         }
 
@@ -69,6 +75,55 @@ public class TrainingManagerImpl implements TrainingManager {
             transport.addUnitsToQueue(buildUnits);
             transport.sortUnitsInQueue();
         }
+
+        return new CurrencyDelta(givenTrainCost, trainCost, trainingCurrency, true);
+    }
+
+    private int calculateGivenTrainingCost(PlayerSession playerSession, int credits, int contraband, CurrencyType trainingCurrency) {
+        int givenCost = 0;
+        if (trainingCurrency != null) {
+            switch (trainingCurrency) {
+                case credits:
+                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().credits.amount - credits;
+                    break;
+                case contraband:
+                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount - contraband;
+                    break;
+            }
+        }
+
+        return givenCost;
+    }
+
+    private CurrencyType getTrainingCurrency(TroopData troopData) {
+        CurrencyType currencyType = CurrencyType.credits;
+        if (troopData.getType() != null) {
+            switch (troopData.getType()) {
+                case mercenary:
+                    currencyType = CurrencyType.contraband;
+                    break;
+                default:
+                    currencyType = CurrencyType.credits;
+                    break;
+            }
+        }
+        return currencyType;
+    }
+
+    private int getTrainCost(CurrencyType currencyType, TroopData troopData) {
+        int cost = 0;
+        if (currencyType != null) {
+            switch (currencyType) {
+                case contraband:
+                    cost = troopData.getContraband();
+                    break;
+                case credits:
+                default:
+                    cost = troopData.getCredits();
+                    break;
+            }
+        }
+        return cost;
     }
 
     /**
@@ -81,7 +136,9 @@ public class TrainingManagerImpl implements TrainingManager {
      * @param time
      */
     @Override
-    public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
+    public CurrencyDelta cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int materials,
+                                           int contraband, long time)
+    {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> cancelledContracts =
@@ -96,6 +153,17 @@ public class TrainingManagerImpl implements TrainingManager {
             transport.removeUnitsFromQueue(cancelledContracts);
             transport.sortUnitsInQueue();
         }
+
+        CurrencyType trainingCurrency = getTrainingCurrency(troopData);
+        AtomicInteger totalRefund = new AtomicInteger(0);
+        int givenDelta = CurrencyHelper.calculateGivenRefund(this.playerSession, credits, materials, contraband, trainingCurrency);
+        cancelledContracts.forEach(c -> totalRefund.addAndGet(c.getCost()));
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+        int expectedRefund = (int) ((float)totalRefund.get() * constants.contract_refund_percentage_troops / 100f);
+        int availableStorage = CurrencyHelper.calculateStorageAvailable(trainingCurrency, playerSession);
+        if (expectedRefund > availableStorage)
+            expectedRefund = availableStorage;
+        return new CurrencyDelta(givenDelta, expectedRefund, trainingCurrency, false);
     }
 
     /**
@@ -108,7 +176,7 @@ public class TrainingManagerImpl implements TrainingManager {
      * @param time
      */
     @Override
-    public void buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, long time) {
+    public CurrencyDelta buyOutTrainTroops(String buildingId, String unitTypeId, int quantity, int crystals, long time) {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> boughtOutContracts =
@@ -118,6 +186,17 @@ public class TrainingManagerImpl implements TrainingManager {
             transport.moveUnitToDeployable(boughtOutContracts);
             transport.sortUnitsInQueue();
         }
+
+        // calculate how much time is being bought out with crystals
+        int expectedCrystals = 0;
+        if (boughtOutContracts != null && boughtOutContracts.size() > 0) {
+            long contractEnd = boughtOutContracts.get(boughtOutContracts.size() - 1).getEndTime();
+            int secondsToBuy = (int) (contractEnd - time);
+            expectedCrystals = CrystalHelper.secondsToCrystals(secondsToBuy, troopData);
+        }
+
+        int givenCrystalsDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this.playerSession, crystals);
+        return new CurrencyDelta(givenCrystalsDelta,expectedCrystals, CurrencyType.crystals, true);
     }
 
     @Override

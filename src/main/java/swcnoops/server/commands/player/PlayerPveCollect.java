@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerPveCollect extends AbstractCommandAction<PlayerPveCollect, CommandResult> {
+public class PlayerPveCollect extends PlayerChecksum<PlayerPveCollect, CommandResult> {
     private String missionUid;
     private String battleUid;
 
@@ -36,5 +35,21 @@ public class PlayerPveCollect extends AbstractCommandAction<PlayerPveCollect, Co
 
     public String getBattleUid() {
         return battleUid;
+    }
+
+    protected boolean acceptCredits() {
+        return true;
+    }
+
+    protected boolean acceptMaterials() {
+        return true;
+    }
+
+    protected boolean acceptContraband() {
+        return true;
+    }
+
+    protected boolean acceptCrystals() {
+        return true;
     }
 }

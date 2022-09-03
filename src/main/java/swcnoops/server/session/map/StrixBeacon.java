@@ -5,7 +5,7 @@ import swcnoops.server.model.Building;
 import swcnoops.server.session.PlayerSession;
 
 /**
- * On completion of the strix beacon a creature is defaults and activated
+ * On completion of the strix beacon a creature is defaulted and activated
  */
 public class StrixBeacon extends MapItemImpl {
     public StrixBeacon(Building building, BuildingData buildingData) {

@@ -1,7 +1,7 @@
 package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.CommandFactory;
+import swcnoops.server.model.CurrencyType;
 import swcnoops.server.model.FactionType;
 import swcnoops.server.model.TroopType;
 
@@ -26,12 +26,13 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, CampaignMissionData> missionDataMap = new HashMap<>();
     private Map<String, CampaignMissionSet> campaignMissionSets = new HashMap<>();
     private Map<FactionType, Map<Integer, List<TroopData>>> troopSizeMapByFaction = new HashMap<>();
+    private GameConstants gameConstants;
 
     @Override
     public void initOnStartup() {
         try {
             loadTroops();
-            this.buildings = loadBuildings();
+            loadBaseJson();
             this.traps = loadTraps();
             loadCampaigns();
             buildCustomTroopMaps();
@@ -150,6 +151,12 @@ public class GameDataManagerImpl implements GameDataManager {
             String upgradeShardUid = troop.get("upgradeShardUid");
             int upgradeShards = Integer.valueOf(troop.get("upgradeShards") == null ? "0" : troop.get("upgradeShards")).intValue();
             String specialAttackID = troop.get("specialAttackID");
+            int credits = Integer.valueOf(troop.get("credits") == null ? "0" : troop.get("credits"));
+            int materials = Integer.valueOf(troop.get("materials") == null ? "0" : troop.get("materials"));
+            int contraband = Integer.valueOf(troop.get("contraband") == null ? "0" : troop.get("contraband"));
+            int upgradeCredits = Integer.valueOf(troop.get("upgradeCredits") == null ? "0" : troop.get("upgradeCredits"));
+            int upgradeMaterials = Integer.valueOf(troop.get("upgradeMaterials") == null ? "0" : troop.get("upgradeMaterials"));
+            int upgradeContraband = Integer.valueOf(troop.get("upgradeContraband") == null ? "0" : troop.get("upgradeContraband"));
 
             TroopData troopData = new TroopData(uid);
             troopData.setFaction(FactionType.valueOf(faction));
@@ -162,6 +169,12 @@ public class GameDataManagerImpl implements GameDataManager {
             troopData.setUpgradeShardUid(upgradeShardUid);
             troopData.setUpgradeShards(upgradeShards);
             troopData.setSpecialAttackID(specialAttackID);
+            troopData.setCredits(credits);
+            troopData.setMaterials(materials);
+            troopData.setContraband(contraband);
+            troopData.setUpgradeCredits(upgradeCredits);
+            troopData.setUpgradeMaterials(upgradeMaterials);
+            troopData.setUpgradeContraband(upgradeContraband);
 
             this.troops.put(troopData.getUid(), troopData);
             addToLowestLevelTroopUnitId(troopData);
@@ -218,25 +231,38 @@ public class GameDataManagerImpl implements GameDataManager {
         for (Map<String,String> trap : trapDataMap) {
             String uid = trap.get("uid");
             TrapEventType trapEventType = TrapEventType.valueOf(trap.get("eventType"));
-            Long rearmTime = trap.get("rearmTime") != null ? new Long(trap.get("rearmTime")) : null;
+            long rearmTime = trap.get("rearmTime") != null ? Long.valueOf(trap.get("rearmTime")) : 0;
+            int rearmMaterialsCost = trap.get("rearmMaterialsCost") != null ? Integer.valueOf(trap.get("rearmMaterialsCost")) : 0;
             String eventData = trap.get("eventData");
             TrapData trapData = new TrapData(uid);
             trapData.setEventType(trapEventType);
             trapData.setRearmTime(rearmTime);
             trapData.setEventData(eventData);
+            trapData.setRearmMaterialsCost(rearmMaterialsCost);
             map.put(trapData.getUid(), trapData);
         }
     }
 
-    private Map<String, BuildingData> loadBuildings() throws Exception {
-        Map<String, BuildingData> map = new HashMap<>();
-
+    private void loadBaseJson() throws Exception {
         Map result = ServiceFactory.instance().getJsonParser()
                 .toObjectFromResource(ServiceFactory.instance().getConfig().baseJson, Map.class);
         Map<String, Map> jsonSpreadSheet = (Map<String, Map>) result;
         Map<String, Map> contentMap = jsonSpreadSheet.get("content");
         Map<String, Map> objectsMap = contentMap.get("objects");
         List<Map<String,String>> buildingDataMap = (List<Map<String,String>>) objectsMap.get("BuildingData");
+        this.buildings = readBuildingData(buildingDataMap);
+
+        List<Map<String,String>> gameConstants = (List<Map<String,String>>) objectsMap.get("GameConstants");
+        this.gameConstants = readGameConstants(gameConstants);
+    }
+
+    private GameConstants readGameConstants(List<Map<String, String>> gameConstants) throws Exception {
+        GameConstants constants = GameConstants.createFromBaseJson(gameConstants);
+        return constants;
+    }
+
+    private Map<String, BuildingData> readBuildingData(List<Map<String, String>> buildingDataMap) {
+        Map<String, BuildingData> map = new HashMap<>();
 
         Set<String> buildingIdsNeedsSorting = new HashSet<>();
 
@@ -250,23 +276,41 @@ public class GameDataManagerImpl implements GameDataManager {
             int storage = Integer.valueOf(building.get("storage") == null ? "0" : building.get("storage")).intValue();
             int time = Integer.valueOf(building.get("time")).intValue();
             int crossTime = Integer.valueOf(building.get("crossTime") == null ? "0" : building.get("crossTime")).intValue();
+            int crossCredits = Integer.valueOf(building.get("crossCredits") == null ? "0" : building.get("crossCredits")).intValue();
+            int crossMaterials = Integer.valueOf(building.get("crossMaterials") == null ? "0" : building.get("crossMaterials")).intValue();
+            int materials = Integer.valueOf(building.get("materials") == null ? "0" : building.get("materials")).intValue();
+            int credits = Integer.valueOf(building.get("credits") == null ? "0" : building.get("credits")).intValue();
+            int contraband = Integer.valueOf(building.get("contraband") == null ? "0" : building.get("contraband")).intValue();
+            String currency = building.get("currency") != null ? building.get("currency") : "none";
             String linkedUnit = building.get("linkedUnit");
             StoreTab storeTab = building.get("storeTab") != null ? StoreTab.valueOf(building.get("storeTab")) : null;
             BuildingSubType buildingSubType = building.get("subType") != null ?
                     BuildingSubType.valueOf(building.get("subType")) : null;
+            float produce = Float.valueOf(building.get("produce") != null ? building.get("produce") : "0");
+            float cycleTime = Float.valueOf(building.get("cycleTime") != null ? building.get("cycleTime") : "0");
+            boolean prestige = Boolean.valueOf(building.get("prestige") != null ? building.get("prestige") : "false");
 
             BuildingData buildingData = new BuildingData(uid);
             buildingData.setFaction(FactionType.valueOf(faction));
             buildingData.setLevel(lvl);
             buildingData.setType(BuildingType.valueOf(type));
+            buildingData.setCurrency(CurrencyType.valueOf(currency.equals("0") ? "none" : currency));
+            buildingData.setProduce(produce);
+            buildingData.setCycleTime(cycleTime);
             buildingData.setStorage(storage);
             buildingData.setTime(time);
             buildingData.setCrossTime(crossTime);
+            buildingData.setCrossCredits(crossCredits);
+            buildingData.setCrossMaterials(crossMaterials);
             buildingData.setBuildingID(buildingID);
             buildingData.setTrapId(trapId);
             buildingData.setLinkedUnit(linkedUnit);
             buildingData.setStoreTab(storeTab);
             buildingData.setSubType(buildingSubType);
+            buildingData.setMaterials(materials);
+            buildingData.setCredits(credits);
+            buildingData.setContraband(contraband);
+            buildingData.setPrestige(prestige);
 
             map.put(buildingData.getUid(), buildingData);
             String needToSort = addToLevelMaps(buildingData);
@@ -276,7 +320,6 @@ public class GameDataManagerImpl implements GameDataManager {
 
         buildingIdsNeedsSorting.forEach(a -> this.buildingLevelsByBuildingId.get(a)
                 .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
-
         return map;
     }
 
@@ -367,5 +410,10 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public int getMaxlevelForTroopUnitId(String unitId) {
         return this.troopLevelsByUnitId.get(unitId).size();
+    }
+
+    @Override
+    public GameConstants getGameConstants() {
+        return this.gameConstants;
     }
 }

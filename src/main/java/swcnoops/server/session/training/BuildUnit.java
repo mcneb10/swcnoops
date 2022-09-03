@@ -20,16 +20,24 @@ public class BuildUnit {
     @JsonIgnore
     private BuildSlot buildSlot;
     private String tag;
+    private int cost;
 
     public BuildUnit() {
     }
 
-    public BuildUnit(Constructor constructor, String buildingId, String unitId, ContractType contractType, String tag) {
+    public BuildUnit(Constructor constructor, String buildingId, String unitId, int cost,
+                     ContractType contractType, String tag)
+    {
         this.buildingId = buildingId;
         this.unitId = unitId;
         this.constructor = constructor;
         this.contractType = contractType;
+        this.cost = cost;
         this.tag = tag;
+    }
+
+    public int getCost() {
+        return cost;
     }
 
     public ContractType getContractType() {

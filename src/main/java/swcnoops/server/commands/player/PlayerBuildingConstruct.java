@@ -21,6 +21,9 @@ public class PlayerBuildingConstruct extends PlayerChecksum<PlayerBuildingConstr
         playerSession.buildingConstruct(arguments.getBuildingUid(),
                 arguments.getTag(),
                 arguments.getPosition(),
+                arguments.getCredits(),
+                arguments.getMaterials(),
+                arguments.getContraband(),
                 time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;

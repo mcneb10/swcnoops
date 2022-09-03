@@ -41,7 +41,7 @@ public class CreatureManagerFactory {
                 playerCreature.setCreatureStatus(CreatureStatus.Invalid);
             }
         }
-        return new CreatureManagerImpl(creatureDataMap, playerCreature);
+        return new CreatureManagerImpl(playerSession, creatureDataMap, playerCreature);
     }
 
     static public CreatureDataMap findCreatureTrap(PlayerMapItems map) {

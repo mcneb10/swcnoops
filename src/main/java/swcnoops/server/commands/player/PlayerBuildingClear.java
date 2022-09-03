@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerBuildingClear extends AbstractCommandAction<PlayerBuildingClear, CommandResult> {
+public class PlayerBuildingClear extends PlayerChecksum<PlayerBuildingClear, CommandResult> {
     private String instanceId;
     private boolean payWithHardCurrency;
 
@@ -16,7 +15,11 @@ public class PlayerBuildingClear extends AbstractCommandAction<PlayerBuildingCle
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.buildingClear(arguments.getInstanceId(), time);
+        playerSession.buildingClear(arguments.getInstanceId(),
+                arguments.getCredits(),
+                arguments.getMaterials(),
+                arguments.getContraband(),
+                arguments.getCrystals(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

@@ -5,6 +5,6 @@ public class Building {
     public int x;
     public int z;
     public String uid;
-    public Long lastCollectTime;
+    public long lastCollectTime;
     public int currentStorage;
 }

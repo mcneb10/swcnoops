@@ -1,5 +1,6 @@
 package swcnoops.server.game;
 
+import swcnoops.server.model.CurrencyType;
 import swcnoops.server.model.FactionType;
 
 public class BuildingData implements GameData {
@@ -15,6 +16,15 @@ public class BuildingData implements GameData {
     private StoreTab storeTab;
     private BuildingSubType subType;
     private long crossTime;
+    private CurrencyType currency;
+    private float produce;
+    private float cycleTime;
+    private int materials;
+    private int credits;
+    private int contraband;
+    private int crossCredits;
+    private int crossMaterials;
+    private boolean prestige;
 
     public BuildingData(String uid) {
         this.uid = uid;
@@ -110,5 +120,77 @@ public class BuildingData implements GameData {
 
     public void setCrossTime(long crossTime) {
         this.crossTime = crossTime;
+    }
+
+    public void setCurrency(CurrencyType currency) {
+        this.currency = currency;
+    }
+
+    public CurrencyType getCurrency() {
+        return currency;
+    }
+
+    public void setProduce(float produce) {
+        this.produce = produce;
+    }
+
+    public float getProduce() {
+        return produce;
+    }
+
+    public void setCycleTime(float cycleTime) {
+        this.cycleTime = cycleTime;
+    }
+
+    public float getCycleTime() {
+        return cycleTime;
+    }
+
+    public int getMaterials() {
+        return materials;
+    }
+
+    public void setMaterials(int materials) {
+        this.materials = materials;
+    }
+
+    public int getCredits() {
+        return credits;
+    }
+
+    public void setCredits(int credits) {
+        this.credits = credits;
+    }
+
+    public int getContraband() {
+        return contraband;
+    }
+
+    public void setContraband(int contraband) {
+        this.contraband = contraband;
+    }
+
+    public int getCrossCredits() {
+        return crossCredits;
+    }
+
+    public void setCrossCredits(int crossCredits) {
+        this.crossCredits = crossCredits;
+    }
+
+    public int getCrossMaterials() {
+        return crossMaterials;
+    }
+
+    public void setCrossMaterials(int crossMaterials) {
+        this.crossMaterials = crossMaterials;
+    }
+
+    public boolean getPrestige() {
+        return prestige;
+    }
+
+    public void setPrestige(boolean prestige) {
+        this.prestige = prestige;
     }
 }

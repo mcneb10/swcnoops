@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerBuildingInstantUpgrade extends AbstractCommandAction<PlayerBuildingInstantUpgrade, CommandResult> {
+public class PlayerBuildingInstantUpgrade extends PlayerChecksum<PlayerBuildingInstantUpgrade, CommandResult> {
     private String instanceId;
     private String tag;
 
@@ -15,7 +14,9 @@ public class PlayerBuildingInstantUpgrade extends AbstractCommandAction<PlayerBu
     protected CommandResult execute(PlayerBuildingInstantUpgrade arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
-        playerSession.buildingInstantUpgrade(arguments.getInstanceId(), arguments.getTag(), time);
+        playerSession.buildingInstantUpgrade(arguments.getInstanceId(), arguments.getTag(),
+                arguments.getCredits(), arguments.getMaterials(), arguments.getContraband(),
+                arguments.getCrystals(), time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

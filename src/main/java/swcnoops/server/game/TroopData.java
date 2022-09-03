@@ -19,6 +19,12 @@ public class TroopData implements GameData {
     private int upgradeShards;
     private long upgradeTime;
     private String specialAttackID;
+    private int upgradeCredits;
+    private int upgradeMaterials;
+    private int upgradeContraband;
+    private int credits;
+    private int materials;
+    private int contraband;
 
     public TroopData(String uid) {
         this.uid = uid;
@@ -110,5 +116,53 @@ public class TroopData implements GameData {
 
     public boolean isSpecialAttack() {
         return this.getSpecialAttackID() != null;
+    }
+
+    public void setUpgradeCredits(int upgradeCredits) {
+        this.upgradeCredits = upgradeCredits;
+    }
+
+    public int getUpgradeCredits() {
+        return upgradeCredits;
+    }
+
+    public void setUpgradeMaterials(int upgradeMaterials) {
+        this.upgradeMaterials = upgradeMaterials;
+    }
+
+    public int getUpgradeMaterials() {
+        return upgradeMaterials;
+    }
+
+    public void setUpgradeContraband(int upgradeContraband) {
+        this.upgradeContraband = upgradeContraband;
+    }
+
+    public int getUpgradeContraband() {
+        return upgradeContraband;
+    }
+
+    public void setCredits(int credits) {
+        this.credits = credits;
+    }
+
+    public int getCredits() {
+        return credits;
+    }
+
+    public void setMaterials(int materials) {
+        this.materials = materials;
+    }
+
+    public int getMaterials() {
+        return materials;
+    }
+
+    public void setContraband(int contraband) {
+        this.contraband = contraband;
+    }
+
+    public int getContraband() {
+        return contraband;
     }
 }

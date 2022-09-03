@@ -46,6 +46,7 @@ public class CommandFactory {
         this.add(new PlayerBuildingCancel());
         this.add(new PlayerBuildingMultimove());
         this.add(new PlayerBuildingCollect());
+        this.add(new PlayerBuildingCollectAll());
         this.add(new PlayerBuildingConstruct());
         this.add(new PlayerBuildingRearm());
         this.add(new PlayerBuildingUpgrade());
@@ -132,7 +133,6 @@ public class CommandFactory {
 //        this.add(new OkCommandAction("player.missions.startSpecop"));
 //        this.add(new OkCommandAction("player.building.move"));
 
-        this.add(new OkCommandAction("player.building.collect.all"));
         this.add(new OkCommandAction("player.raids.update"));
         this.add(new OkCommandAction("player.pvp.releaseTarget"));
 

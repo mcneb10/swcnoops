@@ -5,6 +5,7 @@ import swcnoops.server.game.ContractType;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.Position;
 import swcnoops.server.session.Constructor;
+import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
 
@@ -74,8 +75,8 @@ public class Builder implements MapItem, Constructor {
     }
 
     @Override
-    public void collect(long time) {
-        this.mapItem.collect(time);
+    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time, boolean collectAll) {
+        return this.mapItem.collect(playerSession, credits, materials, contraband, crystals, time, collectAll);
     }
 
     protected void train(List<BuildUnit> buildUnits, long startTime) {
@@ -143,5 +144,13 @@ public class Builder implements MapItem, Constructor {
 
     public ContractType getContractType() {
         return this.contractType;
+    }
+
+    @Override
+    public void setupForConstruction() {
+    }
+
+    @Override
+    public void upgradeCancelled(long time) {
     }
 }

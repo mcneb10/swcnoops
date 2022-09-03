@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerDeployableBuyout extends AbstractCommandAction<PlayerDeployableBuyout, CommandResult> {
+public class PlayerDeployableBuyout extends PlayerChecksum<PlayerDeployableBuyout, CommandResult> {
     private String constructor;
     private String unitTypeId;
     private int quantity;
@@ -18,7 +17,7 @@ public class PlayerDeployableBuyout extends AbstractCommandAction<PlayerDeployab
                 .getPlayerSession(arguments.getPlayerId());
 
         playerSession.buyOutTrainTroops(arguments.getConstructor(), arguments.getUnitTypeId(),
-                arguments.getQuantity(), time);
+                arguments.getQuantity(), arguments.getCrystals(), time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

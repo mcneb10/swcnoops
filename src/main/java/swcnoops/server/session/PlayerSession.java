@@ -23,11 +23,11 @@ public interface PlayerSession {
 
     TroopInventory getTroopInventory();
 
-    void trainTroops(String constructor, String unitTypeId, int quantity, long time);
+    void trainTroops(String constructor, String unitTypeId, int quantity, int credits, int contraband, long time);
 
-    void cancelTrainTroops(String constructor, String unitTypeId, int quantity, long time);
+    void cancelTrainTroops(String constructor, String unitTypeId, int quantity, int credits, int materials, int contraband, long time);
 
-    void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, long time);
+    void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, int crystals, long time);
 
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
@@ -41,13 +41,13 @@ public interface PlayerSession {
 
     CreatureManager getCreatureManager();
 
-    void buildingBuyout(String instanceId, String tag, long time);
+    void buildingBuyout(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
 
-    void deployableUpgradeStart(String buildingId, String troopUid, long time);
+    void deployableUpgradeStart(String buildingId, String troopUid, int credits, int materials, int contraband, long time);
 
     void playerLogin(long time);
 
-    void buildingCancel(String buildingId, String tag, long time);
+    void buildingCancel(String buildingId, String tag, int credits, int materials, int contraband, long time);
 
     SquadNotification troopsRequest(DonatedTroops donatedTroops, String warId, boolean payToSkip, String message, long time);
 
@@ -69,19 +69,19 @@ public interface PlayerSession {
 
     MapItem getMapItemByKey(String key);
 
-    void buildingCollect(String buildingId, long time);
+    void buildingCollect(String buildingId, int credits, int materials, int contraband, int crystals, long time);
 
-    void buildingClear(String instanceId, long time);
+    void buildingClear(String instanceId, int credits, int materials, int contraband, int crystals, long time);
 
-    void buildingConstruct(String buildingUid, String tag, Position position, long time);
+    void buildingConstruct(String buildingUid, String tag, Position position, int credits, int materials, int contraband, long time);
 
-    void buildingUpgrade(String buildingId, String tag, long time);
+    void buildingUpgrade(String buildingId, String tag, int credits, int materials, int contraband, long time);
 
     void factionSet(FactionType faction, long time);
 
     DroidManager getDroidManager();
 
-    void rearm(List<String> buildingIds, long time);
+    void rearm(List<String> buildingIds, int credits, int materials, int contraband, long time);
 
     PlayerMapItems getPlayerMapItems();
 
@@ -103,19 +103,19 @@ public interface PlayerSession {
 
     MapItem removeMapItemByKey(String instanceId);
 
-    void buildingInstantUpgrade(String instanceId, String tag, long time);
+    void buildingInstantUpgrade(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
     
-    void storeBuy(String uid, int count, long time);
+    void storeBuy(String uid, int count, int credits, int materials, int contraband, int crystals, long time);
 
-    void buildingUpgradeAll(String buildingUid, long time);
+    void buildingUpgradeAll(String buildingUid, int credits, int materials, int contraband, int crystals, long time);
 
-    void buildingSwap(String buildingId, String buildingUid, long time);
+    void buildingSwap(String buildingId, String buildingUid, int credits, int materials, int contraband, long time);
 
     FactionType getFaction();
 
     void setOffenseLab(OffenseLab offenseLab);
 
-    void planetRelocate(String planet, boolean payWithHardCurrency, long time);
+    void planetRelocate(String planet, boolean payWithHardCurrency, int crystals, long time);
 
     TroopDonationResult troopsDonate(Map<String, Integer> troopsDonated, String requestId, String recipientId, boolean forWar, long time);
 
@@ -136,4 +136,8 @@ public interface PlayerSession {
     void warBaseSave(Map<String, Position> positions, long time);
 
     void levelUpBase(PlayerMap warMap);
+
+    void processInventoryStorage(CurrencyDelta currencyDelta);
+
+    void buildingCollectAll(List<String> buildingIds, int credits, int materials, int contraband, int crystals, long time);
 }
