@@ -51,4 +51,6 @@ public interface GuildSettings {
     void setWarId(String warId);
 
     void setDirty();
+
+    List<WarHistory> getWarHistory();
 }

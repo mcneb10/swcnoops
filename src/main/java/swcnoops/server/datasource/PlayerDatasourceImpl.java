@@ -725,6 +725,53 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
+    public List<WarHistory> loadWarHistory(String squadId) {
+        try (Connection connection = getConnection()) {
+            return loadWarHistory(squadId, connection);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load war history ", ex);
+        }
+    }
+
+    private List<WarHistory> loadWarHistory(String guildId, Connection connection) throws Exception {
+        List<WarHistory> wars = new ArrayList<>();
+
+        final String squadPlayers = "SELECT w.warId, w.squadIdA, w.squadIdB, w.processedEndTime, w.squadAScore, w.squadBScore, " +
+                "s.name, s.icon " +
+                "FROM War w, Squads s " +
+                "WHERE w.processedEndTime > 0 " +
+                "AND ((w.squadIdB = s.id and w.squadIdA = ?) or (w.squadIdA = s.id and w.squadIdB = ?))";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(squadPlayers)) {
+            pstmt.setString(1, guildId);
+            pstmt.setString(2, guildId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                WarHistory warHistory = new WarHistory();
+                warHistory.warId = rs.getString("warId");
+                warHistory.opponentGuildId = rs.getString("squadIdB");
+                warHistory.opponentName = rs.getString("name");
+                warHistory.opponentIcon = rs.getString("icon");
+                warHistory.opponentScore = rs.getInt("squadBScore");
+                warHistory.endDate = rs.getLong("processedEndTime");
+
+                if (!warHistory.opponentGuildId.equals(guildId)) {
+                    warHistory.score = rs.getInt("squadAScore");
+                } else {
+                    warHistory.opponentGuildId = rs.getString("squadIdA");
+                    warHistory.opponentScore = rs.getInt("squadAScore");
+                    warHistory.score = rs.getInt("squadBScore");
+                }
+
+                wars.add(warHistory);
+            }
+        }
+
+        return wars;
+    }
+
+    @Override
     public void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment,
                           boolean openEnrollment) {
         try (Connection connection = getConnection()) {

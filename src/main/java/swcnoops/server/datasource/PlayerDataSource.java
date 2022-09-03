@@ -89,4 +89,6 @@ public interface PlayerDataSource {
     War processWarEnd(String id, String squadIdA, String warId);
 
     void resetWarPartyForParticipants(String warId);
+
+    List<WarHistory> loadWarHistory(String squadId);
 }

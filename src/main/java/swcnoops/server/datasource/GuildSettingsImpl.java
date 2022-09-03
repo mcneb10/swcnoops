@@ -19,9 +19,11 @@ public class GuildSettingsImpl implements GuildSettings {
     private Long warSignUpTime;
     private String warId;
     private GuildMembers guildMembers;
+    private WarHistoryManager warHistoryManager;
 
     public GuildSettingsImpl(String id) {
         this.id = id;
+        this.warHistoryManager = new WarHistoryManager(id);
     }
 
     @Override
@@ -80,6 +82,7 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public void setDirty() {
         this.guildMembers.setDirty();
+        this.warHistoryManager.setDirty();
     }
 
     @Override
@@ -167,5 +170,10 @@ public class GuildSettingsImpl implements GuildSettings {
 
     protected void setGuildMembers(GuildMembers guildMembers) {
         this.guildMembers = guildMembers;
+    }
+
+    @Override
+    public List<WarHistory> getWarHistory() {
+        return this.warHistoryManager.getWarHistory();
     }
 }

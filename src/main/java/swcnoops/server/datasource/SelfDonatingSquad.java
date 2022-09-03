@@ -158,6 +158,10 @@ public class SelfDonatingSquad implements GuildSettings {
 
     @Override
     public void setDirty() {
+    }
 
+    @Override
+    public List<WarHistory> getWarHistory() {
+        return new ArrayList<>();
     }
 }
