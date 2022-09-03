@@ -14,11 +14,6 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, List<BuildingData>> buildingLevelsByBuildingId = new HashMap<>();
     private Map<FactionType, List<TroopData>> creaturesByFaction = new HashMap<>();
     private Map<FactionType, List<TroopData>> lowestLevelTroopByFaction = new HashMap<>();
-
-    /**
-     * This map is only used to change the map from smuggler to faction which happens for new players
-     */
-    private Map<BuildingType, Map<FactionType, List<BuildingData>>> buildingMapByTypeAndFaction = new HashMap<>();
     private Map<String, BuildingData> buildings = new HashMap<>();
     private Map<String, TrapData> traps = new HashMap<>();
     private Map<FactionType, CampaignSet> factionCampaigns = new HashMap<>();
@@ -28,6 +23,8 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<FactionType, Map<Integer, List<TroopData>>> troopSizeMapByFaction = new HashMap<>();
     private GameConstants gameConstants;
 
+    private FactionBuildingEquivalentMap factionBuildingEquivalentMap;
+
     @Override
     public void initOnStartup() {
         try {
@@ -36,9 +33,19 @@ public class GameDataManagerImpl implements GameDataManager {
             this.traps = loadTraps();
             loadCampaigns();
             buildCustomTroopMaps();
+            this.factionBuildingEquivalentMap = create(this.buildingLevelsByBuildingId);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
         }
+    }
+
+    private FactionBuildingEquivalentMap create(Map<String, List<BuildingData>> buildingLevelsByBuildingId) {
+        FactionBuildingEquivalentMap factionBuildingEquivalentMap = new FactionBuildingEquivalentMap();
+        for (List<BuildingData> buildingLevels : buildingLevelsByBuildingId.values()) {
+            factionBuildingEquivalentMap.addMap(buildingLevels);
+        }
+
+        return factionBuildingEquivalentMap;
     }
 
     private void buildCustomTroopMaps() {
@@ -334,21 +341,6 @@ public class GameDataManagerImpl implements GameDataManager {
 
             // this list will be sorted later before it can be used
             levels.add(buildingData);
-
-            if (buildingData.getStoreTab() != StoreTab.not_in_store) {
-                if (!(buildingData.getType() == BuildingType.turret &&
-                        buildingData.getSubType() != BuildingSubType.rapid_fire_turret))
-                {
-
-                    Map<FactionType, List<BuildingData>> factionMap = this.buildingMapByTypeAndFaction.get(buildingData.getType());
-                    if (factionMap == null) {
-                        factionMap = new HashMap<>();
-                        this.buildingMapByTypeAndFaction.put(buildingData.getType(), factionMap);
-                    }
-
-                    factionMap.put(buildingData.getFaction(), levels);
-                }
-            }
         }
 
         return buildingID;
@@ -370,11 +362,6 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public BuildingData getBuildingDataByBuildingId(String buildingID, int level) {
         return this.buildingLevelsByBuildingId.get(buildingID).get(level - 1);
-    }
-
-    @Override
-    public BuildingData getBuildingData(BuildingType type, FactionType faction, int level) {
-        return this.buildingMapByTypeAndFaction.get(type).get(faction).get(level - 1);
     }
 
     @Override
@@ -415,5 +402,16 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public GameConstants getGameConstants() {
         return this.gameConstants;
+    }
+
+    /**
+     * This is only used when changing faction
+     * @param oldBuildingData
+     * @param targetFaction
+     * @return
+     */
+    @Override
+    public BuildingData getFactionEquivalentOfBuilding(BuildingData oldBuildingData, FactionType targetFaction) {
+        return this.factionBuildingEquivalentMap.getEquivalentBuilding(oldBuildingData, targetFaction);
     }
 }
