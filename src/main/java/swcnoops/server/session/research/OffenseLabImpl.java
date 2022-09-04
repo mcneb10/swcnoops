@@ -1,6 +1,5 @@
 package swcnoops.server.session.research;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.*;
 import swcnoops.server.model.Building;
@@ -143,17 +142,17 @@ public class OffenseLabImpl implements OffenseLab {
 
     @Override
     public void changeBuildingData(BuildingData buildingData) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void moveTo(Position newPosition) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override

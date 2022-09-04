@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="13b266ae-1121-43d2-868d-f9256aa0770d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/creature/CreatureManagerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/creature/CreatureManagerImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/research/OffenseLabImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/research/OffenseLabImpl.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="useMavenConfig" value="true" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
+  <component name="RunManager">
+    <configuration name="SWCNOOPS" type="Application" factoryName="Application">
+      <option name="MAIN_CLASS_NAME" value="swcnoops.server.SparkMain" />
+      <module name="swcnoops" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+  </component>
+  <component name="TaskManager">
+    <servers />
+  </component>
+  <component name="XDebuggerManager">
+    <pin-to-top-manager>
+      <pinned-members>
+        <PinnedItemInfo parentTag="swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandResult" memberName="resources" />
+      </pinned-members>
+    </pin-to-top-manager>
+  </component>
+  <component name="com.intellij.coverage.CoverageDataManagerImpl">
+    <SUITE FILE_PATH="coverage/swcnoops$SparkMain.ic" NAME="SparkMain Coverage Results" MODIFIED="1661167321410" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="idea" COVERAGE_BY_TEST_ENABLED="false" COVERAGE_TRACING_ENABLED="false" />
+  </component>
+</project>

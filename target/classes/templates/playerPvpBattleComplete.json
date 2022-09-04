@@ -1,0 +1,86 @@
+{
+  "battleId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "attacker": {
+    "playerId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+    "name": "darthRebel",
+    "faction": "empire",
+    "guildId": "41de5b5a-4c52-11e7-8a4b-069998004ee2",
+    "guildName": "trainingcamp",
+    "attackRating": 31977,
+    "attackRatingDelta": -17,
+    "defenseRating": -3041,
+    "defenseRatingDelta": 0,
+    "tournamentRating": 0,
+    "tournamentRatingDelta": 0
+  },
+  "defender": {
+    "playerId": "53ea6fba-4310-11e7-8c7e-0679f6004ebc",
+    "name": "Vortex",
+    "faction": "rebel",
+    "guildId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+    "guildName": "WarLords231",
+    "attackRating": 37351,
+    "attackRatingDelta": 0,
+    "defenseRating": -6392,
+    "defenseRatingDelta": 20,
+    "tournamentRating": 0,
+    "tournamentRatingDelta": 0
+  },
+  "missionId": null,
+  "attackDate": 1583878892,
+  "looted": {
+    "credits": 524
+  },
+  "earned": {
+    "credits": 524
+  },
+  "maxLootable": {
+    "contraband": 53762,
+    "credits": 1294634,
+    "materials": 1232888
+  },
+  "troopsExpended": {},
+  "attackerGuildTroopsExpended": {
+    "troopMHC10": 2,
+    "troopMercenaryEmpireRider10": 1,
+    "troopR5Medic3": 1,
+    "troopTechnician10": 1
+  },
+  "defenderGuildTroopsExpended": {},
+  "numVisitors": {
+    "troopVanguard8": 4,
+    "troopRebPhantomYWing3": 4,
+    "troopMarksman2": 4,
+    "troopBantha8": 8
+  },
+  "baseDamagePercent": 0,
+  "stars": 0,
+  "manifestVersion": 2043,
+  "potentialMedalGain": 32,
+  "defenderPotentialMedalGain": 20,
+  "revenged": false,
+  "battleVersion": "32.0",
+  "cmsVersion": "1576242239",
+  "server": false,
+  "attackerEquipment": [
+    "eqpEmpireBurstTurretDamage7",
+    "eqpEmpireBarracksSummonHeavy8",
+    "eqpEmpireCargoGreatDane7",
+    "eqpEmpirePentagonJumpTrooper7",
+    "eqpEmpirePentagonTrooper5"
+  ],
+  "defenderEquipment": [
+    "eqpRebelBarracksSummonHeavy4",
+    "eqpRebelBarracksSummonHeavyMirror4",
+    "eqpRebelBarracksSummonMedium4",
+    "eqpRebelSullustan3",
+    "eqpRebelBurstTurretDamage8"
+  ],
+  "planetId": "planet8",
+  "attackerTournament" : {
+    "rating" : 55,
+    "redeemedRewards" : [],
+    "currentRank" : {"percentile" : 1, "tier" : ""},
+    "finalRank" : {"percentile" : 1, "tier" : ""}
+  }
+}

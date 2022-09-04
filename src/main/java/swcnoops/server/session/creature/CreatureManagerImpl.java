@@ -1,6 +1,5 @@
 package swcnoops.server.session.creature;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.Creature;
 import swcnoops.server.game.BuildingData;
@@ -116,7 +115,7 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public void moveTo(Position newPosition) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
@@ -126,17 +125,17 @@ public class CreatureManagerImpl implements CreatureManager {
 
     @Override
     public void changeBuildingData(BuildingData buildingData) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void upgradeComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
     public void buildComplete(PlayerSession playerSession, String unitId, String tag, long endTime) {
-        throw new NotImplementedException();
+        throw new UnsupportedOperationException();
     }
 
     @Override
