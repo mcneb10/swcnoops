@@ -1,0 +1,44 @@
+{
+  "battleId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "playerId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "playerName": "SittingDuck",
+  "playerLevel": 11,
+  "playerXp": 11,
+  "playerFaction": "Rebel",
+  "playerAttackRating": 11,
+  "playerDefenseRating": 11,
+  "playerAttacksWon": 11,
+  "playerDefensesWon": 11,
+  "guildId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "guildName": "Rebel",
+  "guildDonatedTroops": {},
+  "champions": {},
+  "potentialMedalsToGain": 11,
+  "potentialMedalsToLose": 11,
+  "potentialTournamentRatingDeltaWin": 11,
+  "potentialTournamentRatingDeltaLose": 11,
+  "map": {
+    "next": 2,
+    "planet": "planet1",
+    "buildings": [
+      {
+        "key": "bld_1",
+        "x": -2,
+        "z": -2,
+        "uid": "smugglerHQ1",
+        "lastCollectTime": null,
+        "currentStorage": 0
+      }
+    ]
+  },
+  "availableCredits": 11,
+  "availableMaterials": 11,
+  "availableContraband": 11,
+  "buildingLootCreditsMap" : {},
+  "buildingLootMaterialsMap" : {},
+  "buildingLootContrabandMap" : {},
+  "creditsCharged": 11,
+  "contracts" : {},
+  "equipment" : {},
+  "attackerDeployables" : {}
+}

@@ -1,0 +1,3440 @@
+{
+        "playerId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+        "locale": "en_US",
+        "network": "u",
+        "viewNetwork": "fb",
+        "abTests": {
+          "defRefSPD": {
+            "patch": "-",
+            "uid": "defRefSPD",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "defRefSPD",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "defRefSPD"
+          },
+          "anh_raids": {
+            "patch": "-",
+            "uid": "anh_raids",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "40th Raids",
+            "variant": "0",
+            "description": "turns on anh raids",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "anh_raids"
+          },
+          "LucasArts.StarWarsCommander.CrystalPack06": {
+            "uid": "LucasArts.StarWarsCommander.CrystalPack06",
+            "name": "LucasArts.StarWarsCommander.CrystalPack06"
+          },
+          "raids_event": {
+            "patch": "-",
+            "uid": "raids_event",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Raids Toggle",
+            "variant": "0",
+            "description": "Turns on x times raids per day",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "raids_event"
+          },
+          "FUE_speed_up_building": {
+            "uid": "FUE_speed_up_building",
+            "name": "FUE_speed_up_building"
+          },
+          "monster_raids": {
+            "patch": "-",
+            "uid": "monster_raids",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Monster Raids",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "monster_raids"
+          },
+          "Amazon_disneydays_spd": {
+            "patch": "-",
+            "uid": "Amazon_disneydays_spd",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Amazon_disneydays_spd",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "Amazon_disneydays_spd"
+          },
+          "squad_action": {
+            "uid": "squad_action",
+            "name": "squad_action"
+          },
+          "5th_Anniversary_daily_crate": {
+            "patch": "-",
+            "uid": "5th_Anniversary_daily_crate",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "5th Anniversary Daily Crate",
+            "variant": "0",
+            "description": "",
+            "__variantID": "0",
+            "item_class": "",
+            "testName": "5th_Anniversary_daily_crate"
+          },
+          "spd_crates_on": {
+            "patch": "-",
+            "uid": "spd_crates_on",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "spd_crates_on",
+            "variant": "0",
+            "description": "Turns on crate purchases in SPD",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "spd_crates_on"
+          },
+          "building": {
+            "uid": "building",
+            "name": "building"
+          },
+          "gke_test": {
+            "patch": "-",
+            "uid": "gke_test",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "gke_test",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "gke_test_0828"
+          },
+          "shop_elite": {
+            "patch": "patches/abtests/ab_datafragmentshop_elite_a.json",
+            "uid": "shop_elite",
+            "thumbnail": "",
+            "__variant": "1",
+            "__is_control": "0",
+            "name": "shop_elite",
+            "variant": "1",
+            "description": "",
+            "__variantId": "1",
+            "item_class": "",
+            "testName": "shop_elite_test1"
+          },
+          "test_resource": {
+            "patch": "-",
+            "uid": "test_resource",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "test_resource",
+            "variant": "0",
+            "description": "Test description for test resource",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "sample_ABtest"
+          },
+          "lucasarts.starwarscommander.goo.crystalpack05.2209671": {
+            "uid": "lucasarts.starwarscommander.goo.crystalpack05.2209671",
+            "name": "lucasarts.starwarscommander.goo.crystalpack05.2209671"
+          },
+          "LucasArts.StarWarsCommander.CrystalPack03": {
+            "uid": "LucasArts.StarWarsCommander.CrystalPack03",
+            "name": "LucasArts.StarWarsCommander.CrystalPack03"
+          },
+          "LucasArts.StarWarsCommander.CrystalPack02": {
+            "uid": "LucasArts.StarWarsCommander.CrystalPack02",
+            "name": "LucasArts.StarWarsCommander.CrystalPack02"
+          },
+          "LucasArts.StarWarsCommander.CrystalPack05": {
+            "uid": "LucasArts.StarWarsCommander.CrystalPack05",
+            "name": "LucasArts.StarWarsCommander.CrystalPack05"
+          },
+          "Rogue_store_crate": {
+            "patch": "-",
+            "uid": "Rogue_store_crate",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Rogue_store_crate",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "RogueOneStore"
+          },
+          "LucasArts.StarWarsCommander.CrystalPack04": {
+            "uid": "LucasArts.StarWarsCommander.CrystalPack04",
+            "name": "LucasArts.StarWarsCommander.CrystalPack04"
+          },
+          "PvP_defend": {
+            "uid": "PvP_defend",
+            "name": "PvP_defend"
+          },
+          "dem_droid_p3": {
+            "patch": "-",
+            "uid": "dem_droid_p3",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "dem_droid_p3",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "dem_droid_phase3"
+          },
+          "PvP_opponent_select": {
+            "uid": "PvP_opponent_select",
+            "name": "PvP_opponent_select"
+          },
+          "buy_datacard": {
+            "uid": "buy_datacard",
+            "name": "buy_datacard"
+          },
+          "trap_rearm_all": {
+            "uid": "trap_rearm_all",
+            "name": "trap_rearm_all"
+          },
+          "episode_ep": {
+            "uid": "episode_ep",
+            "name": "episode_ep"
+          },
+          "Player_survey_newspaper": {
+            "patch": "-",
+            "uid": "Player_survey_newspaper",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Player Survey Newspaper",
+            "variant": "0",
+            "description": "",
+            "__variantID": "0",
+            "item_class": "",
+            "testName": "Player_survey_newspaper"
+          },
+          "MobileConnector": {
+            "patch": "patches/abtests/ab_mobileconnector_4hours.json",
+            "uid": "MobileConnector",
+            "thumbnail": "",
+            "__variant": "1",
+            "__is_control": "0",
+            "name": "MobileConnector",
+            "variant": "1",
+            "description": "",
+            "__variantId": "1",
+            "item_class": "",
+            "testName": "MobileConnector"
+          },
+          "lucasarts.starwarscommander.goo.crystalpack03.2209669": {
+            "uid": "lucasarts.starwarscommander.goo.crystalpack03.2209669",
+            "name": "lucasarts.starwarscommander.goo.crystalpack03.2209669"
+          },
+          "squadwars_max": {
+            "patch": "-",
+            "uid": "squadwars_max",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Squad Wars Max Rewards",
+            "variant": "0",
+            "description": "Turns on Max Rewards value for crates",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "squadwars_max"
+          },
+          "FUE_speed_up_unit": {
+            "uid": "FUE_speed_up_unit",
+            "name": "FUE_speed_up_unit"
+          },
+          "redis_enabling": {
+            "patch": "-",
+            "uid": "redis_enabling",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Redis",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "redis_enabling"
+          },
+          "speed_up_research": {
+            "uid": "speed_up_research",
+            "name": "speed_up_research"
+          },
+          "activate_perk": {
+            "uid": "activate_perk",
+            "name": "activate_perk"
+          },
+          "Tros_Crystal_SPD": {
+            "patch": "-",
+            "uid": "Tros_Crystal_SPD",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Tros Crystal SPD",
+            "variant": "0",
+            "description": "Turning on Starfighter unlock SPD, testing 1000 and 1500 Crystal SPD crates",
+            "__variantID": "0",
+            "item_class": "",
+            "testName": "Tros_Crystal_SPD"
+          },
+          "turret_swap": {
+            "patch": "-",
+            "uid": "turret_swap",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Turret swapping",
+            "variant": "0",
+            "description": "A/B test turret costs",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "turret_swap"
+          },
+          "squad_create": {
+            "uid": "squad_create",
+            "name": "squad_create"
+          },
+          "SB_StoreCrate": {
+            "patch": "-",
+            "uid": "SB_StoreCrate",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "SpaceBear_BackupStoreCrate",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "SB_BackupStoreCrate"
+          },
+          "DesertJetpackSPD": {
+            "patch": "-",
+            "uid": "DesertJetpackSPD",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "DesertJetpackSPD",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "DesertJetpackSPD"
+          },
+          "tactical_defense_SPD": {
+            "patch": "-",
+            "uid": "tactical_defense_SPD",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Tactical Defense SPD",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "tactical_defense_SPD"
+          },
+          "killswitch_photon": {
+            "patch": "-",
+            "uid": "killswitch_photon",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "killswitch_photon",
+            "variant": "0",
+            "description": "Photo kill switch",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "killswitch_photon"
+          },
+          "Google_subdollar": {
+            "patch": "-",
+            "uid": "Google_subdollar",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Google_subdollar",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "Google_subdollar_conversion"
+          },
+          "SpaceBear_EP_test_1": {
+            "patch": "-",
+            "uid": "SpaceBear_EP_test_1",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "SpaceBear_EP_test_1",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "SpaceBear_EP_Test1"
+          },
+          "Factory_Frenzy": {
+            "patch": "-",
+            "uid": "Factory_Frenzy",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Factory Frenzy",
+            "variant": "0",
+            "description": "",
+            "__variantID": "0",
+            "item_class": "",
+            "testName": "Factory_Frenzy"
+          },
+          "currency_purchase": {
+            "uid": "currency_purchase",
+            "name": "currency_purchase"
+          },
+          "buy_unit": {
+            "uid": "buy_unit",
+            "name": "buy_unit"
+          },
+          "resource_generator": {
+            "uid": "resource_generator",
+            "name": "resource_generator"
+          },
+          "Daily_crate": {
+            "patch": "-",
+            "uid": "Daily_crate",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Daily_crate",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "Dailycrate"
+          },
+          "admin": {
+            "uid": "admin",
+            "name": "admin"
+          },
+          "obj_icon_forest_saponza": {
+            "patch": "-",
+            "uid": "obj_icon_forest_saponza",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "obj_icon_forest_saponza",
+            "variant": "0",
+            "description": "Turns on Sapnoza's face for Forest Objectives",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "obj_icon_forest_saponza"
+          },
+          "MT4Sale": {
+            "patch": "-",
+            "uid": "MT4Sale",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "MT4Sale",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "MT4Sale"
+          },
+          "droid_upgrade": {
+            "uid": "droid_upgrade",
+            "name": "droid_upgrade"
+          },
+          "MT4_Conflict_daily_crate": {
+            "patch": "-",
+            "uid": "MT4_Conflict_daily_crate",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "MT4 Conflict Daily Crate",
+            "variant": "0",
+            "description": "",
+            "__variantID": "0",
+            "item_class": "",
+            "testName": "MT4_Conflict_daily_crate"
+          },
+          "migration_squad_wars_off": {
+            "patch": "-",
+            "uid": "migration_squad_wars_off",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "migration_squad_wars_off",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "squad_wars_off"
+          },
+          "RogueOne_LastChance": {
+            "patch": "-",
+            "uid": "RogueOne_LastChance",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "RogueOne_LastChance",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "RogueOne_LastChance"
+          },
+          "FUE_droid_upgrade": {
+            "uid": "FUE_droid_upgrade",
+            "name": "FUE_droid_upgrade"
+          },
+          "unit_unlock": {
+            "uid": "unit_unlock",
+            "name": "unit_unlock"
+          },
+          "Vertical_crates": {
+            "patch": "-",
+            "uid": "Vertical_crates",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Vertical_crates",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "vertical_crates"
+          },
+          "lucasarts.starwarscommander.goo.crystalpack06.2209672": {
+            "uid": "lucasarts.starwarscommander.goo.crystalpack06.2209672",
+            "name": "lucasarts.starwarscommander.goo.crystalpack06.2209672"
+          },
+          "PvE": {
+            "uid": "PvE",
+            "name": "PvE"
+          },
+          "RG1_Episode_daily_crate": {
+            "patch": "-",
+            "uid": "RG1_Episode_daily_crate",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Rogue One Episode 2019 Daily Crate",
+            "variant": "0",
+            "description": "",
+            "__variantID": "0",
+            "item_class": "",
+            "testName": "RG1_Episode_daily_crate"
+          },
+          "lucasarts.starwarscommander.fbgr.crystalpack05": {
+            "uid": "lucasarts.starwarscommander.fbgr.crystalpack05",
+            "name": "lucasarts.starwarscommander.fbgr.crystalpack05"
+          },
+          "lucasarts.starwarscommander.goo.crystalpack02.2209668": {
+            "uid": "lucasarts.starwarscommander.goo.crystalpack02.2209668",
+            "name": "lucasarts.starwarscommander.goo.crystalpack02.2209668"
+          },
+          "lucasarts.starwarscommander.fbgr.crystalpack06": {
+            "uid": "lucasarts.starwarscommander.fbgr.crystalpack06",
+            "name": "lucasarts.starwarscommander.fbgr.crystalpack06"
+          },
+          "clearable": {
+            "uid": "clearable",
+            "name": "clearable"
+          },
+          "naval_final_grind": {
+            "patch": "-",
+            "uid": "naval_final_grind",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "naval_final_grind",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "naval_final_grind_test"
+          },
+          "lucasarts.starwarscommander.fbgr.crystalpack03": {
+            "uid": "lucasarts.starwarscommander.fbgr.crystalpack03",
+            "name": "lucasarts.starwarscommander.fbgr.crystalpack03"
+          },
+          "lucasarts.starwarscommander.fbgr.crystalpack04": {
+            "uid": "lucasarts.starwarscommander.fbgr.crystalpack04",
+            "name": "lucasarts.starwarscommander.fbgr.crystalpack04"
+          },
+          "mc4hours": {
+            "patch": "-",
+            "uid": "mc4hours",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "MC 4hours",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "mc4hours"
+          },
+          "research_unit": {
+            "uid": "research_unit",
+            "name": "research_unit"
+          },
+          "vertical_scheduling": {
+            "patch": "-",
+            "uid": "vertical_scheduling",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "vertical_scheduling",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "vertical_scheduling"
+          },
+          "speed_up_unit": {
+            "uid": "speed_up_unit",
+            "name": "speed_up_unit"
+          },
+          "Event_Free_Crates_Dupe": {
+            "patch": "patches/abtests/ab_mobileconnector_off.json",
+            "uid": "Event_Free_Crates_Dupe",
+            "thumbnail": "",
+            "__variant": "1",
+            "__variant_Id": "1",
+            "__is_control": "0",
+            "name": "ads off",
+            "variant": "1",
+            "description": "Daily Crate, Mobile Connector Crate",
+            "item_class": "",
+            "testName": "event_crates_free"
+          },
+          "trap_rearm_once": {
+            "uid": "trap_rearm_once",
+            "name": "trap_rearm_once"
+          },
+          "lucasarts.starwarscommander.goo.crystalpack04.2209670": {
+            "uid": "lucasarts.starwarscommander.goo.crystalpack04.2209670",
+            "name": "lucasarts.starwarscommander.goo.crystalpack04.2209670"
+          },
+          "speed_up_perkcooldown": {
+            "uid": "speed_up_perkcooldown",
+            "name": "speed_up_perkcooldown"
+          },
+          "episode_research": {
+            "uid": "episode_research",
+            "name": "episode_research"
+          },
+          "speed_up_building": {
+            "uid": "speed_up_building",
+            "name": "speed_up_building"
+          },
+          "shop_basic": {
+            "patch": "patches/abtests/ab_datafragmentshop_basic_mixed.json",
+            "uid": "shop_basic",
+            "thumbnail": "",
+            "__variant": "3",
+            "__is_control": "0",
+            "name": "shop_basic",
+            "variant": "3",
+            "description": "",
+            "__variantId": "3",
+            "item_class": "",
+            "testName": "shop_basic_test1"
+          },
+          "lol_sale": {
+            "patch": "-",
+            "uid": "lol_sale",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "lol_sale",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "lol_sale"
+          },
+          "dev_note_delay_temp": {
+            "patch": "-",
+            "uid": "dev_note_delay_temp",
+            "thumbnail": "",
+            "__variant_Id": "0",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "dev_note_delay_temp",
+            "variant": "0",
+            "description": "",
+            "item_class": "",
+            "testName": "dev_note_delay_temp"
+          },
+          "spd_24h": {
+            "patch": "-",
+            "uid": "spd_24h",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "spd_24h",
+            "variant": "0",
+            "description": "SPD offers available for 24hrs",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "spd_24h"
+          },
+          "defense_spd": {
+            "patch": "-",
+            "uid": "defense_spd",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "defense_spd",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "defense_spd"
+          },
+          "event_free_crates": {
+            "patch": "-",
+            "uid": "event_free_crates",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "Event_Free_Crates",
+            "variant": "0",
+            "description": "Daily, objective and raid crate based on event",
+            "__variantID": "0",
+            "item_class": "",
+            "testName": "event_free_crates"
+          },
+          "IAP_banners": {
+            "patch": "-",
+            "uid": "IAP_banners",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "IAP_banners",
+            "variant": "0",
+            "description": "Turns on the 'X Extra Crystals!' text for IAP",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "IAP_banners"
+          },
+          "speed_up_relocation": {
+            "uid": "speed_up_relocation",
+            "name": "speed_up_relocation"
+          },
+          "ArcticJumpSPD": {
+            "patch": "-",
+            "uid": "ArcticJumpSPD",
+            "thumbnail": "",
+            "__variant": "0",
+            "__is_control": "1",
+            "name": "ArcticJumpSPD",
+            "variant": "0",
+            "description": "",
+            "__variantId": "0",
+            "item_class": "",
+            "testName": "ArcticJumpSPD"
+          },
+          "lucasarts.starwarscommander.fbgr.crystalpack02": {
+            "uid": "lucasarts.starwarscommander.fbgr.crystalpack02",
+            "name": "lucasarts.starwarscommander.fbgr.crystalpack02"
+          },
+          "damage_protection": {
+            "uid": "damage_protection",
+            "name": "damage_protection"
+          }
+        },
+        "sharedPrefs": {
+          "DailyCrateTransTutorialViewed": "1",
+          "hn_ts_c": "1588272401",
+          "plh_planet1": "a11daad8d996ba8305ef5f37c4f11a1a",
+          "PlLootTut": "1",
+          "HQInvLastViewTime": "1585232039",
+          "DailyCrateTut": "1",
+          "crtInvLastViewed": "1585232051",
+          "ConfPtsPopup": "1",
+          "hn_ts_t": "1587644930",
+          "hn_ts_d": "1584170266",
+          "WarTut": "3",
+          "HighestViewedSquadLvlUP": "50",
+          "perks_last_view": "1588111856",
+          "10 12 12 14 14 16 18 20 22 24": "1",
+          "BLTSeen": "1",
+          "PrkTut": "3",
+          "OlcTut": "1",
+          "ScTwrTut": "1",
+          "WarPrepBadge": "f4c9d663-8a4b-11ea-8f08-fa04f4f8c55d",
+          "SkipBLTIntro": "1",
+          "SkipBLTSave": "1",
+          "fi_bl": "13",
+          "WrldTut": "2",
+          "1stPlaName": "planet_name_planet3",
+          "1stPlaUid": "planet3",
+          "plh_planet23": "a11daad8d996ba8305ef5f37c4f11a1a",
+          "planet3Viewed": "1",
+          "plh_planet3": "a11daad8d996ba8305ef5f37c4f11a1a",
+          "EqpTut": "4",
+          "NewEqp": "false",
+          "Wrld1": "1",
+          "plh_planet6": "a11daad8d996ba8305ef5f37c4f11a1a",
+          "planet6Viewed": "1",
+          "CompensationMsgLastViewTime": "1572264818",
+          "plh_planet21": "a11daad8d996ba8305ef5f37c4f11a1a",
+          "locale": "en_US",
+          "ag": "0",
+          "lp": "0",
+          "llt": "1588272375",
+          "nav": "",
+          "ltrt": "0",
+          "nsinv": "",
+          "nrap": "8",
+          "ra": "0",
+          "niinv": "0",
+          "cmv": "1",
+          "somv": "0",
+          "tv": "conflict_hth_20200109|conflict_erk_20200116|conflict_yav_20200116|conflict_tfa_20200116|conflict_tat_20200116|conflict_hth_20200116|conflict_dan_20200116|conflict_yav_20200123|conflict_tfa_20200123|conflict_tat_20200123|conflict_hth_20200123|conflict_dan_20200123|conflict_erk_20200123|conflict_hth_20200130|conflict_tat_20200130|conflict_erk_20200130|conflict_tat_20200206|conflict_yav_20200206|conflict_tfa_20200206|conflict_erk_20200213|conflict_dan_20200213|conflict_tat_20200213|conflict_dan_20200220|conflict_hth_20200220|conflict_tat_20200220|",
+          "lpt": "0",
+          "bac": "0",
+          "siv": "1",
+          "ttctv": "1581488272",
+          "ffv": "0",
+          "ffsc": "0",
+          "ff": "0",
+          "lcvt": "0",
+          "lpaptrt": "1514882544",
+          "lpapsjt": "1514844995",
+          "papc": "5",
+          "ptv": "0",
+          "frp": "0",
+          "nicrnv": "1",
+          "nitnv": "0",
+          "nicunv": "0",
+          "10 12 12 14 14 16 18 20 22 24 26": "1",
+          "planet21Viewed": "1",
+          "planet8Viewed": "1",
+          "promptedForGoogleSignin": "1",
+          "plh_planet8": "a11daad8d996ba8305ef5f37c4f11a1a",
+          "PresTut": "1",
+          "PresChampionTut": "2",
+          "SkipBLTCancel": "1"
+        },
+        "hardCashLog": [],
+        "pushRewarded": true,
+        "playerModel": {
+          "guildInfo": {
+            "guildId": "aaaaaaa3-aaa8-aaaa-aaaa-0aaaaaa0aaaa",
+            "guildName": "SWC",
+            "icon": "SquadSymbols_09",
+            "joinDate": 1586158029,
+            "playerHasOutstandingJoinRequest": false
+          },
+          "upgrades": {
+            "troop": {
+              "HeroATST": 10,
+              "Storm": 11,
+              "Dark": 8,
+              "ATST": 11,
+              "EmpireSpeeder": 8,
+              "2MTank": 8,
+              "Scout": 7,
+              "HeroATMP": 9,
+              "Dewback": 8,
+              "ATMP": 6,
+              "HeroCrimsonGuard": 8,
+              "Technician": 11,
+              "HeroATAT": 11,
+              "EmpireDemoDroid": 7,
+              "ATAT": 8,
+              "EmpireJohhar": 11,
+              "KubazInvader": 8,
+              "IG86Droid": 4,
+              "R5Medic": 11,
+              "HeavyStorm": 11,
+              "TiePilot": 10,
+              "MTV7": 11,
+              "Shock": 11,
+              "ProbeDroid": 7,
+              "ChampionEmpireDroideka": 50,
+              "Sniper": 10,
+              "MHC": 11,
+              "HeroEmpireSpiderDroid": 8,
+              "SecurityDroid": 5,
+              "EmpireGamorreanWarrior": 3,
+              "EmpireTognath": 10,
+              "EmpireChicken": 7,
+              "EmpireJumptrooper": 11,
+              "EmpireP006Droid": 3,
+              "HeroDarthVader": 7,
+              "ApeMan": 6,
+              "614AVA": 6,
+              "EmpireGoldenMileCreature": 10,
+              "HeroDeathTrooper": 10,
+              "ATDP": 3,
+              "EmpireTransportVehicle": 10,
+              "EmpireTwilekIncinerator": 10,
+              "ChampionEmpireHeavyDroideka": 50,
+              "EmpireRider": 10,
+              "EmpireAlphaVehicle": 10,
+              "EmpireBrute": 10,
+              "EmpireBetaTroop": 10,
+              "EmpireShadowRancorCreature": 1,
+              "EmpireRancorCreature": 1,
+              "EmpireKraytDragonCreature": 1,
+              "EmpireRageRancorCreature": 10,
+              "EmpireHunterRancorCreature": 1
+            },
+            "specialAttack": {
+              "TieFighter": 11,
+              "TieInterceptor": 11,
+              "TieBomber": 11,
+              "TieDefender": 11,
+              "TieAdvanced": 11,
+              "VT49": 9,
+              "AtmosMig": 11,
+              "EmpireHauler": 7,
+              "ImperialDropship": 4,
+              "EmpireSupplyDrop": 8
+            },
+            "building": {},
+            "equipment": {
+              "eqpEmpireHQHealth": 5,
+              "eqpEmpireWallHealth": 6,
+              "eqpEmpireMaterialsGeneratorHealth": 3,
+              "eqpEmpireCreditGeneratorHealth": 4,
+              "eqpEmpireContrabandGeneratorHealth": 3,
+              "eqpEmpireRocketTurretHealth": 3,
+              "eqpEmpireNavalOfficer": 5,
+              "eqpEmpireBurstTurretDamage": 7,
+              "eqpEmpirePentagonTrooper": 5,
+              "eqpEmpireRocketTurretDamage": 6,
+              "eqpEmpireRapidFireTurretDamage": 3,
+              "eqpEmpireRapidFireTurretHealth": 3,
+              "eqpEmpireArcticMHC": 5,
+              "eqpEmpireMortarTurretHealth": 3,
+              "eqpEmpireHeavySandtrooper": 5,
+              "eqpEmpireMortarTurretDamage": 2,
+              "eqpEmpireBurstTurretHealth": 6,
+              "eqpEmpireSnowJumpTrooper": 5,
+              "eqpEmpireSandtrooper": 5,
+              "eqpEmpireSandJumpTrooper": 6,
+              "eqpEmpireHovertank": 5,
+              "eqpEmpirePentagonJumpTrooper": 7,
+              "eqpEmpirePentagonHeavyTrooper": 3,
+              "eqpEmpireSnowtrooper": 4,
+              "eqpEmpireHeavySnowtrooper": 3,
+              "eqpEmpireArcticATMP": 4,
+              "eqpEmpireArcticINT4": 5,
+              "eqpEmpireCargoGreatDane": 7,
+              "eqpEmpireBarracksSummonLight": 3,
+              "eqpEmpireFactorySummonHeavy": 3,
+              "eqpEmpireBarracksSummonMedium": 3,
+              "eqpEmpireBarracksSummonHeavy": 8,
+              "eqpEmpireFactorySummonLight": 3,
+              "eqpEmpireBubbaTieFighter": 3,
+              "eqpEmpireRodian": 6,
+              "eqpEmpireLordVader": 1,
+              "eqpEmpireCantinaSummonMerc": 1,
+              "eqpEmpireATSTHalfSkin": 1,
+              "eqpEmpireBetaTroop": 1
+            }
+          },
+          "prizes": {
+            "troop": {
+              "ApeMan": 107,
+              "2MTank": 4,
+              "Shock": 80,
+              "ATMP": 7,
+              "Scout": 12,
+              "EmpireSpeeder": 248,
+              "HeroATAT": 218,
+              "HeroATST": 256,
+              "EmpireGoldenMileCreature": 81,
+              "ATAT": 144,
+              "MTV7": 31,
+              "Technician": 477,
+              "HeavyStorm": 962,
+              "EmpireDemoDroid": 78,
+              "ProbeDroid": 201,
+              "IG86Droid": 15,
+              "HeroCrimsonGuard": 157,
+              "HeroEmpireSpiderDroid": 62,
+              "HeroATMP": 168,
+              "R5Medic": 10,
+              "HeroDeathTrooper": 19,
+              "EmpireGamorreanWarrior": 354,
+              "Sniper": 100,
+              "MHC": 261,
+              "TiePilot": 213,
+              "EmpireJohhar": 45,
+              "RodianSample": 86,
+              "EmpireJumptrooper": 96,
+              "HeroDarthVader": 168,
+              "ATDP": 254,
+              "EmpireHovertankSample": 187,
+              "SecurityDroid": 142,
+              "EmpireTognath": 95,
+              "EmpireTwilekIncinerator": 393,
+              "EmpireChicken": 221,
+              "EmpireP006Droid": 126,
+              "EmpireRider": 355,
+              "614AVA": 70,
+              "EmpireATSTHalfSkinSample": 41,
+              "RebelHovertankSample": 3,
+              "promoRancorRebel": 3,
+              "EmpireHunterRancor": 8,
+              "EmpireShadowRancor": 22,
+              "promoRancorEmpire": 15,
+              "EmpireRageRancor": 3,
+              "EmpireBrute": 185,
+              "EmpireHeavyStormDeath": 46,
+              "EmpireStormDeath": 37,
+              "EmpireATMPHalfSkinSample": 24,
+              "EmpireAlphaVehicle": 42,
+              "KraytDragon": 72,
+              "EmpireTransportVehicle": 8,
+              "EmpireBetaTroop": 19,
+              "EmpireBetaTroopSample": 20
+            },
+            "specialAttack": {
+              "VT49": 51,
+              "TieInterceptor": 185,
+              "TieDefender": 68,
+              "TieBomber": 96,
+              "TieAdvanced": 57,
+              "TieFighter": 87,
+              "AtmosMig": 74,
+              "EmpireHauler": 174,
+              "BubbaTieSample": 29,
+              "ImperialDropship": 92,
+              "EmpireSupplyDrop": 72
+            },
+            "resources": {},
+            "crates": {
+              "available": {
+                "crt_8046": {
+                  "uid": "crt_8046",
+                  "crateId": "lc_daily",
+                  "context": "daily",
+                  "planet": "planet8",
+                  "hqLevel": 11,
+                  "received": 1588235683,
+                  "expires": 1588322083,
+                  "resolvedSupplies": [],
+                  "warId": null,
+                  "guildId": null,
+                  "objectiveGroupId": null,
+                  "objectiveId": null,
+                  "secondsLeft": null,
+                  "raidMissionId": null,
+                  "tournamentId": null,
+                  "tournamentTier": null,
+                  "offerUid": null
+                }
+              },
+              "inProgress": {},
+              "next": 8048,
+              "nextDailyCrateTime": 1588309200,
+              "nextHolonetTime": null
+            }
+          },
+          "donatedTroops": {
+            "troopTechnician11": {
+              "2c2d4aea-7f38-11e5-a29f-069096004f69": 1
+            },
+            "troopMercenaryEmpireRider10": {
+              "2c2d4aea-7f38-11e5-a29f-069096004f69": 2
+            },
+            "troopMHC11": {
+              "2c2d4aea-7f38-11e5-a29f-069096004f69": 1
+            }
+          },
+          "buildingsUnderConstruction": [],
+          "map": {
+            "next": 820,
+            "planet": "planet1",
+            "buildings": [
+              {
+                "key": "bld_26",
+                "x": 17,
+                "z": 17,
+                "uid": "empireDroidHut2",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_141",
+                "x": 0,
+                "z": -9,
+                "uid": "empireFleetCommand11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_25",
+                "x": 4,
+                "z": -11,
+                "uid": "empireStarport11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_140",
+                "x": 8,
+                "z": 17,
+                "uid": "empireMaterialsGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_265",
+                "x": -3,
+                "z": -8,
+                "uid": "empireContrabandCantina10",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_20",
+                "x": 20,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_24",
+                "x": 11,
+                "z": 17,
+                "uid": "empireCreditGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_260",
+                "x": 12,
+                "z": -2,
+                "uid": "empireTrapStrikeHeavy11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_23",
+                "x": 14,
+                "z": 11,
+                "uid": "empireCreditStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_22",
+                "x": 6,
+                "z": 12,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_21",
+                "x": 20,
+                "z": 19,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_159",
+                "x": 20,
+                "z": 18,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_274",
+                "x": 10,
+                "z": -7,
+                "uid": "empireContrabandGenerator10",
+                "lastCollectTime": 1588273848,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_158",
+                "x": 20,
+                "z": 17,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_157",
+                "x": -3,
+                "z": 13,
+                "uid": "empireTrapStrikeGeneric11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_156",
+                "x": -3,
+                "z": 19,
+                "uid": "empireTrapStrikeGeneric11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_165",
+                "x": 20,
+                "z": 16,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_164",
+                "x": 20,
+                "z": 15,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_163",
+                "x": 20,
+                "z": 14,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_162",
+                "x": 20,
+                "z": 13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_169",
+                "x": 17,
+                "z": 5,
+                "uid": "empireMaterialsGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_168",
+                "x": 5,
+                "z": 17,
+                "uid": "empireCreditGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_167",
+                "x": 20,
+                "z": 1,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_166",
+                "x": 20,
+                "z": -1,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_161",
+                "x": 20,
+                "z": 12,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_160",
+                "x": 20,
+                "z": 11,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_17",
+                "x": 3,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_16",
+                "x": 1,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_15",
+                "x": 0,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_14",
+                "x": -3,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_173",
+                "x": 18,
+                "z": -8,
+                "uid": "empireArmory7",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_19",
+                "x": 18,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_18",
+                "x": 20,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_13",
+                "x": 19,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_172",
+                "x": -11,
+                "z": 0,
+                "uid": "empireStarport11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_12",
+                "x": 18,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_171",
+                "x": 8,
+                "z": -1,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_11",
+                "x": 16,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_170",
+                "x": 1,
+                "z": 2,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_10",
+                "x": 14,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_71",
+                "x": -9,
+                "z": 18,
+                "uid": "empireFactory11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_70",
+                "x": 20,
+                "z": 10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_69",
+                "x": 20,
+                "z": 9,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_64",
+                "x": -5,
+                "z": 6,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_63",
+                "x": -5,
+                "z": 7,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_62",
+                "x": -5,
+                "z": 8,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_61",
+                "x": -5,
+                "z": 5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_68",
+                "x": 20,
+                "z": 8,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_67",
+                "x": -5,
+                "z": 4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_66",
+                "x": -5,
+                "z": 3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_181",
+                "x": 10,
+                "z": 4,
+                "uid": "empireShieldGenerator10",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_65",
+                "x": -5,
+                "z": 2,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_82",
+                "x": -5,
+                "z": 1,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_81",
+                "x": 10,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_80",
+                "x": 20,
+                "z": 7,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_514",
+                "x": -11,
+                "z": -11,
+                "uid": "empireAlpha1",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_513",
+                "x": -19,
+                "z": -19,
+                "uid": "empireAlpha1",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_512",
+                "x": 13,
+                "z": -18,
+                "uid": "empireAlpha1",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_511",
+                "x": -17,
+                "z": 10,
+                "uid": "empireAlpha1",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_75",
+                "x": 20,
+                "z": 6,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_74",
+                "x": 20,
+                "z": 5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_73",
+                "x": 20,
+                "z": 4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_72",
+                "x": 5,
+                "z": 1,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_79",
+                "x": 20,
+                "z": 3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_78",
+                "x": 20,
+                "z": 2,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_77",
+                "x": 20,
+                "z": 0,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_76",
+                "x": 20,
+                "z": -2,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_60",
+                "x": 14,
+                "z": 17,
+                "uid": "empireMaterialsGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_415",
+                "x": 19,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_778",
+                "x": 18,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_414",
+                "x": 17,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_777",
+                "x": 16,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_413",
+                "x": 15,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_776",
+                "x": 14,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_775",
+                "x": 13,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_419",
+                "x": 12,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_418",
+                "x": 11,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_417",
+                "x": 10,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_416",
+                "x": 9,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_779",
+                "x": 8,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_59",
+                "x": 1,
+                "z": 6,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_58",
+                "x": 17,
+                "z": 8,
+                "uid": "empireCreditGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_774",
+                "x": -4,
+                "z": 2,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_773",
+                "x": 10,
+                "z": 12,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_772",
+                "x": 2,
+                "z": 8,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_53",
+                "x": 2,
+                "z": 17,
+                "uid": "empireMaterialsGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_52",
+                "x": 8,
+                "z": 12,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_57",
+                "x": 12,
+                "z": 8,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_56",
+                "x": -2,
+                "z": 1,
+                "uid": "empireBarracks11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_55",
+                "x": 8,
+                "z": 8,
+                "uid": "empireSquadBuilding11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_54",
+                "x": 8,
+                "z": 14,
+                "uid": "empireMaterialsStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_9",
+                "x": 7,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_8",
+                "x": 8,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_7",
+                "x": 5,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_6",
+                "x": 4,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_5",
+                "x": 3,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_547",
+                "x": 7,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_426",
+                "x": 14,
+                "z": 8,
+                "uid": "empireMaterialsStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_305",
+                "x": -3,
+                "z": 16,
+                "uid": "empireTrapStrikeGeneric11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_789",
+                "x": 6,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_425",
+                "x": 14,
+                "z": 5,
+                "uid": "empireCreditStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_546",
+                "x": 5,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_788",
+                "x": 4,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_304",
+                "x": 19,
+                "z": 19,
+                "uid": "empireTrapStrikeHeavy11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_545",
+                "x": 2,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_424",
+                "x": 2,
+                "z": 12,
+                "uid": "empireSonicTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_787",
+                "x": -1,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_544",
+                "x": -2,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_423",
+                "x": 10,
+                "z": -1,
+                "uid": "empireSonicTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_786",
+                "x": -4,
+                "z": 20,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_309",
+                "x": 20,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_308",
+                "x": -1,
+                "z": 11,
+                "uid": "empireMaterialsStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_429",
+                "x": -3,
+                "z": 4,
+                "uid": "empirePlatformHeavyDroideka50",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_428",
+                "x": 17,
+                "z": -3,
+                "uid": "empireTrapDropship11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_549",
+                "x": 17,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_307",
+                "x": 5,
+                "z": 14,
+                "uid": "empireCreditStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_427",
+                "x": -4,
+                "z": 1,
+                "uid": "empireTrapDropship11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_548",
+                "x": 15,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_306",
+                "x": -3,
+                "z": 10,
+                "uid": "empireTrapStrikeGeneric11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_781",
+                "x": 13,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_780",
+                "x": 12,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_422",
+                "x": 11,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_543",
+                "x": 10,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_785",
+                "x": 9,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_421",
+                "x": 8,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_784",
+                "x": -4,
+                "z": 19,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_420",
+                "x": -4,
+                "z": 18,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_783",
+                "x": -4,
+                "z": 17,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_782",
+                "x": -4,
+                "z": 16,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_4",
+                "x": 2,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_3",
+                "x": 1,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_2",
+                "x": 0,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_1",
+                "x": 3,
+                "z": 3,
+                "uid": "empireHQ11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_558",
+                "x": -4,
+                "z": 15,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_316",
+                "x": -4,
+                "z": 14,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_557",
+                "x": -4,
+                "z": 13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_315",
+                "x": -4,
+                "z": 12,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_556",
+                "x": -4,
+                "z": 11,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_314",
+                "x": -4,
+                "z": 10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_555",
+                "x": -4,
+                "z": 9,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_434",
+                "x": -7,
+                "z": 14,
+                "uid": "empireContrabandGenerator10",
+                "lastCollectTime": 1588273848,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_313",
+                "x": 10,
+                "z": -11,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_319",
+                "x": 12,
+                "z": 0,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_318",
+                "x": -4,
+                "z": 8,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_559",
+                "x": -3,
+                "z": 8,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_317",
+                "x": -5,
+                "z": 0,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_550",
+                "x": -5,
+                "z": -1,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_792",
+                "x": -5,
+                "z": -2,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_791",
+                "x": 6,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_790",
+                "x": -1,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_554",
+                "x": -2,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_312",
+                "x": -3,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_311",
+                "x": -4,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_553",
+                "x": -5,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_310",
+                "x": -5,
+                "z": -4,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_552",
+                "x": -5,
+                "z": -5,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_431",
+                "x": 8,
+                "z": 4,
+                "uid": "empireShieldGenerator11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_794",
+                "x": 1,
+                "z": 0,
+                "uid": "empireTrapDropshipCreature10",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_551",
+                "x": 18,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_430",
+                "x": -14,
+                "z": 6,
+                "uid": "empireTrapStrikeAOE11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_793",
+                "x": 16,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_91",
+                "x": -11,
+                "z": 7,
+                "uid": "empireStarport11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_90",
+                "x": -1,
+                "z": 14,
+                "uid": "empireBarracks11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_326",
+                "x": -6,
+                "z": -8,
+                "uid": "empireContrabandGenerator10",
+                "lastCollectTime": 1588273848,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_561",
+                "x": 14,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_560",
+                "x": 12,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_565",
+                "x": 1,
+                "z": 4,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_564",
+                "x": 12,
+                "z": 2,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_200",
+                "x": 9,
+                "z": 1,
+                "uid": "empireContrabandStorage17",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_563",
+                "x": 13,
+                "z": -8,
+                "uid": "empireFactory11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_562",
+                "x": 10,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_320",
+                "x": 12,
+                "z": 4,
+                "uid": "empireSonicTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_86",
+                "x": 4,
+                "z": 12,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_85",
+                "x": 20,
+                "z": -12,
+                "uid": "empireTrapStrikeGeneric11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_84",
+                "x": 11,
+                "z": 14,
+                "uid": "empireCreditStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_83",
+                "x": 2,
+                "z": 14,
+                "uid": "empireMaterialsStorage11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_89",
+                "x": -1,
+                "z": 17,
+                "uid": "empireCreditGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_88",
+                "x": 17,
+                "z": 11,
+                "uid": "empireMaterialsGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_87",
+                "x": 1,
+                "z": -3,
+                "uid": "empireOffenseLab11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_97",
+                "x": -16,
+                "z": -16,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_96",
+                "x": -2,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_95",
+                "x": 16,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_99",
+                "x": 12,
+                "z": 10,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_98",
+                "x": 9,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_107",
+                "x": 20,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_106",
+                "x": 17,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_105",
+                "x": 14,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_104",
+                "x": 11,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_109",
+                "x": 17,
+                "z": 14,
+                "uid": "empireCreditGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_108",
+                "x": 6,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_103",
+                "x": 4,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_224",
+                "x": 4,
+                "z": -3,
+                "uid": "empirePlatformDroideka50",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_102",
+                "x": 8,
+                "z": -3,
+                "uid": "empireTrapStrikeGeneric11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_101",
+                "x": -3,
+                "z": -3,
+                "uid": "empireTacticalCommand11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_100",
+                "x": 12,
+                "z": 12,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_110",
+                "x": 17,
+                "z": -1,
+                "uid": "empireMaterialsGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_114",
+                "x": 4,
+                "z": 8,
+                "uid": "empireShieldGenerator10",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_113",
+                "x": -1,
+                "z": 8,
+                "uid": "empireScoutTower1",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_112",
+                "x": 6,
+                "z": 8,
+                "uid": "empireShieldGenerator11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_111",
+                "x": 14,
+                "z": 2,
+                "uid": "empireBarracks11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_129",
+                "x": -3,
+                "z": 12,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_128",
+                "x": 12,
+                "z": 6,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_249",
+                "x": 14,
+                "z": 14,
+                "uid": "empireBarracks11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_127",
+                "x": 3,
+                "z": 1,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_248",
+                "x": 2,
+                "z": 10,
+                "uid": "empireBurstTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_247",
+                "x": 7,
+                "z": 1,
+                "uid": "empireRocketTurret11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_125",
+                "x": -14,
+                "z": 18,
+                "uid": "empireTrapStrikeAOE11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_246",
+                "x": -14,
+                "z": 12,
+                "uid": "empireTrapStrikeAOE11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_124",
+                "x": -13,
+                "z": -13,
+                "uid": "empireTrapStrikeAOE11",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              },
+              {
+                "key": "bld_123",
+                "x": 14,
+                "z": -1,
+                "uid": "empireNavigationCenter5",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_122",
+                "x": -10,
+                "z": -5,
+                "uid": "empireFactory11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_139",
+                "x": 17,
+                "z": 2,
+                "uid": "empireCreditGenerator11",
+                "lastCollectTime": 1588273773,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_259",
+                "x": 19,
+                "z": -3,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_138",
+                "x": -3,
+                "z": 18,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_137",
+                "x": -3,
+                "z": 15,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_258",
+                "x": -3,
+                "z": 9,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_132",
+                "x": 1,
+                "z": -11,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_253",
+                "x": 15,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_131",
+                "x": 0,
+                "z": -11,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_252",
+                "x": 12,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_130",
+                "x": -1,
+                "z": -11,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_251",
+                "x": 5,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_250",
+                "x": 19,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_136",
+                "x": 13,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_257",
+                "x": 7,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_135",
+                "x": 8,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_256",
+                "x": 3,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_134",
+                "x": 2,
+                "z": -12,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_255",
+                "x": 2,
+                "z": -13,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_133",
+                "x": 10,
+                "z": -12,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_254",
+                "x": -3,
+                "z": -10,
+                "uid": "empireWall11",
+                "lastCollectTime": null,
+                "currentStorage": 0
+              },
+              {
+                "key": "bld_819",
+                "x": 17,
+                "z": -18,
+                "uid": "junkMedium1",
+                "lastCollectTime": null,
+                "currentStorage": 1
+              }
+            ]
+          },
+          "inventory": {
+            "storage": {
+              "credits": {
+                "amount": 7200000,
+                "capacity": 7200000,
+                "scale": 1
+              },
+              "materials": {
+                "amount": 7200000,
+                "capacity": 7200000,
+                "scale": 1
+              },
+              "contraband": {
+                "amount": 930000,
+                "capacity": 930000,
+                "scale": 1
+              },
+              "reputation": {
+                "amount": 26,
+                "capacity": 26,
+                "scale": 1
+              },
+              "crystals": {
+                "amount": 1005900,
+                "capacity": -1,
+                "scale": 1
+              },
+              "droids": {
+                "amount": 5,
+                "capacity": 5,
+                "scale": 1
+              },
+              "xp": {
+                "amount": 3354,
+                "capacity": -1,
+                "scale": 1
+              },
+              "troop": {
+                "amount": 0,
+                "capacity": 20,
+                "scale": 1
+              },
+              "hero": {
+                "amount": 0,
+                "capacity": 0,
+                "scale": 1
+              },
+              "champion": {
+                "amount": 0,
+                "capacity": 0,
+                "scale": 1
+              },
+              "droids_prestige": {
+                "amount": 1,
+                "capacity": 1,
+                "scale": 1
+              }
+            },
+            "capacity": -1,
+            "subStorage": {
+              "troop": {
+                "storage": {
+                  "troopStorm11": {
+                    "amount": 34,
+                    "capacity": -1,
+                    "scale": 1
+                  },
+                  "troopMercenaryEmpireBrute10": {
+                    "amount": 1,
+                    "capacity": -1,
+                    "scale": 8
+                  },
+                  "troopHeavyStorm11": {
+                    "amount": 1,
+                    "capacity": -1,
+                    "scale": 4
+                  },
+                  "troopR5Medic11": {
+                    "amount": 2,
+                    "capacity": -1,
+                    "scale": 5
+                  },
+                  "troopMHC11": {
+                    "amount": 2,
+                    "capacity": -1,
+                    "scale": 12
+                  },
+                  "troopMTV711": {
+                    "amount": 2,
+                    "capacity": -1,
+                    "scale": 5
+                  },
+                  "troopSecurityDroid5": {
+                    "amount": 1,
+                    "capacity": -1,
+                    "scale": 4
+                  },
+                  "troopShock11": {
+                    "amount": 4,
+                    "capacity": -1,
+                    "scale": 3
+                  },
+                  "troopTechnician11": {
+                    "amount": 3,
+                    "capacity": -1,
+                    "scale": 4
+                  },
+                  "troopEmpireJumptrooper11": {
+                    "amount": 2,
+                    "capacity": -1,
+                    "scale": 7
+                  }
+                },
+                "capacity": 132,
+                "subStorage": {}
+              },
+              "specialAttack": {
+                "storage": {
+                  "specialAttackVT499": {
+                    "amount": 2,
+                    "capacity": -1,
+                    "scale": 3
+                  },
+                  "specialAttackTieAdvanced11": {
+                    "amount": 2,
+                    "capacity": -1,
+                    "scale": 10
+                  },
+                  "specialAttackTieFighter11": {
+                    "amount": 1,
+                    "capacity": -1,
+                    "scale": 4
+                  },
+                  "specialAttackTieBomber11": {
+                    "amount": 1,
+                    "capacity": -1,
+                    "scale": 3
+                  }
+                },
+                "capacity": 33,
+                "subStorage": {}
+              },
+              "hero": {
+                "storage": {
+                  "troopHeroATAT11": {
+                    "amount": 1,
+                    "capacity": 1,
+                    "scale": 1
+                  }
+                },
+                "capacity": 3,
+                "subStorage": {}
+              },
+              "champion": {
+                "storage": {
+                  "troopChampionEmpireHeavyDroideka50": {
+                    "amount": 1,
+                    "capacity": 1,
+                    "scale": 1
+                  },
+                  "troopChampionEmpireDroideka50": {
+                    "amount": 1,
+                    "capacity": 1,
+                    "scale": 1
+                  }
+                },
+                "capacity": 2,
+                "subStorage": {}
+              }
+            }
+          },
+          "faction": "empire",
+          "currentQuest": "",
+          "protectedUntil": null,
+          "protectionFrom": null,
+          "protectionCooldownUntil": {},
+          "battleLogs": [
+          ],
+          "campaigns": {
+            "cmp_fue": {
+              "uid": "cmp_fue",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "sw_hth_outposts": {
+              "uid": "sw_hth_outposts",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_0_hb_e": {
+              "uid": "cmp_0_hb_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_1_utts_e": {
+              "uid": "cmp_1_utts_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_2_tsw_e": {
+              "uid": "cmp_2_tsw_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_3_tjg_e": {
+              "uid": "cmp_3_tjg_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_4_sotm_e": {
+              "uid": "cmp_4_sotm_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_5_tih_e": {
+              "uid": "cmp_5_tih_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_7_bs_e": {
+              "uid": "cmp_7_bs_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_8_tat_e": {
+              "uid": "cmp_8_tat_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_9_sas_e": {
+              "uid": "cmp_9_sas_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_10_bgh_e": {
+              "uid": "cmp_10_bgh_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            },
+            "cmp_11_tbft_e": {
+              "uid": "cmp_11_tbft_e",
+              "timeZone": 0.0,
+              "completed": false,
+              "collected": false,
+              "points": 0,
+              "items": {}
+            }
+          },
+          "missions": {
+            "fue_defendBaseMission_00": {
+              "uid": "fue_defendBaseMission_00",
+              "campaignUid": "cmp_fue",
+              "status": "Default",
+              "earnedStars": 0,
+              "counters": {},
+              "goals": 3,
+              "lastBattleId": null,
+              "lootRemaining": {},
+              "satisfiedGoals": [],
+              "grindMissionRetries": 0
+            }
+          },
+          "tournaments": {},
+          "isFueInProgress": false,
+          "DamagedBuildings": {
+          },
+          "deviceInfo": {
+          },
+          "timeZoneOffset": 0.0,
+          "contracts": [
+            {
+              "buildingId": "bld_111",
+              "contractType": "Troop",
+              "endTime": 1588274418,
+              "perkIds": [
+              ],
+              "uid": "troopRebelJetpackTrooper11"
+            }
+          ],
+          "frozenBuildings": [],
+          "isConnectedAccount": false,
+          "pvpTargetServedTime": null,
+          "intros": [],
+          "lastMission": "fue_defendBaseMission_00",
+          "isRateIncentivized": false,
+          "lastPaymentTime": null,
+          "lastWarParticipationTime": null,
+          "identitySwitchTimes": {},
+          "openOffer": null,
+          "unlockedPlanets": [
+            "planet1",
+            "planet3",
+            "planet23",
+            "planet6",
+            "planet21",
+            "planet8"
+          ],
+          "relocationStarCount": 47,
+          "holonetRewards": [
+          ],
+          "playerObjectives": {
+          },
+          "lastObjectiveCheckTime": 1588274418,
+          "raids": {
+          },
+          "perksInfo": {
+            "perks": {
+              "activatedPerks": [],
+              "cooldowns": {},
+              "hasActivatedFirstPerk": false
+            }
+          },
+          "armoryInfo": {
+            "firstCratePurchased": true
+          },
+          "episodeProgressInfo": {
+            "uid": null,
+            "endTime": null,
+            "finishedTasks": null,
+            "currentTaskIndex": 0,
+            "introStoryViewed": false,
+            "currentTask": null,
+            "grind": null
+          },
+          "mcaInfo": {
+            "count": 2,
+            "nextAvailableDate": 1534793298
+          },
+          "activeArmory": {
+            "equipment": [
+            ],
+            "capacity": 69
+          },
+          "shards": {
+            "shrd_troopApeMan": 660,
+            "shrd_specialAttackVT49": 64,
+            "shrd_troopMTV7": 0,
+            "shrd_troopKubazInvader": 96,
+            "shrd_troopEmpireDemoDroid": 590,
+            "shrd_troopTiePilot": 32,
+            "shrd_troopShock": 0,
+            "shrd_troopEmpireJohhar": 0,
+            "shrd_troopIG86Droid": 224,
+            "eqpEmpireHQHealth": 1400,
+            "eqpEmpirePentagonTrooper": 700,
+            "eqpEmpireSandtrooper": 700,
+            "eqpEmpireBurstTurretDamage": 298,
+            "eqpEmpireCreditGeneratorHealth": 1500,
+            "eqpEmpireFactorySummonHeavy": 366,
+            "eqpEmpireWallHealth": 1260,
+            "eqpEmpireRapidFireTurretDamage": 646,
+            "eqpEmpirePentagonJumpTrooper": 118,
+            "eqpEmpireContrabandGeneratorHealth": 1560,
+            "eqpEmpireRocketTurretHealth": 716,
+            "eqpEmpirePentagonHeavyTrooper": 738,
+            "eqpEmpireHovertank": 700,
+            "eqpEmpireRapidFireTurretHealth": 763,
+            "eqpEmpireMortarTurretDamage": 728,
+            "eqpEmpireMaterialsGeneratorHealth": 1560,
+            "eqpEmpireCargoGreatDane": 530,
+            "eqpEmpireHeavySnowtrooper": 387,
+            "shrd_troopEmpireTognath": 0,
+            "eqpEmpireRocketTurretDamage": 450,
+            "eqpEmpireBurstTurretHealth": 592,
+            "eqpEmpireBarracksSummonHeavy": 50,
+            "eqpEmpireHeavySandtrooper": 452,
+            "shrd_specialAttackTieAdvanced": 0,
+            "eqpEmpireSnowJumpTrooper": 306,
+            "eqpEmpireMortarTurretHealth": 793,
+            "eqpEmpireArcticMHC": 540,
+            "eqpEmpireNavalOfficer": 483,
+            "eqpEmpireRodian": 9,
+            "eqpEmpireSnowtrooper": 633,
+            "eqpEmpireBarracksSummonMedium": 371,
+            "eqpEmpireArcticATMP": 449,
+            "eqpEmpireBarracksSummonLight": 373,
+            "eqpEmpireFactorySummonLight": 367,
+            "eqpEmpireSandJumpTrooper": 259,
+            "eqpEmpireArcticINT4": 468,
+            "shrd_troopSecurityDroid": 0,
+            "shrd_specialAttackAtmosMig": 0,
+            "shrd_troopHeroEmpireSpiderDroid": 96,
+            "shrd_troopEmpireChicken": 590,
+            "shrd_specialAttackEmpireHauler": 590,
+            "shrd_troopEmpireP006Droid": 590,
+            "shrd_troopEmpireGoldenMileCreature": 0,
+            "shrd_troop614AVA": 660,
+            "shrd_troopHeroDeathTrooper": 32,
+            "shrd_troopEmpireTransportVehicle": 0,
+            "eqpEmpireATSTHalfSkin": 179,
+            "eqpEmpireBubbaTieFighter": 780,
+            "shrd_troopR5Medic": 0,
+            "shrd_troopEmpireAlphaVehicle": 220,
+            "eqpEmpireLordVader": 87,
+            "eqpEmpireCantinaSummonMerc": 10,
+            "shrd_troopEmpireBetaTroop": 220,
+            "eqpEmpireBetaTroop": 196,
+            "shrd_troopEmpireKraytDragonCreature": 2610,
+            "shrd_troopEmpireRageRancorCreature": 0,
+            "shrd_troopEmpireShadowRancorCreature": 2610,
+            "shrd_troopEmpireRancorCreature": 2610,
+            "shrd_troopEmpireHunterRancorCreature": 2610
+          },
+          "troopDonationProgress": {
+            "donationCount": 1,
+            "lastTrackedDonationTime": 1588235831,
+            "repDonationCooldownEndTime": 1588316400
+          },
+          "shardShopData": {
+            "seriesId": "sss_elite_3max_scale_A",
+            "offerExpiration": 1583020808,
+            "pool_0": {},
+            "pool_1": {},
+            "pool_2": {},
+            "pool_3": {},
+            "pool_4": {},
+            "offsetMinutes": 0
+          },
+          "creatureTrapData": [
+            {
+              "buildingId": "bld_794",
+              "championUid": "troopEmpireRageRancorCreature10",
+              "specialAttackUid": "specialAttackEmpireCreatureDropship10",
+              "ready": true
+            }
+          ]
+        },
+        "firstTimePlayer": false,
+        "triggers": [],
+        "created": 1514650061,
+        "currentlyDefending": null,
+        "currentlyAttacking": null,
+        "currentlyAttackingWar": {
+        },
+        "lastTroopRequestTime": 1588272547,
+        "lastWarTroopRequestTime": 1588235928,
+        "liveness": {
+          "installDate": 1614650051,
+          "commandCount": 1,
+          "sessionCountChecked": 1614650051,
+          "sessionCountToday": 7,
+          "lastLoginTime": 1614650051,
+          "lastTestImpressionBiLogTime": 1614650051,
+          "consecutiveLiveDays": 4,
+          "keepAliveTime": 1614650051
+        },
+        "clientPrefs": null,
+        "purchaseTracking": {
+          "totalSpend": 0.0,
+          "totalPurchases": 0,
+          "offerPurchases": {
+          },
+          "forcedGlobalCooldown": 0,
+          "reservations": []
+        },
+        "scalars": {
+          "attacksLost": 1,
+          "attacksWon": 1,
+          "defensesLost": 1,
+          "defensesWon": 1,
+          "attacksStarted": 1,
+          "attacksCompleted": 1,
+          "attackRating": 1,
+          "defenseRating": 1,
+          "xp": 0,
+          "softCash": 0
+        },
+        "name": "darthRebel"
+}
