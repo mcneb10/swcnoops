@@ -267,7 +267,11 @@ public class TrainingManagerImpl implements TrainingManager {
     public void initialiseBuilder(MapItem mapItem, DeployableQueue deployableQueue,
                                   ContractType contractType) {
         if (!this.builders.containsKey(mapItem.getBuildingKey())) {
-            Builder builder = new Builder(this.playerSession, mapItem, deployableQueue, contractType);
+            Builder builder;
+            if (mapItem.getBuildingData().getType() == BuildingType.champion_platform)
+                builder = new ChampionBuilder(this.playerSession, mapItem, deployableQueue, contractType);
+            else
+                builder = new Builder(this.playerSession, mapItem, deployableQueue, contractType);
             this.builders.put(builder.getBuildingKey(), builder);
         }
     }

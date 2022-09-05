@@ -79,4 +79,14 @@ public class BuildQueue {
     public PlayerSession getPlayerSession() {
         return playerSession;
     }
+
+    public List<BuildUnit> removeAll(String unitTypeId) {
+        List<BuildUnit> removed = new ArrayList<>();
+        BuildSlot buildSlot = this.buildQueueMap.get(unitTypeId);
+        if (buildSlot != null) {
+            removed = buildSlot.remove(buildSlot.size(), true);
+            removeBuildSlotIfEmpty(buildSlot);
+        }
+        return removed;
+    }
 }

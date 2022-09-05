@@ -19,9 +19,9 @@ import java.util.*;
  * if there is space available for that troops size.
  */
 public class Builder implements MapItem, Constructor {
-    final private BuildQueue buildQueue;
-    private long startTime;
-    final private DeployableQueue deployableQueue;
+    final protected BuildQueue buildQueue;
+    protected long startTime;
+    final protected DeployableQueue deployableQueue;
     final private ContractType contractType;
     final private MapItem mapItem;
 
@@ -160,7 +160,7 @@ public class Builder implements MapItem, Constructor {
         transport.addUnitsToQueue(buildUnit);
     }
 
-    private DeployableQueue getDeployableQueue() {
+    protected DeployableQueue getDeployableQueue() {
         return deployableQueue;
     }
 
