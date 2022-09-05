@@ -321,6 +321,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         this.notificationSession.playerLogin();
         removeEjectedNotifications();
+        this.playerSettings.setKeepAlive(time);
         this.savePlayerSession();
     }
 

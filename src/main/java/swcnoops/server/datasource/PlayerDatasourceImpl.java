@@ -447,7 +447,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 campaignsJson,
                 preferencesJson,
                 playerSession.getPlayerSettings().getGuildId(),
-                unlockedPlanetsJson, hqLevel, scalarsJson, xp,
+                unlockedPlanetsJson, hqLevel, scalarsJson, xp, playerSession.getPlayerSettings().getKeepAlive(),
                 connection);
     }
 
@@ -496,11 +496,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
                                     FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
                                     String guildId, String unlockedPlanets,
-                                    int hqLevel, String scalars, int xp, Connection connection) {
+                                    int hqLevel, String scalars, int xp, long keepAlive, Connection connection) {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
                 "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ?," +
-                "unlockedPlanets = ?, hqLevel = ? , scalars = ?, xp = ?" +
+                "unlockedPlanets = ?, hqLevel = ? , scalars = ?, xp = ?, keepAlive = ? " +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -520,7 +520,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setInt(14, hqLevel);
                 stmt.setString(15, scalars);
                 stmt.setInt(16, xp);
-                stmt.setString(17, playerId);
+                stmt.setLong(17, keepAlive);
+                stmt.setString(18, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {

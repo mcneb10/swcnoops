@@ -5,27 +5,31 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="13b266ae-1121-43d2-868d-f9256aa0770d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameConstantUids.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/PvpMatch.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/model/BattleParticipant.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/model/Scalars.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpManager.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpSessionImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/players.db" beforeDir="false" afterPath="$PROJECT_DIR$/players.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpBattleComplete.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpBattleComplete.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/guild/GuildNotificationsGet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/guild/GuildNotificationsGet.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerKeepAlive.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerKeepAlive.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerSettings.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerSettings.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/BuildingData.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/BuildingData.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManagerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManagerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerPvpBattleComplete.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerPvpBattleComplete.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerKeepAlive.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerKeepAlive.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDatasourceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDatasourceImpl.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerSettings.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerSettings.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/game/BuildingData.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/game/BuildingData.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManagerImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManagerImpl.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+      </list>
+    </option>
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -71,6 +75,17 @@
       <updated>1662311466120</updated>
     </task>
     <servers />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="XDebuggerManager">
     <pin-to-top-manager>

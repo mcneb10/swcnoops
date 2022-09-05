@@ -25,6 +25,8 @@ public class PlayerSettings {
     private Scalars scalars;
 
 
+    private long keepAlive;
+
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
     }
@@ -163,5 +165,13 @@ public class PlayerSettings {
 
     public void setScalars(Scalars scalars) {
         this.scalars = scalars;
+    }
+
+    public long getKeepAlive() {
+        return keepAlive;
+    }
+
+    public void setKeepAlive(long keepAlive) {
+        this.keepAlive = keepAlive;
     }
 }
