@@ -19,9 +19,9 @@ import java.util.*;
  * if there is space available for that troops size.
  */
 public class Builder implements MapItem, Constructor {
-    final private BuildQueue buildQueue;
-    private long startTime;
-    final private DeployableQueue deployableQueue;
+    final protected BuildQueue buildQueue;
+    protected long startTime;
+    final protected DeployableQueue deployableQueue;
     final private ContractType contractType;
     final private MapItem mapItem;
 
@@ -75,8 +75,8 @@ public class Builder implements MapItem, Constructor {
     }
 
     @Override
-    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time, boolean collectAll) {
-        return this.mapItem.collect(playerSession, credits, materials, contraband, crystals, time, collectAll);
+    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, long time, boolean collectAll) {
+        return this.mapItem.collect(playerSession, credits, materials, contraband, time, collectAll);
     }
 
     protected void train(List<BuildUnit> buildUnits, long startTime) {
@@ -86,11 +86,30 @@ public class Builder implements MapItem, Constructor {
 
         this.buildQueue.add(buildUnits);
         this.recalculateBuildUnitTimes(startTime);
+
+        DeployableQueue transport = this.getDeployableQueue();
+        if (transport != null) {
+            transport.addUnitsToQueue(buildUnits);
+            transport.sortUnitsInQueue();
+        }
     }
 
-    protected List<BuildUnit> remove(String unitTypeId, int quantity, long time, boolean fromBack) {
-        List<BuildUnit> removed = this.buildQueue.remove(unitTypeId, quantity, fromBack);
+    protected List<BuildUnit> remove(String unitTypeId, int quantity, long time, boolean isBuyout) {
+        // if we are cancelling we remove the newest contracts, if buying out then oldest contracts
+        boolean removeFromBack = !isBuyout;
+        List<BuildUnit> removed = this.buildQueue.remove(unitTypeId, quantity, removeFromBack);
         this.recalculateBuildUnitTimes(time);
+
+        DeployableQueue transport = this.getDeployableQueue();
+        if (transport != null) {
+            if (!isBuyout) {
+                transport.removeUnitsFromQueue(removed);
+            } else {
+                transport.moveUnitToDeployable(removed);
+            }
+            transport.sortUnitsInQueue();
+        }
+
         return removed;
     }
 
@@ -136,9 +155,12 @@ public class Builder implements MapItem, Constructor {
     protected void load(BuildUnit buildUnit) {
         buildUnit.setBuilder(this);
         this.buildQueue.add(buildUnit);
+
+        DeployableQueue transport = this.getDeployableQueue();
+        transport.addUnitsToQueue(buildUnit);
     }
 
-    public DeployableQueue getDeployableQueue() {
+    protected DeployableQueue getDeployableQueue() {
         return deployableQueue;
     }
 

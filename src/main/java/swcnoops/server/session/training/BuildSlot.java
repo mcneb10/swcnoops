@@ -100,4 +100,8 @@ public class BuildSlot {
     public boolean isHeadOfItsBuildQueue() {
         return this.buildQueue.getBuildQueue().indexOf(this) == 0;
     }
+
+    public int size() {
+        return buildUnits.size();
+    }
 }

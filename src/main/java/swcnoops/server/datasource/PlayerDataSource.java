@@ -77,10 +77,18 @@ public interface PlayerDataSource {
 
     WarNotification warPrepared(WarSessionImpl warSession, String warId, SquadNotification warPreparedNotification);
 
-    AttackDetail warAttackComplete(WarSession warSession, String playerId, BattleReplay playerBattleComplete,
+    AttackDetail warAttackComplete(WarSession warSession, PlayerSession playerId, BattleReplay playerBattleComplete,
                                    SquadNotification attackCompleteNotification, SquadNotification attackReplayNotification, DefendingWarParticipant defendingWarParticipant, long time);
 
     DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);
 
     WarBattle getWarBattle(String battleId);
+
+    List<Member> loadSquadMembers(String guildId);
+
+    War processWarEnd(String id, String squadIdA, String warId);
+
+    void resetWarPartyForParticipants(String warId);
+
+    List<WarHistory> loadWarHistory(String squadId);
 }

@@ -1,17 +1,13 @@
 package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.guild.TroopDonationResult;
-import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.datasource.War;
 import swcnoops.server.model.*;
 
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -20,9 +16,6 @@ import static swcnoops.server.session.NotificationFactory.createNotification;
 
 public class GuildSessionImpl implements GuildSession {
     final private GuildSettings guildSettings;
-
-    // TODO - can probably remove this as it does nothing accept a quick lookup
-    final private Map<String, PlayerSession> guildPlayerSessions = new ConcurrentHashMap<>();
     final private TroopDonationResult failedTroopDonationResult = new TroopDonationResult(null, new HashMap<>());
     private Collection<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
     private Set<String> messageIds = new HashSet<>();
@@ -86,6 +79,17 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
+    public void processGuildGet(long time) {
+        War currentWar = this.getCurrentWar();
+        if (currentWar != null) {
+            WarSession warSession = ServiceFactory.instance().getSessionManager().getWarSession(currentWar.getWarId());
+            if (warSession != null) {
+                warSession.processGuildGet(time);
+            }
+        }
+    }
+
+    @Override
     public GuildSettings getGuildSettings() {
         return this.guildSettings;
     }
@@ -102,20 +106,15 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void login(PlayerSession playerSession) {
-        if (!this.guildPlayerSessions.containsKey(playerSession.getPlayerId())) {
-            playerSession.setGuildSession(this);
-            Member member = GuildHelper.createMember(playerSession);
-            this.getGuildSettings().login(member);
-            this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
-        }
+        playerSession.setGuildSession(this);
     }
 
     @Override
     public void join(PlayerSession playerSession) {
-        addMember(playerSession);
         SquadNotification joinNotification =
                 createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.join);
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, playerSession, joinNotification);
+        addMember(playerSession);
         this.setNotificationDirty(joinNotification.getDate());
     }
 
@@ -176,19 +175,14 @@ public class GuildSessionImpl implements GuildSession {
 
     private void removeMember(PlayerSession playerSession) {
         playerSession.setGuildSession(null);
-        this.guildSettings.removeMember(playerSession.getPlayerId());
-        this.guildPlayerSessions.remove(playerSession.getPlayerId());
+        this.guildSettings.setDirty();
         this.squadNotifications.removeIf(a -> a.getPlayerId() != null
                 && a.getPlayerId().equals(playerSession.getPlayerId()));
     }
 
     private void addMember(PlayerSession playerSession) {
         playerSession.setGuildSession(this);
-        if (!guildPlayerSessions.containsKey(playerSession.getPlayerId())) {
-            Member member = GuildHelper.createMember(playerSession);
-            this.guildSettings.addMember(member);
-            this.guildPlayerSessions.put(playerSession.getPlayerId(), playerSession);
-        }
+        this.guildSettings.setDirty();
     }
 
     @Override
@@ -201,6 +195,7 @@ public class GuildSessionImpl implements GuildSession {
         roleChangeNotification.setData(sqmMemberData);
         ServiceFactory.instance().getPlayerDatasource().changeSquadRole(this, memberSession,
                 roleChangeNotification, squadRole);
+        this.guildSettings.setDirty();
         this.setNotificationDirty(roleChangeNotification.getDate());
     }
 

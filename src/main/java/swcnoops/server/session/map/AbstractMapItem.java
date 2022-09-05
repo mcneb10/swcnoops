@@ -42,7 +42,7 @@ abstract public class AbstractMapItem implements MapItem {
     }
 
     @Override
-    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, int crystals, long time, boolean collectAll) {
+    public CurrencyDelta collect(PlayerSession playerSession, int credits, int materials, int contraband, long time, boolean collectAll) {
         return null;
     }
 

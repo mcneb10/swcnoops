@@ -31,6 +31,7 @@ public class GuildWarAttackPlayerComplete extends PlayerBattleComplete<GuildWarA
 
             BattleReplay battleReplay = BattleReplay.map(arguments, playerSession, defenderSession, time);
             attackDetail = warSession.warAttackComplete(playerSession, defenderSession, battleReplay,
+                    arguments.getAttackingUnitsKilled(),
                     defendingWarParticipant, time);
         }
 
