@@ -7,6 +7,7 @@ import swcnoops.server.datasource.War;
 import swcnoops.server.datasource.WarNotification;
 import swcnoops.server.model.*;
 
+import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -98,7 +99,8 @@ public class WarSessionImpl implements WarSession {
 
     @Override
     public AttackDetail warAttackComplete(PlayerSession playerSession, PlayerSession defenderSession,
-                                          BattleReplay battleReplay, DefendingWarParticipant defendingWarParticipant, long time)
+                                          BattleReplay battleReplay, Map<String, Integer> attackingUnitsKilled,
+                                          DefendingWarParticipant defendingWarParticipant, long time)
     {
         // we override the planet as this is war which is on sullust
         battleReplay.battleLog.planetId = "planet24";
@@ -116,8 +118,11 @@ public class WarSessionImpl implements WarSession {
         SquadNotification attackReplayNotification =
                 createWarReplayNotification(playerSession, defenderSession, battleReplay);
 
+        playerSession.battleComplete(battleReplay.battleLog.battleId, battleReplay.battleLog.stars,
+                attackingUnitsKilled, time);
+
         AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackComplete(this,
-                playerSession.getPlayerId(), battleReplay, attackCompleteNotification, attackReplayNotification,
+                playerSession, battleReplay, attackCompleteNotification, attackReplayNotification,
                 defendingWarParticipant,
                 time);
 

@@ -1448,7 +1448,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public AttackDetail warAttackComplete(WarSession warSession, String playerId,
+    public AttackDetail warAttackComplete(WarSession warSession, PlayerSession playerSession,
                                           BattleReplay battleReplay,
                                           SquadNotification attackCompleteNotification,
                                           SquadNotification attackReplayNotification,
@@ -1466,10 +1466,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             else
                 victoryPointsEarned = 0;
 
-            attackDetail = saveAndUpdateWarBattle(warSession.getWarId(), playerId, battleReplay,
+            attackDetail = saveAndUpdateWarBattle(warSession.getWarId(), playerSession, battleReplay,
                     victoryPointsEarned, connection);
 
             if (attackDetail.getReturnCode() == ResponseHelper.RECEIPT_STATUS_COMPLETE) {
+                savePlayerSession(playerSession, connection);
                 WarNotificationData warNotificationData = (WarNotificationData) attackCompleteNotification.getData();
                 warNotificationData.setStars(battleReplay.battleLog.stars);
                 warNotificationData.setVictoryPoints(victoryPointsEarned);
@@ -1481,7 +1482,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 connection.rollback();;
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war attack complete for player id=" + playerId, ex);
+            throw new RuntimeException("Failed to save war attack complete for player id=" + playerSession.getPlayerId(), ex);
         }
 
         return attackDetail;
@@ -1594,7 +1595,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return defendingWarParticipant;
     }
 
-    private AttackDetail saveAndUpdateWarBattle(String warId, String playerId,
+    private AttackDetail saveAndUpdateWarBattle(String warId, PlayerSession playerSession,
                                                 BattleReplay battleReplay,
                                                 int victoryPointsEarned, Connection connection)
     {
@@ -1638,7 +1639,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             attackDetail = new AttackDetail(response);
 
         } catch (Exception ex) {
-            throw new RuntimeException("Failed to saveAndUpdateWarBattle for player id=" + playerId, ex);
+            throw new RuntimeException("Failed to saveAndUpdateWarBattle for player id=" + playerSession.getPlayerId(), ex);
         }
 
         return attackDetail;
