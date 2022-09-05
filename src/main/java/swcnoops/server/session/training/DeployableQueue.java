@@ -133,7 +133,8 @@ public class DeployableQueue {
     }
 
     public void addUnitsToQueue(List<BuildUnit> buildUnits) {
-        this.unitsInQueue.addAll(buildUnits);
+        if (buildUnits != null)
+            buildUnits.forEach(a -> addUnitsToQueue(a));
     }
 
     public void addUnitsToQueue(BuildUnit buildUnit) {
