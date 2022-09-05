@@ -17,6 +17,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
                 ServiceFactory.instance().getJsonParser()
                         .toObjectFromResource("templates/playerPvpBattleComplete.json", PlayerPvpBattleCompleteCommandResult.class);
 
+
         response.attackerTournament.uid = ServiceFactory.createRandomUUID();
         return response;
     }

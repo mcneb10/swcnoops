@@ -22,6 +22,9 @@ public class PlayerSettings {
     private String guildId;
     private UnlockedPlanets unlockedPlanets;
 
+    private Scalars scalars;
+
+
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
     }
@@ -152,5 +155,13 @@ public class PlayerSettings {
 
     public void setUnlockedPlanets(UnlockedPlanets unlockedPlanets) {
         this.unlockedPlanets = unlockedPlanets;
+    }
+
+    public Scalars getScalars() {
+        return scalars == null ? new Scalars(0, 0, 0, 0, 0, 0, 100, 0, 0, 0) : this.scalars;
+    }
+
+    public void setScalars(Scalars scalars) {
+        this.scalars = scalars;
     }
 }

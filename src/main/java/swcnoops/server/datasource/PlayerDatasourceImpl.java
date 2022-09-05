@@ -3,6 +3,7 @@ package swcnoops.server.datasource;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
+import swcnoops.server.game.BuildingData;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.GuildSession;
@@ -18,10 +19,7 @@ import swcnoops.server.session.training.TrainingManager;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static swcnoops.server.session.NotificationFactory.mapSquadNotificationData;
@@ -119,7 +117,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
         final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops, " +
-                "inventoryStorage, currentQuest, campaigns, preferences, guildId, unlockedPlanets " +
+                "inventoryStorage, currentQuest, campaigns, preferences, guildId, unlockedPlanets, scalars " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -233,10 +231,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     .fromJsonString(unlockedPlanetsJson, UnlockedPlanets.class);
                         }
                         playerSettings.setUnlockedPlanets(unlockedPlanets);
+
+                        String scalarsString = rs.getString("scalars");
+                        Scalars scalars = null;
+                        if (scalarsString != null) {
+                            scalars = ServiceFactory.instance().getJsonParser().fromJsonString(scalarsString, Scalars.class);
+                        }
+
                     }
                 }
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new RuntimeException("Failed to load player settings from DB id=" + playerId, ex);
         }
 
@@ -353,8 +359,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void changeSquadRole(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification,
-                                SquadRole squadRole)
-    {
+                                SquadRole squadRole) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             if (guildSession.canEdit()) {
@@ -420,6 +425,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
 
+        ArrayList<BuildingData> buildingData = new ArrayList<BuildingData>();
+
+        for (Building b : playerMap.buildings) {
+            BuildingData bbb = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(b.uid);
+            buildingData.add(bbb);
+        }
+
+        BuildingData[] bd = buildingData.toArray(new BuildingData[0]);
+        int xp = Arrays.stream(bd).mapToInt(BuildingData::getXp).sum();
+        System.out.println("BASESCORE------>" + Arrays.stream(bd).mapToInt(BuildingData::getXp).sum());
+
+        Scalars scalars = playerSession.getPlayerSettings().getScalars();
+        scalars.xp = xp;
+        String scalarsJson = ServiceFactory.instance().getJsonParser().toJson(scalars);
+
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
                 creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
                 playerSession.getPlayerSettings().getFaction(),
@@ -427,7 +447,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 campaignsJson,
                 preferencesJson,
                 playerSession.getPlayerSettings().getGuildId(),
-                unlockedPlanetsJson, hqLevel,
+                unlockedPlanetsJson, hqLevel, scalarsJson, xp,
                 connection);
     }
 
@@ -476,11 +496,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
                                     FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
                                     String guildId, String unlockedPlanets,
-                                    int hqLevel, Connection connection) {
+                                    int hqLevel, String scalars, int xp, Connection connection) {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
                 "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ?," +
-                "unlockedPlanets = ?, hqLevel = ? " +
+                "unlockedPlanets = ?, hqLevel = ? , scalars = ?, xp = ?" +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -498,7 +518,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(12, guildId);
                 stmt.setString(13, unlockedPlanets);
                 stmt.setInt(14, hqLevel);
-                stmt.setString(15, playerId);
+                stmt.setString(15, scalars);
+                stmt.setInt(16, xp);
+                stmt.setString(17, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {
@@ -923,8 +945,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveWarMatchMake(FactionType faction, GuildSession guildSession, List<String> participantIds,
-                                 SquadNotification squadNotification, Long time)
-    {
+                                 SquadNotification squadNotification, Long time) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             saveMatchMake(faction, guildSession.getGuildId(), participantIds, time, connection);
@@ -1158,7 +1179,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private War loadWar(String warId, Connection connection) {
         final String matchMakeSql = "select warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime, " +
-        "actionGraceStartTime, actionEndTime, cooldownEndTime from War w where w.warId = ?";
+                "actionGraceStartTime, actionEndTime, cooldownEndTime from War w where w.warId = ?";
 
         War war = null;
         try {
@@ -1175,7 +1196,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     Long cooldownEndTime = rs.getLong("cooldownEndTime");
 
                     war = new War(warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime,
-                                    actionGraceStartTime, actionEndTime, cooldownEndTime);
+                            actionGraceStartTime, actionEndTime, cooldownEndTime);
                 }
             }
 
@@ -1266,7 +1287,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         final String warParticipantsSql = "select p.warMap, p.donatedTroops, p.victoryPoints, p.turns, p.attacksWon, " +
                 "p.defensesWon, p.score, p.defenseExpirationDate, ps.hqLevel, ps.id, ps.name " +
                 "from WarParticipants p, Squads s, SquadMembers m, PlayerSettings ps where s.id = ? and " +
-                      "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
+                "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
@@ -1298,8 +1319,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveWarParticipant(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
-                                   SquadNotification squadNotification)
-    {
+                                   SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             savePlayerSession(playerSession, connection);
@@ -1313,14 +1333,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void saveWarParticipant(SquadMemberWarData squadMemberWarData, Connection connection) {
         final String warParticipantsSql = "update WarParticipants " +
-                            "set warMap = ?," +
-                            "donatedTroops = ?," +
-                            "victoryPoints = ?," +
-                            "turns = ?," +
-                            "attacksWon = ?," +
-                            "defensesWon = ?," +
-                            "score = ? " +
-                            "where playerId = ? and warId = ?";
+                "set warMap = ?," +
+                "donatedTroops = ?," +
+                "victoryPoints = ?," +
+                "turns = ?," +
+                "attacksWon = ?," +
+                "defensesWon = ?," +
+                "score = ? " +
+                "where playerId = ? and warId = ?";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
@@ -1350,8 +1370,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public AttackDetail warAttackStart(WarSession warSession, String playerId, String opponentId,
-                                       SquadNotification attackStartNotification, long time)
-    {
+                                       SquadNotification attackStartNotification, long time) {
         AttackDetail attackDetail;
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
@@ -1378,8 +1397,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                           BattleReplay battleReplay,
                                           SquadNotification attackCompleteNotification,
                                           SquadNotification attackReplayNotification,
-                                          DefendingWarParticipant defendingWarParticipant, long time)
-    {
+                                          DefendingWarParticipant defendingWarParticipant, long time) {
         AttackDetail attackDetail;
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
@@ -1404,7 +1422,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 saveWarBattle(battleReplay, warSession.getWarId(), time, connection);
                 connection.commit();
             } else {
-                connection.rollback();;
+                connection.rollback();
+                ;
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save war attack complete for player id=" + playerId, ex);
@@ -1522,8 +1541,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private AttackDetail saveAndUpdateWarBattle(String warId, String playerId,
                                                 BattleReplay battleReplay,
-                                                int victoryPointsEarned, Connection connection)
-    {
+                                                int victoryPointsEarned, Connection connection) {
         final String warParticipantsDefenseSql = "update WarParticipants " +
                 "set defenseBattleId = null, defenseExpirationDate = null, victoryPoints = victoryPoints - ? " +
                 "where warId = ? and defenseBattleId = ?";
@@ -1571,8 +1589,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void setAndSaveWarNotification(WarNotification warNotification, WarSession warSession,
-                                           SquadNotification squadNotification, Connection connection)
-    {
+                                           SquadNotification squadNotification, Connection connection) {
         synchronized (warSession) {
             GuildSession guildSessionA = warSession.getGuildASession();
             squadNotification.setDate(0);
@@ -1661,7 +1678,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 // base has been cleared
                 if (victoryPoints == 0) {
                     attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_NOT_ENOUGH_VICTORY_POINTS);
-                } else if (time > defenseExpirationDate){
+                } else if (time > defenseExpirationDate) {
                     // TODO - give a grace time on when to decide to unlock this base as possible client crash
                     System.out.println("WarBase is still being attacked but expiry time has finished, maybe client crashed?");
                     attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_BASE_UNDER_ATTACK);
@@ -1736,8 +1753,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private Collection<SquadNotification> getSquadNotificationsSince(String guildId, String guildName, long since,
-                                                                    Connection connection) throws Exception
-    {
+                                                                     Connection connection) throws Exception {
         final String notificationsSql = "SELECT id, orderNo, date, playerId, name, squadMessageType, message, squadNotification " +
                 "FROM SquadNotifications s WHERE s.guildId = ? and s.date > ? order by s.date";
 

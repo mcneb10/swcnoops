@@ -296,6 +296,8 @@ public class GameDataManagerImpl implements GameDataManager {
             float produce = Float.valueOf(building.get("produce") != null ? building.get("produce") : "0");
             float cycleTime = Float.valueOf(building.get("cycleTime") != null ? building.get("cycleTime") : "0");
             boolean prestige = Boolean.valueOf(building.get("prestige") != null ? building.get("prestige") : "false");
+            int xp = Integer.valueOf(building.get("xp") == null ? "0" : building.get("xp")).intValue();
+
 
             BuildingData buildingData = new BuildingData(uid);
             buildingData.setFaction(FactionType.valueOf(faction));
@@ -318,6 +320,8 @@ public class GameDataManagerImpl implements GameDataManager {
             buildingData.setCredits(credits);
             buildingData.setContraband(contraband);
             buildingData.setPrestige(prestige);
+            buildingData.setXp(xp); //used to calculate base scores
+
 
             map.put(buildingData.getUid(), buildingData);
             String needToSort = addToLevelMaps(buildingData);
