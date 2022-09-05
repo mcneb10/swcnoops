@@ -2,6 +2,7 @@ package swcnoops.server.datasource;
 
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -358,9 +359,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             if (guildSession.canEdit()) {
-                Member member = guildSession.getGuildSettings().getMember(playerSession.getPlayerId());
-                member.setIsOfficer(squadRole == SquadRole.Officer);
-                updateSquadMember(guildSession.getGuildId(), member, connection);
+                updateSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(),
+                        squadRole == SquadRole.Officer, connection);
                 setAndSaveGuildNotification(guildSession, squadNotification, connection);
             }
             connection.commit();
@@ -369,21 +369,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void updateSquadMember(String guildId, Member member, Connection connection) {
+    private void updateSquadMember(String guildId, String playerId, boolean isOfficer, Connection connection) {
         final String squadSql = "update SquadMembers " +
-                "set isOfficer = ?, isOwner = ? " +
+                "set isOfficer = ? " +
                 "where guildId = ? and playerId = ?";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setBoolean(1, member.isOfficer);
-                stmt.setBoolean(2, member.isOwner);
-                stmt.setString(3, guildId);
-                stmt.setString(4, member.playerId);
+                stmt.setBoolean(1, isOfficer);
+                stmt.setString(2, guildId);
+                stmt.setString(3, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {
-            throw new RuntimeException("Failed to promote playerId =" + member.playerId, ex);
+            throw new RuntimeException("Failed to promote playerId =" + playerId, ex);
         }
     }
 
@@ -646,11 +645,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 "warSignUpTime, warId " +
                 "FROM Squads s WHERE s.id = ?";
 
-        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
-                "m.warParty, s.hqLevel " +
-                "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
-                "and m.playerId = s.Id";
-
         GuildSettingsImpl guildSettings = null;
         try {
             try (Connection con = getConnection()) {
@@ -676,33 +670,105 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     }
                 }
 
-                try (PreparedStatement pstmt = con.prepareStatement(squadPlayers)) {
-                    pstmt.setString(1, guildId);
-                    ResultSet rs = pstmt.executeQuery();
+                List<Member> members = loadSquadMembers(guildSettings.getGuildId(), con);
 
-                    while (rs.next()) {
-                        String playerId = rs.getString("playerId");
-                        String playerName = rs.getString("name");
-                        boolean isOfficer = rs.getBoolean("isOfficer");
-                        boolean isOwner = rs.getBoolean("isOwner");
-                        long joinDate = rs.getLong("joinDate");
-                        long troopsDonated = rs.getLong("troopsDonated");
-                        long troopsReceived = rs.getLong("troopsReceived");
-                        boolean warParty = rs.getBoolean("warParty");
-                        int hqLevel = rs.getInt("hqLevel");
-                        guildSettings.addMember(playerId, playerName, isOwner, isOfficer, joinDate,
-                                troopsDonated, troopsReceived, warParty, hqLevel);
-                    }
+                if (guildSettings != null) {
+                    GuildMembers guildMembers = new GuildMembers(guildSettings.getGuildId(), members);
+                    guildSettings.setGuildMembers(guildMembers);
                 }
-
-                if (guildSettings != null)
-                    guildSettings.afterLoad();
             }
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load Guild settings from DB id=" + guildId, ex);
         }
 
         return guildSettings;
+    }
+
+    @Override
+    public List<Member> loadSquadMembers(String guildId) {
+        try (Connection connection = getConnection()) {
+            return loadSquadMembers(guildId, connection);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load squad members", ex);
+        }
+    }
+
+    private List<Member> loadSquadMembers(String guildId, Connection connection) throws Exception {
+        List<Member> members = new ArrayList<>();
+
+        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
+                "m.warParty, s.hqLevel " +
+                "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
+                "and m.playerId = s.Id";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(squadPlayers)) {
+            pstmt.setString(1, guildId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                String playerId = rs.getString("playerId");
+                String playerName = rs.getString("name");
+                boolean isOfficer = rs.getBoolean("isOfficer");
+                boolean isOwner = rs.getBoolean("isOwner");
+                long joinDate = rs.getLong("joinDate");
+                long troopsDonated = rs.getLong("troopsDonated");
+                long troopsReceived = rs.getLong("troopsReceived");
+                boolean warParty = rs.getBoolean("warParty");
+                int hqLevel = rs.getInt("hqLevel");
+                Member member = GuildHelper.createMember(playerId, playerName, isOwner,
+                        isOfficer, joinDate, troopsDonated, troopsReceived, warParty, hqLevel);
+                members.add(member);
+            }
+        }
+
+        return members;
+    }
+
+    @Override
+    public List<WarHistory> loadWarHistory(String squadId) {
+        try (Connection connection = getConnection()) {
+            return loadWarHistory(squadId, connection);
+        } catch (Exception ex) {
+            throw new RuntimeException("Failed to load war history ", ex);
+        }
+    }
+
+    private List<WarHistory> loadWarHistory(String guildId, Connection connection) throws Exception {
+        List<WarHistory> wars = new ArrayList<>();
+
+        final String squadPlayers = "SELECT w.warId, w.squadIdA, w.squadIdB, w.processedEndTime, w.squadAScore, w.squadBScore, " +
+                "s.name, s.icon " +
+                "FROM War w, Squads s " +
+                "WHERE w.processedEndTime > 0 " +
+                "AND ((w.squadIdB = s.id and w.squadIdA = ?) or (w.squadIdA = s.id and w.squadIdB = ?))";
+
+        try (PreparedStatement pstmt = connection.prepareStatement(squadPlayers)) {
+            pstmt.setString(1, guildId);
+            pstmt.setString(2, guildId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                WarHistory warHistory = new WarHistory();
+                warHistory.warId = rs.getString("warId");
+                warHistory.opponentGuildId = rs.getString("squadIdB");
+                warHistory.opponentName = rs.getString("name");
+                warHistory.opponentIcon = rs.getString("icon");
+                warHistory.opponentScore = rs.getInt("squadBScore");
+                warHistory.endDate = rs.getLong("processedEndTime");
+
+                if (!warHistory.opponentGuildId.equals(guildId)) {
+                    warHistory.score = rs.getInt("squadAScore");
+                } else {
+                    warHistory.opponentGuildId = rs.getString("squadIdA");
+                    warHistory.opponentScore = rs.getInt("squadAScore");
+                    warHistory.score = rs.getInt("squadBScore");
+                }
+
+                wars.add(warHistory);
+            }
+        }
+
+        return wars;
     }
 
     @Override
@@ -959,10 +1025,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 "set warSignUpTime = ? " +
                 "where id = ?";
 
-        final String squadMembersNotSignedUpSql = "update SquadMembers " +
-                "set warParty = 0 " +
-                "where guildId = ?";
-
         final String squadMembersSql = "update SquadMembers " +
                 "set warParty = ? " +
                 "where guildId = ? and playerId = ?";
@@ -978,10 +1040,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             if (participantIds != null) {
-                try (PreparedStatement stmt = connection.prepareStatement(squadMembersNotSignedUpSql)) {
-                    stmt.setString(1, guildId);
-                    stmt.executeUpdate();
-                }
+                clearWarParty(guildId, connection);
 
                 for (int i = 0; i < participantIds.size(); i++) {
                     try (PreparedStatement stmt = connection.prepareStatement(squadMembersSql)) {
@@ -994,6 +1053,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to match make for squad id=" + guildId, ex);
+        }
+    }
+
+    private void clearWarParty(String guildId, Connection connection) throws SQLException {
+        final String squadMembersNotSignedUpSql = "update SquadMembers " +
+                "set warParty = 0 " +
+                "where guildId = ?";
+
+        try (PreparedStatement stmt = connection.prepareStatement(squadMembersNotSignedUpSql)) {
+            stmt.setString(1, guildId);
+            stmt.executeUpdate();
         }
     }
 
@@ -1074,9 +1144,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void insertWarParticipants(String warId, String guildId, String rivalId, Connection connection) {
-        final String warParticipantsSql = "insert into WarParticipants (playerId, warId, warMap, " +
+        final String warParticipantsSql = "insert into WarParticipants (playerId, warId, squadId, warMap, " +
                 "donatedTroops, turns, attacksWon, defensesWon, victoryPoints, score) " +
-                "select p.id, s.warId, ifnull(p.warMap, p.baseMap), null, 3, 0, 0, 3, 0 " +
+                "select p.id, s.warId, s.id, ifnull(p.warMap, p.baseMap), null, 3, 0, 0, 3, 0 " +
                 "from SquadMembers m, Squads s, PlayerSettings p " +
                 "where s.id in (?,?) and s.warId = ? and m.guildId = s.id and m.warParty = 1 and p.id = m.playerId";
 
@@ -1158,7 +1228,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private War loadWar(String warId, Connection connection) {
         final String matchMakeSql = "select warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime, " +
-        "actionGraceStartTime, actionEndTime, cooldownEndTime from War w where w.warId = ?";
+        "actionGraceStartTime, actionEndTime, cooldownEndTime, processedEndTime, squadAScore, squadBScore " +
+                "from War w where w.warId = ?";
 
         War war = null;
         try {
@@ -1173,9 +1244,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     Long actionGraceStartTime = rs.getLong("actionGraceStartTime");
                     Long actionEndTime = rs.getLong("actionEndTime");
                     Long cooldownEndTime = rs.getLong("cooldownEndTime");
-
+                    long processedEndTime = rs.getLong("processedEndTime");
+                    int squadAScore = rs.getInt("squadAScore");
+                    int squadBScore = rs.getInt("squadBScore");
                     war = new War(warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime,
-                                    actionGraceStartTime, actionEndTime, cooldownEndTime);
+                                    actionGraceStartTime, actionEndTime, cooldownEndTime,
+                            processedEndTime, squadAScore, squadBScore);
                 }
             }
 
@@ -1712,7 +1786,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void saveWar(War war, Connection connection) throws Exception {
         final String squadsSql = "update War " +
-                "set prepGraceStartTime = ?, prepEndTime = ?, actionGraceStartTime = ?, actionEndTime = ?, cooldownEndTime = ? " +
+                "set prepGraceStartTime = ?, prepEndTime = ?, actionGraceStartTime = ?, actionEndTime = ?, cooldownEndTime = ?, processedEndTime = ? " +
                 "where warId = ?";
 
         try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
@@ -1721,7 +1795,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             stmt.setLong(3, war.getActionGraceStartTime());
             stmt.setLong(4, war.getActionEndTime());
             stmt.setLong(5, war.getCooldownEndTime());
-            stmt.setString(6, war.getWarId());
+            stmt.setLong(6, war.getProcessedEndTime());
+            stmt.setString(7, war.getWarId());
             stmt.executeUpdate();
         }
     }
@@ -1782,5 +1857,63 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return warNotification;
+    }
+
+    @Override
+    public War processWarEnd(String warId, String squadIdA, String squadIdB) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            checkAndProcessWarEnd(warId, squadIdA, squadIdB, connection);
+            connection.commit();
+            return this.loadWar(warId, connection);
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    private void checkAndProcessWarEnd(String warId, String squadIdA, String squadIdB, Connection connection) throws Exception
+    {
+        final String squadsSql = "update War " +
+                "set processedEndTime = ?, " +
+                "squadAScore = (select sum(score) from WarParticipants w where w.warId = War.warId and w.squadId = War.squadIdA), " +
+                "squadBScore = (select sum(score) from WarParticipants w where w.warId = War.warId and w.squadId = War.squadIdA) " +
+                "where warId = ? and (processedEndTime is null or processedEndTime = 0)";
+
+        long time = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
+            stmt.setLong(1, time);
+            stmt.setString(2, warId);
+            int updated = stmt.executeUpdate();
+
+            if (updated == 1) {
+                clearWarParty(squadIdA, connection);
+                clearWarParty(squadIdB, connection);
+            }
+        }
+    }
+
+    @Override
+    public void resetWarPartyForParticipants(String warId) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            setWarPartySquadMembers(warId, connection);
+            connection.commit();
+        } catch (Exception exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    private void setWarPartySquadMembers(String warId, Connection connection) throws Exception
+    {
+        final String squadsSql = "update SquadMembers " +
+                                 "set warParty = 1 " +
+                                 "where exists (select 1 " +
+                                                "from WarParticipants where SquadMembers.playerId = WarParticipants.playerId " +
+                                                "and SquadMembers.guildId = WarParticipants.squadId and WarParticipants.warId = ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
+            stmt.setString(1, warId);
+            int updated = stmt.executeUpdate();
+        }
     }
 }

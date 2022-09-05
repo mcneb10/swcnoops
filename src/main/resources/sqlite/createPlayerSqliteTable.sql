@@ -84,6 +84,9 @@ CREATE TABLE IF NOT EXISTS "War" (
 	"actionGraceStartTime"	NUMERIC,
 	"actionEndTime"	NUMERIC,
 	"cooldownEndTime"	NUMERIC,
+	processedEndTime NUMERIC,
+    "squadAScore"	INTEGER,
+    "squadBScore"	INTEGER,
 	PRIMARY KEY("warId")
 );
 
@@ -106,6 +109,7 @@ CREATE TABLE IF NOT EXISTS "MatchMake" (
 CREATE TABLE IF NOT EXISTS "WarParticipants" (
 	"playerId"	TEXT,
 	"warId"	TEXT,
+	squadId TEXT,
 	"warMap"	json,
 	"donatedTroops"	json,
 	"turns"	INTEGER,

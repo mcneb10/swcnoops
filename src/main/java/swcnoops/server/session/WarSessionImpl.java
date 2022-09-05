@@ -7,19 +7,25 @@ import swcnoops.server.datasource.War;
 import swcnoops.server.datasource.WarNotification;
 import swcnoops.server.model.*;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import static swcnoops.server.session.NotificationFactory.createNotification;
 
 public class WarSessionImpl implements WarSession {
     final private String warId;
-    final private War war;
     private final GuildSession squadA;
     private final GuildSession squadB;
+    private War war;
+    private long dirtyTime;
+    private long lastLoadedWarTime;
 
     public WarSessionImpl(String warId) {
         this.warId = warId;
         this.war = ServiceFactory.instance().getPlayerDatasource().getWar(warId);
-        this.squadA = ServiceFactory.instance().getSessionManager().getGuildSession(this.war.getSquadIdA());
-        this.squadB = ServiceFactory.instance().getSessionManager().getGuildSession(this.war.getSquadIdB());
+        this.lastLoadedWarTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        this.squadA = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
+        this.squadB = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
     }
 
     @Override
@@ -156,5 +162,59 @@ public class WarSessionImpl implements WarSession {
         shareBattleNotificationData.setOpponentFaction(opponentSession.getFaction());
 
         return shareBattleNotificationData;
+    }
+
+    private Lock guildGetLock = new ReentrantLock();
+    private Lock warLock = new ReentrantLock();
+
+    @Override
+    public void processGuildGet(long time) {
+        War currentWar = getOrLoadWar();
+        if (time >= currentWar.getActionEndTime()) {
+            if (currentWar.getProcessedEndTime() == 0) {
+                this.guildGetLock.lock();
+                try {
+                    if (currentWar.getProcessedEndTime() == 0) {
+                        processWarEnd(currentWar);
+                        this.getGuildASession().getGuildSettings().setDirty();
+                        this.getGuildBSession().getGuildSettings().setDirty();
+                    }
+                } finally {
+                    this.guildGetLock.unlock();;
+                }
+            }
+        }
+    }
+
+    private void processWarEnd(War currentWar) {
+        War war = ServiceFactory.instance().getPlayerDatasource().processWarEnd(warId, currentWar.getSquadIdA(),
+                currentWar.getSquadIdB());
+        currentWar.setProcessedEndTime(war.getProcessedEndTime());
+        this.setDirty();
+    }
+
+    private War getOrLoadWar() {
+        War currentWar = this.war;
+
+        if (currentWar == null || this.lastLoadedWarTime < this.dirtyTime) {
+            this.warLock.lock();
+            try {
+                if (currentWar == null || this.lastLoadedWarTime < this.dirtyTime) {
+                    this.war = ServiceFactory.instance().getPlayerDatasource().getWar(this.getWarId());
+                    this.lastLoadedWarTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+                }
+
+                currentWar = this.war;
+            } finally {
+                this.warLock.unlock();
+            }
+        }
+
+        return currentWar;
+    }
+
+    @Override
+    public void setDirty() {
+        this.dirtyTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
     }
 }

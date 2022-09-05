@@ -69,7 +69,7 @@ public interface PlayerSession {
 
     MapItem getMapItemByKey(String key);
 
-    void buildingCollect(String buildingId, int credits, int materials, int contraband, int crystals, long time);
+    void buildingCollect(String buildingId, int credits, int materials, int contraband, long time);
 
     void buildingClear(String instanceId, int credits, int materials, int contraband, int crystals, long time);
 
@@ -139,5 +139,5 @@ public interface PlayerSession {
 
     void processInventoryStorage(CurrencyDelta currencyDelta);
 
-    void buildingCollectAll(List<String> buildingIds, int credits, int materials, int contraband, int crystals, long time);
+    void buildingCollectAll(List<String> buildingIds, int credits, int materials, int contraband, long time);
 }

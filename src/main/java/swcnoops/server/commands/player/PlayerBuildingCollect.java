@@ -15,7 +15,7 @@ public class PlayerBuildingCollect extends PlayerChecksum<PlayerBuildingCollect,
                 .getPlayerSession(arguments.getPlayerId());
 
         playerSession.buildingCollect(arguments.getBuildingId(), arguments.getCredits(),
-                arguments.getMaterials(), arguments.getContraband(), arguments.getCrystals(), time);
+                arguments.getMaterials(), arguments.getContraband(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 
