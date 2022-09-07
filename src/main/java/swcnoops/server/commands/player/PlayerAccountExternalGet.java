@@ -1,8 +1,10 @@
 package swcnoops.server.commands.player;
 
+import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
+import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,6 +17,9 @@ public class PlayerAccountExternalGet extends AbstractCommandAction<PlayerAccoun
 
     @Override
     protected CommandResult execute(PlayerAccountExternalGet arguments, long time) throws Exception {
+        final PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+
         CommandResult res = new CommandResult() {
             @Override
             public Integer getStatus() {
@@ -25,8 +30,12 @@ public class PlayerAccountExternalGet extends AbstractCommandAction<PlayerAccoun
             public Object getResult() {
                 Map<String, List<String>> ret = new HashMap<>();
                 List<String> rec = new ArrayList<>();
-//                rec.add("booo");
-//                ret.put("RECOVERY", rec);
+
+                // if they are logging where the account was missing secret then we trigger recovery process
+                if (playerSession.getPlayer().isMissingSecret()) {
+                    rec.add("booo");
+                    ret.put("RECOVERY", rec);
+                }
                 return ret;
             }
         };

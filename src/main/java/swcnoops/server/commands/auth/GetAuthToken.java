@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.Command;
 import swcnoops.server.commands.TokenHelper;
+import swcnoops.server.commands.auth.preauth.response.GeneratePlayerCommandResult;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.datasource.PlayerSecret;
 import swcnoops.server.json.JsonParser;
@@ -48,13 +49,23 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
         String primaryAccount = PlayerIdentitySwitch.getPrimaryAccount(arguments.getPlayerId());
         PlayerSecret playerSecret = ServiceFactory.instance().getPlayerDatasource().getPlayerSecret(primaryAccount);
 
-        if (playerSecret == null)
-            throw new RuntimeException("Unknown player " + arguments.getPlayerId());
+        if (playerSecret == null) {
+            if (!ServiceFactory.instance().getConfig().handleMissingAccounts)
+                throw new RuntimeException("Unknown player " + arguments.getPlayerId());
+
+            GeneratePlayerCommandResult generatePlayerResponse = GeneratePlayerCommandResult.newInstance();
+            ServiceFactory.instance().getPlayerDatasource()
+                    .newPlayerWithMissingSecret(arguments.getPlayerId(), generatePlayerResponse.secret);
+            playerSecret = ServiceFactory.instance().getPlayerDatasource().getPlayerSecret(arguments.getPlayerId());
+        }
 
         String expectedToken = TokenHelper.generateToken(message, playerSecret.getSecret());
 
-        if (ServiceFactory.instance().getConfig().validateAuthKey && !expectedToken.equals(requestToken))
-            throw new RuntimeException("Invalid requestToken by player " + arguments.getPlayerId());
+        if (ServiceFactory.instance().getConfig().validateAuthKey) {
+            if (!playerSecret.isMissingSecret() && !expectedToken.equals(requestToken)) {
+                throw new RuntimeException("Invalid requestToken by player " + arguments.getPlayerId());
+            }
+        }
 
         // we send back a token
         String token = ServiceFactory.instance().getAuthenticationService().createToken(arguments.getPlayerId());

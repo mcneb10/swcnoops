@@ -91,4 +91,8 @@ public interface PlayerDataSource {
     void resetWarPartyForParticipants(String warId);
 
     List<WarHistory> loadWarHistory(String squadId);
+
+    void newPlayerWithMissingSecret(String playerId, String secret);
+
+    void removeMissingSecret(String playerId);
 }

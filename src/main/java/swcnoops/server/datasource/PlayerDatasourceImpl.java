@@ -67,10 +67,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public Player loadPlayer(String playerId) {
-        final String primarySql = "SELECT id, secret " +
+        final String primarySql = "SELECT id, secret, missingSecret " +
                 "FROM Player p WHERE p.id = ?";
 
-        final String secondarySql = "SELECT secondaryAccount, secret " +
+        final String secondarySql = "SELECT secondaryAccount, secret, missingSecret " +
                 "FROM Player p WHERE p.secondaryAccount = ?";
 
         String sql = primarySql;
@@ -88,6 +88,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     while (rs.next()) {
                         player = new Player(playerId);
                         player.setSecret(rs.getString("secret"));
+                        player.setMissingSecret(rs.getBoolean("missingSecret"));
                     }
                 }
             }
@@ -522,23 +523,70 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void newPlayer(String playerId, String secret) {
+        newPlayer(playerId, secret, false);
+    }
+
+    @Override
+    public void newPlayerWithMissingSecret(String playerId, String secret) {
+        newPlayer(playerId, secret, true);
+    }
+
+    @Override
+    public void removeMissingSecret(String playerId) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
-            createNewPlayer(playerId, secret, connection);
+            removeMissingSecret(playerId, connection);
+            resetPlayerSettings(playerId, connection);
+            connection.commit();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to remove missing secret flag for player " + playerId, ex);
+        }
+    }
+
+    private void removeMissingSecret(String playerId, Connection connection) {
+        final String updateSql = "update Player set missingSecret = 0 where id = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(updateSql)) {
+                stmt.setString(1, playerId);
+                stmt.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to remove missing secret flag for player " + playerId, ex);
+        }
+    }
+
+    private void resetPlayerSettings(String playerId, Connection connection) {
+        final String deleteSql = "delete from PlayerSettings where id = ?";
+
+        try {
+            try (PreparedStatement stmt = connection.prepareStatement(deleteSql)) {
+                stmt.setString(1, playerId);
+                stmt.executeUpdate();
+            }
+
+            createNewPlayer(playerId, connection);
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to remove missing secret flag for player " + playerId, ex);
+        }
+    }
+
+    private void newPlayer(String playerId, String secret, boolean missingSecret) {
+        try (Connection connection = getConnection()) {
+            connection.setAutoCommit(false);
+            createNewPlayer(playerId, secret, missingSecret, connection);
+            createNewPlayer(playerId, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to create a new player", ex);
         }
     }
 
-    private void createNewPlayer(String playerId, String secret, Connection connection) {
-        final String playerSql = "insert into Player (id, secret) values " +
-                "(?, ?)";
+    private void createNewPlayer(String playerId, String secret, boolean missingSecret, Connection connection) {
+        final String playerSql = "insert into Player (id, secret, missingSecret) values " +
+                "(?, ?, ?)";
 
         final String updateSql = "update Player set secondaryAccount = ? where id = ?";
-
-        final String settingsSql = "insert into PlayerSettings (id, name, upgrades) values " +
-                "(?, 'new', '{}')";
 
         try {
             if (playerId.endsWith("_1")) {
@@ -552,10 +600,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 try (PreparedStatement stmt = connection.prepareStatement(playerSql)) {
                     stmt.setString(1, playerId);
                     stmt.setString(2, secret);
+                    stmt.setBoolean(3, missingSecret);
                     stmt.executeUpdate();
                 }
             }
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
+        }
+    }
 
+    private void createNewPlayer(String playerId, Connection connection) {
+
+        final String settingsSql = "insert into PlayerSettings (id, name, upgrades) values " +
+                "(?, 'new', '{}')";
+
+        try {
             try (PreparedStatement stmt = connection.prepareStatement(settingsSql)) {
                 stmt.setString(1, playerId);
                 stmt.executeUpdate();
@@ -851,7 +910,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PlayerSecret getPlayerSecret(String primaryId) {
-        final String sql = "SELECT id, secret, secondaryAccount " +
+        final String sql = "SELECT id, secret, secondaryAccount, missingSecret " +
                 "FROM Player s WHERE s.id = ?";
 
         PlayerSecret playerSecret = null;
@@ -864,7 +923,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     while (rs.next()) {
                         playerSecret = new PlayerSecret(rs.getString("id"),
                                 rs.getString("secret"),
-                                rs.getString("secondaryAccount"));
+                                rs.getString("secondaryAccount"),
+                                rs.getBoolean("missingSecret"));
                     }
                 }
             }
