@@ -12,6 +12,8 @@ public class PvpMatch {
 
     private BattleParticipant defender;
 
+    private boolean isDevBase;
+
     public PvpMatch(String battleId, String playerId, String participantId, BattleParticipant attacker, BattleParticipant defender, long battleDate) {
         this.battleId = battleId;
         this.playerId = playerId;
@@ -19,6 +21,9 @@ public class PvpMatch {
         this.attacker = attacker;
         this.defender = defender;
         this.battleDate = battleDate;
+    }
+
+    public PvpMatch() {
     }
 
     public String getBattleId() {
@@ -56,5 +61,16 @@ public class PvpMatch {
     public long getBattleDate() {
         return battleDate;
     }
+
+    public void setAttacker(BattleParticipant attacker) {
+        this.attacker = attacker;
+    }
+
+    public void setDefender(BattleParticipant defender, boolean isDevBase) {
+        this.defender = defender;
+        this.isDevBase = isDevBase;
+    }
 }
+
+
 

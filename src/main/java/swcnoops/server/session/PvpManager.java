@@ -11,4 +11,6 @@ public interface PvpManager {
     void removeBattle(String battleId);
 
     ConcurrentHashMap<String, PvpMatch> getBattles();
+
+    PvpMatch getNextMatch();
 }

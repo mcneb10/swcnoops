@@ -2,15 +2,19 @@ package swcnoops.server.session;
 
 import swcnoops.server.game.PvpMatch;
 
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PvpSessionImpl implements PvpManager {
-
+    private List<PvpMatch> pvpMatchList;
     private ConcurrentHashMap<String, PvpMatch> pvpMatches = new ConcurrentHashMap<>();
 
+    private PlayerSession playerSession;
 
-    public PvpSessionImpl() {
+    int currentMatch = 0;
 
+    public PvpSessionImpl(PlayerSession playerSession) {
+        this.playerSession = playerSession;
     }
 
     @Override
@@ -26,6 +30,13 @@ public class PvpSessionImpl implements PvpManager {
     @Override
     public void removeBattle(String battleId) {
         this.pvpMatches.remove(battleId);
+    }
+
+    @Override
+    public PvpMatch getNextMatch() {
+        int matchIndex = currentMatch <= pvpMatchList.size() ? currentMatch : 0;
+        currentMatch++;
+        return pvpMatchList.get(matchIndex);
     }
 
 

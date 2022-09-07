@@ -7,6 +7,7 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandResult;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
@@ -22,8 +23,7 @@ import java.util.Random;
 /**
  * Finds and returns an enemy base for PVP.
  */
-public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, PlayerPvpGetNextTargetCommandResult>
-{
+public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, PlayerPvpGetNextTargetCommandResult> {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
     private List<File> layouts;
     private Random rand = new Random();
@@ -37,6 +37,9 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.map.planet = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId()).getPlayer().getPlayerSettings().getBaseMap().planet;
 
+
+        PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).getPvpSession().getNextMatch();
+        System.out.println("PARTICIPANT ID--->" + pvpMatch.getParticipantId());
         setupDefenseTroops(response, response.map);
         return response;
     }
@@ -107,7 +110,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
                 TroopData chosenTroop = troopDataOfSize.get(random1.nextInt(troopDataOfSize.size()));
                 int numberOfTroops = 1;
                 if (storage > (pickedSize * 2)) {
-                    numberOfTroops = random1.nextInt(storage/pickedSize) + 1;
+                    numberOfTroops = random1.nextInt(storage / pickedSize) + 1;
                 }
 
                 int maxLevel = gameDataManager.getMaxlevelForTroopUnitId(chosenTroop.getUnitId());
@@ -128,30 +131,30 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     }
 
     private Buildings getNextLayout() {
-    Buildings mapObject = null;
-    File layoutFile;
-    try {
-        if (layouts == null || layouts.size() == 0) {
-            layouts = listf(ServiceFactory.instance().getConfig().layoutsPath);
+        Buildings mapObject = null;
+        File layoutFile;
+        try {
+            if (layouts == null || layouts.size() == 0) {
+                layouts = listf(ServiceFactory.instance().getConfig().layoutsPath);
+            }
+
+            int index = rand.nextInt(layouts.size());
+            if (index < 0)
+                index = 0;
+
+            if (index >= layouts.size())
+                index = layouts.size() - 1;
+
+            layoutFile = this.layouts.get(index);
+            this.layouts.remove(index);
+            mapObject = ServiceFactory.instance().getJsonParser().fromJsonFile(layoutFile.getAbsolutePath(), Buildings.class);
+            return mapObject;
+        } catch (Exception ex) {
+            LOG.error("Failed to load next layout", ex);
         }
 
-        int index = rand.nextInt(layouts.size());
-        if (index < 0)
-            index = 0;
-
-        if (index >= layouts.size())
-            index = layouts.size() - 1;
-
-        layoutFile = this.layouts.get(index);
-        this.layouts.remove(index);
-        mapObject = ServiceFactory.instance().getJsonParser().fromJsonFile(layoutFile.getAbsolutePath(), Buildings.class);
         return mapObject;
-    } catch(Exception ex) {
-        LOG.error("Failed to load next layout", ex);
     }
-
-    return mapObject;
-}
 
     private List<File> listf(String directoryName) {
         File directory = new File(directoryName);

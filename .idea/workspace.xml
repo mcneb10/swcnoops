@@ -5,8 +5,18 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="13b266ae-1121-43d2-868d-f9256aa0770d" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/players.db" beforeDir="false" afterPath="$PROJECT_DIR$/players.db" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpGetNextTarget.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpGetNextTarget.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManagerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManagerImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/PvpMatch.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/PvpMatch.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSession.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSession.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpSessionImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpSessionImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManagerImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManagerImpl.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

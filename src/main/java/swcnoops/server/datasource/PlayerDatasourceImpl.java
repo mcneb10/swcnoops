@@ -4,6 +4,7 @@ import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.game.BuildingData;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.GuildSession;
@@ -1800,4 +1801,52 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         return warNotification;
     }
+
+    public List<PvpMatch> getDevBaseMatches(PlayerSession playerSession) {
+        String sql = "SELECT id, buildings, buildings, hqlevel, xp FROM DevBases WHERE ( hqlevel >= ? -1 AND hqlevel <= ? +1) or (xp >= ( ? * 0.9) AND xp <= (? * 1.10) ) ORDER BY  xp ASC";
+
+        List<PvpMatch> pvpMatches = new ArrayList<>();
+
+
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            int hq = playerSession.getHeadQuarter().getBuildingData().getLevel();
+            int xp = playerSession.getPlayerSettings().getScalars().xp;
+            preparedStatement.setInt(1, hq);
+            preparedStatement.setInt(2, hq);
+            preparedStatement.setInt(3, xp);
+            preparedStatement.setInt(4, xp);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()) {
+
+                BattleParticipant defender = new BattleParticipant();
+                defender.attackRating = 500;
+                defender.defenseRating = 500;
+                defender.playerId = rs.getString("id");
+                defender.name = "Dev Base";// TODO add randomised names...
+                defender.attackRatingDelta = 18;
+                defender.defenseRatingDelta = 18;
+                defender.faction = playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire;
+                defender.guildId = rs.getString("id");
+                defender.guildName = "DEV BASE";
+                defender.tournamentRating = 0;
+                defender.tournamentRatingDelta =0;
+
+                PvpMatch pvpMatch = new PvpMatch();
+                pvpMatch.setPlayerId(playerSession.getPlayerId());
+                pvpMatch.setBattleId(ServiceFactory.createRandomUUID());
+                pvpMatch.setDefender(defender, true);
+                pvpMatches.add(pvpMatch);
+            }
+
+
+        } catch (SQLException ex) {
+
+        }
+
+        return pvpMatches;
+    }
+
+
 }
