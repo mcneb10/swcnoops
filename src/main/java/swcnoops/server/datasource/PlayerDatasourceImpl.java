@@ -425,17 +425,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
 
-        ArrayList<BuildingData> buildingData = new ArrayList<BuildingData>();
 
-        for (Building b : playerMap.buildings) {
-            BuildingData bbb = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(b.uid);
-            buildingData.add(bbb);
-        }
-
-        BuildingData[] bd = buildingData.toArray(new BuildingData[0]);
-        int xp = Arrays.stream(bd).mapToInt(BuildingData::getXp).sum();
-        System.out.println("BASESCORE------>" + Arrays.stream(bd).mapToInt(BuildingData::getXp).sum());
-
+        int xp = ServiceFactory.getXpFromBuildings(playerMap.buildings);
+//        ArrayList<BuildingData> buildingData = new ArrayList<BuildingData>();
+//
+//        for (Building b : playerMap.buildings) {
+//            BuildingData bbb = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(b.uid);
+//            buildingData.add(bbb);
+//        }
+//
+//        BuildingData[] bd = buildingData.toArray(new BuildingData[0]);
+//        int xp = Arrays.stream(bd).mapToInt(BuildingData::getXp).sum();
         Scalars scalars = playerSession.getPlayerSettings().getScalars();
         scalars.xp = xp;
         String scalarsJson = ServiceFactory.instance().getJsonParser().toJson(scalars);

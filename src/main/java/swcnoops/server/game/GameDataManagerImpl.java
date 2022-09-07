@@ -1,10 +1,18 @@
 package swcnoops.server.game;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.model.CurrencyType;
-import swcnoops.server.model.FactionType;
-import swcnoops.server.model.TroopType;
+import swcnoops.server.commands.player.PlayerPvpGetNextTarget;
+import swcnoops.server.model.*;
 
+import java.io.File;
+import java.io.FileReader;
+import java.io.Reader;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.util.*;
 
 public class GameDataManagerImpl implements GameDataManager {
@@ -22,7 +30,8 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<String, CampaignMissionSet> campaignMissionSets = new HashMap<>();
     private Map<FactionType, Map<Integer, List<TroopData>>> troopSizeMapByFaction = new HashMap<>();
     private GameConstants gameConstants;
-
+    private List<File> layouts;
+    private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
     private FactionBuildingEquivalentMap factionBuildingEquivalentMap;
 
     @Override
@@ -33,6 +42,7 @@ public class GameDataManagerImpl implements GameDataManager {
             this.traps = loadTraps();
             loadCampaigns();
             buildCustomTroopMaps();
+            setDevBases();
             this.factionBuildingEquivalentMap = create(this.buildingLevelsByBuildingId);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
@@ -50,7 +60,7 @@ public class GameDataManagerImpl implements GameDataManager {
 
     private void buildCustomTroopMaps() {
         // list of creatures for faction for populating strix beacon
-        this.lowestLevelTroopByUnitId.forEach((a,b) -> {
+        this.lowestLevelTroopByUnitId.forEach((a, b) -> {
             if (b.getType() == TroopType.creature) {
                 List<TroopData> creatureList = this.creaturesByFaction.get(b.getFaction());
                 if (creatureList == null) {
@@ -61,7 +71,7 @@ public class GameDataManagerImpl implements GameDataManager {
             }
         });
 
-        this.lowestLevelTroopByUnitId.forEach((a,b) -> {
+        this.lowestLevelTroopByUnitId.forEach((a, b) -> {
             List<TroopData> troopList = this.lowestLevelTroopByFaction.get(b.getFaction());
             if (troopList == null) {
                 troopList = new ArrayList<>();
@@ -71,7 +81,7 @@ public class GameDataManagerImpl implements GameDataManager {
         });
 
         // map used to group troops by unit size for SC populating, does not include special attacks or champions
-        this.lowestLevelTroopByUnitId.forEach((a,b) -> {
+        this.lowestLevelTroopByUnitId.forEach((a, b) -> {
             if (!b.isSpecialAttack() && !(b.getType() == TroopType.champion)) {
                 Map<Integer, List<TroopData>> troopBySizeMap = this.troopSizeMapByFaction.get(b.getFaction());
                 if (troopBySizeMap == null) {
@@ -138,15 +148,15 @@ public class GameDataManagerImpl implements GameDataManager {
         Map<String, Map> jsonSpreadSheet = (Map<String, Map>) result;
         Map<String, Map> contentMap = jsonSpreadSheet.get("content");
         Map<String, Map> objectsMap = contentMap.get("objects");
-        List<Map<String,String>> troopDataMap = (List<Map<String,String>>) objectsMap.get("TroopData");
+        List<Map<String, String>> troopDataMap = (List<Map<String, String>>) objectsMap.get("TroopData");
         addTroopsToMap(troopDataMap);
-        List<Map<String,String>> specialAttackDataMap = (List<Map<String,String>>) objectsMap.get("SpecialAttackData");
+        List<Map<String, String>> specialAttackDataMap = (List<Map<String, String>>) objectsMap.get("SpecialAttackData");
         addTroopsToMap(specialAttackDataMap);
     }
 
     private void addTroopsToMap(List<Map<String, String>> troopDataMap) {
         Set<String> unitIdsNeedsSorting = new HashSet<>();
-        for (Map<String,String> troop : troopDataMap) {
+        for (Map<String, String> troop : troopDataMap) {
             String faction = troop.get("faction");
             int lvl = Integer.valueOf(troop.get("lvl"));
             String uid = troop.get("uid");              //troopEmpireChicken1
@@ -192,7 +202,7 @@ public class GameDataManagerImpl implements GameDataManager {
         }
 
         unitIdsNeedsSorting.forEach(a -> this.troopLevelsByUnitId.get(a)
-                .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
+                .sort((b, c) -> Integer.compare(b.getLevel(), c.getLevel())));
     }
 
     private String addToLevelMaps(TroopData troopData) {
@@ -229,13 +239,13 @@ public class GameDataManagerImpl implements GameDataManager {
         Map<String, Map> jsonSpreadSheet = (Map<String, Map>) result;
         Map<String, Map> contentMap = jsonSpreadSheet.get("content");
         Map<String, Map> objectsMap = contentMap.get("objects");
-        List<Map<String,String>> trapDataMap = (List<Map<String,String>>) objectsMap.get("TrapData");
+        List<Map<String, String>> trapDataMap = (List<Map<String, String>>) objectsMap.get("TrapData");
         addTrapsToMap(map, trapDataMap);
         return map;
     }
 
     private void addTrapsToMap(Map<String, TrapData> map, List<Map<String, String>> trapDataMap) {
-        for (Map<String,String> trap : trapDataMap) {
+        for (Map<String, String> trap : trapDataMap) {
             String uid = trap.get("uid");
             TrapEventType trapEventType = TrapEventType.valueOf(trap.get("eventType"));
             long rearmTime = trap.get("rearmTime") != null ? Long.valueOf(trap.get("rearmTime")) : 0;
@@ -256,10 +266,10 @@ public class GameDataManagerImpl implements GameDataManager {
         Map<String, Map> jsonSpreadSheet = (Map<String, Map>) result;
         Map<String, Map> contentMap = jsonSpreadSheet.get("content");
         Map<String, Map> objectsMap = contentMap.get("objects");
-        List<Map<String,String>> buildingDataMap = (List<Map<String,String>>) objectsMap.get("BuildingData");
+        List<Map<String, String>> buildingDataMap = (List<Map<String, String>>) objectsMap.get("BuildingData");
         this.buildings = readBuildingData(buildingDataMap);
 
-        List<Map<String,String>> gameConstants = (List<Map<String,String>>) objectsMap.get("GameConstants");
+        List<Map<String, String>> gameConstants = (List<Map<String, String>>) objectsMap.get("GameConstants");
         this.gameConstants = readGameConstants(gameConstants);
     }
 
@@ -273,7 +283,7 @@ public class GameDataManagerImpl implements GameDataManager {
 
         Set<String> buildingIdsNeedsSorting = new HashSet<>();
 
-        for (Map<String,String> building : buildingDataMap) {
+        for (Map<String, String> building : buildingDataMap) {
             String faction = building.get("faction");
             String uid = building.get("uid");
             String buildingID = building.get("buildingID");
@@ -330,7 +340,7 @@ public class GameDataManagerImpl implements GameDataManager {
         }
 
         buildingIdsNeedsSorting.forEach(a -> this.buildingLevelsByBuildingId.get(a)
-                .sort((b,c) -> Integer.compare(b.getLevel(),c.getLevel())));
+                .sort((b, c) -> Integer.compare(b.getLevel(), c.getLevel())));
         return map;
     }
 
@@ -410,6 +420,7 @@ public class GameDataManagerImpl implements GameDataManager {
 
     /**
      * This is only used when changing faction
+     *
      * @param oldBuildingData
      * @param targetFaction
      * @return
@@ -417,5 +428,96 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public BuildingData getFactionEquivalentOfBuilding(BuildingData oldBuildingData, FactionType targetFaction) {
         return this.factionBuildingEquivalentMap.getEquivalentBuilding(oldBuildingData, targetFaction);
+    }
+
+
+    private boolean clearDevBases(Connection connection) {
+        String sql = "DELETE FROM DevBases";
+        try {
+            PreparedStatement statement = connection.prepareStatement(sql);
+            statement.executeUpdate();
+            return true;
+        } catch (SQLException ex) {
+            LOG.error("Failed to clear from Dev bases");
+            return false;
+        }
+    }
+
+    private void setDevBases() {
+
+        //Clear existing
+        try {
+            Connection conn = getConnection();
+            if (clearDevBases(conn)) {
+                try {
+                    layouts = listf(ServiceFactory.instance().getConfig().layoutsPath);
+                    for (File layoutFile : layouts) {
+                        Buildings mapObject = null;
+                        mapObject = ServiceFactory.instance().getJsonParser().fromJsonFile(layoutFile.getAbsolutePath(), Buildings.class);
+
+                        int xp = ServiceFactory.getXpFromBuildings(mapObject);
+                        int hq = 0;
+                        for (Building building : mapObject) {
+                            BuildingData buildingData = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+                            if (buildingData != null) {
+                                switch (buildingData.getType()) {
+                                    case trap: //fill trap
+                                        building.currentStorage = 1;
+                                        break;
+                                    case HQ:
+                                        hq = buildingData.getLevel();
+                                        break;
+                                }
+                            }
+                        }
+
+                        String s = ServiceFactory.instance().getJsonParser().toJson(mapObject);
+                        String s1 = s.replace(FactionType.rebel.name(), "{placeholder}").replace(FactionType.empire.name(), "{placeholder}");
+
+                        String insertSql = "insert into DevBases (Id, buildings, hqlevel, xp) values (?, ?, ? ,?)";
+                        try {
+                            PreparedStatement statement = conn.prepareStatement(insertSql);
+                            statement.setString(1, ServiceFactory.createRandomUUID());
+                            statement.setString(2, s1);
+                            statement.setInt(3, hq);
+                            statement.setInt(4, xp);
+                            statement.executeUpdate();
+
+                        } catch (SQLException e) {
+
+                        }
+                    }
+
+                } catch (Exception ex) {
+                    LOG.error("Failed to load next layout", ex);
+                }
+            }
+        } catch (SQLException e) {
+            LOG.error("Failed to get connection to the db to clear and set dev bases");
+            throw new RuntimeException(e);
+        }
+
+
+    }
+
+    private List<File> listf(String directoryName) {
+        File directory = new File(directoryName);
+        List<File> resultList = new ArrayList<>();
+        // get all the files from a directory
+        File[] fList = directory.listFiles();
+        for (File file : fList) {
+            if (file.isDirectory()) {
+                resultList.addAll(listf(file.getAbsolutePath()));
+            } else if (file.getAbsolutePath().toLowerCase().endsWith(".json")) {
+                resultList.add(file);
+            }
+        }
+        return resultList;
+    }
+
+    private Connection getConnection() throws SQLException {
+        String url = ServiceFactory.instance().getConfig().playerSqliteDB;
+        Connection conn = DriverManager.getConnection(url);
+        return conn;
     }
 }
