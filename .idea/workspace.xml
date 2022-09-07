@@ -5,18 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="13b266ae-1121-43d2-868d-f9256aa0770d" name="Changes" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpManager.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PvpSessionImpl.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/players.db" beforeDir="false" afterPath="$PROJECT_DIR$/players.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/guild/GuildNotificationsGet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/guild/GuildNotificationsGet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerKeepAlive.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerKeepAlive.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerSettings.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerSettings.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerKeepAlive.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerKeepAlive.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDatasourceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDatasourceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerSettings.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerSettings.class" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

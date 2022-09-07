@@ -6,3 +6,4 @@ layouts/Basic Level 2 Empire.json
 *.assetbundle
 players.db
 .idea/workspace.xml
+/layouts

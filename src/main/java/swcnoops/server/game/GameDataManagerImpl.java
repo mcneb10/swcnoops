@@ -472,7 +472,7 @@ public class GameDataManagerImpl implements GameDataManager {
                         }
 
                         String s = ServiceFactory.instance().getJsonParser().toJson(mapObject);
-                        String s1 = s.replace(FactionType.rebel.name(), "{placeholder}").replace(FactionType.empire.name(), "{placeholder}");
+                        String s1 = s.replace(FactionType.rebel.name(), "{faction}").replace(FactionType.empire.name(), "{placeholder}");
 
                         String insertSql = "insert into DevBases (Id, buildings, hqlevel, xp) values (?, ?, ? ,?)";
                         try {
