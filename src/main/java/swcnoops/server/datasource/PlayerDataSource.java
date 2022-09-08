@@ -1,5 +1,6 @@
 package swcnoops.server.datasource;
 
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
@@ -11,7 +12,9 @@ import java.util.List;
 
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
+
     void initOnStartup();
+
     void savePlayerName(String playerId, String playerName);
 
     PlayerSettings loadPlayerSettings(String playerId);
@@ -83,4 +86,8 @@ public interface PlayerDataSource {
     DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);
 
     WarBattle getWarBattle(String battleId);
+
+    List<PvpMatch> getDevBaseMatches(PlayerSession playerSession);
+
+    Buildings getDevBaseMap(String id, FactionType faction);
 }

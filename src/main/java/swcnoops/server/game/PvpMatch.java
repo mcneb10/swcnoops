@@ -1,27 +1,20 @@
 package swcnoops.server.game;
 
 import swcnoops.server.model.BattleParticipant;
+import swcnoops.server.model.FactionType;
 
 public class PvpMatch {
     private String battleId;
     private String playerId;
     private String participantId;
-
+    private String name;
     private long battleDate;
-    private BattleParticipant attacker;
 
-    private BattleParticipant defender;
-
+    private FactionType factionType;
     private boolean isDevBase;
+    private int level;
+    private int defenderXp;
 
-    public PvpMatch(String battleId, String playerId, String participantId, BattleParticipant attacker, BattleParticipant defender, long battleDate) {
-        this.battleId = battleId;
-        this.playerId = playerId;
-        this.participantId = participantId;
-        this.attacker = attacker;
-        this.defender = defender;
-        this.battleDate = battleDate;
-    }
 
     public PvpMatch() {
     }
@@ -50,25 +43,52 @@ public class PvpMatch {
         this.participantId = participantId;
     }
 
-    public BattleParticipant getAttacker() {
-        return attacker;
+    public String getName() {
+        return name;
     }
 
-    public BattleParticipant getDefender() {
-        return defender;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public long getBattleDate() {
         return battleDate;
     }
 
-    public void setAttacker(BattleParticipant attacker) {
-        this.attacker = attacker;
+    public void setBattleDate(long battleDate) {
+        this.battleDate = battleDate;
     }
 
-    public void setDefender(BattleParticipant defender, boolean isDevBase) {
-        this.defender = defender;
-        this.isDevBase = isDevBase;
+    public FactionType getFactionType() {
+        return factionType;
+    }
+
+    public void setFactionType(FactionType factionType) {
+        this.factionType = factionType;
+    }
+
+    public boolean isDevBase() {
+        return isDevBase;
+    }
+
+    public void setDevBase(boolean devBase) {
+        isDevBase = devBase;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
+    public int getDefenderXp() {
+        return defenderXp;
+    }
+
+    public void setDefenderXp(int defenderXp) {
+        this.defenderXp = defenderXp;
     }
 }
 

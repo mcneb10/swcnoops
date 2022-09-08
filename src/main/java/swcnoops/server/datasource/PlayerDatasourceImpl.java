@@ -237,6 +237,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         Scalars scalars = null;
                         if (scalarsString != null) {
                             scalars = ServiceFactory.instance().getJsonParser().fromJsonString(scalarsString, Scalars.class);
+                        } else {
+                            scalars = new Scalars();
                         }
 
                     }
@@ -1802,8 +1804,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return warNotification;
     }
 
+    @Override
     public List<PvpMatch> getDevBaseMatches(PlayerSession playerSession) {
-        String sql = "SELECT id, buildings, buildings, hqlevel, xp FROM DevBases WHERE ( hqlevel >= ? -1 AND hqlevel <= ? +1) or (xp >= ( ? * 0.9) AND xp <= (? * 1.10) ) ORDER BY  xp ASC";
+        String sql = "SELECT id, buildings, buildings, hqlevel, xp FROM DevBases WHERE ( hqlevel >= ? -1 AND hqlevel <= ? +1) or (xp >= ( ? * 0.9) AND xp <= (? * 1.10) ) ORDER BY xp desc";
 
         List<PvpMatch> pvpMatches = new ArrayList<>();
 
@@ -1820,23 +1823,27 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
             while (rs.next()) {
 
-                BattleParticipant defender = new BattleParticipant();
-                defender.attackRating = 500;
-                defender.defenseRating = 500;
-                defender.playerId = rs.getString("id");
-                defender.name = "Dev Base";// TODO add randomised names...
-                defender.attackRatingDelta = 18;
-                defender.defenseRatingDelta = 18;
-                defender.faction = playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire;
-                defender.guildId = rs.getString("id");
-                defender.guildName = "DEV BASE";
-                defender.tournamentRating = 0;
-                defender.tournamentRatingDelta =0;
+//                BattleParticipant defender = new BattleParticipant();
+//                defender.attackRating = 500;
+//                defender.defenseRating = 500;
+//                defender.playerId = rs.getString("id");
+//                defender.name = "Dev Base";// TODO add randomised names...
+//                defender.attackRatingDelta = 18;
+//                defender.defenseRatingDelta = 18;
+//                defender.faction = playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire;
+//                defender.guildId = rs.getString("id");
+//                defender.guildName = "DEV BASE";
+//                defender.tournamentRating = 0;
+//                defender.tournamentRatingDelta = 0;
 
                 PvpMatch pvpMatch = new PvpMatch();
                 pvpMatch.setPlayerId(playerSession.getPlayerId());
+                pvpMatch.setParticipantId(rs.getString("id"));
+                pvpMatch.setDefenderXp(rs.getInt("xp"));
                 pvpMatch.setBattleId(ServiceFactory.createRandomUUID());
-                pvpMatch.setDefender(defender, true);
+                pvpMatch.setFactionType(playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire);
+                pvpMatch.setDevBase(true);
+                pvpMatch.setLevel(rs.getInt("hqlevel"));
                 pvpMatches.add(pvpMatch);
             }
 
@@ -1846,6 +1853,38 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return pvpMatches;
+    }
+
+
+    @Override
+    public Buildings getDevBaseMap(String id, FactionType faction) {
+        Buildings buildings = null;
+
+        System.out.println("getDevBaseMap---Id>" + id);
+        String sql = "SELECT buildings FROM DevBases WHERE id = ?";
+
+        try (Connection connection = getConnection()) {
+            System.out.println("Got Connection");
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, id);
+            System.out.println("PrepStatement---->" + preparedStatement.toString());
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()) {
+                String mapString = rs.getString("buildings");
+                mapString = mapString.replace(FactionType.neutral.name(), faction.name());
+                System.out.println("getDevBaseMap---->" + mapString);
+                try {
+                    buildings = ServiceFactory.instance().getJsonParser().fromJsonString(mapString, Buildings.class);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+        return buildings;
     }
 
 

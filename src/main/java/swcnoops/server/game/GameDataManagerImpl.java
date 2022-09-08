@@ -7,8 +7,6 @@ import swcnoops.server.commands.player.PlayerPvpGetNextTarget;
 import swcnoops.server.model.*;
 
 import java.io.File;
-import java.io.FileReader;
-import java.io.Reader;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -34,6 +32,10 @@ public class GameDataManagerImpl implements GameDataManager {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
     private FactionBuildingEquivalentMap factionBuildingEquivalentMap;
 
+    private Map<FactionType, Map<Integer, Integer>> troopSizeMapAvailableByFaction = new HashMap<>();
+
+    private Map<FactionType, List<Integer>> troopSizesAvailableByFaction = new HashMap<>();
+
     @Override
     public void initOnStartup() {
         try {
@@ -42,7 +44,9 @@ public class GameDataManagerImpl implements GameDataManager {
             this.traps = loadTraps();
             loadCampaigns();
             buildCustomTroopMaps();
-            setDevBases();
+            if (ServiceFactory.instance().getConfig().loadDevBases) {
+                setDevBases();
+            }
             this.factionBuildingEquivalentMap = create(this.buildingLevelsByBuildingId);
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
@@ -98,6 +102,20 @@ public class GameDataManagerImpl implements GameDataManager {
 
                 troopBySize.add(b);
             }
+        });
+        // MAP FOR AVAILABLE UNIT CAPACITIES
+        this.troopSizeMapByFaction.forEach((a, b) -> {
+            Map<Integer, List<TroopData>> troopMapData = b;
+            troopMapData.forEach((c, d) -> {
+                List<Integer> troopsSizesAvailableByFaction = this.troopSizesAvailableByFaction.get(a);
+                if (troopsSizesAvailableByFaction == null) {
+                    troopsSizesAvailableByFaction = new ArrayList<>();
+                    this.troopSizesAvailableByFaction.put(a, troopsSizesAvailableByFaction);
+                }
+                troopsSizesAvailableByFaction.add(c);
+                troopsSizesAvailableByFaction.sort((o1, o2) -> Integer.compare(o1, o2));
+            });
+
         });
     }
 
@@ -271,6 +289,7 @@ public class GameDataManagerImpl implements GameDataManager {
 
         List<Map<String, String>> gameConstants = (List<Map<String, String>>) objectsMap.get("GameConstants");
         this.gameConstants = readGameConstants(gameConstants);
+
     }
 
     private GameConstants readGameConstants(List<Map<String, String>> gameConstants) throws Exception {
@@ -431,6 +450,14 @@ public class GameDataManagerImpl implements GameDataManager {
     }
 
 
+    @Override
+    public int getPvpMatchCost(int hQLevel) {
+        String costArray[] = gameConstants.pvp_search_cost_by_hq_level.split(" ");
+        int cost = Integer.parseInt(costArray[hQLevel - 1]);
+        return cost;
+    }
+
+
     private boolean clearDevBases(Connection connection) {
         String sql = "DELETE FROM DevBases";
         try {
@@ -472,7 +499,7 @@ public class GameDataManagerImpl implements GameDataManager {
                         }
 
                         String s = ServiceFactory.instance().getJsonParser().toJson(mapObject);
-                        String s1 = s.replace(FactionType.rebel.name(), "{faction}").replace(FactionType.empire.name(), "{faction}");
+                        String s1 = s.replace(FactionType.rebel.name(), FactionType.neutral.name()).replace(FactionType.empire.name(), FactionType.neutral.name());
 
                         String insertSql = "insert into DevBases (Id, buildings, hqlevel, xp) values (?, ?, ? ,?)";
                         try {
@@ -487,7 +514,7 @@ public class GameDataManagerImpl implements GameDataManager {
 
                         }
                     }
-
+                    LOG.info("Finished setting up dev bases");
                 } catch (Exception ex) {
                     LOG.error("Failed to load next layout", ex);
                 }
@@ -519,5 +546,17 @@ public class GameDataManagerImpl implements GameDataManager {
         String url = ServiceFactory.instance().getConfig().playerSqliteDB;
         Connection conn = DriverManager.getConnection(url);
         return conn;
+    }
+
+
+    @Override
+    public List<Integer> getTroopSizesAvailable(FactionType faction) {
+        return this.troopSizesAvailableByFaction.get(faction);
+    }
+
+    @Override
+    public String randomDevBaseName() {
+        //TODO, make this random based on some stored values.... I have a cunning plan for this, Baldrick
+        return "DEV BASE";
     }
 }

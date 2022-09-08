@@ -25,7 +25,16 @@ public class Scalars {
     public int softCash;
 
     public Scalars() {
-
+        this.attacksLost = 0;
+        this.attacksWon = 0;
+        this.defensesLost = 0;
+        this.defensesWon = 0;
+        this.attacksStarted = 0;
+        this.attacksCompleted = 0;
+        this.attackRating = 100;
+        this.defenseRating = 0;
+        this.xp = 0;
+        this.softCash = 0;
     }
 
 

@@ -20,6 +20,8 @@ public class GameConstants {
     public Integer credits_coefficient;
     public Integer credits_exponent;
 
+    public String pvp_search_cost_by_hq_level;
+
     public static GameConstants createFromBaseJson(List<Map<String, String>> gameConstants) throws Exception {
         GameConstants constants = new GameConstants();
         constants.setConstants(gameConstants);
