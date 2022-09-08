@@ -8,7 +8,9 @@ import swcnoops.server.session.WarSession;
 import swcnoops.server.session.WarSessionImpl;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
@@ -87,7 +89,7 @@ public interface PlayerDataSource {
 
     WarBattle getWarBattle(String battleId);
 
-    List<PvpMatch> getDevBaseMatches(PlayerSession playerSession);
+    HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession);
 
     Buildings getDevBaseMap(String id, FactionType faction);
 }

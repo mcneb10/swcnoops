@@ -2,6 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.game.PvpMatch;
 
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 public interface PvpManager {
@@ -10,7 +11,7 @@ public interface PvpManager {
 
     void removeBattle(String battleId);
 
-    ConcurrentHashMap<String, PvpMatch> getBattles();
+    HashMap<String, PvpMatch> getBattles();
 
     PvpMatch getNextMatch();
 }

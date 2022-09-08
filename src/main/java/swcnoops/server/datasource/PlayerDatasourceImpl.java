@@ -1805,10 +1805,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public List<PvpMatch> getDevBaseMatches(PlayerSession playerSession) {
+    public HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession) {
         String sql = "SELECT id, buildings, buildings, hqlevel, xp FROM DevBases WHERE ( hqlevel >= ? -1 AND hqlevel <= ? +1) or (xp >= ( ? * 0.9) AND xp <= (? * 1.10) ) ORDER BY xp desc";
 
-        List<PvpMatch> pvpMatches = new ArrayList<>();
+        HashMap<String, PvpMatch> pvpMatches = new HashMap<>();
 
 
         try (Connection connection = getConnection()) {
@@ -1835,16 +1835,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 //                defender.guildName = "DEV BASE";
 //                defender.tournamentRating = 0;
 //                defender.tournamentRatingDelta = 0;
-
+                String battleId = ServiceFactory.createRandomUUID();
                 PvpMatch pvpMatch = new PvpMatch();
                 pvpMatch.setPlayerId(playerSession.getPlayerId());
                 pvpMatch.setParticipantId(rs.getString("id"));
                 pvpMatch.setDefenderXp(rs.getInt("xp"));
-                pvpMatch.setBattleId(ServiceFactory.createRandomUUID());
+                pvpMatch.setBattleId(battleId);
                 pvpMatch.setFactionType(playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire);
                 pvpMatch.setDevBase(true);
                 pvpMatch.setLevel(rs.getInt("hqlevel"));
-                pvpMatches.add(pvpMatch);
+                pvpMatches.put(battleId, pvpMatch);
+                System.out.println("BattleId added to matches" + battleId);
             }
 
 

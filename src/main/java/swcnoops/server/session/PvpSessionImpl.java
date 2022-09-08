@@ -3,17 +3,17 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.PvpMatch;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class PvpSessionImpl implements PvpManager {
-    private List<PvpMatch> pvpMatchList;
-    private ConcurrentHashMap<String, PvpMatch> pvpMatches = new ConcurrentHashMap<>();
+
+    private HashMap<String, PvpMatch> pvpMatches;
 
     private PlayerSession playerSession;
-
-    int currentMatch = 0;
 
     public PvpSessionImpl(PlayerSession playerSession) {
         this.playerSession = playerSession;
@@ -21,7 +21,7 @@ public class PvpSessionImpl implements PvpManager {
     }
 
     @Override
-    public ConcurrentHashMap<String, PvpMatch> getBattles() {
+    public HashMap<String, PvpMatch> getBattles() {
         return pvpMatches;
     }
 
@@ -38,14 +38,14 @@ public class PvpSessionImpl implements PvpManager {
     @Override
     public PvpMatch getNextMatch() {
         Random random = new Random();
-        if (this.pvpMatchList == null) {
-            this.pvpMatchList = ServiceFactory.instance().getPlayerDatasource().getDevBaseMatches(playerSession);
+        if (this.pvpMatches == null) {
+            this.pvpMatches = ServiceFactory.instance().getPlayerDatasource().getDevBaseMatches(playerSession);
         }
-
 //        int matchIndex = currentMatch < pvpMatchList.size() ? currentMatch : 0;
 //        currentMatch++;
-        int matchIndex = random.nextInt(pvpMatchList.size());
-        return pvpMatchList.get(matchIndex);
+        String[] battleId = pvpMatches.keySet().toArray(new String[0]);
+        int matchIndex = random.nextInt(pvpMatches.size());
+        return pvpMatches.get(battleId[matchIndex]);
     }
 
 
