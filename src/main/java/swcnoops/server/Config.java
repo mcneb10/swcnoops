@@ -40,7 +40,6 @@ public class Config {
     public long warResultDuration = 60 * 2;                // server result duration
     public long warCoolDownDuration = 60 * 60 * 24;        // war cool down
     public int batchResponseReplayWait = 1000 * 5;
-    public boolean validateAuthKey = false;
     public boolean enableBatchResponseReplayer = false;
     public boolean freeResources = true;
     public boolean handleMissingAccounts = true;

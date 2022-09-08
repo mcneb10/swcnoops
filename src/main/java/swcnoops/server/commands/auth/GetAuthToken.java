@@ -61,10 +61,8 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
 
         String expectedToken = TokenHelper.generateToken(message, playerSecret.getSecret());
 
-        if (ServiceFactory.instance().getConfig().validateAuthKey) {
-            if (!playerSecret.isMissingSecret() && !expectedToken.equals(requestToken)) {
-                throw new RuntimeException("Invalid requestToken by player " + arguments.getPlayerId());
-            }
+        if (!playerSecret.isMissingSecret() && !expectedToken.equals(requestToken)) {
+            throw new RuntimeException("Invalid requestToken by player " + arguments.getPlayerId());
         }
 
         // we send back a token
