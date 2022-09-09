@@ -14,4 +14,6 @@ public interface PvpManager {
     HashMap<String, PvpMatch> getBattles();
 
     PvpMatch getNextMatch();
+
+    PvpMatch getMatch(String battleId);
 }

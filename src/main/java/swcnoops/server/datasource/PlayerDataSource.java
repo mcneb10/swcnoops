@@ -1,5 +1,6 @@
 package swcnoops.server.datasource;
 
+import swcnoops.server.commands.player.PlayerPvpBattleComplete;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
@@ -92,4 +93,8 @@ public interface PlayerDataSource {
     HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession);
 
     Buildings getDevBaseMap(String id, FactionType faction);
+
+    void saveNewBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog);
+
+    List<BattleLog> getPlayerBattleLogs(String playerId);
 }

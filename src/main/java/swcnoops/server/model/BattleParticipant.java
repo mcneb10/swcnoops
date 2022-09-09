@@ -29,6 +29,7 @@ public class BattleParticipant {
     public BattleParticipant(){
 
     }
+
     public BattleParticipant(String playerId, String name, String guildId, String guildName, int attackRating, int attackRatingDelta, int defenseRating, int defenseRatingDelta, int tournamentRating, int tournamentRatingDelta, FactionType faction) {
         this.playerId = playerId;
         this.name = name;

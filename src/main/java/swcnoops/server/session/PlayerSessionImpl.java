@@ -1053,4 +1053,11 @@ public class PlayerSessionImpl implements PlayerSession {
     public PvpSessionImpl getPvpSession() {
         return pvpSession;
     }
+
+
+    @Override
+    public void updateScalars(Scalars scalars) {
+        this.playerSettings.setScalars(scalars);
+        savePlayerSession();
+    }
 }

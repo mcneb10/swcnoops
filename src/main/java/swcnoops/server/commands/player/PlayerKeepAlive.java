@@ -14,7 +14,6 @@ public class PlayerKeepAlive extends OkCommandAction {
 
     @Override
     protected CommandResult execute(CommandArguments arguments, long time) throws Exception {
-        System.out.println("KEEP ALIVE---->"+arguments.getPlayerId());
         ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).getPlayerSettings().setKeepAlive(time);
         ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).savePlayerSession();
 

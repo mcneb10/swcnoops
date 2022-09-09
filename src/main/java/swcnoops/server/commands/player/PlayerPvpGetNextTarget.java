@@ -9,6 +9,7 @@ import swcnoops.server.game.*;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.CurrencyDelta;
+import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureDataMap;
 import swcnoops.server.session.creature.CreatureManagerFactory;
@@ -45,7 +46,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.name = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
         response.guildName = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
         response.playerId = pvpMatch.getParticipantId();
-        response.faction = pvpMatch.getFactionType().name();
+        response.faction = pvpMatch.getFactionType();
         response.guildId = pvpMatch.getParticipantId();
         response.level = pvpMatch.getLevel();
         PlayerMap map = new PlayerMap();
@@ -68,14 +69,51 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.creditsCharged = ServiceFactory.instance().getGameDataManager().getPvpMatchCost(ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).getHeadQuarter().getBuildingData().getLevel());
         response.xp = pvpMatch.getDefenderXp();
         //TODO - take this value from player's funds...
-        CurrencyDelta currencyDelta = new CurrencyDelta(response.creditsCharged, response.creditsCharged, CurrencyType.credits, true );
+        CurrencyDelta currencyDelta = new CurrencyDelta(response.creditsCharged, response.creditsCharged, CurrencyType.credits, true);
         ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).processInventoryStorage(currencyDelta);
-
+        addParticipantsToMatch(response, pvpMatch);
         setupDefenseTroops(response, response.map);
+        //TODO... this properly.
+        pvpMatch.setAttackerEquipment(new JsonStringArrayList());
+        pvpMatch.setDefenderEquipment(new JsonStringArrayList());
+
+
+    }
+
+    private void addParticipantsToMatch(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
+        BattleParticipant defender;
+        //TODO pull from actual player
+        Random random = new Random();
+        int potentialScoreWin = Math.max(random.nextInt(50), 12);
+        int potentialScoreLose = Math.max(random.nextInt(50), 12);
+
+        defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName, 0, 0, 0, potentialScoreLose * -1, 0, 0, response.faction);
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
+        String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
+
+        BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(), playerSession.getPlayerSettings().getName(), playerSession.getPlayerSettings().getGuildId(), guildName, playerSession.getPlayerSettings().getScalars().attackRating, potentialScoreWin, playerSession.getPlayerSettings().getScalars().defenseRating, 0, 0, 0, playerSession.getFaction());
+
+        pvpMatch.setDefender(defender);
+        pvpMatch.setAttacker(attacker);
+
+        Map<String, Integer> potentialPoints = new HashMap<>();
+        potentialPoints.put("potentialScoreWin", potentialScoreWin);
+        potentialPoints.put("potentialScoreLose", potentialScoreLose);
+
+
+        response.potentialMedalsToGain = potentialScoreWin;
+        response.potentialMedalsToLose = potentialScoreLose;
+
+        pvpMatch.setPotentialScoreWin(potentialScoreWin);
+        pvpMatch.setPotentialScoreLose(potentialScoreLose);
+
+        response.potentialPoints = potentialPoints;
     }
 
     private void setupDevResourcesBaseData(PlayerPvpGetNextTargetCommandResult response, String attackerId) {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(attackerId);
+
+
         response.attacksWon = 0;
         response.attackRating = 0;
         response.defensesWon = 0;//TODO - might be fun to track this actually?
@@ -85,12 +123,16 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         int creditStorage = playerSession.getPlayerSettings().getInventoryStorage().credits.capacity;
         int materialsStorage = playerSession.getPlayerSettings().getInventoryStorage().materials.capacity;
         int contraStorage = playerSession.getPlayerSettings().getInventoryStorage().contraband.capacity;
+
+        int currentCredits = playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
+        int currentMaterials = playerSession.getPlayerSettings().getInventoryStorage().materials.amount;
+        int currentContraband = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
         //TODO may be worth adding these to config instead...
 
-        BigDecimal creditsAvailable = new BigDecimal(Math.max(creditStorage * 0.5, creditStorage * random.nextFloat()));
-        BigDecimal materialsAvailable = new BigDecimal(Math.max(materialsStorage * 0.5, materialsStorage * random.nextFloat()));
-        BigDecimal contraAvailable = new BigDecimal(Math.max(contraStorage * 0.5, contraStorage * random.nextFloat()));
-//        PvpTargetResourcesMap pvpTargetResourcesMap =new PvpTargetResourcesMap(creditsAvailable.intValue(), materialsAvailable.intValue(), contraAvailable.intValue());
+//        BigDecimal creditsAvailable = creditStorage == currentCredits ? new BigDecimal(0) : new BigDecimal(Math.min(creditStorage * 0.25, creditStorage * random.nextFloat()));
+        BigDecimal creditsAvailable = new BigDecimal(Math.min(creditStorage * 0.25, creditStorage * random.nextFloat()));
+        BigDecimal materialsAvailable = new BigDecimal(Math.min(materialsStorage * 0.25, materialsStorage * random.nextFloat()));
+        BigDecimal contraAvailable = new BigDecimal(Math.min(contraStorage * 0.25, contraStorage * random.nextFloat()));
 
         Map<CurrencyType, Integer> buildingLootCreditsMap = new HashMap<>();
         buildingLootCreditsMap.put(CurrencyType.credits, creditsAvailable.intValue());
@@ -106,21 +148,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         pvpTargetResourcesMap.put(CurrencyType.materials, buildingLootmaterialsMap);
         pvpTargetResourcesMap.put(CurrencyType.contraband, buildingLootcontrabandMap);
         response.resources = pvpTargetResourcesMap;
-
-        Map<String, Integer> potentialPoints = new HashMap<>();
-        int potentialScoreWin = Math.max(random.nextInt(50), 12);
-        int potentialScoreLose = Math.max(random.nextInt(50), 12);
-        potentialPoints.put("potentialScoreWin", potentialScoreWin);
-        potentialPoints.put("potentialScoreLose", potentialScoreLose);
-        response.potentialMedalsToGain = potentialScoreWin;
-        response.potentialMedalsToLose = potentialScoreLose;
-        response.potentialPoints = potentialPoints;
-
-
-//        Map<ResourceTypes, Map<ResourceTypes, Integer>> resources = new HashMap<>();
-//        resources.put(ResourceTypes.credits, new HashMap<>().put(ResourceTypes.credits, creditsAvailable));
-
-
     }
 
     private void setupDefenseTroops(PlayerPvpGetNextTargetCommandResult response, PlayerMap map) {

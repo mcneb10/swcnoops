@@ -55,5 +55,8 @@ public interface GameDataManager {
     BuildingData getFactionEquivalentOfBuilding(BuildingData oldBuildingData, FactionType faction);
 
     int getPvpMatchCost(int hQLevel);
+
     String randomDevBaseName();
+
+    Double getMedalScaling(int stars);
 }

@@ -36,8 +36,11 @@ public class GameDataManagerImpl implements GameDataManager {
 
     private Map<FactionType, List<Integer>> troopSizesAvailableByFaction = new HashMap<>();
 
+    private Map<Integer, Double> pvpMedalScaling;
+
     @Override
     public void initOnStartup() {
+
         try {
             loadTroops();
             loadBaseJson();
@@ -558,5 +561,17 @@ public class GameDataManagerImpl implements GameDataManager {
     public String randomDevBaseName() {
         //TODO, make this random based on some stored values.... I have a cunning plan for this, Baldrick
         return "DEV BASE";
+    }
+
+    @Override
+    public Double getMedalScaling(int stars) {
+        if (this.pvpMedalScaling == null) {
+            this.pvpMedalScaling = new HashMap<>();
+            this.pvpMedalScaling.put(1, 0.3);
+            this.pvpMedalScaling.put(2, 0.7);
+            this.pvpMedalScaling.put(3, 1.0);
+            this.pvpMedalScaling.put(0, 1.0);
+        }
+        return this.pvpMedalScaling.get(stars);
     }
 }

@@ -41,12 +41,13 @@ public class PvpSessionImpl implements PvpManager {
         if (this.pvpMatches == null) {
             this.pvpMatches = ServiceFactory.instance().getPlayerDatasource().getDevBaseMatches(playerSession);
         }
-//        int matchIndex = currentMatch < pvpMatchList.size() ? currentMatch : 0;
-//        currentMatch++;
         String[] battleId = pvpMatches.keySet().toArray(new String[0]);
         int matchIndex = random.nextInt(pvpMatches.size());
         return pvpMatches.get(battleId[matchIndex]);
     }
 
-
+    @Override
+    public PvpMatch getMatch(String battleId) {
+        return this.pvpMatches.get(battleId);
+    }
 }

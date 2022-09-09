@@ -1,9 +1,10 @@
 package swcnoops.server.datasource;
 
+
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
-import swcnoops.server.game.BuildingData;
+import swcnoops.server.commands.player.PlayerPvpBattleComplete;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -240,6 +241,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         } else {
                             scalars = new Scalars();
                         }
+                        playerSettings.setScalars(scalars);
 
                     }
                 }
@@ -430,19 +432,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
 
         int xp = ServiceFactory.getXpFromBuildings(playerMap.buildings);
-//        ArrayList<BuildingData> buildingData = new ArrayList<BuildingData>();
-//
-//        for (Building b : playerMap.buildings) {
-//            BuildingData bbb = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(b.uid);
-//            buildingData.add(bbb);
-//        }
-//
-//        BuildingData[] bd = buildingData.toArray(new BuildingData[0]);
-//        int xp = Arrays.stream(bd).mapToInt(BuildingData::getXp).sum();
+
         Scalars scalars = playerSession.getPlayerSettings().getScalars();
         scalars.xp = xp;
         String scalarsJson = ServiceFactory.instance().getJsonParser().toJson(scalars);
-
+        System.out.println(playerSession.getPlayer() + "|scalarsJson---->" + scalarsJson);
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
                 creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
                 playerSession.getPlayerSettings().getFaction(),
@@ -1889,4 +1883,143 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
 
+    @Override
+    public void saveNewBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
+        try {
+            Connection connection = getConnection();
+//            saveBattle(connection, pvpBattle.getBattleId(), match);
+            saveBattleBaseData(connection, pvpBattle, match, battleLog);
+            saveReplayData(connection, pvpBattle);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveReplayData(Connection connection, PlayerPvpBattleComplete pvpBattle) {
+        String insertNewPvPBattleReplay = "insert into PvpBattles_ReplayData (BattleId, combatEncounter, battleActions, attackerDeploymentData,\n" + "                                   defenderDeploymentData, lootCreditsAvailable, lootMaterialsAvailable,\n" + "                                   lootContrabandAvailable, lootBuildingCreditsMap, lootBuildingMaterialsMap,\n" + "                                   lootBuildingContrabandMap, battleType, battleLength, lowFPS, lowFPSTime,\n" + "                                   battleVersion, planetId, manifestVersion, battleAttributes, victoryConditions,\n" + "                                   failureCondition, donatedTroops, donatedTroopsAttacker, champions, disabledBuildings,\n" + "                                   simSeedA, simSeedB, viewTimePreBattle, attackerCreatureTraps, defenderCreatureTraps)\n" + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(insertNewPvPBattleReplay)) {
+            stmt.setString(1, pvpBattle.getBattleId());
+            stmt.setString(2, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().combatEncounter));
+            stmt.setString(3, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().battleActions));
+            stmt.setString(4, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().attackerDeploymentData));
+            stmt.setString(5, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().defenderDeploymentData));
+            stmt.setLong(6, pvpBattle.getReplayData().lootCreditsAvailable);
+
+            stmt.setLong(7, pvpBattle.getReplayData().lootMaterialsAvailable);
+            stmt.setLong(8, pvpBattle.getReplayData().lootContrabandAvailable);
+            stmt.setString(9, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingCreditsMap));
+            stmt.setString(10, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingMaterialsMap));
+            stmt.setString(11, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingContrabandMap));
+
+            stmt.setString(12, pvpBattle.getReplayData().battleType.name());
+            stmt.setLong(13, pvpBattle.getReplayData().battleLength);
+            stmt.setLong(14, pvpBattle.getReplayData().lowFPS);
+            stmt.setLong(15, pvpBattle.getReplayData().lowFPSTime);
+            stmt.setString(16, pvpBattle.getReplayData().battleVersion);
+
+            stmt.setString(17, pvpBattle.getReplayData().planetId);
+            stmt.setString(18, pvpBattle.getReplayData().manifestVersion);
+            stmt.setString(19, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().battleAttributes));
+            stmt.setString(20, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().victoryConditions));
+            stmt.setString(21, pvpBattle.getReplayData().failureCondition);
+
+            stmt.setString(22, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().donatedTroops));
+            stmt.setString(23, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().donatedTroopsAttacker));
+            stmt.setString(24, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().champions));
+            stmt.setString(25, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().disabledBuildings));
+            stmt.setLong(26, pvpBattle.getReplayData().simSeedA);
+
+            stmt.setLong(27, pvpBattle.getReplayData().simSeedB);
+            stmt.setDouble(28, pvpBattle.getReplayData().viewTimePreBattle);
+            stmt.setString(29, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().attackerCreatureTraps));
+            stmt.setString(30, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().defenderCreatureTraps));
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to add new battle Replay" + ex.getMessage());
+        }
+
+
+    }
+
+    private void saveBattleBaseData(Connection connection, PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
+        String insertNewBattle = "insert into PvpBattleData (" +
+                "battleId," +
+                " cs, " +
+                "_credits, " +
+                "_materials, " +
+                "_contraband, " +
+                "_crystals," +
+                "seededTroopsDeployed, " +
+                "damagedBuildings, " +
+                "unarmedTraps, " +
+                "baseDamagePercent,  " +
+                "stars, " +
+                "isUserEnded, " +
+                "planetId, " +
+                "attackerId, " +
+                "participantId, " +
+                "battleDate," +
+                "BattleLog) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        PreparedStatement stmt = null;
+        try {
+            stmt = connection.prepareStatement(insertNewBattle);
+            stmt.setString(1, pvpBattle.getBattleId());
+            stmt.setLong(2, pvpBattle.getCs());
+            stmt.setInt(3, pvpBattle.getCredits());
+            stmt.setInt(4, pvpBattle.getMaterials());
+            stmt.setInt(5, pvpBattle.getContraband());
+            stmt.setInt(6, pvpBattle.getCrystals());
+            stmt.setString(7, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getSeededTroopsDeployed()));
+            stmt.setString(8, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getDamagedBuildings()));
+            stmt.setString(9, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getUnarmedTraps()));
+            stmt.setInt(10, pvpBattle.getBaseDamagePercent());
+            stmt.setInt(11, pvpBattle.getStars());
+            stmt.setBoolean(12, pvpBattle.isUserEnded());
+            stmt.setString(13, pvpBattle.getPlanetId());
+            stmt.setString(14, pvpBattle.getPlayerId());
+            stmt.setString(15, match.getParticipantId());
+            stmt.setLong(16, match.getBattleDate());
+            stmt.setString(17, ServiceFactory.instance().getJsonParser().toJson(battleLog));
+            System.out.println(stmt.toString());
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Failed to add new battle data");
+        }
+    }
+
+
+    @Override
+    public List<BattleLog> getPlayerBattleLogs(String playerId) {
+        List<BattleLog> battleLogs = new ArrayList<>();
+        String battleLogSql = "SELECT BattleLog " +
+                "FROM PvpBattleData " +
+                "WHERE attackerId = ? OR participantId = ? LIMIT 30";
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(battleLogSql);
+            preparedStatement.setString(1, playerId);
+            preparedStatement.setString(2, playerId);
+
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    BattleLog battleLog = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("BattleLog"), BattleLog.class);
+
+                    battleLogs.add(battleLog);
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new RuntimeException("Error retrieving resultset for player battle logs");
+            }
+
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Failed to get DB connection when retrieving playerbattlelogs");
+        }
+
+        return battleLogs;
+    }
 }

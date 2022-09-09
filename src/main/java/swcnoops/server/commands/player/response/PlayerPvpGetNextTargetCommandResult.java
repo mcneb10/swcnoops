@@ -13,7 +13,7 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
     public String name;
     public int level;
     public int xp;
-    public String faction;
+    public FactionType faction;
 
     public int attackRating;
     public int defenseRating;
