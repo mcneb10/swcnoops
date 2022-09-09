@@ -2,11 +2,14 @@ package swcnoops.server;
 
 import swcnoops.server.datasource.PlayerDataSource;
 import swcnoops.server.datasource.PlayerDatasourceImpl;
+import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.GameDataManagerImpl;
 import swcnoops.server.json.GsonJsonParser;
 import swcnoops.server.json.JacksonJsonParser;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.Building;
+import swcnoops.server.model.Buildings;
 import swcnoops.server.requests.BatchProcessor;
 import swcnoops.server.requests.BatchProcessorImpl;
 import swcnoops.server.session.AuthenticationService;
@@ -15,6 +18,9 @@ import swcnoops.server.session.SessionManager;
 import swcnoops.server.session.SessionManagerImpl;
 import swcnoops.server.trigger.CommandTriggerProcessor;
 import swcnoops.server.trigger.CommandTriggerProcessorImpl;
+
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.UUID;
 
 public class ServiceFactory {
@@ -39,6 +45,22 @@ public class ServiceFactory {
         }
 
         return instance;
+    }
+
+    static public int getXpFromBuildings(Buildings buildings){
+        ArrayList<BuildingData> buildingData = new ArrayList<BuildingData>();
+        int xp =0;
+
+        for (Building b : buildings) {
+            BuildingData bbb = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(b.uid);
+            buildingData.add(bbb);
+        }
+        BuildingData[] bd = buildingData.toArray(new BuildingData[0]);
+        xp = Arrays.stream(bd).mapToInt(BuildingData::getXp).sum();
+
+
+        return xp;
+
     }
 
     final public BatchProcessor getBatchProcessor() {

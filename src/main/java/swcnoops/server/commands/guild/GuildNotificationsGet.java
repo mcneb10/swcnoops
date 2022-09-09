@@ -20,6 +20,8 @@ public class GuildNotificationsGet extends AbstractCommandAction<GuildNotificati
         SessionManager sessionManager = ServiceFactory.instance().getSessionManager();
         PlayerSession playerSession = sessionManager.getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = playerSession.getGuildSession();
+        playerSession.getPlayerSettings().setKeepAlive(time);
+        playerSession.savePlayerSession();
 
         GuildNotificationsGetResult guildNotificationsGetResult = new GuildNotificationsGetResult();
 
@@ -35,6 +37,7 @@ public class GuildNotificationsGet extends AbstractCommandAction<GuildNotificati
                 guildNotificationsGetResult.addNotifications(notifications);
             }
         }
+
 
         return guildNotificationsGetResult;
     }

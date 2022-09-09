@@ -10,6 +10,7 @@ public interface GameDataManager {
 
     /**
      * Troop data includes specialAttacks
+     *
      * @param uid
      * @return
      */
@@ -23,6 +24,7 @@ public interface GameDataManager {
      * Returns level1 data by the UnitID.
      * This is so if a player does not have the troop assigned, but the client thinks it should
      * then it should be using the first level of that unit.
+     *
      * @param unitId
      * @return
      */
@@ -44,9 +46,17 @@ public interface GameDataManager {
 
     Map<Integer, List<TroopData>> getTroopSizeMap(FactionType faction);
 
+    List<Integer> getTroopSizesAvailable(FactionType faction);
+
     int getMaxlevelForTroopUnitId(String unitId);
 
     GameConstants getGameConstants();
 
     BuildingData getFactionEquivalentOfBuilding(BuildingData oldBuildingData, FactionType faction);
+
+    int getPvpMatchCost(int hQLevel);
+
+    String randomDevBaseName();
+
+//    float getMedalScaling(int stars);
 }
