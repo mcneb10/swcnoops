@@ -43,7 +43,44 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     String sql = getCreatePlayerDBSql();
                     stmt.executeUpdate(sql);
                 }
+
+                String tempDbURL = ServiceFactory.instance().getConfig().playerSqliteDB + ".temp";
+                String dbLocation = tempDbURL.substring("jdbc:sqlite:".length());
+                File file = new File(dbLocation);
+                if (file.exists())
+                    file.delete();
+
+                try (Connection tempDBConnection = getTempDBConnection(tempDbURL)) {
+                    try (Statement stmt = tempDBConnection.createStatement()) {
+                        String sql = getCreatePlayerDBSql();
+                        stmt.executeUpdate(sql);
+
+                        try (ResultSet rs = tempDBConnection.getMetaData().getTables(null, null, null, null)) {
+                            while (rs.next()) {
+                                String tableName = rs.getString("TABLE_NAME");
+
+                                // process new columns
+                                try(ResultSet columns = tempDBConnection.getMetaData().getColumns(null,null, tableName, null)){
+                                    while(columns.next()) {
+                                        String columnName = columns.getString("COLUMN_NAME");
+                                        String typeName = columns.getString("TYPE_NAME");
+                                        try (ResultSet destColumns = connection.getMetaData().getColumns(null, null, tableName, columnName)) {
+                                            // if column is missing then we go and create it
+                                            if(!destColumns.next()) {
+                                                try (Statement addColumnStmt = connection.createStatement()) {
+                                                    String columnSql = "alter table " + tableName + " add " + columnName + " " + typeName + ";";
+                                                    addColumnStmt.executeUpdate(columnSql);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
+
         } catch (SQLException ex) {
             throw new RuntimeException("Failed player DB check", ex);
         }
@@ -61,6 +98,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private Connection getConnection() throws SQLException {
         String url = ServiceFactory.instance().getConfig().playerSqliteDB;
+        Connection conn = DriverManager.getConnection(url);
+        return conn;
+    }
+
+    private Connection getTempDBConnection(String url) throws SQLException {
         Connection conn = DriverManager.getConnection(url);
         return conn;
     }
