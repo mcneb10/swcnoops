@@ -1,0 +1,255 @@
+{
+  "playerId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "locale": "en_US",
+  "network": "u",
+  "viewNetwork": "a",
+  "abTests": {
+
+  },
+  "sharedPrefs": {
+    "cmv":"0"
+  },
+  "hardCashLog": [],
+  "pushRewarded": false,
+  "playerModel": {
+    "guildInfo": null,
+    "upgrades": {
+      "troop": {},
+      "specialAttack": {},
+      "building": {},
+      "equipment": {}
+    },
+    "prizes": {
+      "troop": {},
+      "specialAttack": {},
+      "resources": {}
+    },
+    "donatedTroops": {},
+    "buildingsUnderConstruction": [],
+    "map": {
+      "planet":"planet1",
+      "next":55,
+      "buildings":[{"key":"bld_1","x":-2,"z":-2,"uid":"smugglerHQ1","lastCollectTime":0,"currentStorage":0},{"key":"bld_2","x":2,"z":3,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_3","x":3,"z":0,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_4","x":3,"z":1,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_5","x":3,"z":2,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_6","x":3,"z":3,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_7","x":3,"z":-1,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_8","x":3,"z":-2,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_9","x":3,"z":-3,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_10","x":3,"z":-4,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_11","x":2,"z":-4,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_12","x":-3,"z":3,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_13","x":-4,"z":3,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_14","x":-4,"z":2,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_15","x":-4,"z":1,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_16","x":-4,"z":0,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_17","x":-4,"z":-1,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_18","x":-4,"z":-2,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_19","x":-4,"z":-3,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_20","x":-4,"z":-4,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_21","x":-3,"z":-4,"uid":"smugglerWall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_22","x":0,"z":4,"uid":"smugglerFUETurret1","lastCollectTime":0,"currentStorage":0},{"key":"bld_23","x":-7,"z":1,"uid":"smugglerCreditStorage1","lastCollectTime":0,"currentStorage":0},{"key":"bld_24","x":-7,"z":4,"uid":"smugglerCreditGenerator1","lastCollectTime":1662581478,"currentStorage":1000},{"key":"bld_25","x":6,"z":-5,"uid":"smugglerFUEStarport1","lastCollectTime":0,"currentStorage":0},{"key":"bld_26","x":5,"z":1,"uid":"smugglerDroidHut1","lastCollectTime":0,"currentStorage":0},{"key":"bld_27","x":-15,"z":10,"uid":"rockMedium1","lastCollectTime":0,"currentStorage":1},{"key":"bld_28","x":-16,"z":7,"uid":"junkLarge1","lastCollectTime":0,"currentStorage":3},{"key":"bld_29","x":-11,"z":8,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_30","x":12,"z":14,"uid":"rockLarge1","lastCollectTime":0,"currentStorage":2},{"key":"bld_31","x":-5,"z":17,"uid":"rockLarge1","lastCollectTime":0,"currentStorage":3},{"key":"bld_32","x":-3,"z":15,"uid":"rockMedium1","lastCollectTime":0,"currentStorage":2},{"key":"bld_33","x":10,"z":10,"uid":"rockSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_34","x":10,"z":8,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_35","x":16,"z":-9,"uid":"junkLarge1","lastCollectTime":0,"currentStorage":2},{"key":"bld_36","x":14,"z":-11,"uid":"rockSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_37","x":5,"z":-16,"uid":"junkMedium1","lastCollectTime":0,"currentStorage":2},{"key":"bld_38","x":3,"z":-17,"uid":"rockSmall1","lastCollectTime":0,"currentStorage":2},{"key":"bld_39","x":-9,"z":-11,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_40","x":-17,"z":-5,"uid":"rockLarge1","lastCollectTime":0,"currentStorage":3},{"key":"bld_41","x":-6,"z":-12,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_42","x":-7,"z":-10,"uid":"rockSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_43","x":-20,"z":13,"uid":"rockLarge1","lastCollectTime":0,"currentStorage":3},{"key":"bld_44","x":-2,"z":17,"uid":"rockLarge1","lastCollectTime":0,"currentStorage":3},{"key":"bld_45","x":0,"z":-19,"uid":"rockSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_46","x":13,"z":16,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":2},{"key":"bld_47","x":-10,"z":-20,"uid":"rockLarge1","lastCollectTime":0,"currentStorage":2},{"key":"bld_48","x":-8,"z":16,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_49","x":4,"z":-20,"uid":"rockMedium1","lastCollectTime":0,"currentStorage":1},{"key":"bld_50","x":13,"z":-20,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":1},{"key":"bld_51","x":-15,"z":-9,"uid":"junkSmall1","lastCollectTime":0,"currentStorage":0},{"key":"bld_52","x":0,"z":-5,"uid":"smugglerFUETurret1","lastCollectTime":1662581541,"currentStorage":0},{"key":"bld_53","x":-7,"z":-5,"uid":"smugglerMaterialsGenerator1","lastCollectTime":1662581573,"currentStorage":0},{"key":"bld_54","x":-7,"z":-2,"uid":"smugglerMaterialsStorage1","lastCollectTime":1662581589,"currentStorage":0}]
+    },
+    "inventory": {
+      "storage": {
+        "credits": {
+          "amount": 1500,
+          "capacity": 1500,
+          "scale": 1
+        },
+        "materials": {
+          "amount": 1500,
+          "capacity": 1500,
+          "scale": 1
+        },
+        "contraband": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 1
+        },
+        "reputation": {
+          "amount": 0,
+          "capacity": 5,
+          "scale": 1
+        },
+        "crystals": {
+          "amount": 350,
+          "capacity": -1,
+          "scale": 1
+        },
+        "droids": {
+          "amount": 2,
+          "capacity": 5,
+          "scale": 1
+        },
+        "xp": {
+          "amount": 0,
+          "capacity": -1,
+          "scale": 1
+        },
+        "troop": {
+          "amount": 0,
+          "capacity": 20,
+          "scale": 1
+        },
+        "hero": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 1
+        },
+        "champion": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 1
+        },
+        "droids_prestige": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 0
+        }
+      },
+      "capacity": -1,
+      "subStorage": {
+        "troop": {
+          "storage": {},
+          "capacity": 20,
+          "subStorage": {}
+        },
+        "specialAttack": {
+          "storage": {},
+          "capacity": 0,
+          "subStorage": {}
+        },
+        "hero": {
+          "storage": {},
+          "capacity": 0,
+          "subStorage": {}
+        },
+        "champion": {
+          "storage": {},
+          "capacity": 0,
+          "subStorage": {}
+        }
+      }
+    },
+    "faction": "smuggler",
+    "currentQuest": "fue_choice_00",
+    "protectedUntil": 1562368704,
+    "protectionFrom": 1562109504,
+    "protectionCooldownUntil": {},
+    "battleLogs": [],
+    "campaigns": {
+      "cmp_fue": {
+        "uid": "cmp_fue",
+        "collected": false,
+        "completed": false,
+        "points": 0,
+        "timeZone": 0.0,
+        "items": {}
+      }
+    },
+    "missions": {
+      "fue_defendBaseMission_00": {
+        "campaignUid": "cmp_fue",
+        "collected": false,
+        "completed": true,
+        "counters": {},
+        "earnedStars": 3,
+        "grindMissionRetries": 0,
+        "locked": false,
+        "lootRemaining": {},
+        "status": "Completed",
+        "uid": "fue_defendBaseMission_00",
+        "goals": 3,
+        "lastBattleId": "f56053bb-1d6e-4d39-8484-b8611709561b",
+        "satisfiedGoals": []
+      }
+    },
+    "tournaments": {},
+    "isFueInProgress": true,
+    "DamagedBuildings": {},
+    "deviceInfo": {},
+    "timeZoneOffset": 8.0,
+    "contracts": [],
+    "frozenBuildings": [],
+    "isConnectedAccount": false,
+    "pvpTargetServedTime": null,
+    "intros": [],
+    "lastMission": "fue_defendBaseMission_00",
+    "isRateIncentivized": false,
+    "lastPaymentTime": null,
+    "lastWarParticipationTime": null,
+    "identitySwitchTimes": {},
+    "openOffer": null,
+    "unlockedPlanets": [],
+    "relocationStarCount": -1,
+    "holonetRewards": [],
+    "playerObjectives": {},
+    "lastObjectiveCheckTime": null,
+    "raids": {},
+    "perksInfo": {
+      "perks": {
+        "activatedPerks": [],
+        "cooldowns": {},
+        "hasActivatedFirstPerk": false
+      }
+    },
+    "armoryInfo": {
+      "firstCratePurchased": false
+    },
+    "episodeProgressInfo": {
+      "uid": null,
+      "endTime": null,
+      "finishedTasks": null,
+      "currentTaskIndex": 0,
+      "introStoryViewed": false,
+      "currentTask": null,
+      "grind": null
+    },
+    "mcaInfo": {
+      "count": 0,
+      "nextAvailableDate": 0
+    },
+    "activeArmory": {
+      "equipment": [],
+      "capacity": null
+    },
+    "shards": {},
+    "troopDonationProgress": {
+      "donationCount": 0,
+      "lastTrackedDonationTime": null,
+      "repDonationCooldownEndTime": null
+    },
+    "shardShopData": {
+      "seriesId": null,
+      "offerExpiration": null,
+      "pool_0": {},
+      "pool_1": {},
+      "pool_2": {},
+      "pool_3": {},
+      "pool_4": {},
+      "offsetMinutes": 0
+    },
+    "creatureTrapData": []
+  },
+  "firstTimePlayer": true,
+  "triggers": [],
+  "created": 1562109504,
+  "currentlyDefending": null,
+  "currentlyAttacking": null,
+  "currentlyAttackingWar": null,
+  "lastTroopRequestTime": null,
+  "lastWarTroopRequestTime": null,
+  "liveness": {
+    "installDate": 1562109494,
+    "commandCount": 1,
+    "sessionCountChecked": 1562109494,
+    "sessionCountToday": 1,
+    "lastLoginTime": 1562109494,
+    "lastTestImpressionBiLogTime": 1562109504,
+    "consecutiveLiveDays": 1,
+    "keepAliveTime": 1562109504
+  },
+  "clientPrefs": null,
+  "purchaseTracking": {
+    "totalSpend": 0.0,
+    "totalPurchases": 0,
+    "offerPurchases": {},
+    "forcedGlobalCooldown": 0,
+    "reservations": []
+  },
+  "scalars": {
+    "attacksLost": 0,
+    "attacksWon": 0,
+    "defensesLost": 0,
+    "defensesWon": 0,
+    "attacksStarted": 0,
+    "attacksCompleted": 0,
+    "attackRating": 50,
+    "defenseRating": 50,
+    "xp": 0,
+    "softCash": 0
+  },
+  "name": null
+}

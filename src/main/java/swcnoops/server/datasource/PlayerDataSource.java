@@ -110,4 +110,8 @@ public interface PlayerDataSource {
 
     List<WarHistory> loadWarHistory(String squadId);
 
+    void newPlayerWithMissingSecret(String playerId, String secret);
+
+    void removeMissingSecret(String playerId);
+
 }

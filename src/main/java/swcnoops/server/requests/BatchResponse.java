@@ -1,14 +1,25 @@
 package swcnoops.server.requests;
 
+import swcnoops.server.ServiceFactory;
+
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class BatchResponse {
+    static final private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'+01:00'");
+
     private Integer protocolVersion;
     final private List<ResponseData> data;
     private String serverTime;
     private Long serverTimestamp;
     public BatchResponse(List<ResponseData> responseDatums) {
         this.data = responseDatums;
+
+        setProtocolVersion(ServiceFactory.instance().getConfig().PROTOCOL_VERSION);
+        ZonedDateTime zonedDateTime = ZonedDateTime.now();
+        setServerTimestamp(zonedDateTime.toEpochSecond());
+        setServerTime(dateTimeFormatter.format(zonedDateTime));
     }
 
     /**
@@ -21,7 +32,7 @@ public class BatchResponse {
     public Integer getProtocolVersion() {
         return protocolVersion;
     }
-    public void setProtocolVersion(Integer protocolVersion) {
+    private void setProtocolVersion(Integer protocolVersion) {
         this.protocolVersion = protocolVersion;
     }
     public List<ResponseData> getData() {
