@@ -11,6 +11,9 @@ public class ReplayData {
     public long lootCreditsAvailable;
     public long lootMaterialsAvailable;
     public long lootContrabandAvailable;
+    public Map<String ,Integer> lootBuildingCreditsMap;
+    public Map<String ,Integer> lootBuildingMaterialsMap;
+    public Map<String ,Integer> lootBuildingContrabandMap;
     public BattleType battleType;
     public long battleLength;
     public long lowFPS;

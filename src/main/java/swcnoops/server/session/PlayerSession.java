@@ -104,7 +104,7 @@ public interface PlayerSession {
     MapItem removeMapItemByKey(String instanceId);
 
     void buildingInstantUpgrade(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
-    
+
     void storeBuy(String uid, int count, int credits, int materials, int contraband, int crystals, long time);
 
     void buildingUpgradeAll(String buildingUid, int credits, int materials, int contraband, int crystals, long time);
@@ -140,4 +140,10 @@ public interface PlayerSession {
     void processInventoryStorage(CurrencyDelta currencyDelta);
 
     void buildingCollectAll(List<String> buildingIds, int credits, int materials, int contraband, long time);
+
+
+    void updateScalars(Scalars scalars);
+    PvpManager getPvpSession();
+
+
 }

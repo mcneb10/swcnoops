@@ -16,24 +16,22 @@ public class BattleReplay {
     }
 
     static public BattleReplay map(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
-                                   PlayerSession defenderSession, long time)
-    {
+                                   PlayerSession defenderSession, long time) {
         return createAndMap(playerBattleComplete, attackerSession, defenderSession, time);
     }
 
     static private BattleReplay createAndMap(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
-                                             PlayerSession defenderSession, long time)
-    {
+                                             PlayerSession defenderSession, long time) {
         BattleReplay battleReplay = new BattleReplay();
         battleReplay.battleLog.battleVersion = playerBattleComplete.getBattleVersion();
         battleReplay.battleLog.battleId = playerBattleComplete.getBattleId();
         battleReplay.battleLog.attackDate = time;
-        battleReplay.battleLog.attacker = new Attacker();
+        battleReplay.battleLog.attacker = new BattleParticipant();
         battleReplay.battleLog.attacker.playerId = attackerSession.getPlayerId();
         battleReplay.battleLog.attacker.name = attackerSession.getPlayerSettings().getName();
         battleReplay.battleLog.attacker.faction = attackerSession.getFaction();
 
-        battleReplay.battleLog.defender = new Defender();
+        battleReplay.battleLog.defender = new BattleParticipant();
         battleReplay.battleLog.defender.playerId = defenderSession.getPlayerId();
         battleReplay.battleLog.defender.name = defenderSession.getPlayerSettings().getName();
         battleReplay.battleLog.defender.faction = defenderSession.getFaction();
@@ -67,8 +65,7 @@ public class BattleReplay {
             for (BattleAction battleAction : battleActions) {
                 if (battleAction.actionId != null) {
                     BattleAction usedTroop = null;
-                    switch (battleAction.actionId)
-                    {
+                    switch (battleAction.actionId) {
                         case "TroopPlaced":
                         case "SpecialAttackDeployed":
                         case "CreatureDeployed":

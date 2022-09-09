@@ -43,6 +43,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
                         response.playerModel);
         playerSession.playerLogin(time);
         mapLoginForPlayer(response, playerSession);
+
         return response;
     }
 
@@ -84,6 +85,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.liveness = new Liveness();
         playerLoginResponse.liveness.keepAliveTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
+
         // this last login seems very important, the client needs it as setting this to funny values
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
@@ -94,6 +96,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.identitySwitchTimes = new HashMap<>();
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
+        playerLoginResponse.scalars = playerSession.getPlayerSettings().getScalars();
+        playerLoginResponse.playerModel.battleLogs = ServiceFactory.instance().getPlayerDatasource().getPlayerBattleLogs(playerSession.getPlayerId());
     }
 
     private void mapUnlockedPlanets(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
@@ -186,7 +190,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private void mapDeployableTroops(PlayerSession playerSession, DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
         storage.clear();
-        for (Map.Entry<String,Integer> entry : deployableQueue.getDeployableUnits().entrySet()) {
+        for (Map.Entry<String, Integer> entry : deployableQueue.getDeployableUnits().entrySet()) {
             TroopData troopData = this.getTroopForPlayerByUnitId(playerSession, entry.getKey());
             StorageAmount storageAmount = new StorageAmount();
             storageAmount.amount = entry.getValue().longValue();
@@ -205,7 +209,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
         if (donatedTroops != null) {
             GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-            donatedTroops.forEach((donatedUid,donatedByGroup) -> {
+            donatedTroops.forEach((donatedUid, donatedByGroup) -> {
                 TroopData troopData = gameDataManager.getTroopDataByUid(donatedUid);
                 TroopData playersTroopData = playerSession.getTroopInventory().getTroopByUnitId(troopData.getUnitId());
                 if (playersTroopData != null) {
@@ -234,6 +238,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     /**
      * Contracts are things that are still being built
+     *
      * @param playerModel
      * @param playerSession
      */
@@ -261,7 +266,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private void mapTroopUpgradeContract(List<Contract> contracts, Troops troops) {
         if (troops.getUpgrades().size() > 0) {
-            for (TroopUpgrade troopUpgrade: troops.getUpgrades()) {
+            for (TroopUpgrade troopUpgrade : troops.getUpgrades()) {
                 Contract contract = new Contract();
                 contract.contractType = ContractType.Research.name();
                 contract.buildingId = troopUpgrade.getBuildingKey();
@@ -351,9 +356,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     private Map<String, Integer> map(HashMap<String, TroopRecord> troops) {
-        Map<String,Integer> map = new HashMap<>();
+        Map<String, Integer> map = new HashMap<>();
         if (troops != null)
-            troops.forEach((a,b) -> map.put(a, b.getLevel()));
+            troops.forEach((a, b) -> map.put(a, b.getLevel()));
         return map;
     }
 

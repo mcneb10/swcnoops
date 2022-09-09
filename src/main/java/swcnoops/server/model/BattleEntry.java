@@ -5,14 +5,14 @@ import java.util.Map;
 
 public class BattleEntry {
     public long attackDate;
-    public Attacker attacker;
+    public BattleParticipant attacker;
     public List<String> attackerEquipment;
     public Map<String, Integer> attackerGuildTroopsExpended;
     public int baseDamagePercent;
     public String battleId;
     public String battleVersion;
     public String cmsVersion;
-    public Defender defender;
+    public BattleParticipant defender;
     public List<String> defenderEquipment;
     public Map<String, Integer> defenderGuildTroopsExpended;
     public long defenderPotentialMedalGain;

@@ -1,5 +1,7 @@
 package swcnoops.server.datasource;
 
+import swcnoops.server.commands.player.PlayerPvpBattleComplete;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
@@ -7,11 +9,14 @@ import swcnoops.server.session.WarSession;
 import swcnoops.server.session.WarSessionImpl;
 
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
+
     void initOnStartup();
+
     void savePlayerName(String playerId, String playerName);
 
     PlayerSettings loadPlayerSettings(String playerId);
@@ -84,6 +89,19 @@ public interface PlayerDataSource {
 
     WarBattle getWarBattle(String battleId);
 
+
+    HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession);
+
+    Buildings getDevBaseMap(String id, FactionType faction);
+
+    void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog);
+
+    List<BattleLog> getPlayerBattleLogs(String playerId);
+    BattleType getBattleType(String battleId);
+
+    BattleReplay pvpReplay(String battleId);
+
+
     List<Member> loadSquadMembers(String guildId);
 
     War processWarEnd(String id, String squadIdA, String warId);
@@ -91,4 +109,5 @@ public interface PlayerDataSource {
     void resetWarPartyForParticipants(String warId);
 
     List<WarHistory> loadWarHistory(String squadId);
+
 }

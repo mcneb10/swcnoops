@@ -47,6 +47,8 @@ public class PlayerSessionImpl implements PlayerSession {
     final private PlayerMapItems playerMapItems;
     private DroidManager droidManager;
 
+    private PvpSessionImpl pvpSession = new PvpSessionImpl(this);
+
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
     static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
     static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
@@ -71,9 +73,9 @@ public class PlayerSessionImpl implements PlayerSession {
         this.donatedTroops = playerSettings.getDonatedTroops();
         this.inventoryStorage = playerSettings.getInventoryStorage();
         this.droidManager = new DroidManager(this);
+
         mapBuildingContracts(playerSettings);
     }
-
     private void mapBuildingContracts(PlayerSettings playerSettings) {
         for (BuildUnit buildUnit : playerSettings.getBuildContracts()) {
             if (isDroidContract(buildUnit.getContractType()))
@@ -1067,4 +1069,19 @@ public class PlayerSessionImpl implements PlayerSession {
 
         ServiceFactory.instance().getPlayerDatasource().saveWarParticipant(squadMemberWarData);
     }
+
+    @Override
+    public PvpSessionImpl getPvpSession() {
+        return pvpSession;
+    }
+
+
+    @Override
+    public void updateScalars(Scalars scalars) {
+        this.playerSettings.setScalars(scalars);
+        savePlayerSession();
+    }
+
+
+
 }
