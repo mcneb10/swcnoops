@@ -26,6 +26,8 @@ public class BuildingData implements GameData {
     private int crossMaterials;
     private boolean prestige;
 
+    private int xp;
+
     public BuildingData(String uid) {
         this.uid = uid;
     }
@@ -192,5 +194,13 @@ public class BuildingData implements GameData {
 
     public void setPrestige(boolean prestige) {
         this.prestige = prestige;
+    }
+
+    public int getXp() {
+        return xp;
+    }
+
+    public void setXp(int xp) {
+        this.xp = xp;
     }
 }

@@ -1,0 +1,1517 @@
+{
+  "playerId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "locale": "en_US",
+  "network": "u",
+  "viewNetwork": "a",
+  "abTests": {
+    "defRefSPD": {
+      "patch": "-",
+      "uid": "defRefSPD",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "defRefSPD",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "defRefSPD"
+    },
+    "anh_raids": {
+      "patch": "-",
+      "uid": "anh_raids",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "new",
+      "variant": "0",
+      "description": "turns on anh raids",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "anh_raids"
+    },
+    "LucasArts.StarWarsCommander.CrystalPack06": {
+      "uid": "LucasArts.StarWarsCommander.CrystalPack06",
+      "name": "LucasArts.StarWarsCommander.CrystalPack06"
+    },
+    "raids_event": {
+      "patch": "-",
+      "uid": "raids_event",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Raids Toggle",
+      "variant": "0",
+      "description": "Turns on x times raids per day",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "raids_event"
+    },
+    "FUE_speed_up_building": {
+      "uid": "FUE_speed_up_building",
+      "name": "FUE_speed_up_building"
+    },
+    "monster_raids": {
+      "patch": "-",
+      "uid": "monster_raids",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Monster Raids",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "monster_raids"
+    },
+    "Amazon_disneydays_spd": {
+      "patch": "-",
+      "uid": "Amazon_disneydays_spd",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Amazon_disneydays_spd",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "Amazon_disneydays_spd"
+    },
+    "squad_action": {
+      "uid": "squad_action",
+      "name": "squad_action"
+    },
+    "spd_crates_on": {
+      "patch": "-",
+      "uid": "spd_crates_on",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "spd_crates_on",
+      "variant": "0",
+      "description": "Turns on crate purchases in SPD",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "spd_crates_on"
+    },
+    "building": {
+      "uid": "building",
+      "name": "building"
+    },
+    "gke_test": {
+      "patch": "-",
+      "uid": "gke_test",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "gke_test",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "gke_test_0828"
+    },
+    "shop_elite": {
+      "patch": "patches/abtests/ab_datafragmentshop_elite_a.json",
+      "uid": "shop_elite",
+      "thumbnail": "",
+      "__variant": "1",
+      "__is_control": "0",
+      "name": "shop_elite",
+      "variant": "1",
+      "description": "",
+      "__variantId": "1",
+      "item_class": "",
+      "testName": "shop_elite_test1"
+    },
+    "test_resource": {
+      "patch": "-",
+      "uid": "test_resource",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "test_resource",
+      "variant": "0",
+      "description": "Test description for test resource",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "sample_ABtest"
+    },
+    "lucasarts.starwarscommander.goo.crystalpack05.2209671": {
+      "uid": "lucasarts.starwarscommander.goo.crystalpack05.2209671",
+      "name": "lucasarts.starwarscommander.goo.crystalpack05.2209671"
+    },
+    "LucasArts.StarWarsCommander.CrystalPack03": {
+      "uid": "LucasArts.StarWarsCommander.CrystalPack03",
+      "name": "LucasArts.StarWarsCommander.CrystalPack03"
+    },
+    "LucasArts.StarWarsCommander.CrystalPack02": {
+      "uid": "LucasArts.StarWarsCommander.CrystalPack02",
+      "name": "LucasArts.StarWarsCommander.CrystalPack02"
+    },
+    "LucasArts.StarWarsCommander.CrystalPack05": {
+      "uid": "LucasArts.StarWarsCommander.CrystalPack05",
+      "name": "LucasArts.StarWarsCommander.CrystalPack05"
+    },
+    "Rogue_store_crate": {
+      "patch": "-",
+      "uid": "Rogue_store_crate",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Rogue_store_crate",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "RogueOneStore"
+    },
+    "LucasArts.StarWarsCommander.CrystalPack04": {
+      "uid": "LucasArts.StarWarsCommander.CrystalPack04",
+      "name": "LucasArts.StarWarsCommander.CrystalPack04"
+    },
+    "PvP_defend": {
+      "uid": "PvP_defend",
+      "name": "PvP_defend"
+    },
+    "dem_droid_p3": {
+      "patch": "-",
+      "uid": "dem_droid_p3",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "dem_droid_p3",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "dem_droid_phase3"
+    },
+    "PvP_opponent_select": {
+      "uid": "PvP_opponent_select",
+      "name": "PvP_opponent_select"
+    },
+    "buy_datacard": {
+      "uid": "buy_datacard",
+      "name": "buy_datacard"
+    },
+    "trap_rearm_all": {
+      "uid": "trap_rearm_all",
+      "name": "trap_rearm_all"
+    },
+    "episode_ep": {
+      "uid": "episode_ep",
+      "name": "episode_ep"
+    },
+    "Player_survey_newspaper": {
+      "patch": "-",
+      "uid": "Player_survey_newspaper",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Player Survey Newspaper",
+      "variant": "0",
+      "description": "",
+      "__variantID": "0",
+      "item_class": "",
+      "testName": "Player_survey_newspaper"
+    },
+    "MobileConnector": {
+      "patch": "patches/abtests/ab_mobileconnector_4hours.json",
+      "uid": "MobileConnector",
+      "thumbnail": "",
+      "__variant": "1",
+      "__is_control": "0",
+      "name": "MobileConnector",
+      "variant": "1",
+      "description": "",
+      "__variantId": "1",
+      "item_class": "",
+      "testName": "MobileConnector"
+    },
+    "lucasarts.starwarscommander.goo.crystalpack03.2209669": {
+      "uid": "lucasarts.starwarscommander.goo.crystalpack03.2209669",
+      "name": "lucasarts.starwarscommander.goo.crystalpack03.2209669"
+    },
+    "squadwars_max": {
+      "patch": "-",
+      "uid": "squadwars_max",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Squad Wars Max Rewards",
+      "variant": "0",
+      "description": "Turns on Max Rewards value for crates",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "squadwars_max"
+    },
+    "FUE_speed_up_unit": {
+      "uid": "FUE_speed_up_unit",
+      "name": "FUE_speed_up_unit"
+    },
+    "redis_enabling": {
+      "patch": "-",
+      "uid": "redis_enabling",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Redis",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "redis_enabling"
+    },
+    "speed_up_research": {
+      "uid": "speed_up_research",
+      "name": "speed_up_research"
+    },
+    "activate_perk": {
+      "uid": "activate_perk",
+      "name": "activate_perk"
+    },
+    "Tros_Crystal_SPD": {
+      "patch": "-",
+      "uid": "Tros_Crystal_SPD",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Tros Crystal SPD",
+      "variant": "0",
+      "description": "Turning on Starfighter unlock SPD, testing 1000 and 1500 Crystal SPD crates",
+      "__variantID": "0",
+      "item_class": "",
+      "testName": "Tros_Crystal_SPD"
+    },
+    "turret_swap": {
+      "patch": "-",
+      "uid": "turret_swap",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Turret swapping",
+      "variant": "0",
+      "description": "A/B test turret costs",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "turret_swap"
+    },
+    "squad_create": {
+      "uid": "squad_create",
+      "name": "squad_create"
+    },
+    "SB_StoreCrate": {
+      "patch": "-",
+      "uid": "SB_StoreCrate",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "SpaceBear_BackupStoreCrate",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "SB_BackupStoreCrate"
+    },
+    "DesertJetpackSPD": {
+      "patch": "-",
+      "uid": "DesertJetpackSPD",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "DesertJetpackSPD",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "DesertJetpackSPD"
+    },
+    "tactical_defense_SPD": {
+      "patch": "-",
+      "uid": "tactical_defense_SPD",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Tactical Defense SPD",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "tactical_defense_SPD"
+    },
+    "killswitch_photon": {
+      "patch": "-",
+      "uid": "killswitch_photon",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "killswitch_photon",
+      "variant": "0",
+      "description": "Photo kill switch",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "killswitch_photon"
+    },
+    "Google_subdollar": {
+      "patch": "-",
+      "uid": "Google_subdollar",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Google_subdollar",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "Google_subdollar_conversion"
+    },
+    "SpaceBear_EP_test_1": {
+      "patch": "-",
+      "uid": "SpaceBear_EP_test_1",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "SpaceBear_EP_test_1",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "SpaceBear_EP_Test1"
+    },
+    "Factory_Frenzy": {
+      "patch": "-",
+      "uid": "Factory_Frenzy",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Factory Frenzy",
+      "variant": "0",
+      "description": "",
+      "__variantID": "0",
+      "item_class": "",
+      "testName": "Factory_Frenzy"
+    },
+    "currency_purchase": {
+      "uid": "currency_purchase",
+      "name": "currency_purchase"
+    },
+    "buy_unit": {
+      "uid": "buy_unit",
+      "name": "buy_unit"
+    },
+    "resource_generator": {
+      "uid": "resource_generator",
+      "name": "resource_generator"
+    },
+    "Daily_crate": {
+      "patch": "-",
+      "uid": "Daily_crate",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Daily_crate",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "Dailycrate"
+    },
+    "admin": {
+      "uid": "admin",
+      "name": "admin"
+    },
+    "obj_icon_forest_saponza": {
+      "patch": "-",
+      "uid": "obj_icon_forest_saponza",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "obj_icon_forest_saponza",
+      "variant": "0",
+      "description": "Turns on Sapnoza's face for Forest Objectives",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "obj_icon_forest_saponza"
+    },
+    "MT4Sale": {
+      "patch": "-",
+      "uid": "MT4Sale",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "MT4Sale",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "MT4Sale"
+    },
+    "droid_upgrade": {
+      "uid": "droid_upgrade",
+      "name": "droid_upgrade"
+    },
+    "MT4_Conflict_daily_crate": {
+      "patch": "-",
+      "uid": "MT4_Conflict_daily_crate",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "MT4 Conflict Daily Crate",
+      "variant": "0",
+      "description": "",
+      "__variantID": "0",
+      "item_class": "",
+      "testName": "MT4_Conflict_daily_crate"
+    },
+    "migration_squad_wars_off": {
+      "patch": "-",
+      "uid": "migration_squad_wars_off",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "migration_squad_wars_off",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "squad_wars_off"
+    },
+    "RogueOne_LastChance": {
+      "patch": "-",
+      "uid": "RogueOne_LastChance",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "RogueOne_LastChance",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "RogueOne_LastChance"
+    },
+    "FUE_droid_upgrade": {
+      "uid": "FUE_droid_upgrade",
+      "name": "FUE_droid_upgrade"
+    },
+    "unit_unlock": {
+      "uid": "unit_unlock",
+      "name": "unit_unlock"
+    },
+    "Vertical_crates": {
+      "patch": "-",
+      "uid": "Vertical_crates",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Vertical_crates",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "vertical_crates"
+    },
+    "lucasarts.starwarscommander.goo.crystalpack06.2209672": {
+      "uid": "lucasarts.starwarscommander.goo.crystalpack06.2209672",
+      "name": "lucasarts.starwarscommander.goo.crystalpack06.2209672"
+    },
+    "PvE": {
+      "uid": "PvE",
+      "name": "PvE"
+    },
+    "RG1_Episode_daily_crate": {
+      "patch": "patches/abtests/ab_rogueoneEpisode_dailycrate.json",
+      "uid": "RG1_Episode_daily_crate",
+      "thumbnail": "",
+      "__variant": "1",
+      "__is_control": "0",
+      "name": "Rogue One Episode 2019 Daily Crate",
+      "variant": "1",
+      "description": "",
+      "__variantID": "1",
+      "item_class": "",
+      "testName": "RG1_Episode_daily_crate"
+    },
+    "lucasarts.starwarscommander.fbgr.crystalpack05": {
+      "uid": "lucasarts.starwarscommander.fbgr.crystalpack05",
+      "name": "lucasarts.starwarscommander.fbgr.crystalpack05"
+    },
+    "lucasarts.starwarscommander.goo.crystalpack02.2209668": {
+      "uid": "lucasarts.starwarscommander.goo.crystalpack02.2209668",
+      "name": "lucasarts.starwarscommander.goo.crystalpack02.2209668"
+    },
+    "lucasarts.starwarscommander.fbgr.crystalpack06": {
+      "uid": "lucasarts.starwarscommander.fbgr.crystalpack06",
+      "name": "lucasarts.starwarscommander.fbgr.crystalpack06"
+    },
+    "clearable": {
+      "uid": "clearable",
+      "name": "clearable"
+    },
+    "naval_final_grind": {
+      "patch": "-",
+      "uid": "naval_final_grind",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "naval_final_grind",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "naval_final_grind_test"
+    },
+    "lucasarts.starwarscommander.fbgr.crystalpack03": {
+      "uid": "lucasarts.starwarscommander.fbgr.crystalpack03",
+      "name": "lucasarts.starwarscommander.fbgr.crystalpack03"
+    },
+    "lucasarts.starwarscommander.fbgr.crystalpack04": {
+      "uid": "lucasarts.starwarscommander.fbgr.crystalpack04",
+      "name": "lucasarts.starwarscommander.fbgr.crystalpack04"
+    },
+    "mc4hours": {
+      "patch": "-",
+      "uid": "mc4hours",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "MC 4hours",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "mc4hours"
+    },
+    "research_unit": {
+      "uid": "research_unit",
+      "name": "research_unit"
+    },
+    "vertical_scheduling": {
+      "patch": "-",
+      "uid": "vertical_scheduling",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "vertical_scheduling",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "vertical_scheduling"
+    },
+    "speed_up_unit": {
+      "uid": "speed_up_unit",
+      "name": "speed_up_unit"
+    },
+    "Event_Free_Crates_Dupe": {
+      "patch": "patches/abtests/ab_mobileconnector_off.json",
+      "uid": "Event_Free_Crates_Dupe",
+      "thumbnail": "",
+      "__variant": "1",
+      "__variant_Id": "1",
+      "__is_control": "0",
+      "name": "ads off",
+      "variant": "1",
+      "description": "Daily Crate, Mobile Connector Crate",
+      "item_class": "",
+      "testName": "event_crates_free"
+    },
+    "trap_rearm_once": {
+      "uid": "trap_rearm_once",
+      "name": "trap_rearm_once"
+    },
+    "lucasarts.starwarscommander.goo.crystalpack04.2209670": {
+      "uid": "lucasarts.starwarscommander.goo.crystalpack04.2209670",
+      "name": "lucasarts.starwarscommander.goo.crystalpack04.2209670"
+    },
+    "speed_up_perkcooldown": {
+      "uid": "speed_up_perkcooldown",
+      "name": "speed_up_perkcooldown"
+    },
+    "episode_research": {
+      "uid": "episode_research",
+      "name": "episode_research"
+    },
+    "speed_up_building": {
+      "uid": "speed_up_building",
+      "name": "speed_up_building"
+    },
+    "shop_basic": {
+      "patch": "patches/abtests/ab_datafragmentshop_basic_mixed.json",
+      "uid": "shop_basic",
+      "thumbnail": "",
+      "__variant": "3",
+      "__is_control": "0",
+      "name": "shop_basic",
+      "variant": "3",
+      "description": "",
+      "__variantId": "3",
+      "item_class": "",
+      "testName": "shop_basic_test1"
+    },
+    "lol_sale": {
+      "patch": "-",
+      "uid": "lol_sale",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "lol_sale",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "lol_sale"
+    },
+    "dev_note_delay_temp": {
+      "patch": "-",
+      "uid": "dev_note_delay_temp",
+      "thumbnail": "",
+      "__variant_Id": "0",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "dev_note_delay_temp",
+      "variant": "0",
+      "description": "",
+      "item_class": "",
+      "testName": "dev_note_delay_temp"
+    },
+    "spd_24h": {
+      "patch": "-",
+      "uid": "spd_24h",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "spd_24h",
+      "variant": "0",
+      "description": "SPD offers available for 24hrs",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "spd_24h"
+    },
+    "defense_spd": {
+      "patch": "-",
+      "uid": "defense_spd",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "defense_spd",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "defense_spd"
+    },
+    "event_free_crates": {
+      "patch": "-",
+      "uid": "event_free_crates",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "Event_Free_Crates",
+      "variant": "0",
+      "description": "Daily, objective and raid crate based on event",
+      "__variantID": "0",
+      "item_class": "",
+      "testName": "event_free_crates"
+    },
+    "IAP_banners": {
+      "patch": "-",
+      "uid": "IAP_banners",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "IAP_banners",
+      "variant": "0",
+      "description": "Turns on the 'X Extra Crystals!' text for IAP",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "IAP_banners"
+    },
+    "speed_up_relocation": {
+      "uid": "speed_up_relocation",
+      "name": "speed_up_relocation"
+    },
+    "ArcticJumpSPD": {
+      "patch": "-",
+      "uid": "ArcticJumpSPD",
+      "thumbnail": "",
+      "__variant": "0",
+      "__is_control": "1",
+      "name": "ArcticJumpSPD",
+      "variant": "0",
+      "description": "",
+      "__variantId": "0",
+      "item_class": "",
+      "testName": "ArcticJumpSPD"
+    },
+    "lucasarts.starwarscommander.fbgr.crystalpack02": {
+      "uid": "lucasarts.starwarscommander.fbgr.crystalpack02",
+      "name": "lucasarts.starwarscommander.fbgr.crystalpack02"
+    },
+    "damage_protection": {
+      "uid": "damage_protection",
+      "name": "damage_protection"
+    }
+  },
+  "sharedPrefs": {
+    "cmv":"0",
+    "DailyCrateTransTutorialViewed":"1"
+  },
+  "hardCashLog": [],
+  "pushRewarded": false,
+  "playerModel": {
+    "guildInfo": null,
+    "upgrades": {
+      "troop": {},
+      "specialAttack": {},
+      "building": {},
+      "equipment": {}
+    },
+    "prizes": {
+      "troop": {},
+      "specialAttack": {},
+      "resources": {},
+      "crates": {
+        "available": {
+          "crt_0": {
+            "uid": "crt_0",
+            "crateId": "lc_daily_rogue1_episode",
+            "context": "daily",
+            "planet": "planet1",
+            "hqLevel": 1,
+            "received": 1562109504,
+            "expires": 1562714304,
+            "resolvedSupplies": [],
+            "warId": null,
+            "guildId": null,
+            "objectiveGroupId": null,
+            "objectiveId": null,
+            "secondsLeft": null,
+            "raidMissionId": null,
+            "tournamentId": null,
+            "tournamentTier": null,
+            "offerUid": null
+          }
+        },
+        "inProgress": {},
+        "next": 1,
+        "nextDailyCrateTime": 1562191200,
+        "nextHolonetTime": null
+      }
+    },
+    "donatedTroops": {},
+    "buildingsUnderConstruction": [],
+    "map": {
+      "planet": "planet1",
+      "next": 57,
+      "buildings": [
+        {
+          "key": "bld_1",
+          "x": -2,
+          "z": -2,
+          "uid": "empireHQ2",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_2",
+          "x": 2,
+          "z": 3,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_3",
+          "x": 3,
+          "z": 0,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_4",
+          "x": 3,
+          "z": 1,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_5",
+          "x": 3,
+          "z": 2,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_6",
+          "x": 3,
+          "z": 3,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_7",
+          "x": 3,
+          "z": -1,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_8",
+          "x": 3,
+          "z": -2,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_9",
+          "x": 3,
+          "z": -3,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_10",
+          "x": 3,
+          "z": -4,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_11",
+          "x": 2,
+          "z": -4,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_12",
+          "x": -3,
+          "z": 3,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_13",
+          "x": -4,
+          "z": 3,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_14",
+          "x": -4,
+          "z": 2,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_15",
+          "x": -4,
+          "z": 1,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_16",
+          "x": -4,
+          "z": 0,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_17",
+          "x": -4,
+          "z": -1,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_18",
+          "x": -4,
+          "z": -2,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_19",
+          "x": -4,
+          "z": -3,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_20",
+          "x": -4,
+          "z": -4,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_21",
+          "x": -3,
+          "z": -4,
+          "uid": "empireWall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_22",
+          "x": 0,
+          "z": 4,
+          "uid": "empireRapidFireTurret1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_23",
+          "x": -7,
+          "z": 1,
+          "uid": "empireMaterialsStorage1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_24",
+          "x": -7,
+          "z": 4,
+          "uid": "empireMaterialsGenerator1",
+          "lastCollectTime": 1660251395,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_25",
+          "x": 6,
+          "z": -5,
+          "uid": "empireStarport1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_26",
+          "x": 5,
+          "z": 1,
+          "uid": "empireDroidHut1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_27",
+          "x": -15,
+          "z": 10,
+          "uid": "rockMedium1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_28",
+          "x": -16,
+          "z": 7,
+          "uid": "junkLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 3
+        },
+        {
+          "key": "bld_29",
+          "x": -11,
+          "z": 8,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_30",
+          "x": 12,
+          "z": 14,
+          "uid": "rockLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 2
+        },
+        {
+          "key": "bld_31",
+          "x": -5,
+          "z": 17,
+          "uid": "rockLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 3
+        },
+        {
+          "key": "bld_32",
+          "x": -3,
+          "z": 15,
+          "uid": "rockMedium1",
+          "lastCollectTime": null,
+          "currentStorage": 2
+        },
+        {
+          "key": "bld_33",
+          "x": 10,
+          "z": 10,
+          "uid": "rockSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_34",
+          "x": 10,
+          "z": 8,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_35",
+          "x": 16,
+          "z": -9,
+          "uid": "junkLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 2
+        },
+        {
+          "key": "bld_36",
+          "x": 14,
+          "z": -11,
+          "uid": "rockSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_37",
+          "x": 5,
+          "z": -16,
+          "uid": "junkMedium1",
+          "lastCollectTime": null,
+          "currentStorage": 2
+        },
+        {
+          "key": "bld_38",
+          "x": 3,
+          "z": -17,
+          "uid": "rockSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 2
+        },
+        {
+          "key": "bld_39",
+          "x": -9,
+          "z": -11,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_40",
+          "x": -17,
+          "z": -5,
+          "uid": "rockLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 3
+        },
+        {
+          "key": "bld_41",
+          "x": -6,
+          "z": -12,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_42",
+          "x": -7,
+          "z": -10,
+          "uid": "rockSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_43",
+          "x": -20,
+          "z": 13,
+          "uid": "rockLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 3
+        },
+        {
+          "key": "bld_44",
+          "x": -2,
+          "z": 17,
+          "uid": "rockLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 3
+        },
+        {
+          "key": "bld_45",
+          "x": 0,
+          "z": -19,
+          "uid": "rockSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_46",
+          "x": 13,
+          "z": 16,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 2
+        },
+        {
+          "key": "bld_47",
+          "x": -10,
+          "z": -20,
+          "uid": "rockLarge1",
+          "lastCollectTime": null,
+          "currentStorage": 2
+        },
+        {
+          "key": "bld_48",
+          "x": -8,
+          "z": 16,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_49",
+          "x": 4,
+          "z": -20,
+          "uid": "rockMedium1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_50",
+          "x": 13,
+          "z": -20,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 1
+        },
+        {
+          "key": "bld_51",
+          "x": -15,
+          "z": -9,
+          "uid": "junkSmall1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_52",
+          "x": 0,
+          "z": -5,
+          "uid": "empireRapidFireTurret1",
+          "lastCollectTime": null,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_53",
+          "x": -7,
+          "z": -5,
+          "uid": "empireMaterialsGenerator1",
+          "lastCollectTime": 1660251393,
+          "currentStorage": 0
+        },
+        {
+          "key": "bld_54",
+          "x": -7,
+          "z": -2,
+          "uid": "empireMaterialsStorage1",
+          "lastCollectTime": null,
+          "currentStorage": 1500
+        },
+        {
+          "key": "bld_55",
+          "x": 6,
+          "z": 4,
+          "uid": "empireSquadBuilding1",
+          "lastCollectTime": null,
+          "currentStorage": 4
+        },
+        {
+          "key": "bld_56",
+          "x": 3,
+          "z": -7,
+          "uid": "empireBarracks1",
+          "lastCollectTime": null,
+          "currentStorage": 20
+        }
+      ]
+    },
+    "inventory": {
+      "storage": {
+        "credits": {
+          "amount": 1000,
+          "capacity": 1500,
+          "scale": 1
+        },
+        "materials": {
+          "amount": 1000,
+          "capacity": 1500,
+          "scale": 1
+        },
+        "contraband": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 1
+        },
+        "reputation": {
+          "amount": 0,
+          "capacity": 5,
+          "scale": 1
+        },
+        "crystals": {
+          "amount": 600,
+          "capacity": -1,
+          "scale": 1
+        },
+        "droids": {
+          "amount": 1,
+          "capacity": 5,
+          "scale": 1
+        },
+        "xp": {
+          "amount": 0,
+          "capacity": -1,
+          "scale": 1
+        },
+        "troop": {
+          "amount": 0,
+          "capacity": 20,
+          "scale": 1
+        },
+        "hero": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 1
+        },
+        "champion": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 1
+        },
+        "droids_prestige": {
+          "amount": 0,
+          "capacity": 0,
+          "scale": 0
+        }
+      },
+      "capacity": -1,
+      "subStorage": {
+        "troop": {
+          "storage": {},
+          "capacity": 20,
+          "subStorage": {}
+        },
+        "specialAttack": {
+          "storage": {},
+          "capacity": 0,
+          "subStorage": {}
+        },
+        "hero": {
+          "storage": {},
+          "capacity": 0,
+          "subStorage": {}
+        },
+        "champion": {
+          "storage": {},
+          "capacity": 0,
+          "subStorage": {}
+        }
+      }
+    },
+    "faction": "empire",
+    "currentQuest": "",
+    "protectedUntil": 1562368704,
+    "protectionFrom": 1562109504,
+    "protectionCooldownUntil": {},
+    "battleLogs": [],
+    "campaigns": {
+      "cmp_fue": {
+        "uid": "cmp_fue",
+        "collected": false,
+        "completed": false,
+        "points": 0,
+        "timeZone": 0.0,
+        "items": {}
+      },
+      "cmp_0_hb_e": {
+        "uid": "cmp_0_hb_e",
+        "collected": false,
+        "completed": false,
+        "points": 0,
+        "timeZone": 0.0,
+        "items": {}
+      }
+    },
+    "missions": {
+      "fue_defendBaseMission_00": {
+        "campaignUid": "cmp_fue",
+        "collected": false,
+        "completed": true,
+        "counters": {},
+        "earnedStars": 3,
+        "grindMissionRetries": 0,
+        "locked": false,
+        "lootRemaining": {},
+        "status": "Completed",
+        "uid": "fue_defendBaseMission_00",
+        "goals": 3,
+        "lastBattleId": "f56053bb-1d6e-4d39-8484-b8611709561b",
+        "satisfiedGoals": []
+      },
+      "camp_1_utts_e_1": {
+        "campaignUid": "cmp_0_hb_e",
+        "collected": true,
+        "completed": true,
+        "counters": null,
+        "earnedStars": 3,
+        "grindMissionRetries": 0,
+        "locked": false,
+        "lootRemaining": null,
+        "status": "Claimed",
+        "uid": "camp_1_utts_e_1",
+        "goals": 3,
+        "lastBattleId": "e3a6b1bb-cc98-43bf-a165-477b901384ee",
+        "satisfiedGoals": null
+      },
+      "camp_1_utts_e_2": {
+        "campaignUid": "cmp_0_hb_e",
+        "collected": false,
+        "completed": false,
+        "counters": null,
+        "earnedStars": 0,
+        "grindMissionRetries": 0,
+        "locked": false,
+        "lootRemaining": null,
+        "status": null,
+        "uid": "camp_1_utts_e_2",
+        "goals": 3,
+        "lastBattleId": null,
+        "satisfiedGoals": null
+      }
+    },
+    "tournaments": {},
+    "isFueInProgress": true,
+    "DamagedBuildings": {},
+    "deviceInfo": {},
+    "timeZoneOffset": 8.0,
+    "contracts": [],
+    "frozenBuildings": [],
+    "isConnectedAccount": false,
+    "pvpTargetServedTime": null,
+    "intros": [],
+    "lastMission": "fue_defendBaseMission_00",
+    "isRateIncentivized": false,
+    "lastPaymentTime": null,
+    "lastWarParticipationTime": null,
+    "identitySwitchTimes": {},
+    "openOffer": null,
+    "unlockedPlanets": [],
+    "relocationStarCount": -1,
+    "holonetRewards": [],
+    "playerObjectives": {},
+    "lastObjectiveCheckTime": null,
+    "raids": {},
+    "perksInfo": {
+      "perks": {
+        "activatedPerks": [],
+        "cooldowns": {},
+        "hasActivatedFirstPerk": false
+      }
+    },
+    "armoryInfo": {
+      "firstCratePurchased": false
+    },
+    "episodeProgressInfo": {
+      "uid": null,
+      "endTime": null,
+      "finishedTasks": null,
+      "currentTaskIndex": 0,
+      "introStoryViewed": false,
+      "currentTask": null,
+      "grind": null
+    },
+    "mcaInfo": {
+      "count": 0,
+      "nextAvailableDate": 0
+    },
+    "activeArmory": {
+      "equipment": [],
+      "capacity": null
+    },
+    "shards": {},
+    "troopDonationProgress": {
+      "donationCount": 0,
+      "lastTrackedDonationTime": null,
+      "repDonationCooldownEndTime": null
+    },
+    "shardShopData": {
+      "seriesId": null,
+      "offerExpiration": null,
+      "pool_0": {},
+      "pool_1": {},
+      "pool_2": {},
+      "pool_3": {},
+      "pool_4": {},
+      "offsetMinutes": 0
+    },
+    "creatureTrapData": []
+  },
+  "firstTimePlayer": true,
+  "triggers": [],
+  "created": 1562109504,
+  "currentlyDefending": null,
+  "currentlyAttacking": null,
+  "currentlyAttackingWar": null,
+  "lastTroopRequestTime": null,
+  "lastWarTroopRequestTime": null,
+  "liveness": {
+    "installDate": 1562109494,
+    "commandCount": 1,
+    "sessionCountChecked": 1562109494,
+    "sessionCountToday": 1,
+    "lastLoginTime": 1562109494,
+    "lastTestImpressionBiLogTime": 1562109504,
+    "consecutiveLiveDays": 1,
+    "keepAliveTime": 1562109504
+  },
+  "clientPrefs": null,
+  "purchaseTracking": {
+    "totalSpend": 0.0,
+    "totalPurchases": 0,
+    "offerPurchases": {},
+    "forcedGlobalCooldown": 0,
+    "reservations": []
+  },
+  "scalars": {
+    "attacksLost": 0,
+    "attacksWon": 0,
+    "defensesLost": 0,
+    "defensesWon": 0,
+    "attacksStarted": 0,
+    "attacksCompleted": 0,
+    "attackRating": 50,
+    "defenseRating": 50,
+    "xp": 0,
+    "softCash": 0
+  },
+  "name": null
+}

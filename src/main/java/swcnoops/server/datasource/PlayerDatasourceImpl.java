@@ -1,9 +1,12 @@
 package swcnoops.server.datasource;
 
+
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
+import swcnoops.server.commands.player.PlayerPvpBattleComplete;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.GuildSession;
@@ -19,10 +22,7 @@ import swcnoops.server.session.training.TrainingManager;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static swcnoops.server.session.NotificationFactory.mapSquadNotificationData;
@@ -120,7 +120,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public PlayerSettings loadPlayerSettings(String playerId) {
         final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops, " +
-                "inventoryStorage, currentQuest, campaigns, preferences, guildId, unlockedPlanets " +
+                "inventoryStorage, currentQuest, campaigns, preferences, guildId, unlockedPlanets, scalars " +
                 "FROM PlayerSettings p WHERE p.id = ?";
 
         PlayerSettings playerSettings = null;
@@ -234,10 +234,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     .fromJsonString(unlockedPlanetsJson, UnlockedPlanets.class);
                         }
                         playerSettings.setUnlockedPlanets(unlockedPlanets);
+
+                        String scalarsString = rs.getString("scalars");
+                        Scalars scalars = null;
+                        if (scalarsString != null) {
+                            scalars = ServiceFactory.instance().getJsonParser().fromJsonString(scalarsString, Scalars.class);
+                        } else {
+                            scalars = new Scalars();
+                        }
+                        playerSettings.setScalars(scalars);
+
                     }
                 }
             }
         } catch (Exception ex) {
+            ex.printStackTrace();
             throw new RuntimeException("Failed to load player settings from DB id=" + playerId, ex);
         }
 
@@ -354,8 +365,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void changeSquadRole(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification,
-                                SquadRole squadRole)
-    {
+                                SquadRole squadRole) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             if (guildSession.canEdit()) {
@@ -419,6 +429,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
 
+
+        int xp = ServiceFactory.getXpFromBuildings(playerMap.buildings);
+
+        Scalars scalars = playerSession.getPlayerSettings().getScalars();
+        scalars.xp = xp;
+        String scalarsJson = ServiceFactory.instance().getJsonParser().toJson(scalars);
+        System.out.println(playerSession.getPlayer() + "|scalarsJson---->" + scalarsJson);
         savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
                 creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
                 playerSession.getPlayerSettings().getFaction(),
@@ -426,7 +443,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 campaignsJson,
                 preferencesJson,
                 playerSession.getPlayerSettings().getGuildId(),
-                unlockedPlanetsJson, hqLevel,
+                unlockedPlanetsJson, hqLevel, scalarsJson, xp, playerSession.getPlayerSettings().getKeepAlive(),
                 connection);
     }
 
@@ -475,11 +492,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
                                     FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
                                     String guildId, String unlockedPlanets,
-                                    int hqLevel, Connection connection) {
+                                    int hqLevel, String scalars, int xp, long keepAlive, Connection connection) {
         final String sql = "update PlayerSettings " +
                 "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
                 "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ?," +
-                "unlockedPlanets = ?, hqLevel = ? " +
+                "unlockedPlanets = ?, hqLevel = ? , scalars = ?, xp = ?, keepAlive = ? " +
                 "WHERE id = ?";
         try {
             try (PreparedStatement stmt = connection.prepareStatement(sql)) {
@@ -497,7 +514,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 stmt.setString(12, guildId);
                 stmt.setString(13, unlockedPlanets);
                 stmt.setInt(14, hqLevel);
-                stmt.setString(15, playerId);
+                stmt.setString(15, scalars);
+                stmt.setInt(16, xp);
+                stmt.setLong(17, keepAlive);
+                stmt.setString(18, playerId);
                 stmt.executeUpdate();
             }
         } catch (SQLException ex) {
@@ -989,8 +1009,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveWarMatchMake(FactionType faction, GuildSession guildSession, List<String> participantIds,
-                                 SquadNotification squadNotification, Long time)
-    {
+                                 SquadNotification squadNotification, Long time) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             saveMatchMake(faction, guildSession.getGuildId(), participantIds, time, connection);
@@ -1228,8 +1247,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private War loadWar(String warId, Connection connection) {
         final String matchMakeSql = "select warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime, " +
+
+                "actionGraceStartTime, actionEndTime, cooldownEndTime from War w where w.warId = ?";
+
         "actionGraceStartTime, actionEndTime, cooldownEndTime, processedEndTime, squadAScore, squadBScore " +
                 "from War w where w.warId = ?";
+
 
         War war = null;
         try {
@@ -1248,8 +1271,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     int squadAScore = rs.getInt("squadAScore");
                     int squadBScore = rs.getInt("squadBScore");
                     war = new War(warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime,
+
+                            actionGraceStartTime, actionEndTime, cooldownEndTime);
+
                                     actionGraceStartTime, actionEndTime, cooldownEndTime,
                             processedEndTime, squadAScore, squadBScore);
+
                 }
             }
 
@@ -1340,7 +1367,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         final String warParticipantsSql = "select p.warMap, p.donatedTroops, p.victoryPoints, p.turns, p.attacksWon, " +
                 "p.defensesWon, p.score, p.defenseExpirationDate, ps.hqLevel, ps.id, ps.name " +
                 "from WarParticipants p, Squads s, SquadMembers m, PlayerSettings ps where s.id = ? and " +
-                      "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
+                "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
@@ -1372,8 +1399,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveWarParticipant(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
-                                   SquadNotification squadNotification)
-    {
+                                   SquadNotification squadNotification) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
             savePlayerSession(playerSession, connection);
@@ -1387,14 +1413,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void saveWarParticipant(SquadMemberWarData squadMemberWarData, Connection connection) {
         final String warParticipantsSql = "update WarParticipants " +
-                            "set warMap = ?," +
-                            "donatedTroops = ?," +
-                            "victoryPoints = ?," +
-                            "turns = ?," +
-                            "attacksWon = ?," +
-                            "defensesWon = ?," +
-                            "score = ? " +
-                            "where playerId = ? and warId = ?";
+                "set warMap = ?," +
+                "donatedTroops = ?," +
+                "victoryPoints = ?," +
+                "turns = ?," +
+                "attacksWon = ?," +
+                "defensesWon = ?," +
+                "score = ? " +
+                "where playerId = ? and warId = ?";
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
@@ -1424,8 +1450,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public AttackDetail warAttackStart(WarSession warSession, String playerId, String opponentId,
-                                       SquadNotification attackStartNotification, long time)
-    {
+                                       SquadNotification attackStartNotification, long time) {
         AttackDetail attackDetail;
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
@@ -1452,8 +1477,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                           BattleReplay battleReplay,
                                           SquadNotification attackCompleteNotification,
                                           SquadNotification attackReplayNotification,
-                                          DefendingWarParticipant defendingWarParticipant, long time)
-    {
+                                          DefendingWarParticipant defendingWarParticipant, long time) {
         AttackDetail attackDetail;
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
@@ -1479,7 +1503,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 saveWarBattle(battleReplay, warSession.getWarId(), time, connection);
                 connection.commit();
             } else {
-                connection.rollback();;
+                connection.rollback();
+                ;
             }
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save war attack complete for player id=" + playerSession.getPlayerId(), ex);
@@ -1488,9 +1513,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return attackDetail;
     }
 
+
     private void saveWarBattle(BattleReplay battleReplay, String warId, long time, Connection connection) {
         final String squadMemberSql = "insert into WarBattles (warId, battleId, attackerId, defenderId, battleResponse, battleCompleteTime) values " +
                 "(?, ?, ?, ?, ?, ?)";
+        saveBattle(connection, battleReplay.battleLog.battleId, BattleType.PvpAttackSquadWar, battleReplay.battleLog.attacker.playerId, battleReplay.battleLog.defender.playerId);
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
@@ -1597,8 +1624,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private AttackDetail saveAndUpdateWarBattle(String warId, PlayerSession playerSession,
                                                 BattleReplay battleReplay,
-                                                int victoryPointsEarned, Connection connection)
-    {
+                                                int victoryPointsEarned, Connection connection) {
         final String warParticipantsDefenseSql = "update WarParticipants " +
                 "set defenseBattleId = null, defenseExpirationDate = null, victoryPoints = victoryPoints - ? " +
                 "where warId = ? and defenseBattleId = ?";
@@ -1646,8 +1672,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void setAndSaveWarNotification(WarNotification warNotification, WarSession warSession,
-                                           SquadNotification squadNotification, Connection connection)
-    {
+                                           SquadNotification squadNotification, Connection connection) {
         synchronized (warSession) {
             GuildSession guildSessionA = warSession.getGuildASession();
             squadNotification.setDate(0);
@@ -1736,7 +1761,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 // base has been cleared
                 if (victoryPoints == 0) {
                     attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_NOT_ENOUGH_VICTORY_POINTS);
-                } else if (time > defenseExpirationDate){
+                } else if (time > defenseExpirationDate) {
                     // TODO - give a grace time on when to decide to unlock this base as possible client crash
                     System.out.println("WarBase is still being attacked but expiry time has finished, maybe client crashed?");
                     attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_BASE_UNDER_ATTACK);
@@ -1812,8 +1837,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private Collection<SquadNotification> getSquadNotificationsSince(String guildId, String guildName, long since,
-                                                                    Connection connection) throws Exception
-    {
+                                                                     Connection connection) throws Exception {
         final String notificationsSql = "SELECT id, orderNo, date, playerId, name, squadMessageType, message, squadNotification " +
                 "FROM SquadNotifications s WHERE s.guildId = ? and s.date > ? order by s.date";
 
@@ -1861,6 +1885,298 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
+
+    public HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession) {
+        String sql = "SELECT id, buildings, buildings, hqlevel, xp FROM DevBases WHERE ( hqlevel >= ? -1 AND hqlevel <= ? +1) or (xp >= ( ? * 0.9) AND xp <= (? * 1.10) ) ORDER BY xp desc";
+
+        HashMap<String, PvpMatch> pvpMatches = new HashMap<>();
+
+
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            int hq = playerSession.getHeadQuarter().getBuildingData().getLevel();
+            int xp = playerSession.getPlayerSettings().getScalars().xp;
+            preparedStatement.setInt(1, hq);
+            preparedStatement.setInt(2, hq);
+            preparedStatement.setInt(3, xp);
+            preparedStatement.setInt(4, xp);
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()) {
+
+//                BattleParticipant defender = new BattleParticipant();
+//                defender.attackRating = 500;
+//                defender.defenseRating = 500;
+//                defender.playerId = rs.getString("id");
+//                defender.name = "Dev Base";// TODO add randomised names...
+//                defender.attackRatingDelta = 18;
+//                defender.defenseRatingDelta = 18;
+//                defender.faction = playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire;
+//                defender.guildId = rs.getString("id");
+//                defender.guildName = "DEV BASE";
+//                defender.tournamentRating = 0;
+//                defender.tournamentRatingDelta = 0;
+                String battleId = ServiceFactory.createRandomUUID();
+                PvpMatch pvpMatch = new PvpMatch();
+                pvpMatch.setPlayerId(playerSession.getPlayerId());
+                pvpMatch.setParticipantId(rs.getString("id"));
+                pvpMatch.setDefenderXp(rs.getInt("xp"));
+                pvpMatch.setBattleId(battleId);
+                pvpMatch.setFactionType(playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire);
+                pvpMatch.setDevBase(true);
+                pvpMatch.setLevel(rs.getInt("hqlevel"));
+                pvpMatches.put(battleId, pvpMatch);
+                System.out.println("BattleId added to matches" + battleId);
+            }
+
+
+        } catch (SQLException ex) {
+
+        }
+
+        return pvpMatches;
+    }
+
+
+    @Override
+    public Buildings getDevBaseMap(String id, FactionType faction) {
+        Buildings buildings = null;
+
+        System.out.println("getDevBaseMap---Id>" + id);
+        String sql = "SELECT buildings FROM DevBases WHERE id = ?";
+
+        try (Connection connection = getConnection()) {
+            System.out.println("Got Connection");
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, id);
+            System.out.println("PrepStatement---->" + preparedStatement.toString());
+            ResultSet rs = preparedStatement.executeQuery();
+
+            while (rs.next()) {
+                String mapString = rs.getString("buildings");
+                mapString = mapString.replace(FactionType.neutral.name(), faction.name());
+                System.out.println("getDevBaseMap---->" + mapString);
+                try {
+                    buildings = ServiceFactory.instance().getJsonParser().fromJsonString(mapString, Buildings.class);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    throw new RuntimeException(e);
+                }
+            }
+        } catch (SQLException exception) {
+            exception.printStackTrace();
+        }
+        return buildings;
+    }
+
+
+    @Override
+    public void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
+        try (Connection connection = getConnection()) {
+            //            saveBattle(connection, pvpBattle.getBattleId(), match);
+            saveBattle(connection, match.getBattleId(), BattleType.Pvp, match.getPlayerId(), match.getParticipantId());
+            saveBattleBaseData(connection, pvpBattle, match, battleLog);
+            saveReplayData(connection, pvpBattle);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void saveBattle(Connection connection, String battleId, BattleType battleType, String playerId, String participantId) {
+        String insertNewMasterBattle = "insert into BattlesMaster (battleId, battleType, playerId, participantId)" +
+                "values (?, ?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertNewMasterBattle)) {
+            preparedStatement.setString(1, battleId);
+            preparedStatement.setString(2, battleType.name());
+            preparedStatement.setString(3, playerId);
+            preparedStatement.setString(4, participantId);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error saving master battle data");
+        }
+
+    }
+
+
+    private void saveReplayData(Connection connection, PlayerPvpBattleComplete pvpBattle) {
+        String insertNewPvPBattleReplay = "insert into PvpBattles_ReplayData (BattleId, combatEncounter, battleActions, attackerDeploymentData,\n" + "                                   defenderDeploymentData, lootCreditsAvailable, lootMaterialsAvailable,\n" + "                                   lootContrabandAvailable, lootBuildingCreditsMap, lootBuildingMaterialsMap,\n" + "                                   lootBuildingContrabandMap, battleType, battleLength, lowFPS, lowFPSTime,\n" + "                                   battleVersion, planetId, manifestVersion, battleAttributes, victoryConditions,\n" + "                                   failureCondition, donatedTroops, donatedTroopsAttacker, champions, disabledBuildings,\n" + "                                   simSeedA, simSeedB, viewTimePreBattle, attackerCreatureTraps, defenderCreatureTraps)\n" + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement stmt = connection.prepareStatement(insertNewPvPBattleReplay)) {
+            stmt.setString(1, pvpBattle.getBattleId());
+            stmt.setString(2, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().combatEncounter));
+            stmt.setString(3, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().battleActions));
+            stmt.setString(4, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().attackerDeploymentData));
+            stmt.setString(5, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().defenderDeploymentData));
+            stmt.setLong(6, pvpBattle.getReplayData().lootCreditsAvailable);
+
+            stmt.setLong(7, pvpBattle.getReplayData().lootMaterialsAvailable);
+            stmt.setLong(8, pvpBattle.getReplayData().lootContrabandAvailable);
+            stmt.setString(9, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingCreditsMap));
+            stmt.setString(10, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingMaterialsMap));
+            stmt.setString(11, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingContrabandMap));
+
+            stmt.setString(12, pvpBattle.getReplayData().battleType.name());
+            stmt.setLong(13, pvpBattle.getReplayData().battleLength);
+            stmt.setLong(14, pvpBattle.getReplayData().lowFPS);
+            stmt.setLong(15, pvpBattle.getReplayData().lowFPSTime);
+            stmt.setString(16, pvpBattle.getReplayData().battleVersion);
+
+            stmt.setString(17, pvpBattle.getReplayData().planetId);
+            stmt.setString(18, pvpBattle.getReplayData().manifestVersion);
+            stmt.setString(19, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().battleAttributes));
+            stmt.setString(20, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().victoryConditions));
+            stmt.setString(21, pvpBattle.getReplayData().failureCondition);
+
+            stmt.setString(22, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().donatedTroops));
+            stmt.setString(23, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().donatedTroopsAttacker));
+            stmt.setString(24, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().champions));
+            stmt.setString(25, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().disabledBuildings));
+            stmt.setLong(26, pvpBattle.getReplayData().simSeedA);
+
+            stmt.setLong(27, pvpBattle.getReplayData().simSeedB);
+            stmt.setDouble(28, pvpBattle.getReplayData().viewTimePreBattle);
+            stmt.setString(29, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().attackerCreatureTraps));
+            stmt.setString(30, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().defenderCreatureTraps));
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to add new battle Replay" + ex.getMessage());
+        }
+
+
+    }
+
+    private void saveBattleBaseData(Connection connection, PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
+        String insertNewBattle = "insert into PvpBattleData (" +
+                "battleId," +
+                " cs, " +
+                "_credits, " +
+                "_materials, " +
+                "_contraband, " +
+                "_crystals," +
+                "seededTroopsDeployed, " +
+                "damagedBuildings, " +
+                "unarmedTraps, " +
+                "baseDamagePercent,  " +
+                "stars, " +
+                "isUserEnded, " +
+                "planetId, " +
+                "attackerId, " +
+                "participantId, " +
+                "battleDate," +
+                "BattleLog," +
+                "ReplayData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
+
+        PreparedStatement stmt = null;
+        try {
+            stmt = connection.prepareStatement(insertNewBattle);
+            stmt.setString(1, pvpBattle.getBattleId());
+            stmt.setLong(2, pvpBattle.getCs());
+            stmt.setInt(3, pvpBattle.getCredits());
+            stmt.setInt(4, pvpBattle.getMaterials());
+            stmt.setInt(5, pvpBattle.getContraband());
+            stmt.setInt(6, pvpBattle.getCrystals());
+            stmt.setString(7, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getSeededTroopsDeployed()));
+            stmt.setString(8, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getDamagedBuildings()));
+            stmt.setString(9, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getUnarmedTraps()));
+            stmt.setInt(10, pvpBattle.getBaseDamagePercent());
+            stmt.setInt(11, pvpBattle.getStars());
+            stmt.setBoolean(12, pvpBattle.isUserEnded());
+            stmt.setString(13, pvpBattle.getPlanetId());
+            stmt.setString(14, pvpBattle.getPlayerId());
+            stmt.setString(15, match.getParticipantId());
+            stmt.setLong(16, match.getBattleDate());
+            stmt.setString(17, ServiceFactory.instance().getJsonParser().toJson(battleLog));
+            stmt.setString(18, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData()));
+
+
+            System.out.println(stmt.toString());
+            stmt.executeUpdate();
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Failed to add new battle data");
+        }
+    }
+
+
+    @Override
+    public List<BattleLog> getPlayerBattleLogs(String playerId) {
+        List<BattleLog> battleLogs = new ArrayList<>();
+        String battleLogSql = "SELECT BattleLog " +
+                "FROM PvpBattleData " +
+                "WHERE attackerId = ? OR participantId = ? LIMIT 30";
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(battleLogSql);
+            preparedStatement.setString(1, playerId);
+            preparedStatement.setString(2, playerId);
+
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    BattleLog battleLog = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("BattleLog"), BattleLog.class);
+
+                    battleLogs.add(battleLog);
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                throw new RuntimeException("Error retrieving resultset for player battle logs");
+            }
+
+
+        } catch (SQLException ex) {
+            ex.printStackTrace();
+            throw new RuntimeException("Failed to get DB connection when retrieving playerbattlelogs");
+        }
+
+        return battleLogs;
+    }
+
+    @Override
+    public BattleType getBattleType(String battleId) {
+        String sql = "SELECT battleType FROM BattlesMaster WHERE battleId = ?";
+        BattleType battleType = BattleType.Pvp;
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, battleId);
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    battleType = BattleType.valueOf(rs.getString("battleType"));
+                }
+
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get DB connection when retrieving battle type");
+        }
+        return battleType;
+    }
+
+
+    @Override
+    public BattleReplay pvpReplay(String battleId) {
+        String sql = "SELECT BattleLog, ReplayData FRom PvpBattleData WHERE battleId = ?";
+        BattleReplay battleReplay = new BattleReplay();
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, battleId);
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    battleReplay.battleLog = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("BattleLog"), BattleEntry.class);
+                    battleReplay.replayData = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("ReplayData"), ReplayData.class);
+
+                }
+
+            } catch (Exception e){
+                e.printStackTrace();
+                throw new RuntimeException("Error reading resulset or parsing JSON for battle replay");
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get DB connection when retrieving battle type");
+        }
+        return battleReplay;
+=======
     public War processWarEnd(String warId, String squadIdA, String squadIdB) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
@@ -1916,5 +2232,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             stmt.setString(1, warId);
             int updated = stmt.executeUpdate();
         }
+
     }
 }

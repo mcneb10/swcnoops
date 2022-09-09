@@ -47,6 +47,8 @@ public class PlayerSessionImpl implements PlayerSession {
     final private PlayerMapItems playerMapItems;
     private DroidManager droidManager;
 
+    private PvpSessionImpl pvpSession = new PvpSessionImpl(this);
+
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
     static final private CreatureManagerFactory creatureManagerFactory = new CreatureManagerFactory();
     static final private TroopInventoryFactory troopInventoryFactory = new TroopInventoryFactory();
@@ -71,6 +73,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.donatedTroops = playerSettings.getDonatedTroops();
         this.inventoryStorage = playerSettings.getInventoryStorage();
         this.droidManager = new DroidManager(this);
+
         mapBuildingContracts(playerSettings);
     }
 
@@ -149,8 +152,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void cancelTrainTroops(String buildingId, String unitTypeId, int quantity, int credits, int materials,
-                                  int contraband, long time)
-    {
+                                  int contraband, long time) {
         this.processCompletedContracts(time);
         CurrencyDelta currencyDelta = this.trainingManager.cancelTrainTroops(buildingId, unitTypeId, quantity,
                 credits, materials, contraband, time);
@@ -168,6 +170,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     /**
      * Removing completed contracts during base building
+     *
      * @param deployablesToRemove
      * @param time
      */
@@ -183,6 +186,7 @@ public class PlayerSessionImpl implements PlayerSession {
     /**
      * This is removal during a battle to remove troops that were used.
      * Creatures if they stay alive during a battle seem to stay active
+     *
      * @param deployablesToRemove
      * @param time
      */
@@ -321,6 +325,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         this.notificationSession.playerLogin();
         removeEjectedNotifications();
+        this.playerSettings.setKeepAlive(time);
         this.savePlayerSession();
     }
 
@@ -507,7 +512,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
         processCreature(attackingUnitsKilled);
         Map<String, Integer> champions = getChampions(attackingUnitsKilled);
-        Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(champions);
+        Map<String, Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(champions);
         this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
         PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         playerCampaignMission.battleComplete(battleId, stars);
@@ -530,7 +535,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void buildingMultimove(PositionMap positions, long time) {
         this.processCompletedContracts(time);
-        positions.forEach((a,b) -> buildingMultimove(a,b));
+        positions.forEach((a, b) -> buildingMultimove(a, b));
         this.savePlayerSession();
     }
 
@@ -686,8 +691,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingConstruct(String buildingUid, String tag, Position position, int credits, int materials,
-                                  int contraband, long time)
-    {
+                                  int contraband, long time) {
         this.processCompletedContracts(time);
         MapItem mapItem = this.playerMapItems.createMapItem(buildingUid, tag, position);
 
@@ -767,8 +771,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void buildingInstantUpgrade(String buildingId, String tag, int credits, int materials, int contraband,
-                                       int crystals, long time)
-    {
+                                       int crystals, long time) {
         this.processCompletedContracts(time);
         MapItem mapItem = this.getMapItemByKey(buildingId);
         if (mapItem != null) {
@@ -851,6 +854,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     /**
      * TODO - Need to make this thread safe for squad support
+     *
      * @param troopUid
      * @param numberOf
      * @param fromPlayerId
@@ -937,8 +941,8 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void preferencesSet(Map<String,String> sharedPrefs) {
-        Map<String,String> currentPrefs = this.getPlayerSettings().getSharedPreferences();
+    public void preferencesSet(Map<String, String> sharedPrefs) {
+        Map<String, String> currentPrefs = this.getPlayerSettings().getSharedPreferences();
         currentPrefs.putAll(sharedPrefs);
         this.savePlayerSession();
     }
@@ -1029,6 +1033,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     /**
      * This will modify the maps building to the same level as what the player currently has
+     *
      * @param warMap
      */
     @Override
@@ -1066,5 +1071,17 @@ public class PlayerSessionImpl implements PlayerSession {
         }
 
         ServiceFactory.instance().getPlayerDatasource().saveWarParticipant(squadMemberWarData);
+    }
+
+    @Override
+    public PvpSessionImpl getPvpSession() {
+        return pvpSession;
+    }
+
+
+    @Override
+    public void updateScalars(Scalars scalars) {
+        this.playerSettings.setScalars(scalars);
+        savePlayerSession();
     }
 }

@@ -1,0 +1,107 @@
+{
+  "activeMemberCount": 30,
+  "created": 1439407342,
+  "currentWarId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "description": "",
+  "highestRankAchieved": 5549,
+  "icon": "SquadSymbols_11",
+  "id": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+  "isSameFactionWarAllowed": true,
+  "lastPerkNotif": 1561246653,
+  "level": 34,
+  "memberCount": 30,
+  "members": [
+    {
+      "attacksWon": 2805,
+      "defensesWon": 450,
+      "hasPlanetaryCommand": true,
+      "hqLevel": 11,
+      "isOfficer": true,
+      "isOwner": true,
+      "joinDate": 1439407342,
+      "lastLoginTime": 1561414905,
+      "lastUpdated": 1561438937,
+      "name": "me",
+      "planet": "planet23",
+      "playerId": "2c2d4aea-7f38-11e5-a29f-069096004f69",
+      "rank": 1,
+      "reputationInvested": 566,
+      "score": 5840,
+      "tournamentRating": 0,
+      "tournamentScores": {
+        "planet3": 0,
+        "planet6": 0,
+        "planet8": 0
+      },
+      "troopsDonated": 1172,
+      "troopsReceived": 435,
+      "warParty": 1,
+      "xp": 2836
+    },
+    {
+      "attacksWon": 596,
+      "defensesWon": 20,
+      "hasPlanetaryCommand": true,
+      "hqLevel": 6,
+      "isOfficer": true,
+      "isOwner": true,
+      "joinDate": 1553104253,
+      "lastLoginTime": 1561420227,
+      "lastUpdated": 1561420392,
+      "name": "Anakin Sky",
+      "planet": "planet23",
+      "playerId": "2c2d4aea-7f38-11e5-a29f-069096004f6a",
+      "rank": 2,
+      "reputationInvested": 42,
+      "score": 3104,
+      "tournamentRating": 0,
+      "tournamentScores": {
+        "planet3": 0,
+        "planet6": 0,
+        "planet8": 0
+      },
+      "troopsDonated": 1,
+      "troopsReceived": 1,
+      "warParty": 1,
+      "xp": 1
+    }
+  ],
+  "membershipRestrictions": {
+    "faction": "empire",
+    "maxSize": 30,
+    "minScoreAtEnrollment": 0,
+    "openEnrollment": true
+  },
+  "name": "SWC",
+  "perks": {
+    "available": {
+      "CBar_CCan": "perk_CBar_CCan6",
+      "CBar_CFac": "perk_CBar_CFac7",
+      "CCan_TDrd": "perk_CCan_TDrd6",
+      "CFac_CCan": "perk_CFac_CCan6",
+      "CHro_DntT": "perk_CHro_DntT1",
+      "CHro_GAll": "perk_CHro_GAll5",
+      "CStr_CHro": "perk_CStr_CHro2",
+      "CStr_DntAmt": "perk_CStr_DntAmt2",
+      "DntAmt_DntT": "perk_DntAmt_DntT6",
+      "GAll_GCon": "perk_GAll_GCon5",
+      "GCon_DntT": "perk_GCon_DntT6",
+      "GCon_TDrd": "perk_GCon_TDrd5",
+      "GCrd_DntT": "perk_GCrd_DntT4",
+      "GCrd_GCon": "perk_GCrd_GCon5",
+      "TDrd": "perk_TDrd6"
+    },
+    "inProgress": {
+      "perk_DntAmt_DntT7": 55,
+      "perk_GCrd_DntT5": 45
+    }
+  },
+  "rank": 1,
+  "score": 1,
+  "squadWarReadyCount": 1,
+  "totalRepInvested": 1,
+  "warHistory": [
+  ],
+  "warRating": null,
+  "warSignUpTime": null
+}

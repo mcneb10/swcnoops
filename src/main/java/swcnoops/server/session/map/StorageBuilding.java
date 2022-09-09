@@ -19,7 +19,6 @@ public class StorageBuilding extends MapItemImpl {
 
     private void updateTotalCapacity(PlayerSession playerSession, CurrencyType currency) {
         int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
-
         switch (currency) {
             case credits:
                 playerSession.getPlayerSettings().getInventoryStorage().credits.capacity = totalCapacity;

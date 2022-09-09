@@ -44,6 +44,8 @@ public class Config {
     public boolean enableBatchResponseReplayer = false;
     public boolean freeResources = true;
 
+    public boolean loadDevBases;
+
     public void setFromProperties(Properties properties) throws Exception {
         Class<?> clazz = this.getClass();
         for (Field field : clazz.getFields()) {
