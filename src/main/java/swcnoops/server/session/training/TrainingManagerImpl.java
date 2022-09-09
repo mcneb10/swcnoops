@@ -70,11 +70,6 @@ public class TrainingManagerImpl implements TrainingManager {
         }
 
         builder.train(buildUnits, startTime);
-        DeployableQueue transport = builder.getDeployableQueue();
-        if (transport != null) {
-            transport.addUnitsToQueue(buildUnits);
-            transport.sortUnitsInQueue();
-        }
 
         return new CurrencyDelta(givenTrainCost, trainCost, trainingCurrency, true);
     }
@@ -142,16 +137,10 @@ public class TrainingManagerImpl implements TrainingManager {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> cancelledContracts =
-                builder.remove(troopData.getUnitId(), quantity, time, true);
+                builder.remove(troopData.getUnitId(), quantity, time, false);
 
         if (cancelledContracts.size() != quantity) {
             LOG.warn("Number of units to cancel " + unitTypeId + " removed " + cancelledContracts.size() + " but expected " + quantity);
-        }
-
-        DeployableQueue transport = builder.getDeployableQueue();
-        if (transport != null) {
-            transport.removeUnitsFromQueue(cancelledContracts);
-            transport.sortUnitsInQueue();
         }
 
         CurrencyType trainingCurrency = getTrainingCurrency(troopData);
@@ -180,12 +169,7 @@ public class TrainingManagerImpl implements TrainingManager {
         TroopData troopData = ServiceFactory.instance().getGameDataManager().getTroopDataByUid(unitTypeId);
         Builder builder = getBuilder(buildingId);
         List<BuildUnit> boughtOutContracts =
-                builder.remove(troopData.getUnitId(), quantity, time, false);
-        DeployableQueue transport = builder.getDeployableQueue();
-        if (transport != null) {
-            transport.moveUnitToDeployable(boughtOutContracts);
-            transport.sortUnitsInQueue();
-        }
+                builder.remove(troopData.getUnitId(), quantity, time, true);
 
         // calculate how much time is being bought out with crystals
         int expectedCrystals = 0;
@@ -283,7 +267,11 @@ public class TrainingManagerImpl implements TrainingManager {
     public void initialiseBuilder(MapItem mapItem, DeployableQueue deployableQueue,
                                   ContractType contractType) {
         if (!this.builders.containsKey(mapItem.getBuildingKey())) {
-            Builder builder = new Builder(this.playerSession, mapItem, deployableQueue, contractType);
+            Builder builder;
+            if (mapItem.getBuildingData().getType() == BuildingType.champion_platform)
+                builder = new ChampionBuilder(this.playerSession, mapItem, deployableQueue, contractType);
+            else
+                builder = new Builder(this.playerSession, mapItem, deployableQueue, contractType);
             this.builders.put(builder.getBuildingKey(), builder);
         }
     }
@@ -293,8 +281,6 @@ public class TrainingManagerImpl implements TrainingManager {
         Builder builder = this.getBuilder(buildUnit.getBuildingId());
         if (builder != null) {
             builder.load(buildUnit);
-            DeployableQueue transport = builder.getDeployableQueue();
-            transport.addUnitsToQueue(buildUnit);
         }
     }
 

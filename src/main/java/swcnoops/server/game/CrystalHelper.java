@@ -1,6 +1,7 @@
 package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.model.TroopType;
 import swcnoops.server.session.PlayerSession;
 
 public class CrystalHelper {
@@ -27,6 +28,9 @@ public class CrystalHelper {
 
     public static int secondsToCrystals(int secondsToBuy, TroopData troopData) {
         boolean isPrestige = troopData.getLevel() > 10;
+        if (troopData.getType() == TroopType.champion)
+            isPrestige = false;
+
         return secondsToCrystals(secondsToBuy, isPrestige);
     }
 

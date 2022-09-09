@@ -167,10 +167,28 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         SubStorage subStorage = new SubStorage();
         TrainingManager trainingManager = playerSession.getTrainingManager();
         mapDeployableTroops(playerSession, trainingManager.getDeployableTroops(), subStorage.troop.storage);
-        mapDeployableTroops(playerSession, trainingManager.getDeployableChampion(), subStorage.champion.storage);
+        mapDeployableChampion(playerSession, trainingManager.getDeployableChampion(), subStorage.champion.storage);
         mapDeployableTroops(playerSession, trainingManager.getDeployableHero(), subStorage.hero.storage);
         mapDeployableTroops(playerSession, trainingManager.getDeployableSpecialAttack(), subStorage.specialAttack.storage);
         return subStorage;
+    }
+
+    /**
+     * Only allow 1 instance of each deka
+     * @param playerSession
+     * @param deployableQueue
+     * @param storage
+     */
+    private void mapDeployableChampion(PlayerSession playerSession, DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
+        storage.clear();
+        for (Map.Entry<String,Integer> entry : deployableQueue.getDeployableUnits().entrySet()) {
+            TroopData troopData = this.getTroopForPlayerByUnitId(playerSession, entry.getKey());
+            StorageAmount storageAmount = new StorageAmount();
+            storageAmount.amount = entry.getValue().longValue() == 0 ? 0 : 1;
+            storageAmount.capacity = -1;
+            storageAmount.scale = troopData.getSize();
+            storage.put(troopData.getUid(), storageAmount);
+        }
     }
 
     private void mapDeployableTroops(PlayerSession playerSession, DeployableQueue deployableQueue, Map<String, StorageAmount> storage) {
@@ -230,7 +248,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapContracts(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.contracts.clear();
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
-        mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
+        mapChampionContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableChampion());
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
         mapContracts(playerSession, playerModel.contracts, playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
         mapCreatureContract(playerModel.contracts, playerSession.getCreatureManager());
@@ -284,6 +302,31 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             contract.uid = troopData.getUid();
             contract.endTime = buildUnit.getEndTime();
             contracts.add(contract);
+        }
+    }
+
+    private void mapChampionContracts(PlayerSession playerSession, List<Contract> contracts, DeployableQueue deployableQueue) {
+        Set<String> addedDeka = new HashSet<>();
+
+        for (Map.Entry<String,Integer> dekaDeployable : deployableQueue.getDeployableUnits().entrySet()) {
+            if (dekaDeployable.getValue() > 0) {
+                String unitId = dekaDeployable.getKey();
+                addedDeka.add(unitId);
+            }
+        }
+
+        // we only allow 1 contract per deka
+        for (BuildUnit buildUnit : deployableQueue.getUnitsInQueue()) {
+            TroopData troopData = getTroopForPlayerByUnitId(playerSession, buildUnit.getUnitId());
+            if (!addedDeka.contains(troopData.getUnitId())) {
+                addedDeka.add(troopData.getUnitId());
+                Contract contract = new Contract();
+                contract.contractType = buildUnit.getContractType().name();
+                contract.buildingId = buildUnit.getBuildingId();
+                contract.uid = troopData.getUid();
+                contract.endTime = buildUnit.getEndTime();
+                contracts.add(contract);
+            }
         }
     }
 

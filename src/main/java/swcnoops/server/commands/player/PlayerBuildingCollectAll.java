@@ -17,7 +17,7 @@ public class PlayerBuildingCollectAll extends PlayerChecksum<PlayerBuildingColle
                 .getPlayerSession(arguments.getPlayerId());
 
         playerSession.buildingCollectAll(arguments.getBuildingIds(), arguments.getCredits(),
-                arguments.getMaterials(), arguments.getContraband(), arguments.getCrystals(), time);
+                arguments.getMaterials(), arguments.getContraband(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

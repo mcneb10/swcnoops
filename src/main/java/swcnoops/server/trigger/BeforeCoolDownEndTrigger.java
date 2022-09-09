@@ -5,6 +5,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.War;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.WarSession;
 
 public class BeforeCoolDownEndTrigger implements CommandTrigger {
     @Override
@@ -22,6 +23,12 @@ public class BeforeCoolDownEndTrigger implements CommandTrigger {
             war.setActionEndTime(war.getActionGraceStartTime() + config.warResultDuration);
             war.setCooldownEndTime(ServiceFactory.getSystemTimeSecondsFromEpoch() + (60 * 1));
             ServiceFactory.instance().getPlayerDatasource().saveWar(war);
+            WarSession warSession = ServiceFactory.instance().getSessionManager().getWarSession(war.getWarId());
+            warSession.setDirty();
+            GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(warSession.getGuildIdA());
+            guildSession1.getGuildSettings().setDirty();
+            GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(warSession.getGuildIdB());
+            guildSession2.getGuildSettings().setDirty();
         }
     }
 }

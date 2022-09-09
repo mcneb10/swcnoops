@@ -5,6 +5,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.War;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.WarSession;
 
 public class InWarTrigger implements CommandTrigger {
     @Override
@@ -21,7 +22,15 @@ public class InWarTrigger implements CommandTrigger {
             war.setActionGraceStartTime(war.getPrepEndTime() + config.warPlayDuration);
             war.setActionEndTime(war.getActionGraceStartTime() + config.warResultDuration);
             war.setCooldownEndTime(war.getActionEndTime() + config.warCoolDownDuration);
+            war.setProcessedEndTime(0);
             ServiceFactory.instance().getPlayerDatasource().saveWar(war);
+            ServiceFactory.instance().getPlayerDatasource().resetWarPartyForParticipants(war.getWarId());
+            WarSession warSession = ServiceFactory.instance().getSessionManager().getWarSession(war.getWarId());
+            warSession.setDirty();
+            GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(warSession.getGuildIdA());
+            guildSession1.getGuildSettings().setDirty();
+            GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(warSession.getGuildIdB());
+            guildSession2.getGuildSettings().setDirty();
         }
     }
 }

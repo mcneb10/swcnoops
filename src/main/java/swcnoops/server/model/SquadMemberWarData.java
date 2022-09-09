@@ -20,5 +20,5 @@ public class SquadMemberWarData {
     public Map<String, Integer> champions;
 
     // TODO
-    //public List<Object> rewards;
+    //public List<SquadWarRewardData> rewards;
 }

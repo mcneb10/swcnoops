@@ -9,9 +9,12 @@ public class War {
     private Long actionEndTime;
     private Long cooldownEndTime;
     private String warId;
+    private long processedEndTime;
+    private int squadAScore;
+    private int squadBScore;
 
     public War(String warId, String squadIdA, String squadIdB, Long prepGraceStartTime, Long prepEndTime, Long actionGraceStartTime,
-               Long actionEndTime, Long cooldownEndTime)
+               Long actionEndTime, Long cooldownEndTime, long processedEndTime, int squadAScore, int squadBScore)
     {
         this.warId = warId;
         this.squadIdA = squadIdA;
@@ -21,6 +24,9 @@ public class War {
         this.actionGraceStartTime = actionGraceStartTime;
         this.actionEndTime = actionEndTime;
         this.cooldownEndTime = cooldownEndTime;
+        this.processedEndTime = processedEndTime;
+        this.squadAScore = squadAScore;
+        this.squadBScore = squadBScore;
     }
 
     public String getSquadIdA() {
@@ -77,5 +83,21 @@ public class War {
 
     public void setCooldownEndTime(Long cooldownEndTime) {
         this.cooldownEndTime = cooldownEndTime;
+    }
+
+    public long getProcessedEndTime() {
+        return processedEndTime;
+    }
+
+    public void setProcessedEndTime(long processedEndTime) {
+        this.processedEndTime = processedEndTime;
+    }
+
+    public int getSquadAScore() {
+        return squadAScore;
+    }
+
+    public int getSquadBScore() {
+        return squadBScore;
     }
 }
