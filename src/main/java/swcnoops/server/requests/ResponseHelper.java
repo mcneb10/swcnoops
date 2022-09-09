@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 public class ResponseHelper {
     static final public int STATUS_CODE_NOT_MODIFIED = 14;
     static final public int STATUS_CODE_BAD_INPUT = 701;
+
+    // this status is what flags up another login from another device
     static final public int LOGIN_TIME_MISMATCH = 917;
     static final public int STATUS_CODE_EXTERNAL_ACCOUNT_AUTH_FAILURE = 1318;
     static final public int INACTIVE_PLAYER_IDENTITY = 1900;

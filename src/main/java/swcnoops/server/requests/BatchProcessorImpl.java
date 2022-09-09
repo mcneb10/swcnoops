@@ -10,12 +10,9 @@ import swcnoops.server.session.BatchResponseReplayer;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class BatchProcessorImpl implements BatchProcessor {
-    final private DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSS'+01:00'");
     final private CommandFactory commandFactory = new CommandFactory();
 
     public BatchProcessorImpl() {
@@ -46,7 +43,11 @@ public class BatchProcessorImpl implements BatchProcessor {
         List<ResponseData> responseDatums = new ArrayList<>(batch.getCommands().size());
 
         AuthenticationService authenticationService = ServiceFactory.instance().getAuthenticationService();
-        authenticationService.validateBatch(batch);
+        BatchResponse batchResponse = authenticationService.validateBatch(batch);
+
+        if (batchResponse != null) {
+            return batchResponse;
+        }
 
         BatchResponseReplayer batchResponseReplayer = ServiceFactory.instance().getBatchResponseReplayer();
         BatchAction batchAction = batchResponseReplayer.waitOrProcessBatch(batch);
@@ -63,7 +64,6 @@ public class BatchProcessorImpl implements BatchProcessor {
             throw new Exception("Server seems to be slow processing");
         }
 
-        BatchResponse batchResponse = null;
         Exception exceptionResponse = null;
 
         try {
@@ -85,10 +85,6 @@ public class BatchProcessorImpl implements BatchProcessor {
             }
 
             batchResponse = new BatchResponse(responseDatums);
-            batchResponse.setProtocolVersion(ServiceFactory.instance().getConfig().PROTOCOL_VERSION);
-            ZonedDateTime zonedDateTime = ZonedDateTime.now();
-            batchResponse.setServerTimestamp(zonedDateTime.toEpochSecond());
-            batchResponse.setServerTime(dateTimeFormatter.format(zonedDateTime));
             return batchResponse;
         } catch (Exception exception) {
             exceptionResponse = exception;

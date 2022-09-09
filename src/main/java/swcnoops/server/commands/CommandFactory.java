@@ -24,6 +24,9 @@ public class CommandFactory {
         this.add(new PlayerPreferencesSet());
         this.add(new GuildInviteGet());
         this.add(new PlayerAccountExternalGet());
+        this.add(new PlayerAccountExternalRegister());
+        this.add(new PlayerAccountRecover());
+        this.add(new PlayerDeviceDeregister());
         this.add(new GuildGetChatKey());
         this.add(new GuildGet());
         this.add(new GuildWarStatus());
