@@ -36,7 +36,7 @@ public class GameDataManagerImpl implements GameDataManager {
 
     private Map<FactionType, List<Integer>> troopSizesAvailableByFaction = new HashMap<>();
 
-    private Map<Integer, Double> pvpMedalScaling;
+    private Map<Integer, Float> pvpMedalScaling;
 
     @Override
     public void initOnStartup() {
@@ -563,15 +563,5 @@ public class GameDataManagerImpl implements GameDataManager {
         return "DEV BASE";
     }
 
-    @Override
-    public Double getMedalScaling(int stars) {
-        if (this.pvpMedalScaling == null) {
-            this.pvpMedalScaling = new HashMap<>();
-            this.pvpMedalScaling.put(1, 0.3);
-            this.pvpMedalScaling.put(2, 0.7);
-            this.pvpMedalScaling.put(3, 1.0);
-            this.pvpMedalScaling.put(0, 1.0);
-        }
-        return this.pvpMedalScaling.get(stars);
-    }
+
 }

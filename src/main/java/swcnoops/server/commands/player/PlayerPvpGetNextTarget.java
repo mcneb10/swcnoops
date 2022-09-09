@@ -128,11 +128,11 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         int currentMaterials = playerSession.getPlayerSettings().getInventoryStorage().materials.amount;
         int currentContraband = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
         //TODO may be worth adding these to config instead...
-
+        float resourceScale = 0.1f;
 //        BigDecimal creditsAvailable = creditStorage == currentCredits ? new BigDecimal(0) : new BigDecimal(Math.min(creditStorage * 0.25, creditStorage * random.nextFloat()));
-        BigDecimal creditsAvailable = new BigDecimal(Math.min(creditStorage * 0.25, creditStorage * random.nextFloat()));
-        BigDecimal materialsAvailable = new BigDecimal(Math.min(materialsStorage * 0.25, materialsStorage * random.nextFloat()));
-        BigDecimal contraAvailable = new BigDecimal(Math.min(contraStorage * 0.25, contraStorage * random.nextFloat()));
+        BigDecimal creditsAvailable = new BigDecimal(Math.min(creditStorage * resourceScale, creditStorage * random.nextFloat()));
+        BigDecimal materialsAvailable = new BigDecimal(Math.min(materialsStorage * resourceScale, materialsStorage * random.nextFloat()));
+        BigDecimal contraAvailable = new BigDecimal(Math.min(contraStorage * resourceScale, contraStorage * random.nextFloat()));
 
         Map<CurrencyType, Integer> buildingLootCreditsMap = new HashMap<>();
         buildingLootCreditsMap.put(CurrencyType.credits, creditsAvailable.intValue());

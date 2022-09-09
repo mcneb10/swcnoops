@@ -8,32 +8,59 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 
-import java.util.Currency;
-import java.util.HashMap;
-import java.util.Map;
-
 public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattleComplete, PlayerPvpBattleCompleteCommandResult> {
     private JsonStringIntegerMap troopsExpended = new JsonStringIntegerMap();
+    private int attackerMedals = 0;
+    private int defenderMedals = 0;
 
     @Override
     protected PlayerPvpBattleCompleteCommandResult execute(PlayerPvpBattleComplete arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
         PlayerPvpBattleCompleteCommandResult response = new PlayerPvpBattleCompleteCommandResult();
-        setUpTroopsExpended(arguments);
         PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).getPvpSession().getMatch(arguments.getBattleId());
+
+        setUpTroopsExpended(arguments);
+        setUpMedals(arguments, pvpMatch);
+        BattleLog battleLog = createNewBattleLog(arguments, response, pvpMatch);
+
+        setupResponse(arguments, response, pvpMatch);
+
         playerSession.battleComplete(arguments.getBattleId(), arguments.getStars(), arguments.getAttackingUnitsKilled(), time);
         //TODO, maybe better inside the battleComplete method above
         updatePlayer(arguments, pvpMatch);
+        ServiceFactory.instance().getPlayerDatasource().saveNewPvPBattle(arguments, pvpMatch, battleLog);
 
-        //Now set up the response
-        setupResponse(arguments, response, pvpMatch);
-        BattleLog battleLog = createNewBattleLog(arguments, response, pvpMatch);
-        ServiceFactory.instance().getPlayerDatasource().saveNewBattle(arguments, pvpMatch, battleLog);
+
         if (!pvpMatch.isDevBase())
             processDefenderResult();//TODO, set medals/resources/sc of real defender following result of battle
         return response;
     }
+
+    private void setUpMedals(PlayerPvpBattleComplete arguments, PvpMatch pvpMatch) {
+        switch (arguments.getStars()) {
+            case 0:
+                attackerMedals = pvpMatch.getPotentialScoreLose() * -1;
+                defenderMedals = pvpMatch.getPotentialScoreWin();
+                break;
+            case 1:
+                attackerMedals = (int) (pvpMatch.getPotentialScoreWin() * Float.valueOf(ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_one_star_victory));
+                defenderMedals = (int) (pvpMatch.getPotentialScoreLose() * Float.valueOf(ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_one_star_victory)) * -1;
+                break;
+            case 2:
+                attackerMedals = (int) (pvpMatch.getPotentialScoreWin() * Float.valueOf(ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory));
+                defenderMedals = (int) (pvpMatch.getPotentialScoreLose() * Float.valueOf(ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory)) * -1;
+                break;
+            case 3:
+                attackerMedals = pvpMatch.getPotentialScoreWin();
+                defenderMedals = pvpMatch.getPotentialScoreLose();
+                break;
+
+        }
+
+
+    }
+
 
     private void setUpTroopsExpended(PlayerPvpBattleComplete arguments) {
         this.troopsExpended = new JsonStringIntegerMap();
@@ -65,21 +92,21 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         battleLog.attackDate = pvpMatch.getBattleDate();
 
         Earned earned = new Earned();
-        earned.credits = arguments.getReplayData().battleAttributes.lootCreditsEarned;
-        earned.materials = arguments.getReplayData().battleAttributes.lootMaterialsEarned;
-        earned.materials = arguments.getReplayData().battleAttributes.lootContrabandEarned;
+        earned.credits = Math.max(arguments.getReplayData().battleAttributes.lootCreditsEarned, 0);
+        earned.materials = Math.max(arguments.getReplayData().battleAttributes.lootMaterialsEarned, 0);
+        earned.materials = Math.max(arguments.getReplayData().battleAttributes.lootContrabandEarned, 0);
         battleLog.earned = earned;
 
         Earned looted = new Earned();
-        looted.credits = arguments.getLoot().get(CurrencyType.credits);
-        looted.materials = arguments.getLoot().get(CurrencyType.materials);
-        looted.contraband = arguments.getLoot().get(CurrencyType.contraband);
+        looted.credits = Math.max(arguments.getLoot().get(CurrencyType.credits), 0);
+        looted.materials = Math.max(arguments.getLoot().get(CurrencyType.materials), 0);
+        looted.contraband = Math.max(arguments.getLoot().get(CurrencyType.contraband), 0);
         battleLog.looted = looted;
 
         Earned maxLootable = new Earned();
-        maxLootable.credits = arguments.getReplayData().lootCreditsAvailable;
-        maxLootable.materials = arguments.getReplayData().lootMaterialsAvailable;
-        maxLootable.contraband = arguments.getReplayData().lootContrabandAvailable;
+        maxLootable.credits = Math.max(arguments.getReplayData().lootCreditsAvailable, 0);
+        maxLootable.materials = Math.max(arguments.getReplayData().lootMaterialsAvailable, 0);
+        maxLootable.contraband = Math.max(arguments.getReplayData().lootContrabandAvailable, 0);
         battleLog.maxLootable = maxLootable;
         battleLog.troopsExpended = this.troopsExpended;
         battleLog.attackerGuildTroopsExpended = arguments.getAttackerGuildTroopsSpent();
@@ -116,7 +143,6 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         response.attackDate = pvpMatch.getBattleDate();
         response.planetId = arguments.getPlanetId();
         response.potentialMedalGain = pvpMatch.getPotentialScoreWin();
-
 
         response.troopsExpended = troopsExpended;
         response.attackerGuildTroopsExpended = arguments.getAttackerGuildTroopsSpent();
@@ -158,23 +184,12 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         scalars.attacksCompleted = arguments.isUserEnded() ? scalars.attacksCompleted : scalars.attacksCompleted + 1;
         scalars.attacksWon = arguments.getStars() > 0 ? scalars.attacksWon + 1 : scalars.attacksWon;
         scalars.attacksLost = arguments.getStars() == 0 ? scalars.attacksLost + 1 : scalars.attacksLost;
+        scalars.attackRating = scalars.attackRating + attackerMedals;
 
-        int newAttackRating = scalars.attackRating;
+        pvpMatch.setAttackerDelta(attackerMedals);
+        pvpMatch.setDefenderDelta(defenderMedals);
 
-        if (arguments.getStars() == 3) {
-            newAttackRating = scalars.attackRating + pvpMatch.getPotentialScoreWin();
-        } else if (arguments.getStars() == 0) {
-            newAttackRating = scalars.attackRating - pvpMatch.getPotentialScoreLose();
-            pvpMatch.setAttackerDelta(pvpMatch.getPotentialScoreLose() * -1);
-            pvpMatch.setDefenderDelta(pvpMatch.getDefender().defenseRatingDelta * -1);
-        } else {
-            double medalScaling = ServiceFactory.instance().getGameDataManager().getMedalScaling(arguments.getStars());
-            newAttackRating = Math.max((int) (scalars.attackRating + (pvpMatch.getPotentialScoreWin() * medalScaling)), 100);
-            pvpMatch.setAttackerDelta(newAttackRating);
-            int defenderRating = (int) (pvpMatch.getDefender().defenseRating * medalScaling);
-            pvpMatch.setDefenderDelta(defenderRating);
-        }
-        scalars.attackRating = newAttackRating;
+
         return scalars;
     }
 

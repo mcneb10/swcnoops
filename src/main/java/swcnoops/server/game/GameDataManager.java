@@ -58,5 +58,5 @@ public interface GameDataManager {
 
     String randomDevBaseName();
 
-    Double getMedalScaling(int stars);
+//    float getMedalScaling(int stars);
 }

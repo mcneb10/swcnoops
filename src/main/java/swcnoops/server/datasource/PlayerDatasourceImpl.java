@@ -1430,9 +1430,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return attackDetail;
     }
 
+
     private void saveWarBattle(BattleReplay battleReplay, String warId, long time, Connection connection) {
         final String squadMemberSql = "insert into WarBattles (warId, battleId, attackerId, defenderId, battleResponse, battleCompleteTime) values " +
                 "(?, ?, ?, ?, ?, ?)";
+        saveBattle(connection, battleReplay.battleLog.battleId, BattleType.PvpAttackSquadWar, battleReplay.battleLog.attacker.playerId, battleReplay.battleLog.defender.playerId);
 
         try {
             try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
@@ -1884,16 +1886,34 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
 
     @Override
-    public void saveNewBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
-        try {
-            Connection connection = getConnection();
-//            saveBattle(connection, pvpBattle.getBattleId(), match);
+    public void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
+        try (Connection connection = getConnection()) {
+            //            saveBattle(connection, pvpBattle.getBattleId(), match);
+            saveBattle(connection, match.getBattleId(), BattleType.Pvp, match.getPlayerId(), match.getParticipantId());
             saveBattleBaseData(connection, pvpBattle, match, battleLog);
             saveReplayData(connection, pvpBattle);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
+
+    private void saveBattle(Connection connection, String battleId, BattleType battleType, String playerId, String participantId) {
+        String insertNewMasterBattle = "insert into BattlesMaster (battleId, battleType, playerId, participantId)" +
+                "values (?, ?, ?, ?)";
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(insertNewMasterBattle)) {
+            preparedStatement.setString(1, battleId);
+            preparedStatement.setString(2, battleType.name());
+            preparedStatement.setString(3, playerId);
+            preparedStatement.setString(4, participantId);
+            preparedStatement.executeUpdate();
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Error saving master battle data");
+        }
+
+    }
+
 
     private void saveReplayData(Connection connection, PlayerPvpBattleComplete pvpBattle) {
         String insertNewPvPBattleReplay = "insert into PvpBattles_ReplayData (BattleId, combatEncounter, battleActions, attackerDeploymentData,\n" + "                                   defenderDeploymentData, lootCreditsAvailable, lootMaterialsAvailable,\n" + "                                   lootContrabandAvailable, lootBuildingCreditsMap, lootBuildingMaterialsMap,\n" + "                                   lootBuildingContrabandMap, battleType, battleLength, lowFPS, lowFPSTime,\n" + "                                   battleVersion, planetId, manifestVersion, battleAttributes, victoryConditions,\n" + "                                   failureCondition, donatedTroops, donatedTroopsAttacker, champions, disabledBuildings,\n" + "                                   simSeedA, simSeedB, viewTimePreBattle, attackerCreatureTraps, defenderCreatureTraps)\n" + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -1960,7 +1980,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 "attackerId, " +
                 "participantId, " +
                 "battleDate," +
-                "BattleLog) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                "BattleLog," +
+                "ReplayData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
 
         PreparedStatement stmt = null;
         try {
@@ -1982,6 +2003,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             stmt.setString(15, match.getParticipantId());
             stmt.setLong(16, match.getBattleDate());
             stmt.setString(17, ServiceFactory.instance().getJsonParser().toJson(battleLog));
+            stmt.setString(18, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData()));
+
+
             System.out.println(stmt.toString());
             stmt.executeUpdate();
         } catch (SQLException ex) {
@@ -2021,5 +2045,51 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return battleLogs;
+    }
+
+    @Override
+    public BattleType getBattleType(String battleId) {
+        String sql = "SELECT battleType FROM BattlesMaster WHERE battleId = ?";
+        BattleType battleType = BattleType.Pvp;
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, battleId);
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    battleType = BattleType.valueOf(rs.getString("battleType"));
+                }
+
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get DB connection when retrieving battle type");
+        }
+        return battleType;
+    }
+
+
+    @Override
+    public BattleReplay pvpReplay(String battleId) {
+        String sql = "SELECT BattleLog, ReplayData FRom PvpBattleData WHERE battleId = ?";
+        BattleReplay battleReplay = new BattleReplay();
+        try (Connection connection = getConnection()) {
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setString(1, battleId);
+            try (ResultSet rs = preparedStatement.executeQuery()) {
+                while (rs.next()) {
+                    battleReplay.battleLog = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("BattleLog"), BattleEntry.class);
+                    battleReplay.replayData = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("ReplayData"), ReplayData.class);
+
+                }
+
+            } catch (Exception e){
+                e.printStackTrace();
+                throw new RuntimeException("Error reading resulset or parsing JSON for battle replay");
+            }
+
+        } catch (SQLException ex) {
+            throw new RuntimeException("Failed to get DB connection when retrieving battle type");
+        }
+        return battleReplay;
     }
 }

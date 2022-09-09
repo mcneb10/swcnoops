@@ -11,7 +11,6 @@ import swcnoops.server.session.WarSessionImpl;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
@@ -94,7 +93,11 @@ public interface PlayerDataSource {
 
     Buildings getDevBaseMap(String id, FactionType faction);
 
-    void saveNewBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog);
+    void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog);
 
     List<BattleLog> getPlayerBattleLogs(String playerId);
+    BattleType getBattleType(String battleId);
+
+    BattleReplay pvpReplay(String battleId);
+
 }
