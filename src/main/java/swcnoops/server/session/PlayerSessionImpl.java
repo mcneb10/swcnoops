@@ -695,7 +695,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
         CurrencyType currencyType = CurrencyHelper.getCurrencyType(mapItem);
         if (currencyType == null)
-            throw new RuntimeException("Can not determine currency type to build");
+            currencyType = CurrencyType.none;
 
         int expectedCost = CurrencyHelper.getConstructionCost(mapItem, currencyType);
 
