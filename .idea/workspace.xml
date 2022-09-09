@@ -7,23 +7,67 @@
     <list default="true" id="13b266ae-1121-43d2-868d-f9256aa0770d" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/players.db" beforeDir="false" afterPath="$PROJECT_DIR$/players.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerBattleReplayGet.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerBattleReplayGet.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpBattleComplete.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpBattleComplete.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpGetNextTarget.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/commands/player/PlayerPvpGetNextTarget.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDataSource.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDataSource.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/datasource/PlayerDatasourceImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameConstants.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameConstants.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManager.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManagerImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/game/GameDataManagerImpl.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/model/BattleEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/model/BattleEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/model/BattleReplay.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/model/BattleReplay.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerPvpBattleComplete.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerPvpBattleComplete.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerPvpGetNextTarget.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerPvpGetNextTarget.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDataSource.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDataSource.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDatasourceImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDatasourceImpl.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameConstants.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameConstants.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManager.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManager.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManagerImpl.class" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/swcnoops/server/game/GameDataManagerImpl.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/swcnoops/server/session/PlayerSessionImpl.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/sqlite/createPlayerSqliteTable.sql" beforeDir="false" afterPath="$PROJECT_DIR$/target/classes/sqlite/createPlayerSqliteTable.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/guild/GuildCommandAction.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/guild/GuildGet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/guild/GuildWarAttackPlayerComplete.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerBattleReplayGet$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerBattleReplayGet.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerBuildingCollect.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerBuildingCollectAll.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/commands/player/PlayerLogin.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/GuildSettings.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/GuildSettingsImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDataSource.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/PlayerDatasourceImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/SelfDonatingSquad.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/datasource/War.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/game/CrystalHelper.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/model/SquadMemberWarData.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/GuildSession.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/GuildSessionImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/PlayerSession.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/PlayerSessionImpl$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/PlayerSessionImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/WarSession.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/WarSessionImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/commands/BuildingCommands.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/creature/CreatureManager.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/creature/CreatureManagerImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/AbstractMapItem.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/ChampionPlatform.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/HeadQuarter.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/MapItem.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/MapItemImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/NavigationCenter.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/ResourceBuilding$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/ResourceBuilding.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/SquadBuilding.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/StorageBuilding$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/StorageBuilding.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/StrixBeacon.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/map/TrapBuilding.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/research/OffenseLab.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/research/OffenseLabFactory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/research/OffenseLabImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/BuildQueue.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/BuildSlot.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/BuildUnit.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/Builder.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/DeployableQueue.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/TrainingManagerFactory$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/TrainingManagerFactory.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/TrainingManagerImpl$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/session/training/TrainingManagerImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/trigger/AfterCoolDownTrigger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/trigger/BeforeCoolDownEndTrigger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/trigger/BeforeWarEndTrigger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/trigger/BeforeWarTrigger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/trigger/CommandTriggerProcessorImpl.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/trigger/EndWarTrigger.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/target/classes/swcnoops/server/trigger/InWarTrigger.class" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

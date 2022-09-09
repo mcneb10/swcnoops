@@ -1247,12 +1247,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private War loadWar(String warId, Connection connection) {
         final String matchMakeSql = "select warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime, " +
-
-                "actionGraceStartTime, actionEndTime, cooldownEndTime from War w where w.warId = ?";
-
-        "actionGraceStartTime, actionEndTime, cooldownEndTime, processedEndTime, squadAScore, squadBScore " +
+                "actionGraceStartTime, actionEndTime, cooldownEndTime, processedEndTime, squadAScore, squadBScore " +
                 "from War w where w.warId = ?";
-
 
         War war = null;
         try {
@@ -1271,12 +1267,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     int squadAScore = rs.getInt("squadAScore");
                     int squadBScore = rs.getInt("squadBScore");
                     war = new War(warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime,
-
-                            actionGraceStartTime, actionEndTime, cooldownEndTime);
-
-                                    actionGraceStartTime, actionEndTime, cooldownEndTime,
+                            actionGraceStartTime, actionEndTime, cooldownEndTime,
                             processedEndTime, squadAScore, squadBScore);
-
                 }
             }
 
@@ -2167,7 +2159,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                 }
 
-            } catch (Exception e){
+            } catch (Exception e) {
                 e.printStackTrace();
                 throw new RuntimeException("Error reading resulset or parsing JSON for battle replay");
             }
@@ -2176,7 +2168,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             throw new RuntimeException("Failed to get DB connection when retrieving battle type");
         }
         return battleReplay;
-=======
+    }
     public War processWarEnd(String warId, String squadIdA, String squadIdB) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
