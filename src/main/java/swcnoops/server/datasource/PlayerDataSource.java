@@ -24,7 +24,7 @@ public interface PlayerDataSource {
     void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
                             SquadNotification squadNotification);
 
-    void newPlayer(String playerId, String secret);
+    void newPlayer(String playerId, String secret, PlayerModel playerModel, Map<String, String> sharedPrefs, String name);
 
     void newGuild(String playerId, GuildSettings squadResult);
 
@@ -108,7 +108,8 @@ public interface PlayerDataSource {
 
     List<WarHistory> loadWarHistory(String squadId);
 
-    void newPlayerWithMissingSecret(String playerId, String secret);
+    void newPlayerWithMissingSecret(String playerId, String secret, PlayerModel playerModel,
+                                    Map<String, String> sharedPrefs, String name);
 
     void shutdown();
 

@@ -6,6 +6,7 @@ import swcnoops.server.commands.Command;
 import swcnoops.server.commands.TokenHelper;
 import swcnoops.server.commands.auth.preauth.response.GeneratePlayerCommandResult;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
+import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
 import swcnoops.server.datasource.PlayerSecret;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
@@ -54,8 +55,10 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
                 throw new RuntimeException("Unknown player " + arguments.getPlayerId());
 
             GeneratePlayerCommandResult generatePlayerResponse = GeneratePlayerCommandResult.newInstance();
+            PlayerLoginCommandResult template = loadPlayerTemplate();
             ServiceFactory.instance().getPlayerDatasource()
-                    .newPlayerWithMissingSecret(arguments.getPlayerId(), generatePlayerResponse.secret);
+                    .newPlayerWithMissingSecret(arguments.getPlayerId(), generatePlayerResponse.secret,
+                            template.playerModel, template.sharedPrefs, "new");
             playerSecret = ServiceFactory.instance().getPlayerDatasource().getPlayerSecret(arguments.getPlayerId());
         }
 
@@ -68,6 +71,12 @@ public class GetAuthToken extends AbstractCommandAction<GetAuthToken, CommandRes
         // we send back a token
         String token = ServiceFactory.instance().getAuthenticationService().createToken(arguments.getPlayerId());
         return ResponseHelper.newStringResponse(token, true);
+    }
+
+    private PlayerLoginCommandResult loadPlayerTemplate() throws Exception {
+        PlayerLoginCommandResult response = ServiceFactory.instance().getJsonParser()
+                .toObjectFromResource(ServiceFactory.instance().getConfig().playerLoginTemplate, PlayerLoginCommandResult.class);
+        return response;
     }
 
     @Override

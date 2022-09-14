@@ -19,25 +19,27 @@ public class SessionManagerImpl implements SessionManager {
 
     @Override
     public PlayerSession getPlayerSession(String playerId) {
-        return getPlayerSession(playerId, null);
-    }
-
-    @Override
-    public PlayerSession getPlayerSession(String playerId, PlayerModel defaultPlayerModel) {
-        PlayerSession playerSession = getOrLoadPlayerSession(playerId, defaultPlayerModel);
+        PlayerSession playerSession = getOrLoadPlayerSession(playerId);
         return playerSession;
     }
 
     @Override
-    public void removePlayerSession(String playerId) {
-        this.players.remove(playerId);
+    public PlayerSession loginPlayerSession(String playerId) {
+        // if already cached then we want to reload from DB
+        if (this.players.containsKey(playerId)) {
+            Player player = loadPlayer(playerId);
+            this.players.get(playerId).initialise(player);
+        }
+
+        return this.getPlayerSession(playerId);
     }
 
-    private PlayerSession getOrLoadPlayerSession(String playerId, PlayerModel defaultPlayerModel) {
+    private PlayerSession getOrLoadPlayerSession(String playerId) {
         PlayerSession playerSession;
         if (!this.players.containsKey(playerId)) {
-            playerSession = loadPlayer(playerId, defaultPlayerModel);
-            if (playerSession != null) {
+            Player player = loadPlayer(playerId);
+            if (player != null) {
+                playerSession = new PlayerSessionImpl(player);
                 players.put(playerSession.getPlayerId(), playerSession);
             }
         }
@@ -47,18 +49,14 @@ public class SessionManagerImpl implements SessionManager {
         return playerSession;
     }
 
-    private PlayerSession loadPlayer(String playerId, PlayerModel defaultPlayerModel) {
+    private Player loadPlayer(String playerId) {
         PlayerDataSource playerDataSource = ServiceFactory.instance().getPlayerDatasource();
         Player player = playerDataSource.loadPlayer(playerId);
 
         if (player == null) {
             throw new RuntimeException("Unknown user id " + playerId);
         }
-
-        PlayerSettings playerSettings = player.getPlayerSettings();
-        setFromModel(playerSettings, defaultPlayerModel);
-        PlayerSession playerSession = new PlayerSessionImpl(player);
-        return playerSession;
+        return player;
     }
 
     @Override

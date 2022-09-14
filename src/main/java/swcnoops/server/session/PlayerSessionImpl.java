@@ -59,12 +59,12 @@ public class PlayerSessionImpl implements PlayerSession {
     private Lock notificationLock = new ReentrantLock();
 
     public PlayerSessionImpl(Player player) {
-        this.player = player;
-        this.initialise();
+        this.initialise(player);
     }
 
     @Override
-    public void initialise() {
+    public void initialise(Player player) {
+        this.player = player;
         this.playerMapItems = createPlayersMap(this.getPlayerSettings().baseMap);
         this.troopInventory = PlayerSessionImpl.troopInventoryFactory.createForPlayer(this);
         this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this);

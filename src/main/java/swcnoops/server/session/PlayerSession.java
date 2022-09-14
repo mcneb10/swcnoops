@@ -149,5 +149,5 @@ public interface PlayerSession {
 
     void recoverWithPlayerSettings(PlayerModel playerModel, Map<String, String> sharedPrefs);
 
-    void initialise();
+    void initialise(Player player);
 }

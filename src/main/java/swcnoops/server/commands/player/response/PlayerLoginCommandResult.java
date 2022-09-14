@@ -9,8 +9,8 @@ import java.util.Map;
 public class PlayerLoginCommandResult extends AbstractCommandResult {
     public long created;
     public boolean firstTimePlayer;
-    public Long lastTroopRequestTime;
-    public Long lastWarTroopRequestTime;
+    public long lastTroopRequestTime;
+    public long lastWarTroopRequestTime;
     public String locale;
     public String name;
     public String network;

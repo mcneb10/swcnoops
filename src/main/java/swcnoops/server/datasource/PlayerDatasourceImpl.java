@@ -320,13 +320,16 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         playerSession.getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         playerSession.getPlayerSettings().getSharedPreferences().putAll(sharedPrefs);
         playerSession.getPlayer().getPlayerSecret().setMissingSecret(false);
-        playerSession.initialise();
 
         Bson simpleUpdate = set("playerSettings", playerSession.getPlayerSettings());
         Bson recoverUpdate = set("playerSecret.missingSecret", playerSession.getPlayer().getPlayerSecret().getMissingSecret());
         Bson combined = combine(recoverUpdate, simpleUpdate);
         UpdateResult result = this.playerCollection.updateOne(Filters.eq("_id", playerSession.getPlayerId()),
                 combined);
+
+        // reload and initialise
+        Player player = this.loadPlayer(playerSession.getPlayerId());
+        playerSession.initialise(player);
     }
 
     @Override
@@ -481,23 +484,30 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void newPlayer(String playerId, String secret) {
-        newPlayer(playerId, secret, false);
+    public void newPlayer(String playerId, String secret, PlayerModel playerModel, Map<String, String> sharedPrefs, String name) {
+        newPlayer(playerId, secret, false, playerModel, sharedPrefs, name);
     }
 
     @Override
-    public void newPlayerWithMissingSecret(String playerId, String secret) {
-        newPlayer(playerId, secret, true);
+    public void newPlayerWithMissingSecret(String playerId, String secret, PlayerModel playerModel,
+                                           Map<String, String> sharedPrefs, String name)
+    {
+        newPlayer(playerId, secret, true, playerModel, sharedPrefs, name);
     }
 
-    private void newPlayer(String playerId, String secret, boolean missingSecret) {
+    private void newPlayer(String playerId, String secret, boolean missingSecret, PlayerModel playerModel,
+                           Map<String, String> sharedPrefs, String name)
+    {
         if (playerId.endsWith("_1"))
             throw new RuntimeException("secondary not supported yet");
 
         Player player = new Player(playerId);
         player.setPlayerSecret(new PlayerSecret(secret, null, missingSecret));
         player.setPlayerSettings(new PlayerSettings());
-        player.getPlayerSettings().setName("new");
+        ServiceFactory.instance().getSessionManager().setFromModel(player.getPlayerSettings(), playerModel);
+        if (sharedPrefs != null)
+            player.getPlayerSettings().getSharedPreferences().putAll(sharedPrefs);
+        player.getPlayerSettings().setName(name);
         this.playerCollection.insertOne(player);
     }
 

@@ -37,13 +37,12 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     // TODO - need to fix this to log in properly for the player
     @Override
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
-        PlayerLoginCommandResult response = loadPlayerTemplate();
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
-                .getPlayerSession(arguments.getPlayerId(),
-                        response.playerModel);
+                .loginPlayerSession(arguments.getPlayerId());
         playerSession.playerLogin(time);
-        mapLoginForPlayer(response, playerSession);
 
+        PlayerLoginCommandResult response = loadPlayerTemplate();
+        mapLoginForPlayer(response, playerSession);
         return response;
     }
 
