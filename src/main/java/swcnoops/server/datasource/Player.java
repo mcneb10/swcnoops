@@ -1,12 +1,17 @@
 package swcnoops.server.datasource;
 
+import org.mongojack.Id;
+
 public class Player {
-    final private String playerId;
-    private String secret;
+    @Id
+    private String playerId;
+
+    private PlayerSecret playerSecret;
+
     private PlayerSettings playerSettings;
-    // this is a flag to indicate if the player logged in with an existing account that does not exists in the DB
-    // this triggers recovery process in the client
-    private boolean missingSecret;
+
+    public Player() {
+    }
 
     public Player(String playerId) {
         this.playerId = playerId;
@@ -14,14 +19,6 @@ public class Player {
 
     public String getPlayerId() {
         return playerId;
-    }
-
-    public void setSecret(String secret) {
-        this.secret = secret;
-    }
-
-    public String getSecret() {
-        return secret;
     }
 
     public PlayerSettings getPlayerSettings() {
@@ -32,11 +29,15 @@ public class Player {
         this.playerSettings = playerSettings;
     }
 
-    public void setMissingSecret(boolean missingSecret) {
-        this.missingSecret = missingSecret;
+    public PlayerSecret getPlayerSecret() {
+        return playerSecret;
     }
 
-    public boolean isMissingSecret() {
-        return missingSecret;
+    public void setPlayerSecret(PlayerSecret playerSecret) {
+        this.playerSecret = playerSecret;
+    }
+
+    public void setPlayerId(String playerId) {
+        this.playerId = playerId;
     }
 }

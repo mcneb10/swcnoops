@@ -99,8 +99,6 @@ public interface PlayerSession {
 
     void savePlayerSession();
 
-    void savePlayerSession(SquadNotification squadNotification);
-
     MapItem removeMapItemByKey(String instanceId);
 
     void buildingInstantUpgrade(String instanceId, String tag, int credits, int materials, int contraband, int crystals, long time);
@@ -145,5 +143,11 @@ public interface PlayerSession {
     void updateScalars(Scalars scalars);
     PvpManager getPvpSession();
 
+    void savePlayerKeepAlive();
 
+    void savePlayerName(String playerName);
+
+    void recoverWithPlayerSettings(PlayerModel playerModel, Map<String, String> sharedPrefs);
+
+    void initialise();
 }

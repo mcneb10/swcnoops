@@ -1,5 +1,6 @@
 package swcnoops.server.session;
 
+import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.PlayerModel;
 
 public interface SessionManager {
@@ -14,4 +15,7 @@ public interface SessionManager {
     GuildSession getGuildSession(String squadId);
 
     WarSession getWarSession(String warId);
+
+    void resetPlayerSettings(PlayerSettings playerSettings);
+    void setFromModel(PlayerSettings playerSettings, PlayerModel defaultPlayerModel);
 }

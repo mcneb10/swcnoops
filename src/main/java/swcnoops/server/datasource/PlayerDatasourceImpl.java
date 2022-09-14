@@ -1,23 +1,25 @@
 package swcnoops.server.datasource;
 
-
+import com.mongodb.*;
+import com.mongodb.client.ClientSession;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.model.Filters;
+import com.mongodb.client.result.UpdateResult;
+import org.bson.UuidRepresentation;
+import org.bson.conversions.Bson;
+import org.mongojack.JacksonMongoCollection;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
-import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.commands.player.PlayerPvpBattleComplete;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
-import swcnoops.server.session.GuildSession;
-import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.WarSession;
-import swcnoops.server.session.WarSessionImpl;
-import swcnoops.server.session.creature.CreatureManager;
+import swcnoops.server.session.*;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
-import swcnoops.server.session.training.DeployableQueue;
-import swcnoops.server.session.training.TrainingManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -25,15 +27,45 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Projections.include;
+import static com.mongodb.client.model.Updates.combine;
+import static com.mongodb.client.model.Updates.set;
 import static swcnoops.server.session.NotificationFactory.mapSquadNotificationData;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
+    private MongoClient mongoClient;
+    private MongoDatabase database;
+    private JacksonMongoCollection<Player> playerCollection;
+
     public PlayerDatasourceImpl() {
     }
 
     @Override
     public void initOnStartup() {
         checkAndPrepareDB();
+        initMongoClient();
+    }
+
+    @Override
+    public void shutdown() {
+        if (this.mongoClient != null)
+            this.mongoClient.close();
+    }
+
+    private void initMongoClient() {
+        ConnectionString connectionString =
+                new ConnectionString(ServiceFactory.instance().getConfig().mongoDBConnection);
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .applyConnectionString(connectionString)
+                .serverApi(ServerApi.builder()
+                        .version(ServerApiVersion.V1)
+                        .build())
+                .build();
+        this.mongoClient = MongoClients.create(settings);
+        this.database = mongoClient.getDatabase("dev");
+        this.playerCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "player", Player.class, UuidRepresentation.STANDARD);
     }
 
     public void checkAndPrepareDB() {
@@ -109,55 +141,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public Player loadPlayer(String playerId) {
-        final String primarySql = "SELECT id, secret, missingSecret " +
-                "FROM Player p WHERE p.id = ?";
-
-        final String secondarySql = "SELECT secondaryAccount, secret, missingSecret " +
-                "FROM Player p WHERE p.secondaryAccount = ?";
-
-        String sql = primarySql;
-        if (playerId.endsWith("_1")) {
-            sql = secondarySql;
-        }
-
-        Player player = null;
-        try {
-            try (Connection con = getConnection()) {
-                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
-                    pstmt.setString(1, playerId);
-                    ResultSet rs = pstmt.executeQuery();
-
-                    while (rs.next()) {
-                        player = new Player(playerId);
-                        player.setSecret(rs.getString("secret"));
-                        player.setMissingSecret(rs.getBoolean("missingSecret"));
-                    }
-                }
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to load player from DB id=" + playerId, ex);
-        }
-
+        Player player = this.playerCollection.find(eq("_id", playerId)).first();
         return player;
     }
 
     @Override
-    public void savePlayerName(String playerId, String playerName) {
-        final String sql = "update PlayerSettings " +
-                "set name = ? " +
-                "WHERE id = ?";
+    public void savePlayerName(PlayerSession playerSession, String playerName) {
+        playerSession.getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        Bson simpleUpdate = set("playerSettings.name", playerName);
+        Bson simpleUpdateKeepAlive = set("playerSettings.keepAlive", playerSession.getPlayerSettings().getKeepAlive());
+        Bson combined = combine(simpleUpdate, simpleUpdateKeepAlive);
+        UpdateResult result = this.playerCollection.updateOne(Filters.eq("_id", playerSession.getPlayerId()),
+                combined);
 
-        try {
-            try (Connection con = getConnection()) {
-                try (PreparedStatement stmt = con.prepareStatement(sql)) {
-                    stmt.setString(1, playerName);
-                    stmt.setString(2, playerId);
-                    stmt.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player name id=" + playerId, ex);
-        }
+        playerSession.getPlayer().getPlayerSettings().setName(playerName);
     }
 
     @Override
@@ -230,7 +227,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                     .fromJsonString(troopsJson, Troops.class);
                         else
                             troops = new Troops();
-                        troops.initialiseMaps();
                         playerSettings.setTroops(troops);
 
                         String donatedTroopsJson = rs.getString("donatedTroops");
@@ -258,7 +254,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             playerCampaignMission = ServiceFactory.instance().getJsonParser()
                                     .fromJsonString(campaignsJson, PlayerCampaignMission.class);
                         }
-                        playerSettings.setPlayerCampaignMissions(playerCampaignMission);
+                        playerSettings.setPlayerCampaignMission(playerCampaignMission);
 
                         String preferencesJson = rs.getString("preferences");
                         PreferencesMap preferences = null;
@@ -299,49 +295,71 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void savePlayerSession(PlayerSession playerSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            savePlayerSession(playerSession, connection);
-            if (squadNotification != null)
-                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+    public void savePlayerSession(PlayerSession playerSession) {
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSession(playerSession, null, session);
+            session.commitTransaction();
+        } catch (MongoCommandException e) {
+            throw new RuntimeException("Failed to save player session " + playerSession.getPlayerId(), e);
         }
+    }
+
+    @Override
+    public void savePlayerKeepAlive(PlayerSession playerSession) {
+        playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        UpdateResult result = this.playerCollection.updateOne(Filters.eq("_id", playerSession.getPlayerId()),
+                set("playerSettings.keepAlive", playerSession.getPlayer().getPlayerSettings().getKeepAlive()));
+    }
+
+    @Override
+    public void recoverWithPlayerSettings(PlayerSession playerSession, PlayerModel playerModel, Map<String, String> sharedPrefs) {
+        ServiceFactory.instance().getSessionManager().resetPlayerSettings(playerSession.getPlayerSettings());
+        ServiceFactory.instance().getSessionManager().setFromModel(playerSession.getPlayerSettings(), playerModel);
+
+        playerSession.getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        playerSession.getPlayerSettings().getSharedPreferences().putAll(sharedPrefs);
+        playerSession.getPlayer().getPlayerSecret().setMissingSecret(false);
+        playerSession.initialise();
+
+        Bson simpleUpdate = set("playerSettings", playerSession.getPlayerSettings());
+        Bson recoverUpdate = set("playerSecret.missingSecret", playerSession.getPlayer().getPlayerSecret().getMissingSecret());
+        Bson combined = combine(recoverUpdate, simpleUpdate);
+        UpdateResult result = this.playerCollection.updateOne(Filters.eq("_id", playerSession.getPlayerId()),
+                combined);
     }
 
     @Override
     public void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            savePlayerSession(playerSession, connection);
-
-            if (guildSession.canEdit()) {
-                insertSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(), false, false, 0, connection);
-                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
-                setAndSaveGuildNotification(guildSession, squadNotification, connection);
-            }
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
-        }
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            savePlayerSession(playerSession, connection);
+//
+//            if (guildSession.canEdit()) {
+//                insertSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(), false, false, 0, connection);
+//                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
+//                setAndSaveGuildNotification(guildSession, squadNotification, connection);
+//            }
+//            connection.commit();
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+//        }
     }
 
     @Override
     public void joinRequest(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            savePlayerSession(playerSession, connection);
-
-            if (guildSession.canEdit()) {
-                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
-                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
-            }
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
-        }
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            savePlayerSession(playerSession, connection);
+//
+//            if (guildSession.canEdit()) {
+//                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
+//                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+//            }
+//            connection.commit();
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+//        }
     }
 
     @Override
@@ -377,18 +395,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            savePlayerSession(playerSession, connection);
-            if (guildSession.canEdit()) {
-                deleteSquadMember(playerSession.getPlayerId(), connection);
-                deleteNotifications(squadNotification.getGuildId(), playerSession.getPlayerId(), connection);
-                setAndSaveGuildNotification(guildSession, squadNotification, connection);
-            }
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
-        }
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            savePlayerSession(playerSession, connection);
+//            if (guildSession.canEdit()) {
+//                deleteSquadMember(playerSession.getPlayerId(), connection);
+//                deleteNotifications(squadNotification.getGuildId(), playerSession.getPlayerId(), connection);
+//                setAndSaveGuildNotification(guildSession, squadNotification, connection);
+//            }
+//            connection.commit();
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+//        }
     }
 
     private void deleteNotifications(String guildId, String playerId, Connection connection) {
@@ -439,147 +457,27 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void savePlayerSession(PlayerSession playerSession, Connection connection) {
-        BuildUnits allContracts = mapContractsToPlayerSettings(playerSession);
-        String contractsJson = ServiceFactory.instance().getJsonParser().toJson(allContracts);
-
-        Deployables deployables = mapDeployablesToPlayerSettings(playerSession);
-        String deployablesJson = ServiceFactory.instance().getJsonParser().toJson(deployables);
-
-        Creature creature = mapCreatureToPlayerSession(playerSession);
-        String creatureJson = ServiceFactory.instance().getJsonParser().toJson(creature);
-
-        Troops troops = playerSession.getPlayerSettings().getTroops();
-        String troopsJson = ServiceFactory.instance().getJsonParser().toJson(troops);
-
-        DonatedTroops donatedTroops = mapDonatedTroopsToPlayerSession(playerSession);
-        String donatedTroopsJson = ServiceFactory.instance().getJsonParser().toJson(donatedTroops);
-
-        PlayerMap playerMap = playerSession.getPlayerMapItems().getBaseMap();
-        String playerMapJson = ServiceFactory.instance().getJsonParser().toJson(playerMap);
-
-        InventoryStorage inventoryStorage = playerSession.getPlayerSettings().getInventoryStorage();
-        String inventoryStorageJson = ServiceFactory.instance().getJsonParser().toJson(inventoryStorage);
-
-        PlayerCampaignMission playerCampaignMission = playerSession.getPlayerSettings().getPlayerCampaignMission();
-        String campaignsJson = ServiceFactory.instance().getJsonParser().toJson(playerCampaignMission);
-
-        PreferencesMap preferences = playerSession.getPlayerSettings().getSharedPreferences();
-        String preferencesJson = ServiceFactory.instance().getJsonParser().toJson(preferences);
-
-        UnlockedPlanets unlockedPlanets = playerSession.getPlayerSettings().getUnlockedPlanets();
-        String unlockedPlanetsJson = ServiceFactory.instance().getJsonParser().toJson(unlockedPlanets);
-
-        int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
-
-
-        int xp = ServiceFactory.getXpFromBuildings(playerMap.buildings);
-
-        Scalars scalars = playerSession.getPlayerSettings().getScalars();
-        scalars.xp = xp;
-        String scalarsJson = ServiceFactory.instance().getJsonParser().toJson(scalars);
-        savePlayerSettings(playerSession.getPlayerId(), deployablesJson, contractsJson,
-                creatureJson, troopsJson, donatedTroopsJson, playerMapJson, inventoryStorageJson,
-                playerSession.getPlayerSettings().getFaction(),
-                playerSession.getPlayerSettings().getCurrentQuest(),
-                campaignsJson,
-                preferencesJson,
-                playerSession.getPlayerSettings().getGuildId(),
-                unlockedPlanetsJson, hqLevel, scalarsJson, xp, playerSession.getPlayerSettings().getKeepAlive(),
-                connection);
-    }
-
-    private BuildUnits mapContractsToPlayerSettings(PlayerSession playerSession) {
-        BuildUnits allContracts = new BuildUnits();
-        allContracts.addAll(playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
-        allContracts.addAll(playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
-        allContracts.addAll(playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
-        allContracts.addAll(playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
-        allContracts.addAll(playerSession.getDroidManager().getUnitsInQueue());
-        return allContracts;
-    }
-
-    private Deployables mapDeployablesToPlayerSettings(PlayerSession playerSession) {
-        Deployables deployables = playerSession.getPlayerSettings().getDeployableTroops();
-        TrainingManager trainingManager = playerSession.getTrainingManager();
-        mapToPlayerSetting(trainingManager.getDeployableTroops(), deployables.troop);
-        mapToPlayerSetting(trainingManager.getDeployableChampion(), deployables.champion);
-        mapToPlayerSetting(trainingManager.getDeployableHero(), deployables.hero);
-        mapToPlayerSetting(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
-        return deployables;
-    }
-
-    private Creature mapCreatureToPlayerSession(PlayerSession playerSession) {
-        // replace the players settings with new data before saving
-        PlayerSettings playerSettings = playerSession.getPlayerSettings();
-        CreatureManager creatureManager = playerSession.getCreatureManager();
-        playerSettings.setCreature(creatureManager.getCreature());
-        return playerSettings.getCreature();
-    }
-
-    private DonatedTroops mapDonatedTroopsToPlayerSession(PlayerSession playerSession) {
-        // replace the players troops with new data before saving
-        DonatedTroops donatedTroops = playerSession.getDonatedTroops();
-        PlayerSettings playerSettings = playerSession.getPlayerSettings();
-        playerSettings.setDonatedTroops(donatedTroops);
-        return donatedTroops;
-    }
-
-    private void mapToPlayerSetting(DeployableQueue deployableQueue, Map<String, Integer> storage) {
-        storage.clear();
-        storage.putAll(deployableQueue.getDeployableUnits());
-    }
-
-    private void savePlayerSettings(String playerId, String deployables, String contracts, String creature,
-                                    String troops, String donatedTroops, String playerMapJson, String inventoryStorageJson,
-                                    FactionType faction, String currentQuest, String campaignsJson, String preferencesJson,
-                                    String guildId, String unlockedPlanets,
-                                    int hqLevel, String scalars, int xp, long keepAlive, Connection connection) {
-        final String sql = "update PlayerSettings " +
-                "set deployables = ?, contracts = ?, creature = ?, troops = ?, donatedTroops = ?, baseMap = ?, " +
-                "inventoryStorage = ?, faction = ?, currentQuest = ?, campaigns = ?, preferences = ?, guildId = ?," +
-                "unlockedPlanets = ?, hqLevel = ? , scalars = ?, xp = ?, keepAlive = ? " +
-                "WHERE id = ?";
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.setString(1, deployables);
-                stmt.setString(2, contracts);
-                stmt.setString(3, creature);
-                stmt.setString(4, troops);
-                stmt.setString(5, donatedTroops);
-                stmt.setString(6, playerMapJson);
-                stmt.setString(7, inventoryStorageJson);
-                stmt.setString(8, faction != null ? faction.name() : null);
-                stmt.setString(9, currentQuest);
-                stmt.setString(10, campaignsJson);
-                stmt.setString(11, preferencesJson);
-                stmt.setString(12, guildId);
-                stmt.setString(13, unlockedPlanets);
-                stmt.setInt(14, hqLevel);
-                stmt.setString(15, scalars);
-                stmt.setInt(16, xp);
-                stmt.setLong(17, keepAlive);
-                stmt.setString(18, playerId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
-        }
+    private void savePlayerSession(PlayerSession playerSession, Connection connection, ClientSession session) {
+        playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
+                set("playerSettings", playerSession.getPlayer().getPlayerSettings()));
     }
 
     @Override
     public void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
                                    SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            savePlayerSession(playerSession, connection);
-            savePlayerSession(recipientPlayerSession, connection);
-            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId() +
-                    " and id=" + recipientPlayerSession.getPlayerId(), ex);
-        }
+        throw new RuntimeException("Not supported");
+
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            savePlayerSession(playerSession, connection);
+//            savePlayerSession(recipientPlayerSession, connection);
+//            setAndSaveGuildNotification(guildSession, squadNotification, connection);
+//            connection.commit();
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId() +
+//                    " and id=" + recipientPlayerSession.getPlayerId(), ex);
+//        }
     }
 
     @Override
@@ -592,97 +490,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         newPlayer(playerId, secret, true);
     }
 
-    @Override
-    public void removeMissingSecret(String playerId) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            removeMissingSecret(playerId, connection);
-            resetPlayerSettings(playerId, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to remove missing secret flag for player " + playerId, ex);
-        }
-    }
-
-    private void removeMissingSecret(String playerId, Connection connection) {
-        final String updateSql = "update Player set missingSecret = 0 where id = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(updateSql)) {
-                stmt.setString(1, playerId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to remove missing secret flag for player " + playerId, ex);
-        }
-    }
-
-    private void resetPlayerSettings(String playerId, Connection connection) {
-        final String deleteSql = "delete from PlayerSettings where id = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(deleteSql)) {
-                stmt.setString(1, playerId);
-                stmt.executeUpdate();
-            }
-
-            createNewPlayer(playerId, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to remove missing secret flag for player " + playerId, ex);
-        }
-    }
-
     private void newPlayer(String playerId, String secret, boolean missingSecret) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            createNewPlayer(playerId, secret, missingSecret, connection);
-            createNewPlayer(playerId, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
-        }
-    }
+        if (playerId.endsWith("_1"))
+            throw new RuntimeException("secondary not supported yet");
 
-    private void createNewPlayer(String playerId, String secret, boolean missingSecret, Connection connection) {
-        final String playerSql = "insert into Player (id, secret, missingSecret) values " +
-                "(?, ?, ?)";
-
-        final String updateSql = "update Player set secondaryAccount = ? where id = ?";
-
-        try {
-            if (playerId.endsWith("_1")) {
-                String primaryAccount = PlayerIdentitySwitch.getPrimaryAccount(playerId);
-                try (PreparedStatement stmt = connection.prepareStatement(updateSql)) {
-                    stmt.setString(1, playerId);
-                    stmt.setString(2, primaryAccount);
-                    stmt.executeUpdate();
-                }
-            } else {
-                try (PreparedStatement stmt = connection.prepareStatement(playerSql)) {
-                    stmt.setString(1, playerId);
-                    stmt.setString(2, secret);
-                    stmt.setBoolean(3, missingSecret);
-                    stmt.executeUpdate();
-                }
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
-        }
-    }
-
-    private void createNewPlayer(String playerId, Connection connection) {
-
-        final String settingsSql = "insert into PlayerSettings (id, name, upgrades) values " +
-                "(?, 'new', '{}')";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(settingsSql)) {
-                stmt.setString(1, playerId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
-        }
+        Player player = new Player(playerId);
+        player.setPlayerSecret(new PlayerSecret(secret, null, missingSecret));
+        player.setPlayerSettings(new PlayerSettings());
+        player.getPlayerSettings().setName("new");
+        this.playerCollection.insertOne(player);
     }
 
     @Override
@@ -698,33 +514,34 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void createNewGuild(String playerId, GuildSettings guildSettings, Connection connection) {
-        final String squadSql = "insert into Squads (id, faction, name, icon, description, openEnrollment, minScoreAtEnrollment) values " +
-                "(?, ?, ?, ?, ?, ?, ?)";
-
-        final String playerSettingsSql = "update PlayerSettings " +
-                "set guildId = ? " +
-                "WHERE id = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setString(1, guildSettings.getGuildId());
-                stmt.setString(2, guildSettings.getFaction().toString());
-                stmt.setString(3, guildSettings.getGuildName());
-                stmt.setString(4, guildSettings.getIcon());
-                stmt.setString(5, guildSettings.getDescription());
-                stmt.setBoolean(6, guildSettings.getOpenEnrollment());
-                stmt.setInt(7, guildSettings.getMinScoreAtEnrollment());
-                stmt.executeUpdate();
-            }
-
-            try (PreparedStatement stmt = connection.prepareStatement(playerSettingsSql)) {
-                stmt.setString(1, guildSettings.getGuildId());
-                stmt.setString(2, playerId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
-        }
+        throw new RuntimeException("not supported");
+//        final String squadSql = "insert into Squads (id, faction, name, icon, description, openEnrollment, minScoreAtEnrollment) values " +
+//                "(?, ?, ?, ?, ?, ?, ?)";
+//
+//        final String playerSettingsSql = "update PlayerSettings " +
+//                "set guildId = ? " +
+//                "WHERE id = ?";
+//
+//        try {
+//            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+//                stmt.setString(1, guildSettings.getGuildId());
+//                stmt.setString(2, guildSettings.getFaction().toString());
+//                stmt.setString(3, guildSettings.getGuildName());
+//                stmt.setString(4, guildSettings.getIcon());
+//                stmt.setString(5, guildSettings.getDescription());
+//                stmt.setBoolean(6, guildSettings.getOpenEnrollment());
+//                stmt.setInt(7, guildSettings.getMinScoreAtEnrollment());
+//                stmt.executeUpdate();
+//            }
+//
+//            try (PreparedStatement stmt = connection.prepareStatement(playerSettingsSql)) {
+//                stmt.setString(1, guildSettings.getGuildId());
+//                stmt.setString(2, playerId);
+//                stmt.executeUpdate();
+//            }
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
+//        }
     }
 
     private void insertSquadMember(String guildId, String playerId, boolean isOfficer, boolean isOwner, long joinDate,
@@ -971,26 +788,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PlayerSecret getPlayerSecret(String primaryId) {
-        final String sql = "SELECT id, secret, secondaryAccount, missingSecret " +
-                "FROM Player s WHERE s.id = ?";
+        Player player = this.playerCollection.find(eq("_id", primaryId)).projection(include("playerSecret")).first();
 
         PlayerSecret playerSecret = null;
-        try {
-            try (Connection con = getConnection()) {
-                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
-                    pstmt.setString(1, primaryId);
-                    ResultSet rs = pstmt.executeQuery();
-
-                    while (rs.next()) {
-                        playerSecret = new PlayerSecret(rs.getString("id"),
-                                rs.getString("secret"),
-                                rs.getString("secondaryAccount"),
-                                rs.getBoolean("missingSecret"));
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to Player secret id=" + primaryId, ex);
+        if (player != null) {
+            playerSecret = player.getPlayerSecret();
         }
 
         return playerSecret;
@@ -1018,15 +820,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            savePlayerSession(playerSession, connection);
-            if (squadNotification != null)
-                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
-        }
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            savePlayerSession(playerSession, connection);
+//            if (squadNotification != null)
+//                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
+//            connection.commit();
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to create a new player", ex);
+//        }
     }
 
     private void saveNotification(String guildId, SquadNotification squadNotification, Connection connection) {
@@ -1493,15 +1295,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void saveWarParticipant(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
                                    SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            savePlayerSession(playerSession, connection);
-            saveWarParticipant(squadMemberWarData, connection);
-            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war SquadMemberWarData for player id=" + squadMemberWarData.id, ex);
-        }
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            savePlayerSession(playerSession, connection);
+//            saveWarParticipant(squadMemberWarData, connection);
+//            setAndSaveGuildNotification(guildSession, squadNotification, connection);
+//            connection.commit();
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save war SquadMemberWarData for player id=" + squadMemberWarData.id, ex);
+//        }
     }
 
     private void saveWarParticipant(SquadMemberWarData squadMemberWarData, Connection connection) {
@@ -1571,36 +1373,36 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                           SquadNotification attackCompleteNotification,
                                           SquadNotification attackReplayNotification,
                                           DefendingWarParticipant defendingWarParticipant, long time) {
-        AttackDetail attackDetail;
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-
-            // calculate how many stars earned in the attack
-            int victoryPointsRemaining = defendingWarParticipant.getVictoryPoints();
-            int victoryPointsEarned = (3 - victoryPointsRemaining) - battleReplay.battleLog.stars;
-            if (victoryPointsEarned < 0)
-                victoryPointsEarned = Math.abs(victoryPointsEarned);
-            else
-                victoryPointsEarned = 0;
-
-            attackDetail = saveAndUpdateWarBattle(warSession.getWarId(), playerSession, battleReplay,
-                    victoryPointsEarned, connection);
-
-            if (attackDetail.getReturnCode() == ResponseHelper.RECEIPT_STATUS_COMPLETE) {
-                savePlayerSession(playerSession, connection);
-                WarNotificationData warNotificationData = (WarNotificationData) attackCompleteNotification.getData();
-                warNotificationData.setStars(battleReplay.battleLog.stars);
-                warNotificationData.setVictoryPoints(victoryPointsEarned);
-                setAndSaveWarNotification(attackDetail, warSession, attackCompleteNotification, connection);
-                setAndSaveWarNotification(attackDetail, warSession, attackReplayNotification, connection);
-                saveWarBattle(battleReplay, warSession.getWarId(), time, connection);
-                connection.commit();
-            } else {
-                connection.rollback();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war attack complete for player id=" + playerSession.getPlayerId(), ex);
-        }
+        AttackDetail attackDetail = null;
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//
+//            // calculate how many stars earned in the attack
+//            int victoryPointsRemaining = defendingWarParticipant.getVictoryPoints();
+//            int victoryPointsEarned = (3 - victoryPointsRemaining) - battleReplay.battleLog.stars;
+//            if (victoryPointsEarned < 0)
+//                victoryPointsEarned = Math.abs(victoryPointsEarned);
+//            else
+//                victoryPointsEarned = 0;
+//
+//            attackDetail = saveAndUpdateWarBattle(warSession.getWarId(), playerSession, battleReplay,
+//                    victoryPointsEarned, connection);
+//
+//            if (attackDetail.getReturnCode() == ResponseHelper.RECEIPT_STATUS_COMPLETE) {
+//                savePlayerSession(playerSession, connection);
+//                WarNotificationData warNotificationData = (WarNotificationData) attackCompleteNotification.getData();
+//                warNotificationData.setStars(battleReplay.battleLog.stars);
+//                warNotificationData.setVictoryPoints(victoryPointsEarned);
+//                setAndSaveWarNotification(attackDetail, warSession, attackCompleteNotification, connection);
+//                setAndSaveWarNotification(attackDetail, warSession, attackReplayNotification, connection);
+//                saveWarBattle(battleReplay, warSession.getWarId(), time, connection);
+//                connection.commit();
+//            } else {
+//                connection.rollback();
+//            }
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save war attack complete for player id=" + playerSession.getPlayerId(), ex);
+//        }
 
         return attackDetail;
     }

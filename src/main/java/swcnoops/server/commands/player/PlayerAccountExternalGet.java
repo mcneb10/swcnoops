@@ -32,7 +32,7 @@ public class PlayerAccountExternalGet extends AbstractCommandAction<PlayerAccoun
                 List<String> rec = new ArrayList<>();
 
                 // if they are logging where the account was missing secret then we trigger recovery process
-                if (playerSession.getPlayer().isMissingSecret()) {
+                if (playerSession.getPlayer().getPlayerSecret().getMissingSecret()) {
                     rec.add("booo");
                     ret.put("RECOVERY", rec);
                 }

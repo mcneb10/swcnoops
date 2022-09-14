@@ -25,12 +25,12 @@ public class PlayerAccountExternalRegister extends AbstractCommandAction<PlayerA
         PlayerIdentityInfo playerIdentityInfo = new PlayerIdentityInfo();
 
         if ("RECOVERY".equals(arguments.getProviderId())) {
-            if (playerSession.getPlayer().isMissingSecret()) {
+            if (playerSession.getPlayer().getPlayerSecret().getMissingSecret()) {
                 if (arguments.isOverrideExistingAccountRegistration()) {
                     throw new RuntimeException("Can not discard recovery account, crashing client " + arguments.getPlayerId());
                 }
 
-                result.secret = playerSession.getPlayer().getSecret();
+                result.secret = playerSession.getPlayer().getPlayerSecret().getSecret();
                 result.derivedExternalAccountId = playerSession.getPlayer().getPlayerId();
                 playerIdentityInfo.playerId = playerSession.getPlayer().getPlayerId();
                 playerIdentityInfo.name = playerSession.getPlayer().getPlayerSettings().getName();

@@ -1,5 +1,7 @@
 package swcnoops.server;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import swcnoops.server.datasource.PlayerDataSource;
 import swcnoops.server.datasource.PlayerDatasourceImpl;
 import swcnoops.server.game.BuildingData;
@@ -24,6 +26,8 @@ import java.util.Arrays;
 import java.util.UUID;
 
 public class ServiceFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(ServiceFactory.class);
+
     static private ServiceFactory instance;
     private JsonParser jsonParser;
     private Config config;
@@ -129,5 +133,10 @@ public class ServiceFactory {
 
     final public BatchResponseReplayer getBatchResponseReplayer() {
         return batchResponseReplayer;
+    }
+
+    public void shutdown() {
+        LOG.info("Shutting down");
+        this.getPlayerDatasource().shutdown();
     }
 }

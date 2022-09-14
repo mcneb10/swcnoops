@@ -35,10 +35,8 @@ public class PlayerIdentitySwitch extends AbstractCommandAction<PlayerIdentitySw
 
             // we copy the preferences from the template and set name to null so the player can set it
             otherSession.getPlayerSettings().getSharedPreferences().putAll(factionFlipTemplate.sharedPrefs);
+            otherSession.savePlayerName(null);
             otherSession.savePlayerSession();
-            otherSession.getPlayerSettings().setName(null);
-            ServiceFactory.instance().getPlayerDatasource()
-                    .savePlayerName(primaryId + "_1", otherSession.getPlayerSettings().getName());
 
             ServiceFactory.instance().getSessionManager().removePlayerSession(otherSession.getPlayerId());
         }

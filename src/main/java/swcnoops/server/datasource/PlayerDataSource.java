@@ -3,25 +3,23 @@ package swcnoops.server.datasource;
 import swcnoops.server.commands.player.PlayerPvpBattleComplete;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
-import swcnoops.server.session.GuildSession;
-import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.WarSession;
-import swcnoops.server.session.WarSessionImpl;
+import swcnoops.server.session.*;
 
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
 
     void initOnStartup();
 
-    void savePlayerName(String playerId, String playerName);
+    void savePlayerName(PlayerSession playerSession, String playerName);
 
     PlayerSettings loadPlayerSettings(String playerId);
 
-    void savePlayerSession(PlayerSession playerSession, SquadNotification squadNotification);
+    void savePlayerSession(PlayerSession playerSession);
 
     void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
                             SquadNotification squadNotification);
@@ -112,6 +110,9 @@ public interface PlayerDataSource {
 
     void newPlayerWithMissingSecret(String playerId, String secret);
 
-    void removeMissingSecret(String playerId);
+    void shutdown();
 
+    void savePlayerKeepAlive(PlayerSession playerSession);
+
+    void recoverWithPlayerSettings(PlayerSession playerSession, PlayerModel playerModel, Map<String, String> sharedPrefs);
 }

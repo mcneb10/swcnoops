@@ -52,16 +52,17 @@ public class SessionManagerImpl implements SessionManager {
         Player player = playerDataSource.loadPlayer(playerId);
 
         if (player == null) {
-            // TODO - for now we create unknown players and default them some data
-            //player = new Player(ServiceFactory.createRandomUUID());
             throw new RuntimeException("Unknown user id " + playerId);
         }
 
-        PlayerSettings playerSettings = playerDataSource.loadPlayerSettings(playerId);
+        PlayerSettings playerSettings = player.getPlayerSettings();
+        setFromModel(playerSettings, defaultPlayerModel);
+        PlayerSession playerSession = new PlayerSessionImpl(player);
+        return playerSession;
+    }
 
-        if (playerSettings == null)
-            throw new RuntimeException("Failed to load playerSettings for id " + playerId);
-
+    @Override
+    public void setFromModel(PlayerSettings playerSettings, PlayerModel defaultPlayerModel) {
         if (playerSettings.getBaseMap() == null)
             playerSettings.setBaseMap(defaultPlayerModel.map);
         if (playerSettings.getInventoryStorage() == null)
@@ -73,7 +74,7 @@ public class SessionManagerImpl implements SessionManager {
         if (playerSettings.getPlayerCampaignMission() == null) {
             PlayerCampaignMission playerCampaignMission =
                     new PlayerCampaignMission(defaultPlayerModel.campaigns, defaultPlayerModel.missions);
-            playerSettings.setPlayerCampaignMissions(playerCampaignMission);
+            playerSettings.setPlayerCampaignMission(playerCampaignMission);
         }
 
         if (playerSettings.getSharedPreferences() == null)
@@ -81,10 +82,17 @@ public class SessionManagerImpl implements SessionManager {
 
         if (playerSettings.getUnlockedPlanets() == null)
             playerSettings.setUnlockedPlanets(new UnlockedPlanets());
+    }
 
-        player.setPlayerSettings(playerSettings);
-        PlayerSession playerSession = new PlayerSessionImpl(player, playerSettings);
-        return playerSession;
+    @Override
+    public void resetPlayerSettings(PlayerSettings playerSettings) {
+        playerSettings.setBaseMap(null);
+        playerSettings.setInventoryStorage(null);
+        playerSettings.setFaction(null);
+        playerSettings.setCurrentQuest(null);
+        playerSettings.setPlayerCampaignMission(null);
+        playerSettings.setSharedPreferences(null);
+        playerSettings.setUnlockedPlanets(null);
     }
 
     //TODO - make it load and minimise blocking

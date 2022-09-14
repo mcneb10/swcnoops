@@ -44,6 +44,7 @@ public class Config {
     public boolean freeResources = true;
     public boolean loadDevBases = true;
     public boolean handleMissingAccounts = true;
+    public String mongoDBConnection = "mongodb+srv://user:password@localhost/?retryWrites=true&w=majority";
 
     public void setFromProperties(Properties properties) throws Exception {
         Class<?> clazz = this.getClass();

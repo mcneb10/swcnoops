@@ -51,6 +51,10 @@ public class SparkMain {
         Config config = new Config();
         config.setFromProperties(properties);
         ServiceFactory.instance(config);
+
+        Thread shutdownThread = new Thread(() -> ServiceFactory.instance().shutdown());
+        Runtime.getRuntime().addShutdownHook(shutdownThread);
+
         ServiceFactory.instance().getPlayerDatasource().initOnStartup();
         ServiceFactory.instance().getGameDataManager().initOnStartup();
     }

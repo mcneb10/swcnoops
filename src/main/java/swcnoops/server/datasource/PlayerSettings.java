@@ -5,27 +5,30 @@ import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
 public class PlayerSettings {
-    private final String playerId;
-    private Upgrades upgrades;
+    private String playerId;
+    private Upgrades upgrades = new Upgrades();
     private String name;
     private FactionType faction;
     public PlayerMap baseMap;
-    private Deployables deployableTroops;
-    private BuildUnits buildUnits;
+    private Deployables deployableTroops = new Deployables();
+    private BuildUnits buildContracts = new BuildUnits();
     private Creature creature;
-    private Troops troops;
-    private DonatedTroops donatedTroops;
+    private Troops troops = new Troops();
+    private DonatedTroops donatedTroops = new DonatedTroops();
     private InventoryStorage inventoryStorage;
     private String currentQuest;
-    private PlayerCampaignMission playerCampaignMissions;
+    private PlayerCampaignMission playerCampaignMission;
     private PreferencesMap sharedPreferences;
     private String guildId;
     private UnlockedPlanets unlockedPlanets;
 
-    private Scalars scalars;
+    private Scalars scalars = new Scalars();
 
 
     private long keepAlive;
+
+    public PlayerSettings() {
+    }
 
     public PlayerSettings(String playerId) {
         this.playerId = playerId;
@@ -76,11 +79,11 @@ public class PlayerSettings {
     }
 
     public BuildUnits getBuildContracts() {
-        return this.buildUnits;
+        return this.buildContracts;
     }
 
     public void setBuildContracts(BuildUnits buildUnits) {
-        this.buildUnits = buildUnits;
+        this.buildContracts = buildUnits;
     }
 
     public void setCreature(Creature creature) {
@@ -96,6 +99,9 @@ public class PlayerSettings {
     }
 
     public void setTroops(Troops troops) {
+        if (troops != null)
+            troops.initialiseMaps();
+
         this.troops = troops;
     }
 
@@ -123,12 +129,12 @@ public class PlayerSettings {
         return currentQuest;
     }
 
-    public PlayerCampaignMission getPlayerCampaignMission() {
-        return playerCampaignMissions;
+    public void setPlayerCampaignMission(PlayerCampaignMission playerCampaignMission) {
+        this.playerCampaignMission = playerCampaignMission;
     }
 
-    public void setPlayerCampaignMissions(PlayerCampaignMission playerCampaignMissions) {
-        this.playerCampaignMissions = playerCampaignMissions;
+    public PlayerCampaignMission getPlayerCampaignMission() {
+        return playerCampaignMission;
     }
 
     public PreferencesMap getSharedPreferences() {

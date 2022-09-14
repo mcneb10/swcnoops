@@ -14,20 +14,14 @@ public class PlayerAccountRecover extends AbstractCommandAction<PlayerAccountRec
         final PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        if (playerSession.getPlayer().isMissingSecret()) {
-            ServiceFactory.instance().getSessionManager().removePlayerSession(playerSession.getPlayerId());
-            ServiceFactory.instance().getPlayerDatasource().removeMissingSecret(playerSession.getPlayerId());
-
+        if (playerSession.getPlayer().getPlayerSecret().getMissingSecret()) {
             // replace with chooseFaction stage
             PlayerLoginCommandResult factionFlipTemplate =
                     ServiceFactory.instance().getJsonParser()
                             .toObjectFromResource("templates/chooseFaction.json",
                                     PlayerLoginCommandResult.class);
 
-            PlayerSession otherSession = ServiceFactory.instance().getSessionManager()
-                    .getPlayerSession(arguments.getPlayerId(), factionFlipTemplate.playerModel);
-            otherSession.getPlayerSettings().getSharedPreferences().putAll(factionFlipTemplate.sharedPrefs);
-            otherSession.savePlayerSession();
+            playerSession.recoverWithPlayerSettings(factionFlipTemplate.playerModel, factionFlipTemplate.sharedPrefs);
         }
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;

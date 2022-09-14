@@ -85,7 +85,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.liveness = new Liveness();
         playerLoginResponse.liveness.keepAliveTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
-
         // this last login seems very important, the client needs it as setting this to funny values
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.

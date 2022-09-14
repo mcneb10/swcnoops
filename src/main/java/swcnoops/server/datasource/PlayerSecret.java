@@ -1,20 +1,17 @@
 package swcnoops.server.datasource;
 
 public class PlayerSecret {
-    private final boolean missingSecret;
-    private String playerId;
     private String secret;
     private String secondaryAccount;
+    private boolean missingSecret;
 
-    public PlayerSecret(String playerId, String secret, String secondaryAccount, boolean missingSecret) {
-        this.playerId = playerId;
+    public PlayerSecret() {
+    }
+
+    public PlayerSecret(String secret, String secondaryAccount, boolean missingSecret) {
         this.secret = secret;
         this.secondaryAccount = secondaryAccount;
         this.missingSecret = missingSecret;
-    }
-
-    public String getPlayerId() {
-        return playerId;
     }
 
     public String getSecret() {
@@ -25,7 +22,19 @@ public class PlayerSecret {
         return secondaryAccount;
     }
 
-    public boolean isMissingSecret() {
+    public boolean getMissingSecret() {
         return missingSecret;
+    }
+
+    public void setMissingSecret(boolean missingSecret) {
+        this.missingSecret = missingSecret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
+    }
+
+    public void setSecondaryAccount(String secondaryAccount) {
+        this.secondaryAccount = secondaryAccount;
     }
 }

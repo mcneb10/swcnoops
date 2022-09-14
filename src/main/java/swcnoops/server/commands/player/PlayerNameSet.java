@@ -19,10 +19,7 @@ public class PlayerNameSet extends AbstractCommandAction<PlayerNameSet, CommandR
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        ServiceFactory.instance().getPlayerDatasource()
-                .savePlayerName(arguments.getPlayerId(), arguments.getPlayerName());
-
-        playerSession.getPlayer().getPlayerSettings().setName(arguments.getPlayerName());
+        playerSession.savePlayerName(arguments.getPlayerName());
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }

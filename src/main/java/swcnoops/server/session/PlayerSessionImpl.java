@@ -36,15 +36,14 @@ import java.util.stream.Collectors;
 public class PlayerSessionImpl implements PlayerSession {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerSessionImpl.class);
 
-    final private Player player;
-    final private PlayerSettings playerSettings;
-    final private TrainingManager trainingManager;
-    final private CreatureManager creatureManager;
-    final private TroopInventory troopInventory;
+    private Player player;
+    private TrainingManager trainingManager;
+    private CreatureManager creatureManager;
+    private TroopInventory troopInventory;
     private OffenseLab offenseLab;
-    final private DonatedTroops donatedTroops;
-    final private InventoryStorage inventoryStorage;
-    final private PlayerMapItems playerMapItems;
+    private DonatedTroops donatedTroops;
+    private InventoryStorage inventoryStorage;
+    private PlayerMapItems playerMapItems;
     private DroidManager droidManager;
 
     private PvpSessionImpl pvpSession = new PvpSessionImpl(this);
@@ -59,23 +58,24 @@ public class PlayerSessionImpl implements PlayerSession {
     private Lock donationLock = new ReentrantLock();
     private Lock notificationLock = new ReentrantLock();
 
-    public PlayerSessionImpl(Player player, PlayerSettings playerSettings) {
+    public PlayerSessionImpl(Player player) {
         this.player = player;
-        this.playerSettings = playerSettings;
+        this.initialise();
+    }
 
-        // TODO - change this to use a method once refactor is done
-        this.playerMapItems = createPlayersMap(playerSettings.baseMap);
-
+    @Override
+    public void initialise() {
+        this.playerMapItems = createPlayersMap(this.getPlayerSettings().baseMap);
         this.troopInventory = PlayerSessionImpl.troopInventoryFactory.createForPlayer(this);
         this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this);
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
         this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
-        this.donatedTroops = playerSettings.getDonatedTroops();
-        this.inventoryStorage = playerSettings.getInventoryStorage();
+        this.donatedTroops = this.getPlayerSettings().getDonatedTroops();
+        this.inventoryStorage = this.getPlayerSettings().getInventoryStorage();
         this.droidManager = new DroidManager(this);
-
-        mapBuildingContracts(playerSettings);
+        mapBuildingContracts(this.getPlayerSettings());
     }
+
     private void mapBuildingContracts(PlayerSettings playerSettings) {
         for (BuildUnit buildUnit : playerSettings.getBuildContracts()) {
             if (isDroidContract(buildUnit.getContractType()))
@@ -229,13 +229,22 @@ public class PlayerSessionImpl implements PlayerSession {
     // thinking maybe save squad first then player, on load check that the player is still in squad
     @Override
     public void savePlayerSession() {
-        savePlayerSession(null);
+        ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this);
     }
 
+    @Override
+    public void savePlayerKeepAlive() {
+        ServiceFactory.instance().getPlayerDatasource().savePlayerKeepAlive(this);
+    }
 
     @Override
-    public void savePlayerSession(SquadNotification squadNotification) {
-        ServiceFactory.instance().getPlayerDatasource().savePlayerSession(this, squadNotification);
+    public void savePlayerName(String playerName) {
+        ServiceFactory.instance().getPlayerDatasource().savePlayerName(this, playerName);
+    }
+
+    @Override
+    public void recoverWithPlayerSettings(PlayerModel playerModel, Map<String, String> sharedPrefs) {
+        ServiceFactory.instance().getPlayerDatasource().recoverWithPlayerSettings(this, playerModel, sharedPrefs);
     }
 
     private void processCompletedContracts(long time) {
@@ -252,7 +261,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public PlayerSettings getPlayerSettings() {
-        return playerSettings;
+        return player.getPlayerSettings();
     }
 
     @Override
@@ -320,9 +329,9 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void playerLogin(long time) {
-        this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        this.notificationSession.playerLogin();
-        removeEjectedNotifications();
+        //this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        //this.notificationSession.playerLogin();
+        //removeEjectedNotifications();
         this.savePlayerSession();
     }
 
@@ -798,8 +807,8 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(time);
 
         // redo the map to the chosen faction to keep in sync
-        FactionType oldFaction = this.playerSettings.getFaction();
-        this.playerSettings.setFaction(faction);
+        FactionType oldFaction = this.getFaction();
+        this.getPlayerSettings().setFaction(faction);
         for (MapItem mapItem : this.playerMapItems.getMapItems()) {
             BuildingData oldBuildingData = mapItem.getBuildingData();
             if (mapItem.getBuildingData().getFaction() == oldFaction) {
@@ -812,7 +821,7 @@ public class PlayerSessionImpl implements PlayerSession {
         // add the first campaign and mission for this faction
         CampaignSet campaignSet = ServiceFactory.instance().getGameDataManager().getCampaignForFaction(faction);
         CampaignMissionSet campaignMissionSet = campaignSet.getCampaignMissionSet(1);
-        PlayerCampaignMission playerCampaignMission = this.playerSettings.getPlayerCampaignMission();
+        PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         CampaignMissionData campaignMissionData = campaignMissionSet.getMission(1);
         playerCampaignMission.addMission(campaignMissionData);
         this.savePlayerSession();
@@ -969,17 +978,17 @@ public class PlayerSessionImpl implements PlayerSession {
         }
 
         // TODO - do this properly, for now just going to accept what the client says
-        this.playerSettings.getInventoryStorage().credits.amount = credits;
-        this.playerSettings.getInventoryStorage().materials.amount = materials;
-        this.playerSettings.getInventoryStorage().contraband.amount = contraband;
-        this.playerSettings.getInventoryStorage().crystals.amount = crystals;
+        this.getPlayerSettings().getInventoryStorage().credits.amount = credits;
+        this.getPlayerSettings().getInventoryStorage().materials.amount = materials;
+        this.getPlayerSettings().getInventoryStorage().contraband.amount = contraband;
+        this.getPlayerSettings().getInventoryStorage().crystals.amount = crystals;
 
         this.savePlayerSession();
     }
 
     @Override
     public FactionType getFaction() {
-        return this.playerSettings.getFaction();
+        return this.getPlayerSettings().getFaction();
     }
 
     @Override
@@ -990,7 +999,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void planetRelocate(String planet, boolean payWithHardCurrency, int crystals, long time) {
         this.processCompletedContracts(time);
-        this.playerSettings.getBaseMap().planet = planet;
+        this.getPlayerSettings().getBaseMap().planet = planet;
 
         if (payWithHardCurrency) {
             int givenDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this, crystals);
@@ -1078,10 +1087,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void updateScalars(Scalars scalars) {
-        this.playerSettings.setScalars(scalars);
+        this.getPlayerSettings().setScalars(scalars);
         savePlayerSession();
     }
-
-
-
 }
