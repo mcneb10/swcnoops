@@ -18,8 +18,11 @@ import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.*;
+import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
+import swcnoops.server.session.training.DeployableQueue;
+import swcnoops.server.session.training.TrainingManager;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
@@ -461,9 +464,59 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void savePlayerSession(PlayerSession playerSession, Connection connection, ClientSession session) {
+        // TODO - redo these to do straight through amendments to the settings
+        mapDeployablesToPlayerSettings(playerSession);
+        playerSession.getPlayerSettings().setBuildContracts(mapContractsToPlayerSettings(playerSession));
+        mapCreatureToPlayerSession(playerSession);
+        mapDonatedTroopsToPlayerSession(playerSession);
+
+        int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
+        int xp = ServiceFactory.getXpFromBuildings(playerSession.getPlayerMapItems().getBaseMap().buildings);
+
+        playerSession.getPlayerSettings().setHqLevel(hqLevel);
+        playerSession.getPlayerSettings().getScalars().xp = xp;
+
         playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
                 set("playerSettings", playerSession.getPlayer().getPlayerSettings()));
+    }
+
+    private void mapDonatedTroopsToPlayerSession(PlayerSession playerSession) {
+        // replace the players troops with new data before saving
+        DonatedTroops donatedTroops = playerSession.getDonatedTroops();
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        playerSettings.setDonatedTroops(donatedTroops);
+    }
+
+    private void mapCreatureToPlayerSession(PlayerSession playerSession) {
+        // replace the players settings with new data before saving
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        CreatureManager creatureManager = playerSession.getCreatureManager();
+        playerSettings.setCreature(creatureManager.getCreature());
+    }
+
+    private BuildUnits mapContractsToPlayerSettings(PlayerSession playerSession) {
+        BuildUnits allContracts = new BuildUnits();
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableTroops().getUnitsInQueue());
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableChampion().getUnitsInQueue());
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableHero().getUnitsInQueue());
+        allContracts.addAll(playerSession.getTrainingManager().getDeployableSpecialAttack().getUnitsInQueue());
+        allContracts.addAll(playerSession.getDroidManager().getUnitsInQueue());
+        return allContracts;
+    }
+
+    private void mapDeployablesToPlayerSettings(PlayerSession playerSession) {
+        Deployables deployables = playerSession.getPlayerSettings().getDeployableTroops();
+        TrainingManager trainingManager = playerSession.getTrainingManager();
+        mapToPlayerSetting(trainingManager.getDeployableTroops(), deployables.troop);
+        mapToPlayerSetting(trainingManager.getDeployableChampion(), deployables.champion);
+        mapToPlayerSetting(trainingManager.getDeployableHero(), deployables.hero);
+        mapToPlayerSetting(trainingManager.getDeployableSpecialAttack(), deployables.specialAttack);
+    }
+
+    private void mapToPlayerSetting(DeployableQueue deployableQueue, Map<String, Integer> storage) {
+        storage.clear();
+        storage.putAll(deployableQueue.getDeployableUnits());
     }
 
     @Override

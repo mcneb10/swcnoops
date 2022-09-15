@@ -21,11 +21,10 @@ public class PlayerSettings {
     private PreferencesMap sharedPreferences;
     private String guildId;
     private UnlockedPlanets unlockedPlanets;
-
     private Scalars scalars = new Scalars();
 
-
     private long keepAlive;
+    private int hqLevel;
 
     public PlayerSettings() {
     }
@@ -166,7 +165,10 @@ public class PlayerSettings {
     }
 
     public Scalars getScalars() {
-        return scalars == null ? new Scalars(0, 0, 0, 0, 0, 0, 100, 0, 0, 0) : this.scalars;
+        if (this.scalars == null)
+            this.scalars = new Scalars(0, 0, 0, 0, 0, 0, 100, 0, 0, 0);
+
+        return scalars;
     }
 
     public void setScalars(Scalars scalars) {
@@ -179,5 +181,13 @@ public class PlayerSettings {
 
     public void setKeepAlive(long keepAlive) {
         this.keepAlive = keepAlive;
+    }
+
+    public void setHqLevel(int hqLevel) {
+        this.hqLevel = hqLevel;
+    }
+
+    public int getHqLevel() {
+        return hqLevel;
     }
 }
