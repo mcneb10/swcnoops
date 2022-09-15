@@ -1059,7 +1059,6 @@ public class PlayerSessionImpl implements PlayerSession {
         Map<String, Building> buildingMap = new HashMap<>();
         squadMemberWarData.warMap.buildings.forEach(a -> buildingMap.put(a.key, a));
 
-
         for (Map.Entry<String, Position> buildingChange : positions.entrySet()) {
             Building building = buildingMap.get(buildingChange.getKey());
             if (building != null) {
@@ -1076,7 +1075,7 @@ public class PlayerSessionImpl implements PlayerSession {
             }
         }
 
-        ServiceFactory.instance().getPlayerDatasource().saveWarParticipant(squadMemberWarData);
+        ServiceFactory.instance().getPlayerDatasource().saveWarMap(squadMemberWarData);
     }
 
     @Override

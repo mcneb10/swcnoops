@@ -21,8 +21,8 @@ public interface PlayerDataSource {
 
     void savePlayerSession(PlayerSession playerSession);
 
-    void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
-                            SquadNotification squadNotification);
+    void saveTroopDonation(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
+                           SquadNotification squadNotification);
 
     void newPlayer(String playerId, String secret, PlayerModel playerModel, Map<String, String> sharedPrefs, String name);
 
@@ -64,10 +64,10 @@ public interface PlayerDataSource {
 
     List<SquadMemberWarData> getWarParticipants(String guildId, String warId);
 
-    void saveWarParticipant(SquadMemberWarData squadMemberWarData);
+    void saveWarMap(SquadMemberWarData squadMemberWarData);
 
-    void saveWarParticipant(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
-                            SquadNotification squadNotification);
+    void saveWarTroopDonation(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
+                              SquadNotification squadNotification);
 
     AttackDetail warAttackStart(WarSession warSession, String playerId,
                                 String opponentId, SquadNotification attackStartNotification, long time);

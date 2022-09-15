@@ -239,8 +239,6 @@ public class GuildSessionImpl implements GuildSession {
         if (!recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId(), troopsInSC))
             return failedTroopDonationResult;
 
-        playerSession.removeDeployedTroops(troopsDonated, time);
-
         SquadNotification squadNotification = new SquadNotification(this.getGuildId(), this.getGuildName(),
                 ServiceFactory.createRandomUUID(), null, playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerId(), SquadMsgType.troopDonation);
@@ -252,13 +250,16 @@ public class GuildSessionImpl implements GuildSession {
         troopDonationData.recipientId = recipientPlayerId;
         squadNotification.setData(troopDonationData);
 
+        // TODO - if the save fails then we should invalidate/undo the recipient receiving the troops
         if (forWar) {
-            ServiceFactory.instance().getPlayerDatasource().saveWarParticipant(this, playerSession,
+            ServiceFactory.instance().getPlayerDatasource().saveWarTroopDonation(this, playerSession,
                     squadMemberWarData, squadNotification);
         } else {
-            ServiceFactory.instance().getPlayerDatasource().savePlayerSessions(this, playerSession,
+            ServiceFactory.instance().getPlayerDatasource().saveTroopDonation(this, playerSession,
                     recipientPlayerSession, squadNotification);
         }
+
+        playerSession.removeDeployedTroops(troopsDonated, time);
         this.setNotificationDirty(squadNotification.getDate());
         return new TroopDonationResult(squadNotification, troopsDonated);
     }

@@ -320,7 +320,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void savePlayerSession(PlayerSession playerSession) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            savePlayerSettings(playerSession, null, session);
+            savePlayerSettings(playerSession, session);
             session.commitTransaction();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to save player session " + playerSession.getPlayerId(), e);
@@ -359,7 +359,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             playerSession.setGuildSession(guildSession);
-            savePlayerSettings(playerSession, null, clientSession);
+            savePlayerSettings(playerSession, clientSession);
 
             if (guildSession.canEdit()) {
                 Member newMember = GuildHelper.createMember(playerSession);
@@ -433,7 +433,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            savePlayerSettings(playerSession, null, session);
+            savePlayerSettings(playerSession, session);
             Bson combine = combine(pull("squadMembers", eq("playerId",playerSession.getPlayerId())),
                     inc("members", -1));
             if (guildSession.canEdit()) {
@@ -509,7 +509,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void savePlayerSettings(PlayerSession playerSession, Connection connection, ClientSession session) {
+    private void saveDonationRecipient(PlayerSession playerSession, ClientSession session) {
+        // TODO - redo these to do straight through amendments to the settings
+        mapDonatedTroopsToPlayerSession(playerSession);
+        playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
+                set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()));
+    }
+
+    private void savePlayerSettings(PlayerSession playerSession, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDeployablesToPlayerSettings(playerSession);
         playerSession.getPlayerSettings().setBuildContracts(mapContractsToPlayerSettings(playerSession));
@@ -566,13 +574,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
-                                   SquadNotification squadNotification) {
-
+    public void saveTroopDonation(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
+                                  SquadNotification squadNotification)
+    {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            savePlayerSettings(playerSession, null, clientSession);
-            savePlayerSettings(recipientPlayerSession, null, clientSession);
+            savePlayerSettings(playerSession, clientSession);
+            saveDonationRecipient(recipientPlayerSession, clientSession);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
@@ -1207,10 +1215,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveWarParticipant(SquadMemberWarData squadMemberWarData) {
+    public void saveWarMap(SquadMemberWarData squadMemberWarData) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);
-            saveWarParticipant(squadMemberWarData, connection);
+            // TODO - save war map
+            //saveWarTroopDonation(squadMemberWarData, connection);
             connection.commit();
         } catch (SQLException ex) {
             throw new RuntimeException("Failed to save war SquadMemberWarData for player id=" + squadMemberWarData.id, ex);
@@ -1218,12 +1227,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveWarParticipant(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
-                                   SquadNotification squadNotification) {
+    public void saveWarTroopDonation(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
+                                     SquadNotification squadNotification) {
 //        try (Connection connection = getConnection()) {
 //            connection.setAutoCommit(false);
 //            savePlayerSession(playerSession, connection);
-//            saveWarParticipant(squadMemberWarData, connection);
+//            saveWarTroopDonation(squadMemberWarData, connection);
 //            setAndSaveGuildNotification(guildSession, squadNotification, connection);
 //            connection.commit();
 //        } catch (SQLException ex) {
@@ -1231,7 +1240,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 //        }
     }
 
-    private void saveWarParticipant(SquadMemberWarData squadMemberWarData, Connection connection) {
+    private void saveWarTroopDonation(SquadMemberWarData squadMemberWarData, Connection connection) {
         final String warParticipantsSql = "update WarParticipants " +
                 "set warMap = ?," +
                 "donatedTroops = ?," +
