@@ -1,6 +1,9 @@
 package swcnoops.server.model;
 
+import org.mongojack.Id;
+
 public class Squad {
+    @Id
     public String _id;
     public FactionType faction;
     public String name;

@@ -1,7 +1,5 @@
 package swcnoops.server.commands.guild;
 
-import swcnoops.server.ServiceFactory;
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.model.Member;
 import swcnoops.server.model.Perks;
 import swcnoops.server.session.PlayerSession;
@@ -10,7 +8,12 @@ public class GuildHelper {
     static final public Perks emptyPerks = new Perks();
 
     public static Member createMember(PlayerSession playerSession) {
-        Member member = new Member(playerSession);
+        Member member = new Member();
+        member.playerId = playerSession.getPlayerId();
+        member.planet = playerSession.getPlayerSettings().getBaseMap().planet;
+        member.name = playerSession.getPlayerSettings().getName();
+        member.xp = playerSession.getPlayerSettings().getScalars().xp;
+        member.hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
         return member;
     }
 
@@ -23,7 +26,7 @@ public class GuildHelper {
         member.isOwner = isOwner;
         member.playerId = playerId;
         member.joinDate = joinDate;
-        member.setLevel(hqLevel);
+        member.hqLevel = hqLevel;
         member.name = playerName;
         member.troopsDonated = troopsDonated;
         member.troopsReceived = troopsReceived;

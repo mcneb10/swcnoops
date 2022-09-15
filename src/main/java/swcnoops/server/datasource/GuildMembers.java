@@ -45,7 +45,7 @@ public class GuildMembers {
         member.playerId = guildId + "-BOT" + botName;
         member.planet = "planet1";
         member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.setLevel(10);
+        member.hqLevel = 10;
         member.name = "BOT-" + botName;
         return member;
     }

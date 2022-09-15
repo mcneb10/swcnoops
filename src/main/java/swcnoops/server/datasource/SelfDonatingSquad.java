@@ -31,7 +31,7 @@ public class SelfDonatingSquad implements GuildSettings {
         member.playerId = playerSettings.getPlayerId() + "-BOT";
         member.planet = playerSettings.getBaseMap().planet;
         member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        member.setLevel(5);
+        member.hqLevel = 5;
         member.name = DonateBotName;
         return member;
     }

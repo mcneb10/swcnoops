@@ -26,7 +26,7 @@ public interface PlayerDataSource {
 
     void newPlayer(String playerId, String secret, PlayerModel playerModel, Map<String, String> sharedPrefs, String name);
 
-    void newGuild(String playerId, GuildSettings squadResult);
+    void newGuild(PlayerSession playerSession, GuildSettings squadResult);
 
     GuildSettings loadGuildSettings(String guildId);
 

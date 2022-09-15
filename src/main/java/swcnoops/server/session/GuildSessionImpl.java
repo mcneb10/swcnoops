@@ -113,8 +113,8 @@ public class GuildSessionImpl implements GuildSession {
     public void join(PlayerSession playerSession) {
         SquadNotification joinNotification =
                 createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.join);
-        ServiceFactory.instance().getPlayerDatasource().joinSquad(this, playerSession, joinNotification);
         addMember(playerSession);
+        ServiceFactory.instance().getPlayerDatasource().joinSquad(this, playerSession, joinNotification);
         this.setNotificationDirty(joinNotification.getDate());
     }
 
@@ -175,9 +175,9 @@ public class GuildSessionImpl implements GuildSession {
 
     private void removeMember(PlayerSession playerSession) {
         playerSession.setGuildSession(null);
-        this.guildSettings.setDirty();
         this.squadNotifications.removeIf(a -> a.getPlayerId() != null
                 && a.getPlayerId().equals(playerSession.getPlayerId()));
+        this.guildSettings.setDirty();
     }
 
     private void addMember(PlayerSession playerSession) {
@@ -299,7 +299,7 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void createNewGuild(PlayerSession playerSession) {
-        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession.getPlayerId(),
+        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession,
                 this.getGuildSettings());
     }
 

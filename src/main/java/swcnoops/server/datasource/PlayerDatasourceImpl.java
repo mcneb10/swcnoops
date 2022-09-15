@@ -1,11 +1,10 @@
 package swcnoops.server.datasource;
 
 import com.mongodb.*;
-import com.mongodb.client.ClientSession;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
-import com.mongodb.client.MongoDatabase;
+import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
+import com.mongodb.client.model.IndexOptions;
+import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
@@ -31,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.eq;
+import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.combine;
 import static com.mongodb.client.model.Updates.set;
@@ -40,6 +40,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private MongoClient mongoClient;
     private MongoDatabase database;
     private JacksonMongoCollection<Player> playerCollection;
+    private JacksonMongoCollection<SquadInfo> squadCollection;
 
     public PlayerDatasourceImpl() {
     }
@@ -69,6 +70,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.database = mongoClient.getDatabase("dev");
         this.playerCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, "dev", "player", Player.class, UuidRepresentation.STANDARD);
+
+        this.squadCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "squad", SquadInfo.class, UuidRepresentation.STANDARD);
+
+        this.squadCollection.createIndex(Indexes.ascending("squadMembers.playerId"), new IndexOptions().unique(true));
+        this.squadCollection.createIndex(Indexes.ascending("faction"));
+        this.squadCollection.createIndex(Indexes.text("name"));
     }
 
     public void checkAndPrepareDB() {
@@ -145,6 +153,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public Player loadPlayer(String playerId) {
         Player player = this.playerCollection.find(eq("_id", playerId)).first();
+        SquadInfo squadInfo = this.squadCollection.find(eq("squadMembers.playerId", playerId)).projection(include("_id")).first();
+        if (squadInfo != null)
+            player.getPlayerSettings().setGuildId(squadInfo._id);
+        else
+            player.getPlayerSettings().setGuildId(null);
         return player;
     }
 
@@ -337,19 +350,31 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            savePlayerSession(playerSession, connection);
+//        try (ClientSession session = this.mongoClient.startSession()) {
+//            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+//            savePlayerGuildId(session, playerSession, guildSession.getGuildId());
 //
 //            if (guildSession.canEdit()) {
-//                insertSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(), false, false, 0, connection);
-//                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
-//                setAndSaveGuildNotification(guildSession, squadNotification, connection);
+//                insertSquadMember(session, guildSession.getGuildId(), playerSession.getPlayerId(), false, false, ServiceFactory.getSystemTimeSecondsFromEpoch());
+//                //deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
+//                setAndSaveGuildNotification(session, guildSession, squadNotification);
 //            }
-//            connection.commit();
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+//
+//            session.commitTransaction();
+//        } catch (MongoCommandException e) {
+//            throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
 //        }
+    }
+
+    public void savePlayerGuildId(ClientSession session, PlayerSession playerSession, String guildId) {
+        playerSession.getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        Bson simpleUpdate = set("playerSettings.guildId", guildId);
+        Bson simpleUpdateKeepAlive = set("playerSettings.keepAlive", playerSession.getPlayerSettings().getKeepAlive());
+        Bson combined = combine(simpleUpdate, simpleUpdateKeepAlive);
+        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
+                combined);
+
+        playerSession.getPlayer().getPlayerSettings().setGuildId(guildId);
     }
 
     @Override
@@ -565,65 +590,47 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void newGuild(String playerId, GuildSettings guildSettings) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            createNewGuild(playerId, guildSettings, connection);
-            insertSquadMember(guildSettings.getGuildId(), playerId, false, true, 0, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
-        }
+    public void newGuild(PlayerSession playerSession, GuildSettings guildSettings) {
+        createNewGuild(playerSession, guildSettings);
     }
 
-    private void createNewGuild(String playerId, GuildSettings guildSettings, Connection connection) {
-        throw new RuntimeException("not supported");
-//        final String squadSql = "insert into Squads (id, faction, name, icon, description, openEnrollment, minScoreAtEnrollment) values " +
-//                "(?, ?, ?, ?, ?, ?, ?)";
-//
-//        final String playerSettingsSql = "update PlayerSettings " +
-//                "set guildId = ? " +
-//                "WHERE id = ?";
+    private void createNewGuild(PlayerSession playerSession, GuildSettings guildSettings) {
+        SquadInfo squadInfo = new SquadInfo();
+        squadInfo._id = guildSettings.getGuildId();
+        squadInfo.name = guildSettings.getGuildName();
+        squadInfo.openEnrollment = guildSettings.getOpenEnrollment();
+        squadInfo.icon = guildSettings.getIcon();
+        squadInfo.faction = guildSettings.getFaction();
+        squadInfo.setDescription(guildSettings.getDescription());
+        squadInfo.minScore = guildSettings.getMinScoreAtEnrollment();
+
+        Member owner = GuildHelper.createMember(playerSession);
+        owner.isOwner = true;
+        owner.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        squadInfo.getSquadMembers().add(owner);
+        squadInfo.members = squadInfo.getSquadMembers().size();
+        squadInfo.activeMemberCount = squadInfo.getSquadMembers().size();
+
+        this.squadCollection.save(squadInfo);
+    }
+
+    private void insertSquadMember(ClientSession session, String guildId, String playerId, boolean isOfficer, boolean isOwner, long joinDate)
+    {
+//        final String squadMemberSql = "insert into SquadMembers (guildId, playerId, isOfficer, isOwner, joinDate) values " +
+//                "(?, ?, ?, ?, ?)";
 //
 //        try {
-//            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-//                stmt.setString(1, guildSettings.getGuildId());
-//                stmt.setString(2, guildSettings.getFaction().toString());
-//                stmt.setString(3, guildSettings.getGuildName());
-//                stmt.setString(4, guildSettings.getIcon());
-//                stmt.setString(5, guildSettings.getDescription());
-//                stmt.setBoolean(6, guildSettings.getOpenEnrollment());
-//                stmt.setInt(7, guildSettings.getMinScoreAtEnrollment());
-//                stmt.executeUpdate();
-//            }
-//
-//            try (PreparedStatement stmt = connection.prepareStatement(playerSettingsSql)) {
-//                stmt.setString(1, guildSettings.getGuildId());
+//            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
+//                stmt.setString(1, guildId);
 //                stmt.setString(2, playerId);
+//                stmt.setInt(3, isOfficer ? 1 : 0);
+//                stmt.setInt(4, isOwner ? 1 : 0);
+//                stmt.setLong(5, joinDate);
 //                stmt.executeUpdate();
 //            }
 //        } catch (SQLException ex) {
 //            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
 //        }
-    }
-
-    private void insertSquadMember(String guildId, String playerId, boolean isOfficer, boolean isOwner, long joinDate,
-                                   Connection connection) {
-        final String squadMemberSql = "insert into SquadMembers (guildId, playerId, isOfficer, isOwner, joinDate) values " +
-                "(?, ?, ?, ?, ?)";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
-                stmt.setString(1, guildId);
-                stmt.setString(2, playerId);
-                stmt.setInt(3, isOfficer ? 1 : 0);
-                stmt.setInt(4, isOwner ? 1 : 0);
-                stmt.setLong(5, joinDate);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
-        }
     }
 
     private void deleteSquadMember(String playerId, Connection connection) {
@@ -641,44 +648,23 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public GuildSettings loadGuildSettings(String guildId) {
-        final String sql = "SELECT id, name, faction, perks, members, warId, description, icon, openEnrollment, minScoreAtEnrollment, " +
-                "warSignUpTime, warId " +
-                "FROM Squads s WHERE s.id = ?";
-
         GuildSettingsImpl guildSettings = null;
-        try {
-            try (Connection con = getConnection()) {
-                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
-                    pstmt.setString(1, guildId);
-                    ResultSet rs = pstmt.executeQuery();
 
-                    while (rs.next()) {
-                        guildSettings = new GuildSettingsImpl(rs.getString("id"));
-                        guildSettings.setName(rs.getString("name"));
+        SquadInfo squadInfo = this.squadCollection.find(eq("_id", guildId)).first();
 
-                        String faction = rs.getString("faction");
-                        if (faction != null && !faction.isEmpty())
-                            guildSettings.setFaction(FactionType.valueOf(faction));
+        if (squadInfo != null) {
+            guildSettings = new GuildSettingsImpl(squadInfo._id);
+            guildSettings.setName(squadInfo.name);
+            guildSettings.setFaction(squadInfo.faction);
+            guildSettings.setDescription(squadInfo.getDescription());
+            guildSettings.setIcon(squadInfo.icon);
+            guildSettings.setOpenEnrollment(squadInfo.openEnrollment);
+            guildSettings.setMinScoreAtEnrollment(squadInfo.minScore);
+            guildSettings.setWarSignUpTime(squadInfo.warSignUpTime);
+            guildSettings.setWarId(squadInfo.warId);
 
-                        guildSettings.setDescription(rs.getString("description"));
-                        guildSettings.setIcon(rs.getString("icon"));
-
-                        guildSettings.setOpenEnrollment(rs.getBoolean("openEnrollment"));
-                        guildSettings.setMinScoreAtEnrollment(rs.getInt("minScoreAtEnrollment"));
-                        guildSettings.setWarSignUpTime(rs.getLong("warSignUpTime"));
-                        guildSettings.setWarId(rs.getString("warId"));
-                    }
-                }
-
-                List<Member> members = loadSquadMembers(guildSettings.getGuildId(), con);
-
-                if (guildSettings != null) {
-                    GuildMembers guildMembers = new GuildMembers(guildSettings.getGuildId(), members);
-                    guildSettings.setGuildMembers(guildMembers);
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to load Guild settings from DB id=" + guildId, ex);
+            GuildMembers guildMembers = new GuildMembers(guildSettings.getGuildId(), squadInfo.getSquadMembers());
+            guildSettings.setGuildMembers(guildMembers);
         }
 
         return guildSettings;
@@ -686,51 +672,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public List<Member> loadSquadMembers(String guildId) {
-        try (Connection connection = getConnection()) {
-            return loadSquadMembers(guildId, connection);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to load squad members", ex);
-        }
-    }
+        SquadInfo squadInfo = this.squadCollection.find(eq("_id", guildId)).projection(include("squadMembers")).first();
+        if (squadInfo != null)
+            return squadInfo.getSquadMembers();
 
-    private List<Member> loadSquadMembers(String guildId, Connection connection) throws Exception {
-        List<Member> members = new ArrayList<>();
-
-        final String squadPlayers = "SELECT m.playerId, s.name, m.isOfficer, m.isOwner, m.joinDate, m.troopsDonated, m.troopsReceived, " +
-                "m.warParty, s.hqLevel " +
-                "FROM SquadMembers m, PlayerSettings s WHERE m.guildId = ? " +
-                "and m.playerId = s.Id";
-
-        try (PreparedStatement pstmt = connection.prepareStatement(squadPlayers)) {
-            pstmt.setString(1, guildId);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
-                String playerId = rs.getString("playerId");
-                String playerName = rs.getString("name");
-                boolean isOfficer = rs.getBoolean("isOfficer");
-                boolean isOwner = rs.getBoolean("isOwner");
-                long joinDate = rs.getLong("joinDate");
-                long troopsDonated = rs.getLong("troopsDonated");
-                long troopsReceived = rs.getLong("troopsReceived");
-                boolean warParty = rs.getBoolean("warParty");
-                int hqLevel = rs.getInt("hqLevel");
-                Member member = GuildHelper.createMember(playerId, playerName, isOwner,
-                        isOfficer, joinDate, troopsDonated, troopsReceived, warParty, hqLevel);
-                members.add(member);
-            }
-        }
-
-        return members;
+        return new ArrayList<>();
     }
 
     @Override
     public List<WarHistory> loadWarHistory(String squadId) {
-        try (Connection connection = getConnection()) {
-            return loadWarHistory(squadId, connection);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to load war history ", ex);
-        }
+        // TODO - maybe change this to look at a different collection
+        SquadInfo squadInfo = this.squadCollection.find(eq("_id", squadId)).projection(include("warHistory")).first();
+        if (squadInfo != null)
+            return squadInfo.getWarHistory();
+
+        return new ArrayList<>();
     }
 
     private List<WarHistory> loadWarHistory(String guildId, Connection connection) throws Exception {
@@ -774,76 +730,28 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment,
                           boolean openEnrollment) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            editGuild(guildId, description, icon, minScoreAtEnrollment, openEnrollment, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
-        }
-    }
-
-    private void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment,
-                           boolean openEnrollment, Connection connection) {
-        final String squadSql = "update Squads " +
-                "set description = ?, " +
-                "icon = ?, " +
-                "minScoreAtEnrollment = ?, " +
-                "openEnrollment = ? " +
-                "where id = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setString(1, description);
-                stmt.setString(2, icon);
-                stmt.setInt(3, minScoreAtEnrollment);
-                stmt.setBoolean(4, openEnrollment);
-                stmt.setString(5, guildId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to edit squad id=" + guildId, ex);
-        }
+        Bson setDescription = set("description", description);
+        Bson setIcon = set("icon", icon);
+        Bson setMinScoreAtEnrollment = set("minScore", minScoreAtEnrollment);
+        Bson setOpenEnrollment = set("openEnrollment", openEnrollment);
+        Bson combined = combine(setDescription, setIcon, setMinScoreAtEnrollment, setOpenEnrollment);
+        UpdateResult result = this.squadCollection.updateOne(Filters.eq("_id", guildId),
+                combined);
     }
 
     @Override
     public List<Squad> getGuildList(FactionType faction) {
-        try (Connection connection = getConnection()) {
-            return getGuildList(faction, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
-        }
-    }
-
-    private List<Squad> getGuildList(FactionType faction, Connection connection) {
-        final String sql = "SELECT id, name, faction, description, icon, openEnrollment, minScoreAtEnrollment, " +
-                " (select count(1) from SquadMembers m where m.guildId = s.id) as numMembers " +
-                "FROM Squads s WHERE s.faction = ?";
+        FindIterable<SquadInfo> squadInfos = this.squadCollection.find(eq("faction", faction))
+                .projection(include("faction", "name", "description", "icon", "openEnrollment", "minScore", "members", "activeMemberCount"));
 
         List<Squad> squads = new ArrayList<>();
-        try {
-            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                pstmt.setString(1, faction.name());
-                ResultSet rs = pstmt.executeQuery();
-
-                while (rs.next()) {
-                    Squad squad = new Squad();
-                    squad._id = rs.getString("id");
-                    squad.name = rs.getString("name");
-                    squad.faction = FactionType.valueOf(rs.getString("faction"));
-                    squad.icon = rs.getString("icon");
-                    squad.openEnrollment = rs.getBoolean("openEnrollment");
-                    squad.minScore = rs.getInt("minScoreAtEnrollment");
-                    squad.rank = 0;
-                    squad.level = 0;
-                    squad.activeMemberCount = rs.getInt("minScoreAtEnrollment");
-                    squad.members = rs.getInt("numMembers");
-                    squad.score = 1;
-                    squads.add(squad);
+        if (squadInfos != null) {
+            try (MongoCursor<SquadInfo> cursor = squadInfos.cursor()) {
+                while (cursor.hasNext()) {
+                    SquadInfo squadInfo = cursor.next();
+                    squads.add(squadInfo);
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to load Guild list from DB", ex);
         }
 
         return squads;
@@ -932,42 +840,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public List<Squad> searchGuildByName(String searchTerm) {
-        try (Connection connection = getConnection()) {
-            return searchGuildByName(searchTerm, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
-        }
-    }
-
-    private List<Squad> searchGuildByName(String searchTerm, Connection connection) {
-        final String sql = "SELECT id, name, faction, description, icon, openEnrollment, minScoreAtEnrollment, " +
-                " (select count(1) from SquadMembers m where m.guildId = s.id) as numMembers " +
-                "FROM Squads s WHERE s.name like ?";
+        FindIterable<SquadInfo> squadInfos = this.squadCollection.find(regex("name", searchTerm, "i"))
+                .projection(include("faction", "name", "description", "icon", "openEnrollment", "minScore", "members", "activeMemberCount"));
 
         List<Squad> squads = new ArrayList<>();
-        try {
-            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-                pstmt.setString(1, "%" + searchTerm + "%");
-                ResultSet rs = pstmt.executeQuery();
-
-                while (rs.next()) {
-                    Squad squad = new Squad();
-                    squad._id = rs.getString("id");
-                    squad.name = rs.getString("name");
-                    squad.faction = FactionType.valueOf(rs.getString("faction"));
-                    squad.icon = rs.getString("icon");
-                    squad.openEnrollment = rs.getBoolean("openEnrollment");
-                    squad.minScore = rs.getInt("minScoreAtEnrollment");
-                    squad.rank = 0;
-                    squad.level = 0;
-                    squad.activeMemberCount = rs.getInt("minScoreAtEnrollment");
-                    squad.members = rs.getInt("numMembers");
-                    squad.score = 1;
-                    squads.add(squad);
+        if (squadInfos != null) {
+            try (MongoCursor<SquadInfo> cursor = squadInfos.cursor()) {
+                while (cursor.hasNext()) {
+                    SquadInfo squadInfo = cursor.next();
+                    squads.add(squadInfo);
                 }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to search Guild list from DB", ex);
         }
 
         return squads;
