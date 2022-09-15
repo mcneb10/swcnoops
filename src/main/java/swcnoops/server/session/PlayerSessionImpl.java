@@ -329,9 +329,9 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void playerLogin(long time) {
-        //this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        //this.notificationSession.playerLogin();
-        //removeEjectedNotifications();
+        this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        this.notificationSession.playerLogin();
+        removeEjectedNotifications();
         this.savePlayerSession();
     }
 

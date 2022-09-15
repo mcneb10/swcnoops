@@ -1,6 +1,6 @@
 package swcnoops.server.model;
 
-public class ShareBattleNotificationData implements SquadNotificationData {
+public class ShareBattleNotificationData extends SquadNotificationData {
     private String battleId;
     private String battleVersion;
     private String cmsVersion;
@@ -14,9 +14,11 @@ public class ShareBattleNotificationData implements SquadNotificationData {
     private FactionType faction;
 
     public ShareBattleNotificationData() {
+        super("ShareBattle");
     }
 
     public ShareBattleNotificationData(String battleId) {
+        this();
         this.battleId = battleId;
     }
 

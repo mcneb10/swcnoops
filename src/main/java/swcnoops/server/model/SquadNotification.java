@@ -1,34 +1,33 @@
 package swcnoops.server.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import org.mongojack.Id;
 
 public class SquadNotification {
+    @Id
+    private String id;
     private long date;
-    final private String id;
     private String message;
     private String name;
     private String playerId;
-    final private SquadMsgType type;
+    private SquadMsgType type;
     private SquadNotificationData data;
-    private long orderNo;
+    private String guildId;
+    private String guildName;
 
-    @JsonIgnore
-    final private String guildId;
-    @JsonIgnore
-    final private String guildName;
+    public SquadNotification() {
+    }
 
     public SquadNotification(String guildId, String guildName, String id, String message, String name, String playerId, SquadMsgType type)
     {
-        this(guildId, guildName, 0, -1, id, message, name, playerId, type, null);
+        this(guildId, guildName, 0, id, message, name, playerId, type, null);
     }
 
-    public SquadNotification(String guildId, String guildName, long date, long orderNo, String id, String message,
+    public SquadNotification(String guildId, String guildName, long date, String id, String message,
                              String name, String playerId, SquadMsgType type, SquadNotificationData data)
     {
         this.guildId = guildId;
         this.guildName = guildName;
         this.date = date;
-        this.orderNo = orderNo;
         this.id = id;
         this.message = message;
         this.name = name;
@@ -73,15 +72,6 @@ public class SquadNotification {
         this.data = data;
     }
 
-    public long getOrderNo() {
-        return orderNo;
-    }
-
-    public void setOrderNo(long orderNo) {
-        this.orderNo = orderNo;
-    }
-
-    @JsonIgnore
     public String getGuildId() {
         return guildId;
     }

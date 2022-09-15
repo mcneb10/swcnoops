@@ -30,17 +30,17 @@ import java.sql.*;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.mongodb.client.model.Filters.eq;
-import static com.mongodb.client.model.Filters.regex;
+import static com.mongodb.client.model.Filters.*;
+import static com.mongodb.client.model.Indexes.compoundIndex;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.*;
-import static swcnoops.server.session.NotificationFactory.mapSquadNotificationData;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
     private MongoClient mongoClient;
     private MongoDatabase database;
     private JacksonMongoCollection<Player> playerCollection;
     private JacksonMongoCollection<SquadInfo> squadCollection;
+    private JacksonMongoCollection<SquadNotification> squadNotificationCollection;
 
     public PlayerDatasourceImpl() {
     }
@@ -77,6 +77,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.squadCollection.createIndex(Indexes.ascending("squadMembers.playerId"), new IndexOptions().unique(true));
         this.squadCollection.createIndex(Indexes.ascending("faction"));
         this.squadCollection.createIndex(Indexes.text("name"));
+
+        this.squadNotificationCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "squadNotification", SquadNotification.class, UuidRepresentation.STANDARD);
+
+        this.squadNotificationCollection.createIndex(compoundIndex(Indexes.ascending("guildId"),
+                Indexes.ascending("playerId"), Indexes.ascending("type"), Indexes.descending("date")));
     }
 
     public void checkAndPrepareDB() {
@@ -187,7 +193,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     ResultSet rs = pstmt.executeQuery();
 
                     while (rs.next()) {
-                        playerSettings = new PlayerSettings(rs.getString("id"));
+                        playerSettings = new PlayerSettings();
                         playerSettings.setName(rs.getString("name"));
 
                         String faction = rs.getString("faction");
@@ -350,9 +356,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-        try (ClientSession session = this.mongoClient.startSession()) {
-            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            savePlayerSettings(playerSession, null, session);
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            playerSession.setGuildSession(guildSession);
+            savePlayerSettings(playerSession, null, clientSession);
 
             if (guildSession.canEdit()) {
                 Member newMember = GuildHelper.createMember(playerSession);
@@ -362,15 +369,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 // playerId only works across documents and not in the same document
                 Bson combinedQuery = combine(eq("_id", guildSession.getGuildId()),
                         Filters.ne("squadMembers.playerId", newMember.playerId));
-                UpdateResult result = this.squadCollection.updateOne(session, combinedQuery,
+                UpdateResult result = this.squadCollection.updateOne(clientSession, combinedQuery,
                         DBUpdate.push("squadMembers", newMember).inc("members", 1));
 
-//                insertSquadMember(session, guildSession.getGuildId(), playerSession.getPlayerId(), false, false, ServiceFactory.getSystemTimeSecondsFromEpoch());
                 //deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
-//                setAndSaveGuildNotification(session, guildSession, squadNotification);
+                setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             }
 
-            session.commitTransaction();
+            clientSession.commitTransaction();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
         }
@@ -562,18 +568,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void savePlayerSessions(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
                                    SquadNotification squadNotification) {
-        throw new RuntimeException("Not supported");
 
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            savePlayerSession(playerSession, connection);
-//            savePlayerSession(recipientPlayerSession, connection);
-//            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-//            connection.commit();
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId() +
-//                    " and id=" + recipientPlayerSession.getPlayerId(), ex);
-//        }
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, null, clientSession);
+            savePlayerSettings(recipientPlayerSession, null, clientSession);
+            setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
+            clientSession.commitTransaction();
+        } catch (MongoCommandException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId() +
+                    " and id=" + recipientPlayerSession.getPlayerId(), ex);
+        }
     }
 
     @Override
@@ -754,21 +759,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveNotification(GuildSession guildSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-//            saveNotification(guildId, squadNotification.getId(),
-//                    squadNotification.getOrderNo(),
-//                    squadNotification.getDate(),
-//                    squadNotification.getPlayerId(),
-//                    squadNotification.getName(),
-//                    squadNotification.getType(),
-//                    squadNotification.getMessage(),
-//                    squadNotification.getData(),
-//                    connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
+            clientSession.commitTransaction();
+        } catch (MongoCommandException e) {
+            throw new RuntimeException("Failed to set and save notification for guild " + guildSession.getGuildId(), e);
         }
     }
 
@@ -787,7 +783,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void saveNotification(String guildId, SquadNotification squadNotification, Connection connection) {
         saveNotification(guildId, squadNotification.getId(),
-                squadNotification.getOrderNo(),
+                0,
                 squadNotification.getDate(),
                 squadNotification.getPlayerId(),
                 squadNotification.getName(),
@@ -1517,6 +1513,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
+    private void setAndSaveGuildNotification(ClientSession clientSession, GuildSession guildSession, SquadNotification squadNotification) {
+        synchronized (guildSession) {
+            if (squadNotification.getDate() == 0)
+                squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+            saveNotification(clientSession, squadNotification);
+        }
+    }
+
+    private void saveNotification(ClientSession clientSession, SquadNotification squadNotification) {
+        this.squadNotificationCollection.insertOne(clientSession, squadNotification);
+    }
+
     private AttackDetail checkAndCreateWarBattleId(String warId, String playerId, String opponentId, long time, Connection connection) {
 
         final String warParticipantsDefenderSql = "update WarParticipants " +
@@ -1652,40 +1660,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public Collection<SquadNotification> getSquadNotificationsSince(String guildId, String guildName, long since) {
-        try (Connection connection = getConnection()) {
-            return getSquadNotificationsSince(guildId, guildName, since, connection);
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to load squad notifications since for guildId=" + guildId, ex);
-        }
-    }
-
-    private Collection<SquadNotification> getSquadNotificationsSince(String guildId, String guildName, long since,
-                                                                     Connection connection) throws Exception {
-        final String notificationsSql = "SELECT id, orderNo, date, playerId, name, squadMessageType, message, squadNotification " +
-                "FROM SquadNotifications s WHERE s.guildId = ? and s.date > ? order by s.date";
+        FindIterable<SquadNotification> squadNotifications =
+                this.squadNotificationCollection.find(combine(eq("guildId", guildId), gt("date", since)));
 
         List<SquadNotification> notifications = new ArrayList<>();
-
-        try (PreparedStatement pstmt = connection.prepareStatement(notificationsSql)) {
-            pstmt.setString(1, guildId);
-            pstmt.setLong(2, since);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                String id = rs.getString("id");
-                long orderNo = rs.getLong("orderNo");
-                long date = rs.getLong("date");
-                String playerId = rs.getString("playerId");
-                String name = rs.getString("name");
-                SquadMsgType squadMessageType = SquadMsgType.valueOf(rs.getString("squadMessageType"));
-                String message = rs.getString("message");
-                String squadNotificationJson = rs.getString("squadNotification");
-                SquadNotificationData data = null;
-                if (squadNotificationJson != null) {
-                    data = mapSquadNotificationData(squadMessageType, squadNotificationJson);
-                }
-                SquadNotification squadNotification =
-                        new SquadNotification(guildId, guildName, date, orderNo, id,
-                                message, name, playerId, squadMessageType, data);
+        try (MongoCursor<SquadNotification> cursor = squadNotifications.cursor()) {
+            while (cursor.hasNext()) {
+                SquadNotification squadNotification = cursor.next();
                 notifications.add(squadNotification);
             }
         }

@@ -39,7 +39,7 @@ public class NotificationFactory {
                             new SquadNotification(guildId, guildName,
                                     ServiceFactory.createRandomUUID(), message,
                                     playerSettings != null ? playerSettings.getName() : null,
-                                    playerSettings != null ? playerSettings.getPlayerId() : null, squadMsgType);
+                                    playerSession != null ? playerSession.getPlayerId() : null, squadMsgType);
                     break;
                 case warStarted:
                     squadNotification =

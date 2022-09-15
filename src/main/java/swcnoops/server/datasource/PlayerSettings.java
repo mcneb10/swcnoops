@@ -5,7 +5,6 @@ import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
 public class PlayerSettings {
-    private String playerId;
     private Upgrades upgrades = new Upgrades();
     private String name;
     private FactionType faction;
@@ -27,10 +26,6 @@ public class PlayerSettings {
     private int hqLevel;
 
     public PlayerSettings() {
-    }
-
-    public PlayerSettings(String playerId) {
-        this.playerId = playerId;
     }
 
     // TODO - not used at the moment, will probably be used for samples, will have to rename if do
@@ -150,10 +145,6 @@ public class PlayerSettings {
 
     public String getGuildId() {
         return guildId;
-    }
-
-    public String getPlayerId() {
-        return playerId;
     }
 
     public UnlockedPlanets getUnlockedPlanets() {

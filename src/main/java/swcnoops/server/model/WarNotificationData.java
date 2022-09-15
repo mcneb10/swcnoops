@@ -1,6 +1,6 @@
 package swcnoops.server.model;
 
-public class WarNotificationData implements SquadNotificationData {
+public class WarNotificationData extends SquadNotificationData {
     private String warId;
     private String opponentId;
     private String opponentName;
@@ -11,9 +11,11 @@ public class WarNotificationData implements SquadNotificationData {
     private long attackExpirationDate;
 
     public WarNotificationData() {
+        super("WarNotification");
     }
 
     public WarNotificationData(String warId) {
+        this();
         this.warId = warId;
     }
 

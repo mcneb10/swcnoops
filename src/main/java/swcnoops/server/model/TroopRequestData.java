@@ -1,6 +1,6 @@
 package swcnoops.server.model;
 
-public class TroopRequestData implements SquadNotificationData {
+public class TroopRequestData extends SquadNotificationData {
     /**
      * Players SC capacity
      */
@@ -14,4 +14,8 @@ public class TroopRequestData implements SquadNotificationData {
      */
     public int troopDonationLimit;
     public String warId;
+
+    public TroopRequestData() {
+        super("TroopRequest");
+    }
 }

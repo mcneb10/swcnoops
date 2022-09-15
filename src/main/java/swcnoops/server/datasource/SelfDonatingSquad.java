@@ -21,15 +21,15 @@ public class SelfDonatingSquad implements GuildSettings {
         this.guildId = playerSession.getPlayerId();
 
         this.members.add(GuildHelper.createMember(playerSession));
-        this.members.add(createDonateBot(playerSession.getPlayerSettings()));
+        this.members.add(createDonateBot(playerSession));
     }
 
-    private Member createDonateBot(PlayerSettings playerSettings) {
+    private Member createDonateBot(PlayerSession playerSession) {
         Member member = new Member();
         member.isOfficer = false;
         member.isOwner = false;
-        member.playerId = playerSettings.getPlayerId() + "-BOT";
-        member.planet = playerSettings.getBaseMap().planet;
+        member.playerId = playerSession.getPlayerId() + "-BOT";
+        member.planet = playerSession.getPlayerSettings().getBaseMap().planet;
         member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
         member.hqLevel = 5;
         member.name = DonateBotName;
