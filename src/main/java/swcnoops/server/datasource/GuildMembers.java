@@ -27,15 +27,20 @@ public class GuildMembers {
     }
 
     private void initialise(List<Member> members) {
-        this.members = members;
+        this.members = this.padMembersToAllowWar(members);
+    }
+
+    private List<Member> padMembersToAllowWar(List<Member> members) {
         if (ServiceFactory.instance().getConfig().createBotPlayersInGroup) {
-            if (this.members.size() < 15) {
-                for (int i = 0; i < 15; i++) {
+            int membersSize = members.size();
+            if (membersSize < 15) {
+                for (int i = 0; i < 15 - membersSize; i++) {
                     Member member = createDummyBot(this.getGuildId(), i);
-                    this.members.add(member);
+                    members.add(member);
                 }
             }
         }
+        return members;
     }
 
     private Member createDummyBot(String guildId, int botName) {
@@ -65,7 +70,7 @@ public class GuildMembers {
             reloadLock.lock();
             try {
                 if (this.members == null || this.dirtyTime > this.lastUpdatedTime) {
-                    this.members = reloadData();
+                    this.members = this.padMembersToAllowWar(reloadData());
                     this.lastUpdatedTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
                 }
                 current = this.members;

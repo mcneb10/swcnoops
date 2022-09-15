@@ -19,7 +19,8 @@ public class GuildGet extends AbstractCommandAction<GuildGet, SquadResult> {
 
         GuildSession guildSession = playerSession.getGuildSession();
         guildSession.processGuildGet(time);
-        return GuildCommandAction.createSquadResult(guildSession);
+        SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
+        return squadResult;
     }
 
     @Override

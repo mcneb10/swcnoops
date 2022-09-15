@@ -113,8 +113,8 @@ public class GuildSessionImpl implements GuildSession {
     public void join(PlayerSession playerSession) {
         SquadNotification joinNotification =
                 createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.join);
-        addMember(playerSession);
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, playerSession, joinNotification);
+        addMember(playerSession);
         this.setNotificationDirty(joinNotification.getDate());
     }
 

@@ -8,6 +8,7 @@ import com.mongodb.client.model.Indexes;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
+import org.mongojack.DBUpdate;
 import org.mongojack.JacksonMongoCollection;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
@@ -32,8 +33,7 @@ import java.util.stream.Collectors;
 import static com.mongodb.client.model.Filters.eq;
 import static com.mongodb.client.model.Filters.regex;
 import static com.mongodb.client.model.Projections.include;
-import static com.mongodb.client.model.Updates.combine;
-import static com.mongodb.client.model.Updates.set;
+import static com.mongodb.client.model.Updates.*;
 import static swcnoops.server.session.NotificationFactory.mapSquadNotificationData;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
@@ -314,7 +314,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void savePlayerSession(PlayerSession playerSession) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            savePlayerSession(playerSession, null, session);
+            savePlayerSettings(playerSession, null, session);
             session.commitTransaction();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to save player session " + playerSession.getPlayerId(), e);
@@ -350,31 +350,30 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-//        try (ClientSession session = this.mongoClient.startSession()) {
-//            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-//            savePlayerGuildId(session, playerSession, guildSession.getGuildId());
-//
-//            if (guildSession.canEdit()) {
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, null, session);
+
+            if (guildSession.canEdit()) {
+                Member newMember = GuildHelper.createMember(playerSession);
+                newMember.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
+                // for some reason mongoJack did not like the push in a combine
+                // we also use a combined query to only push if our playerId is not already there as the array index on
+                // playerId only works across documents and not in the same document
+                Bson combinedQuery = combine(eq("_id", guildSession.getGuildId()),
+                        Filters.ne("squadMembers.playerId", newMember.playerId));
+                UpdateResult result = this.squadCollection.updateOne(session, combinedQuery,
+                        DBUpdate.push("squadMembers", newMember).inc("members", 1));
+
 //                insertSquadMember(session, guildSession.getGuildId(), playerSession.getPlayerId(), false, false, ServiceFactory.getSystemTimeSecondsFromEpoch());
-//                //deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
+                //deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
 //                setAndSaveGuildNotification(session, guildSession, squadNotification);
-//            }
-//
-//            session.commitTransaction();
-//        } catch (MongoCommandException e) {
-//            throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
-//        }
-    }
+            }
 
-    public void savePlayerGuildId(ClientSession session, PlayerSession playerSession, String guildId) {
-        playerSession.getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        Bson simpleUpdate = set("playerSettings.guildId", guildId);
-        Bson simpleUpdateKeepAlive = set("playerSettings.keepAlive", playerSession.getPlayerSettings().getKeepAlive());
-        Bson combined = combine(simpleUpdate, simpleUpdateKeepAlive);
-        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
-                combined);
-
-        playerSession.getPlayer().getPlayerSettings().setGuildId(guildId);
+            session.commitTransaction();
+        } catch (MongoCommandException e) {
+            throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
+        }
     }
 
     @Override
@@ -426,6 +425,22 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, null, session);
+            Bson combine = combine(pull("squadMembers", eq("playerId",playerSession.getPlayerId())),
+                    inc("members", -1));
+            if (guildSession.canEdit()) {
+                UpdateResult result = this.squadCollection.updateOne(session,
+                        combine(eq("_id", guildSession.getGuildId()), eq("squadMembers.playerId", playerSession.getPlayerId())),
+                        combine);
+            }
+
+            session.commitTransaction();
+        } catch (MongoCommandException e) {
+            throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
+        }
+
 //        try (Connection connection = getConnection()) {
 //            connection.setAutoCommit(false);
 //            savePlayerSession(playerSession, connection);
@@ -488,7 +503,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void savePlayerSession(PlayerSession playerSession, Connection connection, ClientSession session) {
+    private void savePlayerSettings(PlayerSession playerSession, Connection connection, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDeployablesToPlayerSettings(playerSession);
         playerSession.getPlayerSettings().setBuildContracts(mapContractsToPlayerSettings(playerSession));
@@ -612,38 +627,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         squadInfo.activeMemberCount = squadInfo.getSquadMembers().size();
 
         this.squadCollection.save(squadInfo);
-    }
-
-    private void insertSquadMember(ClientSession session, String guildId, String playerId, boolean isOfficer, boolean isOwner, long joinDate)
-    {
-//        final String squadMemberSql = "insert into SquadMembers (guildId, playerId, isOfficer, isOwner, joinDate) values " +
-//                "(?, ?, ?, ?, ?)";
-//
-//        try {
-//            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
-//                stmt.setString(1, guildId);
-//                stmt.setString(2, playerId);
-//                stmt.setInt(3, isOfficer ? 1 : 0);
-//                stmt.setInt(4, isOwner ? 1 : 0);
-//                stmt.setLong(5, joinDate);
-//                stmt.executeUpdate();
-//            }
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save player settings id=" + playerId, ex);
-//        }
-    }
-
-    private void deleteSquadMember(String playerId, Connection connection) {
-        final String squadMemberSql = "delete from SquadMembers where playerId = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
-                stmt.setString(1, playerId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to delete SquadMembers for playerId=" + playerId, ex);
-        }
     }
 
     @Override
