@@ -434,9 +434,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             savePlayerSettings(playerSession, session);
-            Bson combine = combine(pull("squadMembers", eq("playerId",playerSession.getPlayerId())),
-                    inc("members", -1));
             if (guildSession.canEdit()) {
+                Bson combine = combine(pull("squadMembers", eq("playerId",playerSession.getPlayerId())),
+                        inc("members", -1));
                 UpdateResult result = this.squadCollection.updateOne(session,
                         combine(eq("_id", guildSession.getGuildId()), eq("squadMembers.playerId", playerSession.getPlayerId())),
                         combine);
@@ -479,34 +479,23 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void changeSquadRole(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification,
                                 SquadRole squadRole) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             if (guildSession.canEdit()) {
-                updateSquadMember(guildSession.getGuildId(), playerSession.getPlayerId(),
-                        squadRole == SquadRole.Officer, connection);
-                setAndSaveGuildNotification(guildSession, squadNotification, connection);
+                updateSquadMember(clientSession, guildSession.getGuildId(), playerSession.getPlayerId(),
+                        squadRole == SquadRole.Officer);
+                setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             }
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+            clientSession.commitTransaction();
+        } catch (MongoCommandException ex) {
+            throw new RuntimeException("Failed to save squad member role id=" + playerSession.getPlayerId(), ex);
         }
     }
 
-    private void updateSquadMember(String guildId, String playerId, boolean isOfficer, Connection connection) {
-        final String squadSql = "update SquadMembers " +
-                "set isOfficer = ? " +
-                "where guildId = ? and playerId = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setBoolean(1, isOfficer);
-                stmt.setString(2, guildId);
-                stmt.setString(3, playerId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to promote playerId =" + playerId, ex);
-        }
+    private void updateSquadMember(ClientSession clientSession, String guildId, String playerId, boolean isOfficer) {
+        UpdateResult result = this.squadCollection.updateOne(clientSession,
+                combine(eq("_id", guildId), eq("squadMembers.playerId", playerId)),
+                set("squadMembers.$.isOfficer", isOfficer));
     }
 
     private void saveDonationRecipient(PlayerSession playerSession, ClientSession session) {
