@@ -186,14 +186,14 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public void changeSquadRole(PlayerSession memberSession, SquadRole squadRole, SquadMsgType squadMsgType) {
+    public void changeSquadRole(PlayerSession invokerSession, PlayerSession memberSession, SquadRole squadRole, SquadMsgType squadMsgType) {
         SqmMemberData sqmMemberData = new SqmMemberData();
         sqmMemberData.memberId = memberSession.getPlayerId();
         sqmMemberData.toRank = squadRole;
         SquadNotification roleChangeNotification =
                 createNotification(this.getGuildId(), this.getGuildName(), memberSession, squadMsgType);
         roleChangeNotification.setData(sqmMemberData);
-        ServiceFactory.instance().getPlayerDatasource().changeSquadRole(this, memberSession,
+        ServiceFactory.instance().getPlayerDatasource().changeSquadRole(this, invokerSession, memberSession,
                 roleChangeNotification, squadRole);
         this.guildSettings.setDirty();
         this.setNotificationDirty(roleChangeNotification.getDate());

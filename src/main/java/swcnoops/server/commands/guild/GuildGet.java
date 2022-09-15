@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.guild.response.SquadResult;
+import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
@@ -18,8 +19,15 @@ public class GuildGet extends AbstractCommandAction<GuildGet, SquadResult> {
                 .getPlayerSession(arguments.getPlayerId());
 
         GuildSession guildSession = playerSession.getGuildSession();
-        guildSession.processGuildGet(time);
-        SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
+
+        SquadResult squadResult;
+        if (guildSession != null) {
+            guildSession.processGuildGet(time);
+            squadResult = GuildCommandAction.createSquadResult(guildSession);
+        } else {
+            squadResult = new SquadResult(ResponseHelper.STATUS_CODE_NOT_IN_GUILD);
+        }
+
         return squadResult;
     }
 

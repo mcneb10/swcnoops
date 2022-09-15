@@ -5,6 +5,7 @@ import com.mongodb.client.*;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
+import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
@@ -19,7 +20,6 @@ import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.*;
 import swcnoops.server.session.creature.CreatureManager;
-import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.training.DeployableQueue;
 import swcnoops.server.session.training.TrainingManager;
@@ -159,7 +159,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public Player loadPlayer(String playerId) {
         Player player = this.playerCollection.find(eq("_id", playerId)).first();
-        SquadInfo squadInfo = this.squadCollection.find(eq("squadMembers.playerId", playerId)).projection(include("_id")).first();
+        SquadInfo squadInfo = this.squadCollection.find(eq("squadMembers.playerId", playerId))
+                .projection(include("_id")).first();
         if (squadInfo != null)
             player.getPlayerSettings().setGuildId(squadInfo._id);
         else
@@ -180,143 +181,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public PlayerSettings loadPlayerSettings(String playerId) {
-        final String sql = "SELECT id, name, faction, baseMap, upgrades, deployables, contracts, creature, troops, donatedTroops, " +
-                "inventoryStorage, currentQuest, campaigns, preferences, guildId, unlockedPlanets, scalars " +
-                "FROM PlayerSettings p WHERE p.id = ?";
-
-        PlayerSettings playerSettings = null;
-        try {
-            try (Connection con = getConnection()) {
-                try (PreparedStatement pstmt = con.prepareStatement(sql)) {
-                    pstmt.setString(1, playerId);
-                    ResultSet rs = pstmt.executeQuery();
-
-                    while (rs.next()) {
-                        playerSettings = new PlayerSettings();
-                        playerSettings.setName(rs.getString("name"));
-
-                        String faction = rs.getString("faction");
-                        if (faction != null && !faction.isEmpty())
-                            playerSettings.setFaction(FactionType.valueOf(faction));
-
-                        String baseMap = rs.getString("baseMap");
-                        if (baseMap != null) {
-                            PlayerMap playerMap = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(baseMap, PlayerMap.class);
-                            playerSettings.setBaseMap(playerMap);
-                        }
-
-                        String upgradesJson = rs.getString("upgrades");
-                        Upgrades upgrades;
-                        if (upgradesJson != null)
-                            upgrades = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(upgradesJson, Upgrades.class);
-                        else
-                            upgrades = new Upgrades();
-                        playerSettings.setUpgrades(upgrades);
-
-                        String deployablesJson = rs.getString("deployables");
-                        Deployables deployables;
-                        if (deployablesJson != null)
-                            deployables = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(deployablesJson, Deployables.class);
-                        else
-                            deployables = new Deployables();
-                        playerSettings.setDeployableTroops(deployables);
-
-                        String contractsJson = rs.getString("contracts");
-                        BuildUnits buildUnits;
-                        if (contractsJson != null)
-                            buildUnits = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(contractsJson, BuildUnits.class);
-                        else
-                            buildUnits = new BuildUnits();
-                        playerSettings.setBuildContracts(buildUnits);
-
-                        String creatureJson = rs.getString("creature");
-                        Creature creature = null;
-                        if (creatureJson != null) {
-                            creature = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(creatureJson, Creature.class);
-                        }
-                        playerSettings.setCreature(creature);
-
-                        String troopsJson = rs.getString("troops");
-                        Troops troops;
-                        if (troopsJson != null)
-                            troops = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(troopsJson, Troops.class);
-                        else
-                            troops = new Troops();
-                        playerSettings.setTroops(troops);
-
-                        String donatedTroopsJson = rs.getString("donatedTroops");
-                        DonatedTroops donatedTroops;
-                        if (donatedTroopsJson != null)
-                            donatedTroops = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(donatedTroopsJson, DonatedTroops.class);
-                        else
-                            donatedTroops = new DonatedTroops();
-                        playerSettings.setDonatedTroops(donatedTroops);
-
-                        String inventoryStorageJson = rs.getString("inventoryStorage");
-                        InventoryStorage inventoryStorage = null;
-                        if (inventoryStorageJson != null) {
-                            inventoryStorage = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(inventoryStorageJson, InventoryStorage.class);
-                        }
-                        playerSettings.setInventoryStorage(inventoryStorage);
-
-                        playerSettings.setCurrentQuest(rs.getString("currentQuest"));
-
-                        String campaignsJson = rs.getString("campaigns");
-                        PlayerCampaignMission playerCampaignMission = null;
-                        if (campaignsJson != null) {
-                            playerCampaignMission = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(campaignsJson, PlayerCampaignMission.class);
-                        }
-                        playerSettings.setPlayerCampaignMission(playerCampaignMission);
-
-                        String preferencesJson = rs.getString("preferences");
-                        PreferencesMap preferences = null;
-                        if (preferencesJson != null) {
-                            preferences = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(preferencesJson, PreferencesMap.class);
-                        }
-                        playerSettings.setSharedPreferences(preferences);
-
-                        playerSettings.setGuildId(rs.getString("guildId"));
-
-                        String unlockedPlanetsJson = rs.getString("unlockedPlanets");
-                        UnlockedPlanets unlockedPlanets = null;
-                        if (unlockedPlanetsJson != null) {
-                            unlockedPlanets = ServiceFactory.instance().getJsonParser()
-                                    .fromJsonString(unlockedPlanetsJson, UnlockedPlanets.class);
-                        }
-                        playerSettings.setUnlockedPlanets(unlockedPlanets);
-
-                        String scalarsString = rs.getString("scalars");
-                        Scalars scalars = null;
-                        if (scalarsString != null) {
-                            scalars = ServiceFactory.instance().getJsonParser().fromJsonString(scalarsString, Scalars.class);
-                        } else {
-                            scalars = new Scalars();
-                        }
-                        playerSettings.setScalars(scalars);
-
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Failed to load player settings from DB id=" + playerId, ex);
-        }
-
-        return playerSettings;
-    }
-
-    @Override
     public void savePlayerSession(PlayerSession playerSession) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
@@ -329,8 +193,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void savePlayerKeepAlive(PlayerSession playerSession) {
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerKeepAlive(session, playerSession);
+            session.commitTransaction();
+        } catch (MongoCommandException e) {
+            throw new RuntimeException("Failed to save player keepAlive " + playerSession.getPlayerId(), e);
+        }
+    }
+
+    private void savePlayerKeepAlive(ClientSession clientSession, PlayerSession playerSession) {
         playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        UpdateResult result = this.playerCollection.updateOne(Filters.eq("_id", playerSession.getPlayerId()),
+        UpdateResult result = this.playerCollection.updateOne(clientSession, Filters.eq("_id", playerSession.getPlayerId()),
                 set("playerSettings.keepAlive", playerSession.getPlayer().getPlayerSettings().getKeepAlive()));
     }
 
@@ -372,7 +246,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 UpdateResult result = this.squadCollection.updateOne(clientSession, combinedQuery,
                         DBUpdate.push("squadMembers", newMember).inc("members", 1));
 
-                //deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
+                deleteJoinRequestNotifications(clientSession, squadNotification.getGuildId(), squadNotification.getPlayerId());
                 setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             }
 
@@ -384,49 +258,38 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void joinRequest(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            savePlayerSession(playerSession, connection);
-//
-//            if (guildSession.canEdit()) {
-//                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
-//                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
-//            }
-//            connection.commit();
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
-//        }
-    }
-
-    @Override
-    public void joinRejected(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, clientSession);
 
             if (guildSession.canEdit()) {
-                deleteJoinRequestNotifications(squadNotification.getGuildId(), squadNotification.getPlayerId(), connection);
-                setAndSaveGuildNotification(guildSession, squadNotification, connection);
+                deleteJoinRequestNotifications(clientSession, squadNotification.getGuildId(), squadNotification.getPlayerId());
+                setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             }
-            connection.commit();
-        } catch (SQLException ex) {
+            clientSession.commitTransaction();
+        } catch (MongoCommandException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
         }
     }
 
-    private void deleteJoinRequestNotifications(String guildId, String playerId, Connection connection) {
-        final String squadMemberSql = "delete from SquadNotifications where guildId = ? and playerId = ? and squadMessageType = ?";
+    @Override
+    public void joinRejected(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
 
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
-                stmt.setString(1, guildId);
-                stmt.setString(2, playerId);
-                stmt.setString(3, SquadMsgType.joinRequest.toString());
-                stmt.executeUpdate();
+            if (guildSession.canEdit()) {
+                deleteJoinRequestNotifications(clientSession, squadNotification.getGuildId(), squadNotification.getPlayerId());
+                setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to delete SquadNotifications for playerId=" +
-                    playerId + " in guidId = " + guildId, ex);
+            clientSession.commitTransaction();
+        } catch (MongoCommandException ex) {
+            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
         }
+    }
+
+    private void deleteJoinRequestNotifications(ClientSession clientSession, String guildId, String playerId) {
+        Bson combine = combine(eq("guildId", guildId), eq("playerId", playerId), eq("type", SquadMsgType.joinRequest));
+        DeleteResult deleteResult = this.squadNotificationCollection.deleteMany(clientSession, combine);
     }
 
     @Override
@@ -440,47 +303,28 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 UpdateResult result = this.squadCollection.updateOne(session,
                         combine(eq("_id", guildSession.getGuildId()), eq("squadMembers.playerId", playerSession.getPlayerId())),
                         combine);
+
+                deleteNotifications(session, squadNotification.getGuildId(), playerSession.getPlayerId());
+                setAndSaveGuildNotification(session, guildSession, squadNotification);
             }
 
             session.commitTransaction();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
         }
-
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            savePlayerSession(playerSession, connection);
-//            if (guildSession.canEdit()) {
-//                deleteSquadMember(playerSession.getPlayerId(), connection);
-//                deleteNotifications(squadNotification.getGuildId(), playerSession.getPlayerId(), connection);
-//                setAndSaveGuildNotification(guildSession, squadNotification, connection);
-//            }
-//            connection.commit();
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
-//        }
     }
 
-    private void deleteNotifications(String guildId, String playerId, Connection connection) {
-        final String squadMemberSql = "delete from SquadNotifications where guildId = ? and playerId = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
-                stmt.setString(1, guildId);
-                stmt.setString(2, playerId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to delete SquadNotifications for playerId=" +
-                    playerId + " in guidId = " + guildId, ex);
-        }
+    private void deleteNotifications(ClientSession clientSession, String guildId, String playerId) {
+        Bson combine = combine(eq("guildId", guildId), eq("playerId", playerId));
+        DeleteResult deleteResult = this.squadNotificationCollection.deleteMany(clientSession, combine);
     }
 
     @Override
-    public void changeSquadRole(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification,
+    public void changeSquadRole(GuildSession guildSession, PlayerSession invokerSession, PlayerSession playerSession, SquadNotification squadNotification,
                                 SquadRole squadRole) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            this.savePlayerKeepAlive(clientSession, invokerSession);
             if (guildSession.canEdit()) {
                 updateSquadMember(clientSession, guildSession.getGuildId(), playerSession.getPlayerId(),
                         squadRole == SquadRole.Officer);

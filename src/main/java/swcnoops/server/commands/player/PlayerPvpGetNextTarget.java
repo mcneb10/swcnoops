@@ -38,8 +38,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     }
 
     private void setupResponse(PlayerPvpGetNextTargetCommandResult response, PlayerPvpGetNextTarget arguments) {
-
-
         PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).getPvpSession().getNextMatch();
         response.battleId = pvpMatch.getBattleId();
         pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
@@ -61,7 +59,8 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.map.buildings = ServiceFactory.instance().getPlayerDatasource().getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
             setupDevResourcesBaseData(response, arguments.getPlayerId());
         } else {
-            response.map.buildings = ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(pvpMatch.getParticipantId()).baseMap.buildings;
+            response.map.buildings =
+                    ServiceFactory.instance().getPlayerDatasource().loadPlayer(pvpMatch.getParticipantId()).getPlayerSettings().baseMap.buildings;
             //TODO, get from defender's file
             setupDevResourcesBaseData(response, arguments.getPlayerId());
         }
@@ -76,8 +75,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         //TODO... this properly.
         pvpMatch.setAttackerEquipment(new JsonStringArrayList());
         pvpMatch.setDefenderEquipment(new JsonStringArrayList());
-
-
     }
 
     private void addParticipantsToMatch(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {

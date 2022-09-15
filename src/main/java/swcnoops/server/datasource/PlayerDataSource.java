@@ -17,8 +17,6 @@ public interface PlayerDataSource {
 
     void savePlayerName(PlayerSession playerSession, String playerName);
 
-    PlayerSettings loadPlayerSettings(String playerId);
-
     void savePlayerSession(PlayerSession playerSession);
 
     void saveTroopDonation(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
@@ -44,7 +42,7 @@ public interface PlayerDataSource {
 
     void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification);
 
-    void changeSquadRole(GuildSession guildSession, PlayerSession memberSession, SquadNotification squadNotification, SquadRole squadRole);
+    void changeSquadRole(GuildSession guildSession, PlayerSession invokerSession, PlayerSession memberSession, SquadNotification squadNotification, SquadRole squadRole);
 
     void joinRequest(GuildSession guildSession, PlayerSession playerSession, SquadNotification joinRequestNotification);
 
