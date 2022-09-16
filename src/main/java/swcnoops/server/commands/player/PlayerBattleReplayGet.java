@@ -14,23 +14,17 @@ public class PlayerBattleReplayGet extends AbstractCommandAction<PlayerBattleRep
 
     @Override
     protected PlayerBattleReplayGetResult execute(PlayerBattleReplayGet arguments, long time) throws Exception {
-        // TODO - support PvP replays, only war for now
+        BattleReplay battleReplay =
+                ServiceFactory.instance().getPlayerDatasource().getBattleReplay(arguments.battleId);
 
-        BattleType battleType = ServiceFactory.instance().getPlayerDatasource().getBattleType(arguments.battleId);
-
-        BattleReplay battleReplay = null;
-
-        switch (battleType) {
-            case Pvp:
-                battleReplay = ServiceFactory.instance().getPlayerDatasource().pvpReplay(arguments.battleId);
-                break;
-            case PvpAttackSquadWar:
-                WarBattle warBattle = ServiceFactory.instance().getPlayerDatasource().getWarBattle(arguments.getBattleId());
-                battleReplay = warBattle.getBattleReplay();
-                stopClientCrash(battleReplay);
-                break;
-            default:
-                return new PlayerBattleReplayGetResult(ResponseHelper.REPLAY_DATA_NOT_FOUND);
+        if (battleReplay != null) {
+            switch (battleReplay.battleType) {
+                case PvpAttackSquadWar:
+                    stopClientCrash(battleReplay);
+                    break;
+                default:
+                    break;
+            }
         }
 
         if (battleReplay.replayData == null)

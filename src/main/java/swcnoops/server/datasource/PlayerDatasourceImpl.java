@@ -35,6 +35,7 @@ import java.util.stream.Collectors;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Indexes.compoundIndex;
+import static com.mongodb.client.model.Indexes.descending;
 import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.*;
 
@@ -1757,25 +1758,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public List<BattleLog> getPlayerBattleLogs(String playerId) {
         List<BattleLog> battleLogs = new ArrayList<>();
-        String battleLogSql = "SELECT BattleLog " +
-                "FROM PvpBattleData " +
-                "WHERE attackerId = ? OR participantId = ? LIMIT 30";
-        try (Connection connection = getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(battleLogSql);
-            preparedStatement.setString(1, playerId);
-            preparedStatement.setString(2, playerId);
 
-            try (ResultSet rs = preparedStatement.executeQuery()) {
-                while (rs.next()) {
-                    BattleLog battleLog = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("BattleLog"), BattleLog.class);
+        Bson pvpOnPlayer = or(eq("attackerId", playerId), eq("defenderId", playerId));
+        FindIterable<BattleReplay> battleReplaysIterable =
+                this.battleReplayCollection.find(and(pvpOnPlayer, eq("battleType", BattleType.Pvp)))
+                        .sort(descending("attackDate"))
+                        .projection(include("battleLog", "attackerId", "defenderId", "attackDate"))
+                .limit(30);
 
-                    battleLogs.add(battleLog);
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-                throw new RuntimeException("Error retrieving resultset for player battle logs");
+        try (MongoCursor<BattleReplay> cursor = battleReplaysIterable.cursor()) {
+            while (cursor.hasNext()) {
+                BattleReplay battleReplay = cursor.next();
+                battleLogs.add(battleReplay.battleLog);
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             ex.printStackTrace();
             throw new RuntimeException("Failed to get DB connection when retrieving playerbattlelogs");
         }
@@ -1784,43 +1780,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public BattleType getBattleType(String battleId) {
-        String sql = "SELECT battleType FROM BattlesMaster WHERE battleId = ?";
-        BattleType battleType = BattleType.Pvp;
-        try (Connection connection = getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, battleId);
-            try (ResultSet rs = preparedStatement.executeQuery()) {
-                while (rs.next()) {
-                    battleType = BattleType.valueOf(rs.getString("battleType"));
-                }
-
-            }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to get DB connection when retrieving battle type", ex);
-        }
-        return battleType;
-    }
-
-
-    @Override
-    public BattleReplay pvpReplay(String battleId) {
-        String sql = "SELECT BattleLog, ReplayData FRom PvpBattleData WHERE battleId = ?";
-        BattleReplay battleReplay = new BattleReplay();
-        try (Connection connection = getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, battleId);
-            try (ResultSet rs = preparedStatement.executeQuery()) {
-                while (rs.next()) {
-                    battleReplay.battleLog = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("BattleLog"), BattleEntry.class);
-                    battleReplay.replayData = ServiceFactory.instance().getJsonParser().fromJsonString(rs.getString("ReplayData"), ReplayData.class);
-
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to get DB connection when retrieving battle type", ex);
-        }
+    public BattleReplay getBattleReplay(String battleId) {
+        BattleReplay battleReplay = this.battleReplayCollection.findOne(eq("_id", battleId));
         return battleReplay;
     }
 

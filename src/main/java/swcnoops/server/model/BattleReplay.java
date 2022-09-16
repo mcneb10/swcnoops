@@ -4,7 +4,6 @@ import org.mongojack.Id;
 import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.session.PlayerSession;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,7 +11,7 @@ import java.util.Map;
 public class BattleReplay {
     @Id
     private String battleId;
-    public BattleEntry battleLog = new BattleEntry();
+    public BattleLog battleLog = new BattleLog();
     public ReplayData replayData;
     public String attackerId;
     public String defenderId;
@@ -64,9 +63,9 @@ public class BattleReplay {
         battleReplay.battleLog.defender.name = defenderName;
         battleReplay.battleLog.defender.faction = defenderFaction;
 
-        battleReplay.battleLog.attackerEquipment = new ArrayList<>();
+        battleReplay.battleLog.attackerEquipment = new JsonStringArrayList();
         battleReplay.battleLog.baseDamagePercent = playerBattleComplete.getBaseDamagePercent();
-        battleReplay.battleLog.defenderEquipment = new ArrayList<>();
+        battleReplay.battleLog.defenderEquipment = new JsonStringArrayList();
         battleReplay.battleLog.stars = playerBattleComplete.getStars();
         battleReplay.battleLog.attackerGuildTroopsExpended = playerBattleComplete.getAttackerGuildTroopsSpent();
         battleReplay.battleLog.defenderGuildTroopsExpended = playerBattleComplete.getDefenderGuildTroopsSpent();

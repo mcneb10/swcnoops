@@ -1,5 +1,7 @@
 package swcnoops.server.model;
 
+import java.util.Map;
+
 public class BattleLog {
     public String battleId;
     public BattleParticipant attacker;
@@ -9,7 +11,7 @@ public class BattleLog {
     public Earned looted;
     public Earned earned;
     public Earned maxLootable;
-    public JsonStringIntegerMap troopsExpended;
+    public Map<String, Integer> troopsExpended;
     public JsonStringIntegerMap attackerGuildTroopsExpended;
     public JsonStringIntegerMap defenderGuildTroopsExpended;
     public JsonStringIntegerMap numVisitors;
@@ -25,4 +27,5 @@ public class BattleLog {
     public JsonStringArrayList attackerEquipment;
     public JsonStringArrayList defenderEquipment;
     public String planetId;
+    public boolean isUserEnded;
 }
