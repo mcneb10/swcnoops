@@ -97,7 +97,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         potentialPoints.put("potentialScoreWin", potentialScoreWin);
         potentialPoints.put("potentialScoreLose", potentialScoreLose);
 
-
         response.potentialMedalsToGain = potentialScoreWin;
         response.potentialMedalsToLose = potentialScoreLose;
 
@@ -109,7 +108,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
     private void setupDevResourcesBaseData(PlayerPvpGetNextTargetCommandResult response, String attackerId) {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(attackerId);
-
 
         response.attacksWon = 0;
         response.attackRating = 0;

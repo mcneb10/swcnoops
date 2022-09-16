@@ -515,14 +515,105 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
+        processBattleComplete(attackingUnitsKilled, time);
+        this.savePlayerSession();
+    }
+
+    private void processBattleComplete(Map<String, Integer> attackingUnitsKilled, long time) {
         this.processCompletedContracts(time);
         processCreature(attackingUnitsKilled);
         Map<String, Integer> champions = getChampions(attackingUnitsKilled);
         Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(champions);
         this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
+    }
+
+    @Override
+    public void pveBattleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
+        processBattleComplete(attackingUnitsKilled, time);
         PlayerCampaignMission playerCampaignMission = this.getPlayerSettings().getPlayerCampaignMission();
         playerCampaignMission.battleComplete(battleId, stars);
         this.savePlayerSession();
+    }
+
+    @Override
+    public void pvpBattleComplete(BattleReplay battleReplay, Map<String, Integer> attackingUnitsKilled,
+                                  PvpMatch pvpMatch, long time)
+    {
+        processBattleComplete(attackingUnitsKilled, time);
+        updatePlayerAfterBattle(battleReplay, pvpMatch);
+        // TODO - defenders settings
+        ServiceFactory.instance().getPlayerDatasource().saveNewPvPBattle(this, battleReplay);
+    }
+
+    private void updatePlayerAfterBattle(BattleReplay battleReplay, PvpMatch pvpMatch) {
+        this.updatePlayerInventory(battleReplay);
+        this.updateAttackScalars(battleReplay, pvpMatch);
+    }
+
+    private int getDefendersMedals(int stars, PvpMatch pvpMatch) {
+        int defenderMedals = 0;
+        switch (stars) {
+            case 0:
+                defenderMedals = pvpMatch.getPotentialScoreWin();
+                break;
+            case 1:
+                defenderMedals = (int) (pvpMatch.getPotentialScoreLose() *
+                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_one_star_victory) * -1;
+                break;
+            case 2:
+                defenderMedals = (int) (pvpMatch.getPotentialScoreLose() *
+                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory) * -1;
+                break;
+            case 3:
+                defenderMedals = pvpMatch.getPotentialScoreLose();
+                break;
+        }
+
+        return defenderMedals;
+    }
+
+    private int getAttackerMedals(int stars, PvpMatch pvpMatch) {
+        int medalsDelta = 0;
+
+        switch (stars) {
+            case 0:
+                medalsDelta = pvpMatch.getPotentialScoreLose() * -1;
+                break;
+            case 1:
+                medalsDelta = (int) (pvpMatch.getPotentialScoreWin() *
+                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_one_star_victory);
+                break;
+            case 2:
+                medalsDelta = (int) (pvpMatch.getPotentialScoreWin() *
+                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory);
+                break;
+            case 3:
+                medalsDelta = pvpMatch.getPotentialScoreWin();
+                break;
+        }
+
+        return medalsDelta;
+    }
+
+    private void updatePlayerInventory(BattleReplay battleReplay) {
+        int creditsGained = battleReplay.battleLog.looted.credits;
+        int materialsGained = battleReplay.battleLog.looted.materials;
+        int contraGained = battleReplay.battleLog.looted.contraband;
+        CurrencyDelta creditDelta = new CurrencyDelta(creditsGained, creditsGained, CurrencyType.credits, false);
+        this.processInventoryStorage(creditDelta);
+        CurrencyDelta materialDelta = new CurrencyDelta(creditsGained, materialsGained, CurrencyType.materials, false);
+        this.processInventoryStorage(materialDelta);
+        CurrencyDelta contraDelta = new CurrencyDelta(creditsGained, contraGained, CurrencyType.materials, false);
+        this.processInventoryStorage(contraDelta);
+    }
+
+    private void updateAttackScalars(BattleReplay battleReplay, PvpMatch pvpMatch) {
+        Scalars scalars = this.getPlayerSettings().getScalars();
+        scalars.attacksStarted++;
+        scalars.attacksCompleted = battleReplay.battleLog.isUserEnded ? scalars.attacksCompleted : scalars.attacksCompleted + 1;
+        scalars.attacksWon = battleReplay.battleLog.stars > 0 ? scalars.attacksWon + 1 : scalars.attacksWon;
+        scalars.attacksLost = battleReplay.battleLog.stars == 0 ? scalars.attacksLost + 1 : scalars.attacksLost;
+        scalars.attackRating = scalars.attackRating + getAttackerMedals(battleReplay.battleLog.stars, pvpMatch);
     }
 
     private Map<String, Integer> getChampions(Map<String, Integer> attackingUnitsKilled) {
@@ -1081,12 +1172,5 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public PvpSessionImpl getPvpSession() {
         return pvpSession;
-    }
-
-
-    @Override
-    public void updateScalars(Scalars scalars) {
-        this.getPlayerSettings().setScalars(scalars);
-        savePlayerSession();
     }
 }

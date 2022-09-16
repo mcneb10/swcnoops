@@ -4,12 +4,12 @@ import java.util.List;
 import java.util.Map;
 
 public class BattleEntry {
+    public String battleId;
     public long attackDate;
     public BattleParticipant attacker;
     public List<String> attackerEquipment;
     public Map<String, Integer> attackerGuildTroopsExpended;
     public int baseDamagePercent;
-    public String battleId;
     public String battleVersion;
     public String cmsVersion;
     public BattleParticipant defender;
@@ -28,4 +28,5 @@ public class BattleEntry {
     public boolean server;
     public int stars;
     public Map<String, Integer> troopsExpended;
+    public boolean isUserEnded;
 }

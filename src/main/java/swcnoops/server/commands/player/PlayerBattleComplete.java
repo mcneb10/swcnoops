@@ -107,6 +107,4 @@ abstract public class PlayerBattleComplete<A extends PlayerBattleComplete, B ext
     public Map<CurrencyType, Integer> getLoot() {
         return loot;
     }
-
-
 }

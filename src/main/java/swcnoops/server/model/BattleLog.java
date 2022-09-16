@@ -1,8 +1,5 @@
 package swcnoops.server.model;
 
-import java.util.List;
-import java.util.Map;
-
 public class BattleLog {
     public String battleId;
     public BattleParticipant attacker;
@@ -28,5 +25,4 @@ public class BattleLog {
     public JsonStringArrayList attackerEquipment;
     public JsonStringArrayList defenderEquipment;
     public String planetId;
-
 }

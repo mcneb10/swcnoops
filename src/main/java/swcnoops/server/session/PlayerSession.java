@@ -3,6 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.creature.CreatureManager;
@@ -139,8 +140,6 @@ public interface PlayerSession {
 
     void buildingCollectAll(List<String> buildingIds, int credits, int materials, int contraband, long time);
 
-
-    void updateScalars(Scalars scalars);
     PvpManager getPvpSession();
 
     void savePlayerKeepAlive();
@@ -150,4 +149,8 @@ public interface PlayerSession {
     void recoverWithPlayerSettings(PlayerModel playerModel, Map<String, String> sharedPrefs);
 
     void initialise(Player player);
+
+    void pveBattleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
+
+    void pvpBattleComplete(BattleReplay battleReplay, Map<String, Integer> attackingUnitsKilled, PvpMatch pvpMatch, long time);
 }

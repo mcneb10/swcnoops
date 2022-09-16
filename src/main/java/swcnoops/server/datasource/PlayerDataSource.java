@@ -90,8 +90,6 @@ public interface PlayerDataSource {
 
     Buildings getDevBaseMap(String id, FactionType faction);
 
-    void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog);
-
     List<BattleLog> getPlayerBattleLogs(String playerId);
     BattleType getBattleType(String battleId);
 
@@ -116,4 +114,6 @@ public interface PlayerDataSource {
     void recoverWithPlayerSettings(PlayerSession playerSession, PlayerModel playerModel, Map<String, String> sharedPrefs);
 
     void saveDevBase(DevBase devBase);
+
+    void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay);
 }

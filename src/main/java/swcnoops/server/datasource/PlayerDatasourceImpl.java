@@ -47,6 +47,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private JacksonMongoCollection<SquadInfo> squadCollection;
     private JacksonMongoCollection<SquadNotification> squadNotificationCollection;
     private JacksonMongoCollection<DevBase> devBaseCollection;
+    private JacksonMongoCollection<BattleReplay> battleReplayCollection;
 
     public PlayerDatasourceImpl() {
     }
@@ -96,6 +97,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.devBaseCollection.createIndex(Indexes.text("fileName"));
         this.devBaseCollection.createIndex(Indexes.ascending("checksum"));
         this.devBaseCollection.createIndex(compoundIndex(Indexes.ascending("hq"), Indexes.ascending("xp")));
+
+        this.battleReplayCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "battleReplay", BattleReplay.class, UuidRepresentation.STANDARD);
+        this.battleReplayCollection.createIndex(compoundIndex(Indexes.ascending("attackerId"),
+                Indexes.descending("battleType"),
+                Indexes.descending("attackDate")));
+        this.battleReplayCollection.createIndex(compoundIndex(Indexes.ascending("defenderId"),
+                Indexes.descending("battleType"),
+                Indexes.descending("attackDate")));
     }
 
     public void checkAndPrepareDB() {
@@ -1552,7 +1562,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 //        ORDER BY xp desc;
 
         int playerHq = playerSession.getHeadQuarter().getBuildingData().getLevel();
-        float playerXp = playerSession.getPlayerSettings().getScalars().xp;
+        int playerXp = playerSession.getPlayerSettings().getScalars().xp;
         Bson hqQuery = and(gte("hq", playerHq - 1), lte("hq", playerHq + 1));
         Bson xpQuery = and(gte("xp", playerXp * 0.9), lte("xp", playerXp * 1.10));
 
@@ -1606,18 +1616,33 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return buildings;
     }
 
+//    public void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            saveBattle(connection, match.getBattleId(), BattleType.Pvp, match.getPlayerId(), match.getParticipantId());
+//            saveBattleBaseData(connection, pvpBattle, match, battleLog);
+//            saveReplayData(connection, pvpBattle);
+//            connection.commit();
+//        } catch (Exception e) {
+//            throw new RuntimeException(e);
+//        }
+//    }
+
     @Override
-    public void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            //            saveBattle(connection, pvpBattle.getBattleId(), match);
-            saveBattle(connection, match.getBattleId(), BattleType.Pvp, match.getPlayerId(), match.getParticipantId());
-            saveBattleBaseData(connection, pvpBattle, match, battleLog);
-            saveReplayData(connection, pvpBattle);
-            connection.commit();
+    public void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay) {
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, session);
+            // TODO - to save defenders settings
+            saveBattleReplay(session, battleReplay);
+            session.commitTransaction();
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private void saveBattleReplay(ClientSession session, BattleReplay battleReplay) {
+        this.battleReplayCollection.insertOne(session, battleReplay);
     }
 
     private void saveBattle(Connection connection, String battleId, BattleType battleType, String playerId, String participantId) {
@@ -1635,7 +1660,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             throw new RuntimeException("Error saving master battle data", ex);
         }
     }
-
 
     private void saveReplayData(Connection connection, PlayerPvpBattleComplete pvpBattle) {
         String insertNewPvPBattleReplay = "insert into PvpBattles_ReplayData (BattleId, combatEncounter, battleActions, attackerDeploymentData,\n" + "                                   defenderDeploymentData, lootCreditsAvailable, lootMaterialsAvailable,\n" + "                                   lootContrabandAvailable, lootBuildingCreditsMap, lootBuildingMaterialsMap,\n" + "                                   lootBuildingContrabandMap, battleType, battleLength, lowFPS, lowFPSTime,\n" + "                                   battleVersion, planetId, manifestVersion, battleAttributes, victoryConditions,\n" + "                                   failureCondition, donatedTroops, donatedTroopsAttacker, champions, disabledBuildings,\n" + "                                   simSeedA, simSeedB, viewTimePreBattle, attackerCreatureTraps, defenderCreatureTraps)\n" + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
@@ -1730,7 +1754,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-
     @Override
     public List<BattleLog> getPlayerBattleLogs(String playerId) {
         List<BattleLog> battleLogs = new ArrayList<>();
@@ -1748,13 +1771,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                     battleLogs.add(battleLog);
                 }
-
             } catch (Exception ex) {
                 ex.printStackTrace();
                 throw new RuntimeException("Error retrieving resultset for player battle logs");
             }
-
-
         } catch (SQLException ex) {
             ex.printStackTrace();
             throw new RuntimeException("Failed to get DB connection when retrieving playerbattlelogs");
@@ -1803,6 +1823,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
         return battleReplay;
     }
+
     public War processWarEnd(String warId, String squadIdA, String squadIdB) {
         try (Connection connection = getConnection()) {
             connection.setAutoCommit(false);

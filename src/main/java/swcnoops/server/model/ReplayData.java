@@ -8,9 +8,9 @@ public class ReplayData {
     public List<BattleAction> battleActions;
     public DeploymentData attackerDeploymentData;
     public DeploymentData defenderDeploymentData;
-    public long lootCreditsAvailable;
-    public long lootMaterialsAvailable;
-    public long lootContrabandAvailable;
+    public int lootCreditsAvailable;
+    public int lootMaterialsAvailable;
+    public int lootContrabandAvailable;
     public Map<String ,Integer> lootBuildingCreditsMap;
     public Map<String ,Integer> lootBuildingMaterialsMap;
     public Map<String ,Integer> lootBuildingContrabandMap;

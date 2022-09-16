@@ -12,7 +12,7 @@ public class PlayerPveComplete extends PlayerBattleComplete<PlayerPveComplete, C
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.battleComplete(arguments.getBattleId(), arguments.getStars(), arguments.getAttackingUnitsKilled(), time);
+        playerSession.pveBattleComplete(arguments.getBattleId(), arguments.getStars(), arguments.getAttackingUnitsKilled(), time);
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
