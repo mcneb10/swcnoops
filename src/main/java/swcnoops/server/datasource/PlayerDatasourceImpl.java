@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
+import swcnoops.server.commands.player.PlayerIdentitySwitch;
 import swcnoops.server.commands.player.PlayerPvpBattleComplete;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
@@ -49,6 +50,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private JacksonMongoCollection<SquadNotification> squadNotificationCollection;
     private JacksonMongoCollection<DevBase> devBaseCollection;
     private JacksonMongoCollection<BattleReplay> battleReplayCollection;
+    private JacksonMongoCollection<WarSignUp> warSignUpCollection;
 
     public PlayerDatasourceImpl() {
     }
@@ -107,6 +109,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.battleReplayCollection.createIndex(compoundIndex(Indexes.ascending("defenderId"),
                 Indexes.descending("battleType"),
                 Indexes.descending("attackDate")));
+
+        this.warSignUpCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "warSignUp", WarSignUp.class, UuidRepresentation.STANDARD);
+        this.warSignUpCollection.createIndex(Indexes.ascending("guildId"), new IndexOptions().unique(true));
     }
 
     public void checkAndPrepareDB() {
@@ -461,9 +467,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private void newPlayer(String playerId, String secret, boolean missingSecret, PlayerModel playerModel,
                            Map<String, String> sharedPrefs, String name)
     {
-        if (playerId.endsWith("_1"))
-            throw new RuntimeException("secondary not supported yet");
-
         Player player = new Player(playerId);
         player.setPlayerSecret(new PlayerSecret(secret, null, missingSecret));
         player.setPlayerSettings(new PlayerSettings());
@@ -471,7 +474,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         if (sharedPrefs != null)
             player.getPlayerSettings().getSharedPreferences().putAll(sharedPrefs);
         player.getPlayerSettings().setName(name);
-        this.playerCollection.insertOne(player);
+
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            // creating a secondary account so we update the primary one
+            if (playerId.endsWith("_1")) {
+                String primaryAccount = PlayerIdentitySwitch.getPrimaryAccount(playerId);
+                this.playerCollection.updateOne(clientSession, eq("_id", primaryAccount),
+                        set("playerSecret.secondaryAccount", playerId));
+            }
+            this.playerCollection.insertOne(clientSession, player);
+            clientSession.commitTransaction();
+        }
     }
 
     @Override
@@ -702,70 +716,33 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveWarMatchMake(FactionType faction, GuildSession guildSession, List<String> participantIds,
-                                 SquadNotification squadNotification, Long time) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            saveMatchMake(faction, guildSession.getGuildId(), participantIds, time, connection);
-            saveWarMatchSignUp(guildSession.getGuildId(), participantIds, time, connection);
-            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
+                                 SquadNotification squadNotification, long time) {
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            saveWarSignUp(clientSession, faction, guildSession.getGuildId(), participantIds, time);
+            updateSquadWarParty(clientSession, guildSession.getGuildId(), participantIds, time);
+            setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
+            clientSession.commitTransaction();
+        } catch (MongoCommandException ex) {
+            throw new RuntimeException("Failed to sign up for war " + guildSession.getGuildId(), ex);
         }
     }
 
-    private void saveMatchMake(FactionType faction, String guildId, List<String> participantIds, Long time, Connection connection) {
-        final String matchMakeSql = "insert into MatchMake (guildId, warSignUpTime, faction, participants) values " +
-                "(?,?,?,?)";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
-                stmt.setString(1, guildId);
-                stmt.setLong(2, time);
-                stmt.setString(3, faction.toString());
-                stmt.setString(4, ServiceFactory.instance().getJsonParser().toJson(participantIds));
-                stmt.executeUpdate();
-            }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save match make for squad id=" + guildId, ex);
-        }
+    private void saveWarSignUp(ClientSession clientSession, FactionType faction, String guildId, List<String> participantIds,
+                               long time)
+    {
+        WarSignUp warSignUp = new WarSignUp();
+        warSignUp.faction = faction;
+        warSignUp.guildId = guildId;
+        warSignUp.participantIds = participantIds;
+        warSignUp.time = time;
+        this.warSignUpCollection.insertOne(clientSession, warSignUp);
     }
 
-    private void saveWarMatchSignUp(String guildId, List<String> participantIds, Long time, Connection connection) {
-        final String squadSql = "update Squads " +
-                "set warSignUpTime = ? " +
-                "where id = ?";
-
-        final String squadMembersSql = "update SquadMembers " +
-                "set warParty = ? " +
-                "where guildId = ? and playerId = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                if (time != null)
-                    stmt.setLong(1, time);
-                else
-                    stmt.setNull(1, Types.INTEGER);
-                stmt.setString(2, guildId);
-                stmt.executeUpdate();
-            }
-
-            if (participantIds != null) {
-                clearWarParty(guildId, connection);
-
-                for (int i = 0; i < participantIds.size(); i++) {
-                    try (PreparedStatement stmt = connection.prepareStatement(squadMembersSql)) {
-                        stmt.setBoolean(1, true);
-                        stmt.setString(2, guildId);
-                        stmt.setString(3, participantIds.get(i));
-                        stmt.executeUpdate();
-                    }
-                }
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to match make for squad id=" + guildId, ex);
-        }
+    private void updateSquadWarParty(ClientSession clientSession, String guildId, List<String> participantIds, long time) {
+        UpdateResult result = this.squadCollection.updateOne(clientSession,
+                and(eq("_id", guildId), Filters.in("squadMembers.playerId", participantIds)),
+                set("squadMembers.$.warParty", 1));
     }
 
     private void clearWarParty(String guildId, Connection connection) throws SQLException {
@@ -781,15 +758,16 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveWarMatchCancel(GuildSession guildSession, SquadNotification squadNotification) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            deleteMatchMake(guildSession.getGuildId(), connection);
-            saveWarMatchSignUp(guildSession.getGuildId(), null, null, connection);
-            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
-        }
+        throw new RuntimeException("Not supported");
+//        try (Connection connection = getConnection()) {
+//            connection.setAutoCommit(false);
+//            deleteMatchMake(guildSession.getGuildId(), connection);
+//            updateSquadWarParty(guildSession.getGuildId(), null, null, connection);
+//            setAndSaveGuildNotification(guildSession, squadNotification, connection);
+//            connection.commit();
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to create a new player", ex);
+//        }
     }
 
     private void deleteMatchMake(String guildId, Connection connection) {

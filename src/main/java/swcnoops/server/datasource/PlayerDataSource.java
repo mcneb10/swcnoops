@@ -49,7 +49,7 @@ public interface PlayerDataSource {
 
     List<Squad> searchGuildByName(String searchTerm);
 
-    void saveWarMatchMake(FactionType faction, GuildSession guildId, List<String> participantIds, SquadNotification squadNotification, Long time);
+    void saveWarMatchMake(FactionType faction, GuildSession guildId, List<String> participantIds, SquadNotification squadNotification, long time);
 
     void saveWarMatchCancel(GuildSession guildSession, SquadNotification squadNotification);
 

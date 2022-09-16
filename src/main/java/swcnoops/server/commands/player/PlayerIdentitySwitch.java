@@ -31,17 +31,6 @@ public class PlayerIdentitySwitch extends AbstractCommandAction<PlayerIdentitySw
                             factionFlipTemplate.playerModel,
                             factionFlipTemplate.sharedPrefs,
                             null);
-
-            // we load the new secondary account with template settings for that faction
-//            PlayerSession otherSession = ServiceFactory.instance().getSessionManager()
-//                    .getPlayerSession(primaryId + "_1", factionFlipTemplate.playerModel);
-//
-//            // we copy the preferences from the template and set name to null so the player can set it
-//            otherSession.getPlayerSettings().getSharedPreferences().putAll(factionFlipTemplate.sharedPrefs);
-//            otherSession.savePlayerName(null);
-//            otherSession.savePlayerSession();
-
-//            ServiceFactory.instance().getSessionManager().removePlayerSession(otherSession.getPlayerId());
         }
 
         String otherAccount = getOtherAccount(playerId);
