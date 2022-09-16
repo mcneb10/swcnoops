@@ -114,4 +114,6 @@ public interface PlayerDataSource {
     void savePlayerKeepAlive(PlayerSession playerSession);
 
     void recoverWithPlayerSettings(PlayerSession playerSession, PlayerModel playerModel, Map<String, String> sharedPrefs);
+
+    void saveDevBase(DevBase devBase);
 }

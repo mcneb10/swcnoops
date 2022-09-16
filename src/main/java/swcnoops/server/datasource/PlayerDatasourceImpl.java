@@ -11,6 +11,8 @@ import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.mongojack.DBUpdate;
 import org.mongojack.JacksonMongoCollection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
@@ -36,11 +38,14 @@ import static com.mongodb.client.model.Projections.include;
 import static com.mongodb.client.model.Updates.*;
 
 public class PlayerDatasourceImpl implements PlayerDataSource {
+    private static final Logger LOG = LoggerFactory.getLogger(PlayerDatasourceImpl.class);
+
     private MongoClient mongoClient;
     private MongoDatabase database;
     private JacksonMongoCollection<Player> playerCollection;
     private JacksonMongoCollection<SquadInfo> squadCollection;
     private JacksonMongoCollection<SquadNotification> squadNotificationCollection;
+    private JacksonMongoCollection<DevBase> devBaseCollection;
 
     public PlayerDatasourceImpl() {
     }
@@ -83,6 +88,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         this.squadNotificationCollection.createIndex(compoundIndex(Indexes.ascending("guildId"),
                 Indexes.ascending("playerId"), Indexes.ascending("type"), Indexes.descending("date")));
+
+        this.devBaseCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "devBase", DevBase.class, UuidRepresentation.STANDARD);
+
+        this.devBaseCollection.createIndex(Indexes.text("fileName"));
+        this.devBaseCollection.createIndex(Indexes.ascending("checksum"));
+        this.devBaseCollection.createIndex(compoundIndex(Indexes.ascending("hq"), Indexes.ascending("xp")));
     }
 
     public void checkAndPrepareDB() {
@@ -1857,6 +1869,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
             stmt.setString(1, warId);
             int updated = stmt.executeUpdate();
+        }
+    }
+
+    @Override
+    public void saveDevBase(DevBase devBase) {
+        DevBase existingDevBase = this.devBaseCollection.findOne(eq("checksum", devBase.checksum));
+        if (existingDevBase == null) {
+            devBase._id = ServiceFactory.createRandomUUID();
+            this.devBaseCollection.save(devBase);
+        } else {
+            LOG.debug("dev base with checksum already exists for file " + devBase.fileName);
         }
     }
 }

@@ -1,6 +1,8 @@
 package swcnoops.server.model;
 
-public class Building {
+import java.io.Serializable;
+
+public class Building implements Serializable {
     public String key;
     public int x;
     public int z;
