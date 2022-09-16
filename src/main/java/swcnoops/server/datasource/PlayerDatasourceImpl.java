@@ -2,6 +2,7 @@ package swcnoops.server.datasource;
 
 import com.mongodb.*;
 import com.mongodb.client.*;
+import com.mongodb.client.model.Aggregates;
 import com.mongodb.client.model.Filters;
 import com.mongodb.client.model.IndexOptions;
 import com.mongodb.client.model.Indexes;
@@ -1543,23 +1544,29 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-
     public HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession) {
-        String sql = "SELECT id, buildings, buildings, hqlevel, xp FROM DevBases WHERE ( hqlevel >= ? -1 AND hqlevel <= ? +1) or (xp >= ( ? * 0.9) AND xp <= (? * 1.10) ) ORDER BY xp desc";
+//        SELECT id, buildings, buildings, hqlevel, xp
+//        FROM DevBases
+//        WHERE (hqlevel >= ? -1 AND hqlevel <= ? +1)
+//        or (xp >= ( ? * 0.9) AND xp <= (? * 1.10))
+//        ORDER BY xp desc;
+
+        int playerHq = playerSession.getHeadQuarter().getBuildingData().getLevel();
+        float playerXp = playerSession.getPlayerSettings().getScalars().xp;
+        Bson hqQuery = and(gte("hq", playerHq - 1), lte("hq", playerHq + 1));
+        Bson xpQuery = and(gte("xp", playerXp * 0.9), lte("xp", playerXp * 1.10));
+
+        List<Bson> aggregates = Arrays.asList(Aggregates.match(or(hqQuery, xpQuery)),
+                Aggregates.project(include("xp", "hq")),
+                Aggregates.sample(20));
+
+        AggregateIterable<DevBase> devBasesIterable = this.devBaseCollection.aggregate(aggregates);
 
         HashMap<String, PvpMatch> pvpMatches = new HashMap<>();
 
-        try (Connection connection = getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            int hq = playerSession.getHeadQuarter().getBuildingData().getLevel();
-            int xp = playerSession.getPlayerSettings().getScalars().xp;
-            preparedStatement.setInt(1, hq);
-            preparedStatement.setInt(2, hq);
-            preparedStatement.setInt(3, xp);
-            preparedStatement.setInt(4, xp);
-            ResultSet rs = preparedStatement.executeQuery();
-
-            while (rs.next()) {
+        try (MongoCursor<DevBase> devBaseCursor = devBasesIterable.cursor()) {
+            while (devBaseCursor.hasNext()) {
+                DevBase devBase = devBaseCursor.next();
 //                BattleParticipant defender = new BattleParticipant();
 //                defender.attackRating = 500;
 //                defender.defenseRating = 500;
@@ -1575,48 +1582,29 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 String battleId = ServiceFactory.createRandomUUID();
                 PvpMatch pvpMatch = new PvpMatch();
                 pvpMatch.setPlayerId(playerSession.getPlayerId());
-                pvpMatch.setParticipantId(rs.getString("id"));
-                pvpMatch.setDefenderXp(rs.getInt("xp"));
+                pvpMatch.setParticipantId(devBase._id);
+                pvpMatch.setDefenderXp(devBase.xp);
                 pvpMatch.setBattleId(battleId);
                 pvpMatch.setFactionType(playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire);
                 pvpMatch.setDevBase(true);
-                pvpMatch.setLevel(rs.getInt("hqlevel"));
+                pvpMatch.setLevel(devBase.hq);
                 pvpMatches.put(battleId, pvpMatch);
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
             throw new RuntimeException(ex);
         }
 
         return pvpMatches;
     }
 
-
     @Override
     public Buildings getDevBaseMap(String id, FactionType faction) {
-        Buildings buildings = null;
-        String sql = "SELECT buildings FROM DevBases WHERE id = ?";
-
-        try (Connection connection = getConnection()) {
-            PreparedStatement preparedStatement = connection.prepareStatement(sql);
-            preparedStatement.setString(1, id);
-            ResultSet rs = preparedStatement.executeQuery();
-
-            while (rs.next()) {
-                String mapString = rs.getString("buildings");
-                mapString = mapString.replace(FactionType.neutral.name(), faction.name());
-                try {
-                    buildings = ServiceFactory.instance().getJsonParser().fromJsonString(mapString, Buildings.class);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    throw new RuntimeException(e);
-                }
-            }
-        } catch (SQLException exception) {
-            throw new RuntimeException(exception);
+        Buildings buildings = this.devBaseCollection.findOne(eq("_id", id)).buildings;
+        for (Building building : buildings) {
+            building.uid = building.uid.replace(FactionType.neutral.name(), faction.name());
         }
         return buildings;
     }
-
 
     @Override
     public void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {

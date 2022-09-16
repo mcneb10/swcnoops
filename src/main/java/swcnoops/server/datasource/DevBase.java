@@ -11,4 +11,8 @@ public class DevBase {
     public int xp;
     public String fileName;
     public long checksum;
+    public int attacksByRebs;
+    public int attacksByImps;
+    public float avgStarsRebs;
+    public float avgStarsImps;
 }
