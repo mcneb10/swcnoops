@@ -315,12 +315,6 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public void saveGuildChange(PlayerSession playerSession, SquadNotification leaveNotification) {
-        ServiceFactory.instance().getPlayerDatasource().saveGuildChange(this.getGuildSettings(),
-                playerSession, leaveNotification);
-    }
-
-    @Override
     public War getCurrentWar() {
         War war = null;
         if (this.getGuildSettings().getWarId() != null) {

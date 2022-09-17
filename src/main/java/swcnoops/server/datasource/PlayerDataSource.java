@@ -35,8 +35,6 @@ public interface PlayerDataSource {
 
     void saveNotification(GuildSession guildSession, SquadNotification squadNotification);
 
-    void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification leaveNotification);
-
     void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification);
 
     void leaveSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification);

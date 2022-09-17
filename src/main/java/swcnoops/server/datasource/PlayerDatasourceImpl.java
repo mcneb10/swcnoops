@@ -574,55 +574,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveGuildChange(GuildSettings guildSettings, PlayerSession playerSession, SquadNotification squadNotification) {
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            savePlayerSession(playerSession, connection);
-//            if (squadNotification != null)
-//                saveNotification(squadNotification.getGuildId(), squadNotification, connection);
-//            connection.commit();
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to create a new player", ex);
-//        }
-    }
-
-//    private void saveNotification(String guildId, SquadNotification squadNotification, Connection connection) {
-//        saveNotification(guildId, squadNotification.getId(),
-//                0,
-//                squadNotification.getDate(),
-//                squadNotification.getPlayerId(),
-//                squadNotification.getName(),
-//                squadNotification.getType(),
-//                squadNotification.getMessage(),
-//                squadNotification.getData(),
-//                connection);
-//    }
-
-//    private void saveNotification(String guildId, String id, long orderNo, long date, String playerId, String name, SquadMsgType type,
-//                                  String message, SquadNotificationData data, Connection connection) {
-//        final String squadSql = "insert into squadNotifications (guildId, id, orderNo, date, playerId, name, squadMessageType, message, squadNotification) " +
-//                "values (?,?,?,?,?,?,?,?,?)";
-//
-//        try {
-//            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-//                stmt.setString(1, guildId);
-//                stmt.setString(2, id);
-//                stmt.setLong(3, orderNo);
-//                stmt.setLong(4, date);
-//                stmt.setString(5, playerId);
-//                stmt.setString(6, name);
-//                stmt.setString(7, type.toString());
-//                stmt.setString(8, message);
-//                stmt.setString(9, data != null ? ServiceFactory.instance().getJsonParser()
-//                        .toJson(data) : null);
-//                stmt.executeUpdate();
-//            }
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save squad notification =" + id, ex);
-//        }
-//    }
-
-    @Override
     public List<Squad> searchGuildByName(String searchTerm) {
         FindIterable<SquadInfo> squadInfos = this.squadCollection.find(regex("name", searchTerm, "i"))
                 .projection(include("faction", "name", "description", "icon", "openEnrollment", "minScore", "members", "activeMemberCount"));
@@ -819,34 +770,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return squadMemberWarData;
     }
 
-//    private SquadMemberWarData mapSquadMemberWarData(String warId, ResultSet rs) throws Exception {
-//        SquadMemberWarData squadMemberWarData = new SquadMemberWarData();
-//        squadMemberWarData.id = rs.getString("id");
-//        squadMemberWarData.warId = warId;
-//        squadMemberWarData.name = rs.getString("name");
-//        squadMemberWarData.victoryPoints = rs.getInt("victoryPoints");
-//        squadMemberWarData.turns = rs.getInt("turns");
-//        squadMemberWarData.attacksWon = rs.getInt("attacksWon");
-//        squadMemberWarData.defensesWon = rs.getInt("defensesWon");
-//        squadMemberWarData.score = rs.getInt("score");
-//        squadMemberWarData.level = rs.getInt("hqLevel");
-//        squadMemberWarData.defenseExpirationDate = rs.getLong("defenseExpirationDate");
-//
-//        String warMap = rs.getString("warMap");
-//        if (warMap != null) {
-//            squadMemberWarData.warMap = ServiceFactory.instance().getJsonParser()
-//                    .fromJsonString(warMap, PlayerMap.class);
-//        }
-//
-//        String donatedTroops = rs.getString("donatedTroops");
-//        if (donatedTroops != null) {
-//            squadMemberWarData.donatedTroops = ServiceFactory.instance().getJsonParser()
-//                    .fromJsonString(donatedTroops, DonatedTroops.class);
-//        }
-//
-//        return squadMemberWarData;
-//    }
-
     @Override
     public List<SquadMemberWarData> getWarParticipants(String guildId, String warId) {
         FindIterable<SquadMemberWarData> squadMemberWarDataFindIterable =
@@ -861,31 +784,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         return squadMemberWarDatums;
     }
-
-//    private List<SquadMemberWarData> getWarParticipants(String warId, String guildId, Connection connection) {
-//        List<SquadMemberWarData> participants = new ArrayList<>();
-//
-//        final String warParticipantsSql = "select p.warMap, p.donatedTroops, p.victoryPoints, p.turns, p.attacksWon, " +
-//                "p.defensesWon, p.score, p.defenseExpirationDate, ps.hqLevel, ps.id, ps.name " +
-//                "from WarParticipants p, Squads s, SquadMembers m, PlayerSettings ps where s.id = ? and " +
-//                "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
-//
-//        try {
-//            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
-//                stmt.setString(1, guildId);
-//                stmt.setString(2, warId);
-//                ResultSet rs = stmt.executeQuery();
-//                while (rs.next()) {
-//                    SquadMemberWarData squadMemberWarData = mapSquadMemberWarData(warId, rs);
-//                    participants.add(squadMemberWarData);
-//                }
-//            }
-//        } catch (Exception ex) {
-//            throw new RuntimeException("Failed to load WarParticipants for squad id=" + guildId, ex);
-//        }
-//
-//        return participants;
-//    }
 
     @Override
     public void saveWarMap(SquadMemberWarData squadMemberWarData) {
