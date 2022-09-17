@@ -20,6 +20,8 @@ public class WarSessionImpl implements WarSession {
     private War war;
     private long dirtyTime;
     private long lastLoadedWarTime;
+    private Lock guildGetLock = new ReentrantLock();
+    private Lock warLock = new ReentrantLock();
 
     public WarSessionImpl(String warId) {
         this.warId = warId;
@@ -168,9 +170,6 @@ public class WarSessionImpl implements WarSession {
 
         return shareBattleNotificationData;
     }
-
-    private Lock guildGetLock = new ReentrantLock();
-    private Lock warLock = new ReentrantLock();
 
     @Override
     public void processGuildGet(long time) {

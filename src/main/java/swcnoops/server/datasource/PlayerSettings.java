@@ -24,6 +24,7 @@ public class PlayerSettings {
 
     private long keepAlive;
     private int hqLevel;
+    private PlayerMap warMap;
 
     public PlayerSettings() {
     }
@@ -180,5 +181,13 @@ public class PlayerSettings {
 
     public int getHqLevel() {
         return hqLevel;
+    }
+
+    public PlayerMap getWarMap() {
+        return warMap;
+    }
+
+    public void setWarMap(PlayerMap warMap) {
+        this.warMap = warMap;
     }
 }

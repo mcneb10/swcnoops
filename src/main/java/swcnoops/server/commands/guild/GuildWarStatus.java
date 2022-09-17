@@ -68,7 +68,7 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
         Participant participant = new Participant();
         participant.score = 0;
         participant.level = 3;
-        participant.id = guildId + "_BOT" + i;
+        participant.id = guildId + "-BOT" + i;
         participant.name = "BOT" + i;
         participant.victoryPoints = 0;
         participant.turns = 0;

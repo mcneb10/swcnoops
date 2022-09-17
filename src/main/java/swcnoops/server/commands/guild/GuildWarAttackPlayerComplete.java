@@ -26,6 +26,7 @@ public class GuildWarAttackPlayerComplete extends PlayerBattleComplete<GuildWarA
             DefendingWarParticipant defendingWarParticipant = ServiceFactory.instance().getPlayerDatasource()
                     .getDefendingWarParticipantByBattleId(arguments.getBattleId());
 
+            // TODO - change this as we only need the session for their name
             PlayerSession defenderSession = ServiceFactory.instance().getSessionManager()
                     .getPlayerSession(defendingWarParticipant.getPlayerId());
 

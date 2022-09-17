@@ -165,7 +165,7 @@ public class GuildSessionImpl implements GuildSession {
         // the ejected player gets their own one as they are no longer in the squad so will not see the squad message
         if (leaveType == SquadMsgType.ejected) {
             SquadNotification ejectedNotification = new EjectedSquadNotification(this.getGuildId(), this.getGuildName(),
-                            ServiceFactory.createRandomUUID(), null,
+                            null,
                             playerSession.getPlayerSettings().getName(),
                             playerSession.getPlayerId(), leaveType);
             ejectedNotification.setDate(leaveNotification.getDate());
@@ -240,7 +240,7 @@ public class GuildSessionImpl implements GuildSession {
             return failedTroopDonationResult;
 
         SquadNotification squadNotification = new SquadNotification(this.getGuildId(), this.getGuildName(),
-                ServiceFactory.createRandomUUID(), null, playerSession.getPlayerSettings().getName(),
+                null, playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerId(), SquadMsgType.troopDonation);
 
         TroopDonationData troopDonationData = new TroopDonationData();
@@ -270,7 +270,7 @@ public class GuildSessionImpl implements GuildSession {
                 playerSession, SquadMsgType.warMatchMakingBegin);
 
         this.getGuildSettings().warMatchmakingStart(time, participantIds);
-        ServiceFactory.instance().getPlayerDatasource().saveWarMatchMake(playerSession.getFaction(), this, participantIds,
+        ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this, participantIds,
                 squadNotification, time);
         this.setNotificationDirty(squadNotification.getDate());
         return squadNotification;
@@ -282,7 +282,7 @@ public class GuildSessionImpl implements GuildSession {
                 playerSession, SquadMsgType.warMatchMakingCancel);
 
         this.getGuildSettings().setWarSignUpTime(null);
-        ServiceFactory.instance().getPlayerDatasource().saveWarMatchCancel(this, squadNotification);
+        ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification);
         this.setNotificationDirty(squadNotification.getDate());
         return squadNotification;
     }

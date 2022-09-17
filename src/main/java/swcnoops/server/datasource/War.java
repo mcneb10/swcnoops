@@ -1,6 +1,10 @@
 package swcnoops.server.datasource;
 
+import org.mongojack.Id;
+
 public class War {
+    @Id
+    private String warId;
     private String squadIdA;
     private String squadIdB;
     private Long prepGraceStartTime;
@@ -8,10 +12,12 @@ public class War {
     private Long actionGraceStartTime;
     private Long actionEndTime;
     private Long cooldownEndTime;
-    private String warId;
     private long processedEndTime;
     private int squadAScore;
     private int squadBScore;
+
+    public War() {
+    }
 
     public War(String warId, String squadIdA, String squadIdB, Long prepGraceStartTime, Long prepEndTime, Long actionGraceStartTime,
                Long actionEndTime, Long cooldownEndTime, long processedEndTime, int squadAScore, int squadBScore)
@@ -99,5 +105,21 @@ public class War {
 
     public int getSquadBScore() {
         return squadBScore;
+    }
+
+    public void setSquadIdA(String squadIdA) {
+        this.squadIdA = squadIdA;
+    }
+
+    public void setSquadIdB(String squadIdB) {
+        this.squadIdB = squadIdB;
+    }
+
+    public void setSquadAScore(int squadAScore) {
+        this.squadAScore = squadAScore;
+    }
+
+    public void setSquadBScore(int squadBScore) {
+        this.squadBScore = squadBScore;
     }
 }

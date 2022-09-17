@@ -121,7 +121,6 @@ public class GuildSettingsImpl implements GuildSettings {
         if (guildSession != null) {
             squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
                     playerSession.getGuildSession().getGuildName(),
-                    ServiceFactory.createRandomUUID(),
                     message, playerName, playerId, SquadMsgType.troopRequest);
         }
 

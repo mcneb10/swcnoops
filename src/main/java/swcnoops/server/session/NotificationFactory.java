@@ -37,14 +37,14 @@ public class NotificationFactory {
                 case shareBattle:
                     squadNotification =
                             new SquadNotification(guildId, guildName,
-                                    ServiceFactory.createRandomUUID(), message,
+                                    message,
                                     playerSettings != null ? playerSettings.getName() : null,
                                     playerSession != null ? playerSession.getPlayerId() : null, squadMsgType);
                     break;
                 case warStarted:
                     squadNotification =
                             new SquadNotification(guildId, guildName,
-                                    ServiceFactory.createRandomUUID(), message,
+                                    message,
                                     null,
                                     null, squadMsgType);
                     break;

@@ -111,7 +111,7 @@ public class SelfDonatingSquad implements GuildSettings {
 
         SquadNotification squadNotification = new SquadNotification(playerSession.getGuildSession().getGuildId(),
                 playerSession.getGuildSession().getGuildName(),
-                ServiceFactory.createRandomUUID(), message, playerName, playerId, SquadMsgType.troopRequest);
+                message, playerName, playerId, SquadMsgType.troopRequest);
 
         return squadNotification;
     }

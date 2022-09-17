@@ -2,14 +2,13 @@ package swcnoops.server.datasource;
 
 import com.mongodb.*;
 import com.mongodb.client.*;
-import com.mongodb.client.model.Aggregates;
-import com.mongodb.client.model.Filters;
-import com.mongodb.client.model.IndexOptions;
-import com.mongodb.client.model.Indexes;
+import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
 import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
+import org.mongojack.Aggregation;
+import org.mongojack.DBQuery;
 import org.mongojack.DBUpdate;
 import org.mongojack.JacksonMongoCollection;
 import org.slf4j.Logger;
@@ -18,7 +17,6 @@ import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
-import swcnoops.server.commands.player.PlayerPvpBattleComplete;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -27,12 +25,8 @@ import swcnoops.server.session.creature.CreatureManager;
 import swcnoops.server.session.training.BuildUnits;
 import swcnoops.server.session.training.DeployableQueue;
 import swcnoops.server.session.training.TrainingManager;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.sql.*;
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Date;
 
 import static com.mongodb.client.model.Filters.*;
 import static com.mongodb.client.model.Indexes.compoundIndex;
@@ -44,20 +38,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerDatasourceImpl.class);
 
     private MongoClient mongoClient;
-    private MongoDatabase database;
     private JacksonMongoCollection<Player> playerCollection;
     private JacksonMongoCollection<SquadInfo> squadCollection;
     private JacksonMongoCollection<SquadNotification> squadNotificationCollection;
     private JacksonMongoCollection<DevBase> devBaseCollection;
     private JacksonMongoCollection<BattleReplay> battleReplayCollection;
     private JacksonMongoCollection<WarSignUp> warSignUpCollection;
+    private JacksonMongoCollection<SquadWar> squadWarCollection;
+    private JacksonMongoCollection<SquadMemberWarData> squadMemberWarDataCollection;
+    private MongoDatabase database;
 
     public PlayerDatasourceImpl() {
     }
 
     @Override
     public void initOnStartup() {
-        checkAndPrepareDB();
         initMongoClient();
     }
 
@@ -113,77 +108,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.warSignUpCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, "dev", "warSignUp", WarSignUp.class, UuidRepresentation.STANDARD);
         this.warSignUpCollection.createIndex(Indexes.ascending("guildId"), new IndexOptions().unique(true));
-    }
 
-    public void checkAndPrepareDB() {
-        try {
-            try (Connection connection = getConnection()) {
-                try (Statement stmt = connection.createStatement()) {
-                    String sql = getCreatePlayerDBSql();
-                    stmt.executeUpdate(sql);
-                }
+        this.squadWarCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "squadWar", SquadWar.class, UuidRepresentation.STANDARD);
 
-                String tempDbURL = ServiceFactory.instance().getConfig().playerSqliteDB + ".temp";
-                String dbLocation = tempDbURL.substring("jdbc:sqlite:".length());
-                File file = new File(dbLocation);
-                if (file.exists())
-                    file.delete();
+        this.squadMemberWarDataCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, "dev", "squadMemberWarData", SquadMemberWarData.class, UuidRepresentation.STANDARD);
 
-                try (Connection tempDBConnection = getTempDBConnection(tempDbURL)) {
-                    try (Statement stmt = tempDBConnection.createStatement()) {
-                        String sql = getCreatePlayerDBSql();
-                        stmt.executeUpdate(sql);
-
-                        try (ResultSet rs = tempDBConnection.getMetaData().getTables(null, null, null, null)) {
-                            while (rs.next()) {
-                                String tableName = rs.getString("TABLE_NAME");
-
-                                // process new columns
-                                try(ResultSet columns = tempDBConnection.getMetaData().getColumns(null,null, tableName, null)){
-                                    while(columns.next()) {
-                                        String columnName = columns.getString("COLUMN_NAME");
-                                        String typeName = columns.getString("TYPE_NAME");
-                                        try (ResultSet destColumns = connection.getMetaData().getColumns(null, null, tableName, columnName)) {
-                                            // if column is missing then we go and create it
-                                            if(!destColumns.next()) {
-                                                try (Statement addColumnStmt = connection.createStatement()) {
-                                                    String columnSql = "alter table " + tableName + " add " + columnName + " " + typeName + ";";
-                                                    addColumnStmt.executeUpdate(columnSql);
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed player DB check", ex);
-        }
-    }
-
-    private String getCreatePlayerDBSql() {
-        InputStream inputStream = Thread.currentThread().getContextClassLoader()
-                .getResourceAsStream(ServiceFactory.instance().getConfig().playerCreatePlayerDBSqlResource);
-
-        String content = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))
-                .lines()
-                .collect(Collectors.joining("\n"));
-        return content;
-    }
-
-    private Connection getConnection() throws SQLException {
-        String url = ServiceFactory.instance().getConfig().playerSqliteDB;
-        Connection conn = DriverManager.getConnection(url);
-        return conn;
-    }
-
-    private Connection getTempDBConnection(String url) throws SQLException {
-        Connection conn = DriverManager.getConnection(url);
-        return conn;
+        this.squadMemberWarDataCollection.createIndex(compoundIndex(Indexes.ascending("id"),
+                Indexes.ascending("guildId"),
+                Indexes.ascending("warId")),
+                new IndexOptions().unique(true));
     }
 
     @Override
@@ -548,51 +483,42 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public List<WarHistory> loadWarHistory(String squadId) {
-        // TODO - maybe change this to look at a different collection
-        SquadInfo squadInfo = this.squadCollection.find(eq("_id", squadId)).projection(include("warHistory")).first();
-        if (squadInfo != null)
-            return squadInfo.getWarHistory();
+        // TODO - change to use aggregate to limit to the latest 20
+        Bson squadInWar = or(eq("squadIdA", squadId), eq("squadIdB", squadId));
+        FindIterable<SquadWar> squadWarIterable = this.squadWarCollection.find(and(squadInWar, gt("processedEndTime", 0)))
+                .projection(include("warId", "squadIdA", "squadIdB", "processedEndTime", "squadAScore", "squadBScore"));
 
-        return new ArrayList<>();
-    }
+        List<WarHistory> warHistories = new ArrayList<>();
 
-    private List<WarHistory> loadWarHistory(String guildId, Connection connection) throws Exception {
-        List<WarHistory> wars = new ArrayList<>();
+        try (MongoCursor<SquadWar> cursor = squadWarIterable.cursor()) {
+            while (cursor.hasNext()) {
+                SquadWar squadWar = cursor.next();
 
-        final String squadPlayers = "SELECT w.warId, w.squadIdA, w.squadIdB, w.processedEndTime, w.squadAScore, w.squadBScore, " +
-                "s.name, s.icon " +
-                "FROM War w, Squads s " +
-                "WHERE w.processedEndTime > 0 " +
-                "AND ((w.squadIdB = s.id and w.squadIdA = ?) or (w.squadIdA = s.id and w.squadIdB = ?))";
-
-        try (PreparedStatement pstmt = connection.prepareStatement(squadPlayers)) {
-            pstmt.setString(1, guildId);
-            pstmt.setString(2, guildId);
-            ResultSet rs = pstmt.executeQuery();
-
-            while (rs.next()) {
+                // TODO - get the guild name and icon
                 WarHistory warHistory = new WarHistory();
-                warHistory.warId = rs.getString("warId");
-                warHistory.opponentGuildId = rs.getString("squadIdB");
-                warHistory.opponentName = rs.getString("name");
-                warHistory.opponentIcon = rs.getString("icon");
-                warHistory.opponentScore = rs.getInt("squadBScore");
-                warHistory.endDate = rs.getLong("processedEndTime");
+                warHistory.warId = squadWar.getWarId();
+                warHistory.opponentGuildId = squadWar.getSquadIdB();
+                warHistory.opponentName = squadWar.getSquadIdB();
+                warHistory.opponentIcon = null;
+                warHistory.opponentScore = squadWar.getSquadBScore();
+                warHistory.endDate = squadWar.getProcessedEndTime();
 
-                if (!warHistory.opponentGuildId.equals(guildId)) {
-                    warHistory.score = rs.getInt("squadAScore");
+                if (!warHistory.opponentGuildId.equals(squadId)) {
+                    warHistory.score = squadWar.getSquadAScore();
                 } else {
-                    warHistory.opponentGuildId = rs.getString("squadIdA");
-                    warHistory.opponentScore = rs.getInt("squadAScore");
-                    warHistory.score = rs.getInt("squadBScore");
+                    warHistory.opponentGuildId = squadWar.getSquadIdA();
+                    warHistory.opponentName = squadWar.getSquadIdA();
+                    warHistory.opponentScore = squadWar.getSquadAScore();
+                    warHistory.score = squadWar.getSquadBScore();
                 }
 
-                wars.add(warHistory);
+                warHistories.add(warHistory);
             }
         }
 
-        return wars;
+        return warHistories;
     }
+
 
     @Override
     public void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment,
@@ -660,41 +586,41 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 //        }
     }
 
-    private void saveNotification(String guildId, SquadNotification squadNotification, Connection connection) {
-        saveNotification(guildId, squadNotification.getId(),
-                0,
-                squadNotification.getDate(),
-                squadNotification.getPlayerId(),
-                squadNotification.getName(),
-                squadNotification.getType(),
-                squadNotification.getMessage(),
-                squadNotification.getData(),
-                connection);
-    }
+//    private void saveNotification(String guildId, SquadNotification squadNotification, Connection connection) {
+//        saveNotification(guildId, squadNotification.getId(),
+//                0,
+//                squadNotification.getDate(),
+//                squadNotification.getPlayerId(),
+//                squadNotification.getName(),
+//                squadNotification.getType(),
+//                squadNotification.getMessage(),
+//                squadNotification.getData(),
+//                connection);
+//    }
 
-    private void saveNotification(String guildId, String id, long orderNo, long date, String playerId, String name, SquadMsgType type,
-                                  String message, SquadNotificationData data, Connection connection) {
-        final String squadSql = "insert into squadNotifications (guildId, id, orderNo, date, playerId, name, squadMessageType, message, squadNotification) " +
-                "values (?,?,?,?,?,?,?,?,?)";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setString(1, guildId);
-                stmt.setString(2, id);
-                stmt.setLong(3, orderNo);
-                stmt.setLong(4, date);
-                stmt.setString(5, playerId);
-                stmt.setString(6, name);
-                stmt.setString(7, type.toString());
-                stmt.setString(8, message);
-                stmt.setString(9, data != null ? ServiceFactory.instance().getJsonParser()
-                        .toJson(data) : null);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save squad notification =" + id, ex);
-        }
-    }
+//    private void saveNotification(String guildId, String id, long orderNo, long date, String playerId, String name, SquadMsgType type,
+//                                  String message, SquadNotificationData data, Connection connection) {
+//        final String squadSql = "insert into squadNotifications (guildId, id, orderNo, date, playerId, name, squadMessageType, message, squadNotification) " +
+//                "values (?,?,?,?,?,?,?,?,?)";
+//
+//        try {
+//            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
+//                stmt.setString(1, guildId);
+//                stmt.setString(2, id);
+//                stmt.setLong(3, orderNo);
+//                stmt.setLong(4, date);
+//                stmt.setString(5, playerId);
+//                stmt.setString(6, name);
+//                stmt.setString(7, type.toString());
+//                stmt.setString(8, message);
+//                stmt.setString(9, data != null ? ServiceFactory.instance().getJsonParser()
+//                        .toJson(data) : null);
+//                stmt.executeUpdate();
+//            }
+//        } catch (SQLException ex) {
+//            throw new RuntimeException("Failed to save squad notification =" + id, ex);
+//        }
+//    }
 
     @Override
     public List<Squad> searchGuildByName(String searchTerm) {
@@ -715,12 +641,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveWarMatchMake(FactionType faction, GuildSession guildSession, List<String> participantIds,
-                                 SquadNotification squadNotification, long time) {
+    public void saveWarSignUp(FactionType faction, GuildSession guildSession, List<String> participantIds,
+                              SquadNotification squadNotification, long time) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             saveWarSignUp(clientSession, faction, guildSession.getGuildId(), participantIds, time);
-            updateSquadWarParty(clientSession, guildSession.getGuildId(), participantIds, time);
+            resetWarParty(clientSession, guildSession.getGuildId());
+            setSquadWarParty(clientSession, guildSession.getGuildId(), participantIds, time);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
@@ -736,401 +663,278 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         warSignUp.guildId = guildId;
         warSignUp.participantIds = participantIds;
         warSignUp.time = time;
+        warSignUp.signUpdate = new Date();
         this.warSignUpCollection.insertOne(clientSession, warSignUp);
     }
 
-    private void updateSquadWarParty(ClientSession clientSession, String guildId, List<String> participantIds, long time) {
+    private void setSquadWarParty(ClientSession clientSession, String guildId, List<String> participantIds,
+                                  long time)
+    {
         UpdateResult result = this.squadCollection.updateOne(clientSession,
                 and(eq("_id", guildId), Filters.in("squadMembers.playerId", participantIds)),
-                set("squadMembers.$.warParty", 1));
+                combine(set("squadMembers.$.warParty", 1), set("warSignUpTime", time)));
     }
 
-    private void clearWarParty(String guildId, Connection connection) throws SQLException {
-        final String squadMembersNotSignedUpSql = "update SquadMembers " +
-                "set warParty = 0 " +
-                "where guildId = ?";
+    private void resetWarParty(ClientSession clientSession, String guildId) {
+        this.squadCollection.updateOne(clientSession, eq("_id", guildId),
+                combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime"), unset("warId")));
+    }
 
-        try (PreparedStatement stmt = connection.prepareStatement(squadMembersNotSignedUpSql)) {
-            stmt.setString(1, guildId);
-            stmt.executeUpdate();
-        }
+    private void clearWarParty(ClientSession clientSession, String warId, String guildId) {
+        this.squadCollection.updateOne(clientSession, combine(eq("_id", guildId), eq("warId", warId)),
+                combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime")));
     }
 
     @Override
-    public void saveWarMatchCancel(GuildSession guildSession, SquadNotification squadNotification) {
-        throw new RuntimeException("Not supported");
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            deleteMatchMake(guildSession.getGuildId(), connection);
-//            updateSquadWarParty(guildSession.getGuildId(), null, null, connection);
-//            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-//            connection.commit();
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to create a new player", ex);
-//        }
+    public void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification) {
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            deleteWarSignUp(session, guildSession.getGuildId());
+            resetWarParty(session, guildSession.getGuildId());
+            setAndSaveGuildNotification(session, guildSession, squadNotification);
+            session.commitTransaction();
+        }
     }
 
-    private void deleteMatchMake(String guildId, Connection connection) {
-        final String matchMakeSql = "delete from MatchMake where guildId = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
-                stmt.setString(1, guildId);
-                stmt.executeUpdate();
-            }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to delete match make for squad id=" + guildId, ex);
-        }
+    private void deleteWarSignUp(ClientSession clientSession, String guildId) {
+        this.warSignUpCollection.deleteOne(clientSession, eq("guildId", guildId));
     }
 
     @Override
     public String matchMake(String guildId) {
         String warId;
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            warId = matchMake(guildId, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create a new player", ex);
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            warId = matchMake(session, guildId);
+            session.commitTransaction();
         }
 
         return warId;
     }
 
-    private String matchMake(String guildId, Connection connection) {
-        final String matchMakeSql = "select m.guildId from MatchMake m where m.guildId != ? ORDER BY RANDOM() LIMIT 1";
-        final String deleteMakeSql = "delete from MatchMake where guildId in (?,?)";
+    private String matchMake(ClientSession session, String guildId) {
+        SquadWar squadWar = null;
+        WarSignUp mySquad = this.warSignUpCollection.findOne(eq("guildId", guildId));
+        if (mySquad != null) {
+            List<Bson> aggregates = Arrays.asList(Aggregates.match(ne("guildId", guildId)),
+                    Aggregates.sample(1));
+            AggregateIterable<WarSignUp> otherSquadIterable = this.warSignUpCollection.aggregate(session, aggregates);
+            if (otherSquadIterable.cursor().hasNext()) {
+                WarSignUp opponent = otherSquadIterable.cursor().next();
+                if (opponent != null) {
+                    DeleteResult deleteResult = this.warSignUpCollection.deleteMany(session,
+                            or(eq("guildId", guildId), eq("guildId", opponent.guildId)));
+
+                    squadWar = this.createWar(session, mySquad, opponent);
+                    this.setSquadWarId(session, mySquad.guildId, squadWar.getWarId());
+                    this.setSquadWarId(session, opponent.guildId, squadWar.getWarId());
+                    this.createWarParticipants(session, squadWar);
+                }
+            }
+        }
 
         String warId = null;
-        try {
-            String rivalId = null;
-            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
-                stmt.setString(1, guildId);
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    rivalId = rs.getString("guildId");
-                }
-            }
-
-            if (rivalId != null) {
-                try (PreparedStatement stmt = connection.prepareStatement(deleteMakeSql)) {
-                    stmt.setString(1, guildId);
-                    stmt.setString(2, rivalId);
-                    stmt.executeUpdate();
-                }
-
-                warId = saveWar(guildId, rivalId, connection);
-                saveSquadWar(guildId, warId, connection);
-                saveSquadWar(rivalId, warId, connection);
-                insertWarParticipants(warId, guildId, rivalId, connection);
-            }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to match make for squad id=" + guildId, ex);
-        }
+        if (squadWar != null)
+            warId = squadWar.getWarId();
 
         return warId;
     }
 
-    private void insertWarParticipants(String warId, String guildId, String rivalId, Connection connection) {
-        final String warParticipantsSql = "insert into WarParticipants (playerId, warId, squadId, warMap, " +
-                "donatedTroops, turns, attacksWon, defensesWon, victoryPoints, score) " +
-                "select p.id, s.warId, s.id, ifnull(p.warMap, p.baseMap), null, 3, 0, 0, 3, 0 " +
-                "from SquadMembers m, Squads s, PlayerSettings p " +
-                "where s.id in (?,?) and s.warId = ? and m.guildId = s.id and m.warParty = 1 and p.id = m.playerId";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
-                stmt.setString(1, guildId);
-                stmt.setString(2, rivalId);
-                stmt.setString(3, warId);
-                stmt.executeUpdate();
-            }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create WarParticipants for war id=" + warId, ex);
-        }
+    private void setSquadWarId(ClientSession clientSession, String guildId, String warId) {
+        UpdateResult result = this.squadCollection.updateOne(clientSession,
+                eq("_id", guildId),
+                set("warId", warId));
     }
 
-    private void saveSquadWar(String guildId, String warId, Connection connection) {
-        final String squadSql = "update Squads " +
-                "set warId = ?, warSignUpTime = null " +
-                "where id = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadSql)) {
-                stmt.setString(1, warId);
-                stmt.setString(2, guildId);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save warId for squadId =" + guildId, ex);
-        }
+    private void createWarParticipants(ClientSession session, SquadWar squadWar) {
+        List<SquadMemberWarData> squadMembersA = createWarParticipants(squadWar.getWarId(), squadWar.getSquadAWarSignUp());
+        List<SquadMemberWarData> squadMembersB = createWarParticipants(squadWar.getWarId(), squadWar.getSquadBWarSignUp());
+        this.squadMemberWarDataCollection.insertMany(session, squadMembersA);
+        this.squadMemberWarDataCollection.insertMany(session, squadMembersB);
     }
 
-    private String saveWar(String guildId, String rivalId, Connection connection) {
-        String warId = ServiceFactory.createRandomUUID();
+    private List<SquadMemberWarData> createWarParticipants(String warId, WarSignUp warSignUp) {
+        List<SquadMemberWarData> squadMembers = new ArrayList<>();
+        for (String playerId : warSignUp.participantIds) {
+            if (!playerId.contains("BOT")) {
+                Player player = this.playerCollection.find(eq("_id", playerId))
+                        .projection(include("playerSettings.warMap", "playerSettings.baseMap",
+                                "playerSettings.name", "playerSettings.hqLevel")).first();
 
-        final String matchMakeSql = "insert into War (warId, squadIdA, squadIdB, " +
-                "prepGraceStartTime, prepEndTime, actionGraceStartTime, actionEndTime, cooldownEndTime) values " +
-                "(?,?,?,?,?,?,?,?)";
+                SquadMemberWarData squadMemberWarData = new SquadMemberWarData();
+                squadMemberWarData.warId = warId;
+                squadMemberWarData.id = playerId;
+                squadMemberWarData.guildId = warSignUp.guildId;
+                squadMemberWarData.turns = 3;
+                squadMemberWarData.victoryPoints = 3;
 
-        Long warMatchedTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
-                stmt.setString(1, warId);
-                stmt.setString(2, guildId);
-                stmt.setString(3, rivalId);
+                PlayerMap playerMap = player.getPlayerSettings().getWarMap();
+                if (playerMap == null)
+                    playerMap = player.getPlayerSettings().getBaseMap();
 
-                // preparation start time - the end of preparation for base
-                // preparation end time (server base prep time)
-                // war start time (2 mins before start)
-                // war end time (1 hour war)
-                // war result prep (2 mins)
-                Config config = ServiceFactory.instance().getConfig();
-                stmt.setLong(4, warMatchedTime += config.warPlayerPreparationDuration);
-                stmt.setLong(5, warMatchedTime += config.warServerPreparationDuration);
-                stmt.setLong(6, warMatchedTime += config.warPlayDuration);
-                stmt.setLong(7, warMatchedTime += config.warResultDuration);
-                stmt.setLong(8, warMatchedTime + config.warCoolDownDuration);
-                stmt.executeUpdate();
+                squadMemberWarData.warMap = playerMap;
+                squadMemberWarData.name = player.getPlayerSettings().getName();
+                squadMemberWarData.level = player.getPlayerSettings().getHqLevel();
+                squadMembers.add(squadMemberWarData);
             }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to create War for squad id=" + guildId, ex);
         }
 
-        return warId;
+        return squadMembers;
+    }
+
+    private SquadWar createWar(ClientSession session, WarSignUp mySquad, WarSignUp opponent) {
+        long warMatchedTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+
+        SquadWar squadWar = new SquadWar();
+        squadWar.setWarId(ServiceFactory.createRandomUUID());
+        squadWar.setSquadIdA(mySquad.guildId);
+        squadWar.setSquadIdB(opponent.guildId);
+        Config config = ServiceFactory.instance().getConfig();
+        squadWar.warMatchedTime = warMatchedTime;
+        squadWar.warMatchedDate = new Date();
+        squadWar.setPrepGraceStartTime(warMatchedTime += config.warPlayerPreparationDuration);
+        squadWar.setPrepEndTime(warMatchedTime += config.warServerPreparationDuration);
+        squadWar.setActionGraceStartTime(warMatchedTime += config.warPlayDuration);
+        squadWar.setActionEndTime(warMatchedTime += config.warResultDuration);
+        squadWar.setCooldownEndTime(warMatchedTime + config.warCoolDownDuration);
+        squadWar.setSquadAWarSignUp(mySquad);
+        squadWar.setSquadBWarSignUp(opponent);
+
+        this.squadWarCollection.insertOne(session, squadWar);
+        return squadWar;
     }
 
     @Override
     public War getWar(String warId) {
-        War war;
-        try (Connection connection = getConnection()) {
-            war = loadWar(warId, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to load war id=" + warId, ex);
-        }
-
-        return war;
-    }
-
-    private War loadWar(String warId, Connection connection) {
-        final String matchMakeSql = "select warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime, " +
-                "actionGraceStartTime, actionEndTime, cooldownEndTime, processedEndTime, squadAScore, squadBScore " +
-                "from War w where w.warId = ?";
-
-        War war = null;
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(matchMakeSql)) {
-                stmt.setString(1, warId);
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    String squadIdA = rs.getString("squadIdA");
-                    String squadIdB = rs.getString("squadIdB");
-                    Long prepGraceStartTime = rs.getLong("prepGraceStartTime");
-                    Long prepEndTime = rs.getLong("prepEndTime");
-                    Long actionGraceStartTime = rs.getLong("actionGraceStartTime");
-                    Long actionEndTime = rs.getLong("actionEndTime");
-                    Long cooldownEndTime = rs.getLong("cooldownEndTime");
-                    long processedEndTime = rs.getLong("processedEndTime");
-                    int squadAScore = rs.getInt("squadAScore");
-                    int squadBScore = rs.getInt("squadBScore");
-                    war = new War(warId, squadIdA, squadIdB, prepGraceStartTime, prepEndTime,
-                            actionGraceStartTime, actionEndTime, cooldownEndTime,
-                            processedEndTime, squadAScore, squadBScore);
-                }
-            }
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to load war id=" + warId, ex);
-        }
-
+        War war = this.squadWarCollection.findOne(eq("_id", warId));
         return war;
     }
 
     @Override
     public SquadMemberWarData loadPlayerWarData(String warId, String playerId) {
-        SquadMemberWarData squadMemberWarData;
-        try (Connection connection = getConnection()) {
-            squadMemberWarData = loadPlayerWarData(warId, playerId, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to load players war data for id=" + playerId, ex);
-        }
+        SquadMemberWarData squadMemberWarData =
+                this.squadMemberWarDataCollection.findOne(combine(eq("warId", warId),
+                        eq("id", playerId)));
 
         return squadMemberWarData;
     }
 
-    private SquadMemberWarData loadPlayerWarData(String warId, String playerId, Connection connection) {
-        final String warParticipantsSql = "select s.warMap, s.donatedTroops, s.victoryPoints, s.turns, s.attacksWon, " +
-                "s.defensesWon, s.score, s.defenseExpirationDate, p.hqLevel, p.id, p.name " +
-                "from WarParticipants s, PlayerSettings p where s.playerId = ? and s.warId = ? and s.playerId = p.id";
-
-        SquadMemberWarData squadMemberWarData = null;
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
-                stmt.setString(1, playerId);
-                stmt.setString(2, warId);
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    squadMemberWarData = mapSquadMemberWarData(warId, rs);
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to load WarParticipants for player id=" + playerId, ex);
-        }
-
-        return squadMemberWarData;
-    }
-
-    private SquadMemberWarData mapSquadMemberWarData(String warId, ResultSet rs) throws Exception {
-        SquadMemberWarData squadMemberWarData = new SquadMemberWarData();
-        squadMemberWarData.id = rs.getString("id");
-        squadMemberWarData.warId = warId;
-        squadMemberWarData.name = rs.getString("name");
-        squadMemberWarData.victoryPoints = rs.getInt("victoryPoints");
-        squadMemberWarData.turns = rs.getInt("turns");
-        squadMemberWarData.attacksWon = rs.getInt("attacksWon");
-        squadMemberWarData.defensesWon = rs.getInt("defensesWon");
-        squadMemberWarData.score = rs.getInt("score");
-        squadMemberWarData.level = rs.getInt("hqLevel");
-        squadMemberWarData.defenseExpirationDate = rs.getLong("defenseExpirationDate");
-
-        String warMap = rs.getString("warMap");
-        if (warMap != null) {
-            squadMemberWarData.warMap = ServiceFactory.instance().getJsonParser()
-                    .fromJsonString(warMap, PlayerMap.class);
-        }
-
-        String donatedTroops = rs.getString("donatedTroops");
-        if (donatedTroops != null) {
-            squadMemberWarData.donatedTroops = ServiceFactory.instance().getJsonParser()
-                    .fromJsonString(donatedTroops, DonatedTroops.class);
-        }
-
-        return squadMemberWarData;
-    }
+//    private SquadMemberWarData mapSquadMemberWarData(String warId, ResultSet rs) throws Exception {
+//        SquadMemberWarData squadMemberWarData = new SquadMemberWarData();
+//        squadMemberWarData.id = rs.getString("id");
+//        squadMemberWarData.warId = warId;
+//        squadMemberWarData.name = rs.getString("name");
+//        squadMemberWarData.victoryPoints = rs.getInt("victoryPoints");
+//        squadMemberWarData.turns = rs.getInt("turns");
+//        squadMemberWarData.attacksWon = rs.getInt("attacksWon");
+//        squadMemberWarData.defensesWon = rs.getInt("defensesWon");
+//        squadMemberWarData.score = rs.getInt("score");
+//        squadMemberWarData.level = rs.getInt("hqLevel");
+//        squadMemberWarData.defenseExpirationDate = rs.getLong("defenseExpirationDate");
+//
+//        String warMap = rs.getString("warMap");
+//        if (warMap != null) {
+//            squadMemberWarData.warMap = ServiceFactory.instance().getJsonParser()
+//                    .fromJsonString(warMap, PlayerMap.class);
+//        }
+//
+//        String donatedTroops = rs.getString("donatedTroops");
+//        if (donatedTroops != null) {
+//            squadMemberWarData.donatedTroops = ServiceFactory.instance().getJsonParser()
+//                    .fromJsonString(donatedTroops, DonatedTroops.class);
+//        }
+//
+//        return squadMemberWarData;
+//    }
 
     @Override
     public List<SquadMemberWarData> getWarParticipants(String guildId, String warId) {
-        List<SquadMemberWarData> squadMemberWarDatums;
-        try (Connection connection = getConnection()) {
-            squadMemberWarDatums = getWarParticipants(warId, guildId, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to load war participants for guild id=" + guildId, ex);
+        FindIterable<SquadMemberWarData> squadMemberWarDataFindIterable =
+                this.squadMemberWarDataCollection.find(combine(eq("guildId", guildId), eq("warId", warId)));
+
+        List<SquadMemberWarData> squadMemberWarDatums = new ArrayList<>();
+        try (MongoCursor<SquadMemberWarData> cursor = squadMemberWarDataFindIterable.cursor()) {
+            while (cursor.hasNext()) {
+                squadMemberWarDatums.add(cursor.next());
+            }
         }
 
         return squadMemberWarDatums;
     }
 
-    private List<SquadMemberWarData> getWarParticipants(String warId, String guildId, Connection connection) {
-        List<SquadMemberWarData> participants = new ArrayList<>();
-
-        final String warParticipantsSql = "select p.warMap, p.donatedTroops, p.victoryPoints, p.turns, p.attacksWon, " +
-                "p.defensesWon, p.score, p.defenseExpirationDate, ps.hqLevel, ps.id, ps.name " +
-                "from WarParticipants p, Squads s, SquadMembers m, PlayerSettings ps where s.id = ? and " +
-                "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
-                stmt.setString(1, guildId);
-                stmt.setString(2, warId);
-                ResultSet rs = stmt.executeQuery();
-                while (rs.next()) {
-                    SquadMemberWarData squadMemberWarData = mapSquadMemberWarData(warId, rs);
-                    participants.add(squadMemberWarData);
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to load WarParticipants for squad id=" + guildId, ex);
-        }
-
-        return participants;
-    }
+//    private List<SquadMemberWarData> getWarParticipants(String warId, String guildId, Connection connection) {
+//        List<SquadMemberWarData> participants = new ArrayList<>();
+//
+//        final String warParticipantsSql = "select p.warMap, p.donatedTroops, p.victoryPoints, p.turns, p.attacksWon, " +
+//                "p.defensesWon, p.score, p.defenseExpirationDate, ps.hqLevel, ps.id, ps.name " +
+//                "from WarParticipants p, Squads s, SquadMembers m, PlayerSettings ps where s.id = ? and " +
+//                "m.guildId = s.id and m.playerId = p.playerId and p.warId = ? and ps.id = p.playerId";
+//
+//        try {
+//            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
+//                stmt.setString(1, guildId);
+//                stmt.setString(2, warId);
+//                ResultSet rs = stmt.executeQuery();
+//                while (rs.next()) {
+//                    SquadMemberWarData squadMemberWarData = mapSquadMemberWarData(warId, rs);
+//                    participants.add(squadMemberWarData);
+//                }
+//            }
+//        } catch (Exception ex) {
+//            throw new RuntimeException("Failed to load WarParticipants for squad id=" + guildId, ex);
+//        }
+//
+//        return participants;
+//    }
 
     @Override
     public void saveWarMap(SquadMemberWarData squadMemberWarData) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            // TODO - save war map
-            //saveWarTroopDonation(squadMemberWarData, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war SquadMemberWarData for player id=" + squadMemberWarData.id, ex);
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            SquadMemberWarData updatedData = this.squadMemberWarDataCollection.findOneAndUpdate(clientSession,
+                    combine(eq("warId", squadMemberWarData.warId),
+                            eq("id", squadMemberWarData.id)),
+                    set("warMap", squadMemberWarData.warMap));
+            clientSession.commitTransaction();
         }
     }
 
     @Override
     public void saveWarTroopDonation(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
                                      SquadNotification squadNotification) {
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            savePlayerSession(playerSession, connection);
-//            saveWarTroopDonation(squadMemberWarData, connection);
-//            setAndSaveGuildNotification(guildSession, squadNotification, connection);
-//            connection.commit();
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save war SquadMemberWarData for player id=" + squadMemberWarData.id, ex);
-//        }
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, clientSession);
+            saveWarTroopDonation(squadMemberWarData, clientSession);
+            setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
+            clientSession.commitTransaction();
+        }
     }
 
-    private void saveWarTroopDonation(SquadMemberWarData squadMemberWarData, Connection connection) {
-        final String warParticipantsSql = "update WarParticipants " +
-                "set warMap = ?," +
-                "donatedTroops = ?," +
-                "victoryPoints = ?," +
-                "turns = ?," +
-                "attacksWon = ?," +
-                "defensesWon = ?," +
-                "score = ? " +
-                "where playerId = ? and warId = ?";
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsSql)) {
-                String warMapJson = null;
-                if (squadMemberWarData.warMap != null)
-                    warMapJson = ServiceFactory.instance().getJsonParser().toJson(squadMemberWarData.warMap);
-
-                String donatedTroopsJson = null;
-                if (squadMemberWarData.donatedTroops != null)
-                    donatedTroopsJson = ServiceFactory.instance().getJsonParser().toJson(squadMemberWarData.donatedTroops);
-
-                stmt.setString(1, warMapJson);
-                stmt.setString(2, donatedTroopsJson);
-                stmt.setInt(3, squadMemberWarData.victoryPoints);
-                stmt.setInt(4, squadMemberWarData.turns);
-                stmt.setInt(5, squadMemberWarData.attacksWon);
-                stmt.setInt(6, squadMemberWarData.defensesWon);
-                stmt.setInt(7, squadMemberWarData.score);
-                stmt.setString(8, squadMemberWarData.id);
-                stmt.setString(9, squadMemberWarData.warId);
-                stmt.executeUpdate();
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to save WarParticipants for player id=" + squadMemberWarData.id, ex);
-        }
+    private void saveWarTroopDonation(SquadMemberWarData squadMemberWarData, ClientSession clientSession) {
+        SquadMemberWarData updatedData = this.squadMemberWarDataCollection.findOneAndUpdate(clientSession,
+                combine(eq("warId", squadMemberWarData.warId),
+                        eq("id", squadMemberWarData.id)),
+                set("donatedTroops", squadMemberWarData.donatedTroops));
     }
 
     @Override
     public AttackDetail warAttackStart(WarSession warSession, String playerId, String opponentId,
                                        SquadNotification attackStartNotification, long time) {
         AttackDetail attackDetail;
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            attackDetail = checkAndCreateWarBattleId(warSession.getWarId(), playerId, opponentId, time, connection);
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            attackDetail = checkAndCreateWarBattleId(session, warSession.getWarId(), playerId, opponentId, time);
             if (attackDetail.getBattleId() != null) {
                 WarNotificationData warNotificationData = (WarNotificationData) attackStartNotification.getData();
                 warNotificationData.setAttackExpirationDate(attackDetail.getExpirationDate());
-                setAndSaveWarNotification(attackDetail, warSession, attackStartNotification, connection);
+                setAndSaveWarNotification(session, attackDetail, warSession, attackStartNotification);
             }
 
             if (attackDetail.getReturnCode() == ResponseHelper.RECEIPT_STATUS_COMPLETE)
-                connection.commit();
+                session.commitTransaction();
             else
-                connection.rollback();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war WarBattleId for player id=" + playerId, ex);
+                session.abortTransaction();
         }
 
         return attackDetail;
@@ -1142,218 +946,97 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                           SquadNotification attackCompleteNotification,
                                           SquadNotification attackReplayNotification,
                                           DefendingWarParticipant defendingWarParticipant, long time) {
-        AttackDetail attackDetail = null;
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//
-//            // calculate how many stars earned in the attack
-//            int victoryPointsRemaining = defendingWarParticipant.getVictoryPoints();
-//            int victoryPointsEarned = (3 - victoryPointsRemaining) - battleReplay.battleLog.stars;
-//            if (victoryPointsEarned < 0)
-//                victoryPointsEarned = Math.abs(victoryPointsEarned);
-//            else
-//                victoryPointsEarned = 0;
-//
-//            attackDetail = saveAndUpdateWarBattle(warSession.getWarId(), playerSession, battleReplay,
-//                    victoryPointsEarned, connection);
-//
-//            if (attackDetail.getReturnCode() == ResponseHelper.RECEIPT_STATUS_COMPLETE) {
-//                savePlayerSession(playerSession, connection);
-//                WarNotificationData warNotificationData = (WarNotificationData) attackCompleteNotification.getData();
-//                warNotificationData.setStars(battleReplay.battleLog.stars);
-//                warNotificationData.setVictoryPoints(victoryPointsEarned);
-//                setAndSaveWarNotification(attackDetail, warSession, attackCompleteNotification, connection);
-//                setAndSaveWarNotification(attackDetail, warSession, attackReplayNotification, connection);
-//                saveWarBattle(battleReplay, warSession.getWarId(), time, connection);
-//                connection.commit();
-//            } else {
-//                connection.rollback();
-//            }
-//        } catch (SQLException ex) {
-//            throw new RuntimeException("Failed to save war attack complete for player id=" + playerSession.getPlayerId(), ex);
-//        }
+        AttackDetail attackDetail;
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+
+            // calculate how many stars earned in the attack
+            int victoryPointsRemaining = defendingWarParticipant.getVictoryPoints();
+            int victoryPointsEarned = (3 - victoryPointsRemaining) - battleReplay.battleLog.stars;
+            if (victoryPointsEarned < 0)
+                victoryPointsEarned = Math.abs(victoryPointsEarned);
+            else
+                victoryPointsEarned = 0;
+
+            attackDetail = saveAndUpdateWarBattle(session, warSession.getWarId(), battleReplay, victoryPointsEarned);
+
+            if (attackDetail.getReturnCode() == ResponseHelper.RECEIPT_STATUS_COMPLETE) {
+                savePlayerSettings(playerSession, session);
+                WarNotificationData warNotificationData = (WarNotificationData) attackCompleteNotification.getData();
+                warNotificationData.setStars(battleReplay.battleLog.stars);
+                warNotificationData.setVictoryPoints(victoryPointsEarned);
+                setAndSaveWarNotification(session, attackDetail, warSession, attackCompleteNotification);
+                setAndSaveWarNotification(session, attackDetail, warSession, attackReplayNotification);
+                saveBattleReplay(session, battleReplay);
+                session.commitTransaction();
+            } else {
+                session.abortTransaction();
+            }
+        }
 
         return attackDetail;
-    }
-
-
-    private void saveWarBattle(BattleReplay battleReplay, String warId, long time, Connection connection) {
-        final String squadMemberSql = "insert into WarBattles (warId, battleId, attackerId, defenderId, battleResponse, battleCompleteTime) values " +
-                "(?, ?, ?, ?, ?, ?)";
-        saveBattle(connection, battleReplay.battleLog.battleId, BattleType.PvpAttackSquadWar, battleReplay.battleLog.attacker.playerId, battleReplay.battleLog.defender.playerId);
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(squadMemberSql)) {
-                stmt.setString(1, warId);
-                stmt.setString(2, battleReplay.battleLog.battleId);
-                stmt.setString(3, battleReplay.battleLog.attacker.playerId);
-                stmt.setString(4, battleReplay.battleLog.defender.playerId);
-                String responseJson = ServiceFactory.instance().getJsonParser().toJson(battleReplay);
-                stmt.setString(5, responseJson);
-                stmt.setLong(6, time);
-                stmt.executeUpdate();
-            }
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war battle for battleId=" + battleReplay.battleLog.battleId, ex);
-        }
     }
 
     @Override
     public DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId) {
-        DefendingWarParticipant defendingWarParticipant;
-        try (Connection connection = getConnection()) {
-            defendingWarParticipant = getDefendingWarParticipantByBattleId(battleId, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to get defending war participant by battleId=" + battleId, ex);
-        }
+        SquadMemberWarData squadMemberWarData =
+                this.squadMemberWarDataCollection.findOne(eq("defenseBattleId", battleId),
+                        include("id", "victoryPoints"));
+
+        if (squadMemberWarData == null)
+            throw new RuntimeException("unable to find battleId in WarParticipants " + battleId);
+
+        DefendingWarParticipant defendingWarParticipant =
+                new DefendingWarParticipant(squadMemberWarData.id, squadMemberWarData.victoryPoints);
 
         return defendingWarParticipant;
     }
 
-    @Override
-    public WarBattle getWarBattle(String battleId) {
-        WarBattle warBattle;
-        try (Connection connection = getConnection()) {
-            warBattle = getWarBattle(battleId, connection);
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to get war battle by battleId=" + battleId, ex);
-        }
-
-        return warBattle;
-    }
-
-    private WarBattle getWarBattle(String battleId, Connection connection) {
-        final String warBattlesSql = "select warId, battleId, attackerId, defenderId, battleResponse, battleCompleteTime " +
-                "from WarBattles w " +
-                "where w.battleId = ?";
-
-        WarBattle warBattle = null;
-
-        try {
-            try (PreparedStatement stmt = connection.prepareStatement(warBattlesSql)) {
-                stmt.setString(1, battleId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        String warId = rs.getString("warId");
-                        String attackerId = rs.getString("attackerId");
-                        String defenderId = rs.getString("defenderId");
-                        String battleResponseJson = rs.getString("battleResponse");
-                        BattleReplay battleReplay = ServiceFactory.instance().getJsonParser()
-                                .fromJsonString(battleResponseJson, BattleReplay.class);
-
-                        long battleCompleteTime = rs.getLong("battleCompleteTime");
-                        warBattle = new WarBattle(battleId, attackerId, defenderId, battleReplay, battleCompleteTime);
-                    }
-                }
-            }
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to getDefendingWarParticipantByBattleId for player id=" + battleId, ex);
-        }
-
-        return warBattle;
-    }
-
-    private DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId, Connection connection) {
-        final String warParticipantsDefenseSql = "select playerId, victoryPoints " +
-                "from WarParticipants w " +
-                "where w.defenseBattleId = ?";
-
-        DefendingWarParticipant defendingWarParticipant;
-
-        try {
-            String opponentId = null;
-            int victoryPoints = 0;
-            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsDefenseSql)) {
-                stmt.setString(1, battleId);
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        opponentId = rs.getString("playerId");
-                        victoryPoints = rs.getInt("victoryPoints");
-                    }
-                }
-            }
-
-            if (opponentId == null)
-                throw new RuntimeException("unable to find battleId in WarParticipants " + battleId);
-
-            defendingWarParticipant = new DefendingWarParticipant(opponentId, victoryPoints);
-
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to getDefendingWarParticipantByBattleId for player id=" + battleId, ex);
-        }
-
-        return defendingWarParticipant;
-    }
-
-    private AttackDetail saveAndUpdateWarBattle(String warId, PlayerSession playerSession,
+    private AttackDetail saveAndUpdateWarBattle(ClientSession clientSession, String warId,
                                                 BattleReplay battleReplay,
-                                                int victoryPointsEarned, Connection connection) {
-        final String warParticipantsDefenseSql = "update WarParticipants " +
-                "set defenseBattleId = null, defenseExpirationDate = null, victoryPoints = victoryPoints - ? " +
-                "where warId = ? and defenseBattleId = ?";
+                                                int victoryPointsEarned)
+    {
+        SquadMemberWarData defenderMemberWarData =
+                this.squadMemberWarDataCollection.findOneAndUpdate(clientSession, combine(eq("warId", warId),
+                                eq("defenseBattleId", battleReplay.getBattleId())),
+                        combine(unset("defenseBattleId"),
+                                unset("defenseExpirationDate"),
+                                inc("victoryPoints", -1 * victoryPointsEarned)));
 
-        final String warParticipantsAttackSql = "update WarParticipants " +
-                "set attackBattleId = null, attackExpirationDate = null, score = score + ? " +
-                "where warId = ? and attackBattleId = ?";
+        boolean updated = defenderMemberWarData != null;
 
-        AttackDetail attackDetail;
-        try {
-            boolean updated = false;
+        if (updated) {
+            SquadMemberWarData attackerMemberWarData =
+                    this.squadMemberWarDataCollection.findOneAndUpdate(clientSession, combine(eq("warId", warId),
+                                    eq("attackBattleId", battleReplay.getBattleId())),
+                            combine(unset("attackBattleId"),
+                                    unset("attackExpirationDate"),
+                                    inc("score", victoryPointsEarned)));
 
-            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsDefenseSql)) {
-                stmt.setInt(1, victoryPointsEarned);
-                stmt.setString(2, warId);
-                stmt.setString(3, battleReplay.battleLog.battleId);
-                if (stmt.executeUpdate() == 1)
-                    updated = true;
-            }
-
-            if (updated) {
-                updated = false;
-                try (PreparedStatement stmt = connection.prepareStatement(warParticipantsAttackSql)) {
-                    stmt.setInt(1, victoryPointsEarned);
-                    stmt.setString(2, warId);
-                    stmt.setString(3, battleReplay.battleLog.battleId);
-                    if (stmt.executeUpdate() == 1)
-                        updated = true;
-                }
-            }
-
-            int response = ResponseHelper.RECEIPT_STATUS_COMPLETE;
-
-            // TODO - not sure what to send back yet
-            if (!updated)
-                response = ResponseHelper.STATUS_CODE_NOT_MODIFIED;
-
-            attackDetail = new AttackDetail(response);
-
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to saveAndUpdateWarBattle for player id=" + playerSession.getPlayerId(), ex);
+            updated = attackerMemberWarData != null;
         }
 
+        int response = ResponseHelper.RECEIPT_STATUS_COMPLETE;
+
+        // TODO - not sure what to send back yet
+        if (!updated)
+            response = ResponseHelper.STATUS_CODE_NOT_MODIFIED;
+
+        AttackDetail attackDetail = new AttackDetail(response);
         return attackDetail;
     }
 
-    private void setAndSaveWarNotification(WarNotification warNotification, WarSession warSession,
-                                           SquadNotification squadNotification, Connection connection) {
+    private void setAndSaveWarNotification(ClientSession clientSession, WarNotification warNotification, WarSession warSession,
+                                           SquadNotification squadNotification) {
         synchronized (warSession) {
             GuildSession guildSessionA = warSession.getGuildASession();
             squadNotification.setDate(0);
-            setAndSaveGuildNotification(guildSessionA, squadNotification, connection);
+            setAndSaveGuildNotification(clientSession, guildSessionA, squadNotification);
             warNotification.setGuildANotificationDate(squadNotification.getDate());
             GuildSession guildSessionB = warSession.getGuildBSession();
             squadNotification.setDate(0);
-            setAndSaveGuildNotification(guildSessionB, squadNotification, connection);
+            setAndSaveGuildNotification(clientSession, guildSessionB, squadNotification);
             warNotification.setGuildBNotificationDate(squadNotification.getDate());
-        }
-    }
-
-    private void setAndSaveGuildNotification(GuildSession guildSession, SquadNotification squadNotification, Connection connection) {
-        synchronized (guildSession) {
-            if (squadNotification.getDate() == 0)
-                squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
-            String guildId = guildSession.getGuildId();
-            saveNotification(guildId, squadNotification, connection);
         }
     }
 
@@ -1361,6 +1044,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         synchronized (guildSession) {
             if (squadNotification.getDate() == 0)
                 squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+            // have to reset the ID otherwise a shared notification saving to mongo will fail
+            squadNotification.setId(ServiceFactory.createRandomUUID());
+            squadNotification.setGuildId(guildSession.getGuildId());
+            squadNotification.setGuildName(guildSession.getGuildName());
             saveNotification(clientSession, squadNotification);
         }
     }
@@ -1369,74 +1056,46 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.squadNotificationCollection.insertOne(clientSession, squadNotification);
     }
 
-    private AttackDetail checkAndCreateWarBattleId(String warId, String playerId, String opponentId, long time, Connection connection) {
-
-        final String warParticipantsDefenderSql = "update WarParticipants " +
-                "set defenseBattleId = ?, defenseExpirationDate = ? " +
-                "where warId = ? and playerId = ? and victoryPoints > 0 and " +
-                "(defenseBattleId is null or ? > defenseExpirationDate + ?) " +
-                "returning defenseBattleId, defenseExpirationDate";
-
-        final String warParticipantsAttackerSql = "update WarParticipants " +
-                "set turns = turns - 1, attackBattleId = ?, attackExpirationDate = ? " +
-                "where warId = ? and playerId = ? and turns > 0";
-
-        final String warDefenseSql = "select victoryPoints, defenseExpirationDate " +
-                "from WarParticipants w " +
-                "where w.warId = ? and w.playerId = ?";
-
+    private AttackDetail checkAndCreateWarBattleId(ClientSession session, String warId, String playerId, String opponentId, long time) {
         AttackDetail attackDetail = null;
 
         try {
             String defenseBattleId = ServiceFactory.createRandomUUID();
             long defenseExpirationDate = ServiceFactory.getSystemTimeSecondsFromEpoch() +
                     ServiceFactory.instance().getConfig().attackDuration;
-            try (PreparedStatement stmt = connection.prepareStatement(warParticipantsDefenderSql)) {
-                stmt.setString(1, defenseBattleId);
-                stmt.setLong(2, defenseExpirationDate);
-                stmt.setString(3, warId);
-                stmt.setString(4, opponentId);
-                stmt.setLong(5, time);
-                stmt.setLong(6, 10);                        // 10 extra seconds before reopening up base
-                try (ResultSet rs = stmt.executeQuery()) {
-                    if (rs.next()) {
-                        String battleId = rs.getString("defenseBattleId");
-                        defenseExpirationDate = rs.getLong("defenseExpirationDate");
-                        attackDetail = new AttackDetail(battleId, defenseExpirationDate);
-                    }
-                }
+
+            // TODO - change this to findOneAndUpdate
+            Bson defenseMatch = and(eq("warId", warId), eq("id", opponentId),
+                    gt("victoryPoints", 0),
+                    or(exists("defenseBattleId", false), lt("defenseExpirationDate", time - 10)));
+            UpdateResult result = this.squadMemberWarDataCollection.updateOne(session, defenseMatch,
+                    combine(set("defenseBattleId", defenseBattleId), set("defenseExpirationDate", defenseExpirationDate)));
+
+            if (result.getMatchedCount() == 1) {
+                attackDetail = new AttackDetail(defenseBattleId, defenseExpirationDate);
             }
 
             if (attackDetail != null) {
-                try (PreparedStatement stmt = connection.prepareStatement(warParticipantsAttackerSql)) {
-                    stmt.setString(1, defenseBattleId);
-                    stmt.setLong(2, defenseExpirationDate);
-                    stmt.setString(3, warId);
-                    stmt.setString(4, playerId);
-                    int updatedRows = stmt.executeUpdate();
-                    if (updatedRows != 1) {
-                        attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_NOT_ENOUGH_TURNS);
-                    }
+                Bson attackerMatch = and(eq("warId", warId), eq("id", playerId),
+                        gt("turns", 0));
+                UpdateResult updatePlayersTurns = this.squadMemberWarDataCollection.updateOne(session, attackerMatch,
+                        combine(set("attackBattleId", defenseBattleId),
+                                set("attackExpirationDate", defenseExpirationDate),
+                                inc("turns", -1)));
+
+                // if not changed then ran out of turns
+                if (updatePlayersTurns.getMatchedCount() != 1) {
+                    attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_NOT_ENOUGH_TURNS);
                 }
             } else {
                 // no battle id generated means it is getting attacked by someone already
-                int victoryPoints = -1;
-
-                try (PreparedStatement stmt = connection.prepareStatement(warDefenseSql)) {
-                    stmt.setString(1, warId);
-                    stmt.setString(2, opponentId);
-                    try (ResultSet rs = stmt.executeQuery()) {
-                        if (rs.next()) {
-                            victoryPoints = rs.getInt("victoryPoints");
-                            defenseExpirationDate = rs.getLong("defenseExpirationDate");
-                        }
-                    }
-                }
+                SquadMemberWarData opponentData = this.squadMemberWarDataCollection.findOne(combine(eq("warId", warId),
+                        eq("id", opponentId)), include("id", "victoryPoints", "defenseExpirationDate"));
 
                 // base has been cleared
-                if (victoryPoints == 0) {
+                if (opponentData.victoryPoints == 0) {
                     attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_NOT_ENOUGH_VICTORY_POINTS);
-                } else if (time > defenseExpirationDate) {
+                } else if (time > opponentData.defenseExpirationDate) {
                     // TODO - give a grace time on when to decide to unlock this base as possible client crash
                     System.out.println("WarBase is still being attacked but expiry time has finished, maybe client crashed?");
                     attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_BASE_UNDER_ATTACK);
@@ -1454,51 +1113,25 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void deleteWarForSquads(War war) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            deleteWarForSquads(war, connection);
-            connection.commit();
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to remove squads from warId=" + war.getWarId(), ex);
-        }
-    }
-
-    private void deleteWarForSquads(War war, Connection connection) throws Exception {
-        final String squadsSql = "update Squads " +
-                "set warId = null, warSignUpTime = null " +
-                "where warId = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
-            stmt.setString(1, war.getWarId());
-            stmt.executeUpdate();
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            this.squadCollection.updateMany(eq("warId", war.getWarId()), combine(unset("warId"), unset("warSignUpTime")));
+            session.commitTransaction();
         }
     }
 
     @Override
     public void saveWar(War war) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            saveWar(war, connection);
-            connection.commit();
-        } catch (Exception ex) {
-            throw new RuntimeException("Failed to save war from warId=" + war.getWarId(), ex);
-        }
-    }
-
-    private void saveWar(War war, Connection connection) throws Exception {
-        final String squadsSql = "update War " +
-                "set prepGraceStartTime = ?, prepEndTime = ?, actionGraceStartTime = ?, actionEndTime = ?, cooldownEndTime = ?, processedEndTime = ? " +
-                "where warId = ?";
-
-        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
-            stmt.setLong(1, war.getPrepGraceStartTime());
-            stmt.setLong(2, war.getPrepEndTime());
-            stmt.setLong(3, war.getActionGraceStartTime());
-            stmt.setLong(4, war.getActionEndTime());
-            stmt.setLong(5, war.getCooldownEndTime());
-            stmt.setLong(6, war.getProcessedEndTime());
-            stmt.setString(7, war.getWarId());
-            stmt.executeUpdate();
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            this.squadWarCollection.updateOne(session, eq("_id", war.getWarId()),
+                    combine(set("prepGraceStartTime", war.getPrepGraceStartTime()),
+                            set("prepEndTime", war.getPrepEndTime()),
+                            set("actionGraceStartTime", war.getActionGraceStartTime()),
+                            set("actionEndTime", war.getActionEndTime()),
+                            set("cooldownEndTime", war.getCooldownEndTime()),
+                            set("processedEndTime", war.getProcessedEndTime())));
+            session.commitTransaction();
         }
     }
 
@@ -1521,12 +1154,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public WarNotification warPrepared(WarSessionImpl warSession, String warId, SquadNotification warPreparedNotification) {
         WarNotification warNotification = new WarNotification();
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            setAndSaveWarNotification(warNotification, warSession, warPreparedNotification, connection);
-            connection.commit();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to save war notification for war id=" + warId, ex);
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            setAndSaveWarNotification(session, warNotification, warSession, warPreparedNotification);
+            session.commitTransaction();
         }
 
         return warNotification;
@@ -1595,18 +1226,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return buildings;
     }
 
-//    public void saveNewPvPBattle(PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
-//        try (Connection connection = getConnection()) {
-//            connection.setAutoCommit(false);
-//            saveBattle(connection, match.getBattleId(), BattleType.Pvp, match.getPlayerId(), match.getParticipantId());
-//            saveBattleBaseData(connection, pvpBattle, match, battleLog);
-//            saveReplayData(connection, pvpBattle);
-//            connection.commit();
-//        } catch (Exception e) {
-//            throw new RuntimeException(e);
-//        }
-//    }
-
     @Override
     public void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay) {
         try (ClientSession session = this.mongoClient.startSession()) {
@@ -1615,122 +1234,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             // TODO - to save defenders settings
             saveBattleReplay(session, battleReplay);
             session.commitTransaction();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
     }
 
     private void saveBattleReplay(ClientSession session, BattleReplay battleReplay) {
         this.battleReplayCollection.insertOne(session, battleReplay);
-    }
-
-    private void saveBattle(Connection connection, String battleId, BattleType battleType, String playerId, String participantId) {
-        String insertNewMasterBattle = "insert into BattlesMaster (battleId, battleType, playerId, participantId)" +
-                "values (?, ?, ?, ?)";
-
-        try (PreparedStatement preparedStatement = connection.prepareStatement(insertNewMasterBattle)) {
-            preparedStatement.setString(1, battleId);
-            preparedStatement.setString(2, battleType.name());
-            preparedStatement.setString(3, playerId);
-            preparedStatement.setString(4, participantId);
-            preparedStatement.executeUpdate();
-
-        } catch (SQLException ex) {
-            throw new RuntimeException("Error saving master battle data", ex);
-        }
-    }
-
-    private void saveReplayData(Connection connection, PlayerPvpBattleComplete pvpBattle) {
-        String insertNewPvPBattleReplay = "insert into PvpBattles_ReplayData (BattleId, combatEncounter, battleActions, attackerDeploymentData,\n" + "                                   defenderDeploymentData, lootCreditsAvailable, lootMaterialsAvailable,\n" + "                                   lootContrabandAvailable, lootBuildingCreditsMap, lootBuildingMaterialsMap,\n" + "                                   lootBuildingContrabandMap, battleType, battleLength, lowFPS, lowFPSTime,\n" + "                                   battleVersion, planetId, manifestVersion, battleAttributes, victoryConditions,\n" + "                                   failureCondition, donatedTroops, donatedTroopsAttacker, champions, disabledBuildings,\n" + "                                   simSeedA, simSeedB, viewTimePreBattle, attackerCreatureTraps, defenderCreatureTraps)\n" + "values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-        try (PreparedStatement stmt = connection.prepareStatement(insertNewPvPBattleReplay)) {
-            stmt.setString(1, pvpBattle.getBattleId());
-            stmt.setString(2, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().combatEncounter));
-            stmt.setString(3, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().battleActions));
-            stmt.setString(4, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().attackerDeploymentData));
-            stmt.setString(5, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().defenderDeploymentData));
-            stmt.setLong(6, pvpBattle.getReplayData().lootCreditsAvailable);
-
-            stmt.setLong(7, pvpBattle.getReplayData().lootMaterialsAvailable);
-            stmt.setLong(8, pvpBattle.getReplayData().lootContrabandAvailable);
-            stmt.setString(9, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingCreditsMap));
-            stmt.setString(10, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingMaterialsMap));
-            stmt.setString(11, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().lootBuildingContrabandMap));
-
-            stmt.setString(12, pvpBattle.getReplayData().battleType.name());
-            stmt.setLong(13, pvpBattle.getReplayData().battleLength);
-            stmt.setLong(14, pvpBattle.getReplayData().lowFPS);
-            stmt.setLong(15, pvpBattle.getReplayData().lowFPSTime);
-            stmt.setString(16, pvpBattle.getReplayData().battleVersion);
-
-            stmt.setString(17, pvpBattle.getReplayData().planetId);
-            stmt.setString(18, pvpBattle.getReplayData().manifestVersion);
-            stmt.setString(19, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().battleAttributes));
-            stmt.setString(20, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().victoryConditions));
-            stmt.setString(21, pvpBattle.getReplayData().failureCondition);
-
-            stmt.setString(22, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().donatedTroops));
-            stmt.setString(23, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().donatedTroopsAttacker));
-            stmt.setString(24, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().champions));
-            stmt.setString(25, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().disabledBuildings));
-            stmt.setLong(26, pvpBattle.getReplayData().simSeedA);
-
-            stmt.setLong(27, pvpBattle.getReplayData().simSeedB);
-            stmt.setDouble(28, pvpBattle.getReplayData().viewTimePreBattle);
-            stmt.setString(29, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().attackerCreatureTraps));
-            stmt.setString(30, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData().defenderCreatureTraps));
-            stmt.executeUpdate();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to add new battle Replay", ex);
-        }
-    }
-
-    private void saveBattleBaseData(Connection connection, PlayerPvpBattleComplete pvpBattle, PvpMatch match, BattleLog battleLog) {
-        String insertNewBattle = "insert into PvpBattleData (" +
-                "battleId," +
-                " cs, " +
-                "_credits, " +
-                "_materials, " +
-                "_contraband, " +
-                "_crystals," +
-                "seededTroopsDeployed, " +
-                "damagedBuildings, " +
-                "unarmedTraps, " +
-                "baseDamagePercent,  " +
-                "stars, " +
-                "isUserEnded, " +
-                "planetId, " +
-                "attackerId, " +
-                "participantId, " +
-                "battleDate," +
-                "BattleLog," +
-                "ReplayData) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)";
-
-        PreparedStatement stmt = null;
-        try {
-            stmt = connection.prepareStatement(insertNewBattle);
-            stmt.setString(1, pvpBattle.getBattleId());
-            stmt.setLong(2, pvpBattle.getCs());
-            stmt.setInt(3, pvpBattle.getCredits());
-            stmt.setInt(4, pvpBattle.getMaterials());
-            stmt.setInt(5, pvpBattle.getContraband());
-            stmt.setInt(6, pvpBattle.getCrystals());
-            stmt.setString(7, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getSeededTroopsDeployed()));
-            stmt.setString(8, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getDamagedBuildings()));
-            stmt.setString(9, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getUnarmedTraps()));
-            stmt.setInt(10, pvpBattle.getBaseDamagePercent());
-            stmt.setInt(11, pvpBattle.getStars());
-            stmt.setBoolean(12, pvpBattle.isUserEnded());
-            stmt.setString(13, pvpBattle.getPlanetId());
-            stmt.setString(14, pvpBattle.getPlayerId());
-            stmt.setString(15, match.getParticipantId());
-            stmt.setLong(16, match.getBattleDate());
-            stmt.setString(17, ServiceFactory.instance().getJsonParser().toJson(battleLog));
-            stmt.setString(18, ServiceFactory.instance().getJsonParser().toJson(pvpBattle.getReplayData()));
-            stmt.executeUpdate();
-        } catch (SQLException ex) {
-            throw new RuntimeException("Failed to add new battle data", ex);
-        }
     }
 
     @Override
@@ -1750,8 +1258,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 battleLogs.add(battleReplay.battleLog);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
-            throw new RuntimeException("Failed to get DB connection when retrieving playerbattlelogs");
+            throw new RuntimeException("Failed to get DB connection when retrieving playerbattlelogs", ex);
         }
 
         return battleLogs;
@@ -1764,59 +1271,56 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     public War processWarEnd(String warId, String squadIdA, String squadIdB) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            checkAndProcessWarEnd(warId, squadIdA, squadIdB, connection);
-            connection.commit();
-            return this.loadWar(warId, connection);
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
-    }
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
 
-    private void checkAndProcessWarEnd(String warId, String squadIdA, String squadIdB, Connection connection) throws Exception
-    {
-        final String squadsSql = "update War " +
-                "set processedEndTime = ?, " +
-                "squadAScore = (select sum(score) from WarParticipants w where w.warId = War.warId and w.squadId = War.squadIdA), " +
-                "squadBScore = (select sum(score) from WarParticipants w where w.warId = War.warId and w.squadId = War.squadIdA) " +
-                "where warId = ? and (processedEndTime is null or processedEndTime = 0)";
+            SquadTotalScore squadAScore = null;
+            SquadTotalScore squadBScore = null;
 
-        long time = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
-            stmt.setLong(1, time);
-            stmt.setString(2, warId);
-            int updated = stmt.executeUpdate();
+            // TODO - find out how to do this properly using mongo driver instead of mongojack
+            Aggregation.Pipeline<?> pipeline = Aggregation.match(DBQuery.is("warId", warId)).group("guildId")
+                    .set("totalScore", Aggregation.Group.sum("score"));
+            AggregateIterable<SquadTotalScore> squadMemberWarData =
+                    this.squadMemberWarDataCollection.aggregate(session, pipeline, SquadTotalScore.class);
 
-            if (updated == 1) {
-                clearWarParty(squadIdA, connection);
-                clearWarParty(squadIdB, connection);
+            try (MongoCursor<SquadTotalScore> cursor = squadMemberWarData.cursor()) {
+                while (cursor.hasNext()) {
+                    SquadTotalScore squadTotalScore = cursor.next();
+                    if (squadIdA.equals(squadTotalScore.guildId))
+                        squadAScore = squadTotalScore;
+                    else if (squadIdB.equals(squadTotalScore.guildId))
+                        squadBScore = squadTotalScore;
+                }
             }
+
+            if (squadAScore == null || squadBScore == null)
+                throw new RuntimeException("Failed to sum up squad war scores");
+
+            long time = ServiceFactory.getSystemTimeSecondsFromEpoch();
+            UpdateResult result = this.squadWarCollection.updateOne(session, combine(eq("_id", warId)),
+                    combine(set("processedEndTime", time),
+                            set("squadAScore", squadAScore.totalScore),
+                            set("squadBScore", squadBScore.totalScore)));
+
+            if (result.getMatchedCount() == 1) {
+                clearWarParty(session, warId, squadIdA);
+                clearWarParty(session, warId, squadIdB);
+            }
+
+            session.commitTransaction();
         }
+
+        return this.getWar(warId);
     }
 
     @Override
     public void resetWarPartyForParticipants(String warId) {
-        try (Connection connection = getConnection()) {
-            connection.setAutoCommit(false);
-            setWarPartySquadMembers(warId, connection);
-            connection.commit();
-        } catch (Exception exception) {
-            throw new RuntimeException(exception);
-        }
-    }
-
-    private void setWarPartySquadMembers(String warId, Connection connection) throws Exception
-    {
-        final String squadsSql = "update SquadMembers " +
-                                 "set warParty = 1 " +
-                                 "where exists (select 1 " +
-                                                "from WarParticipants where SquadMembers.playerId = WarParticipants.playerId " +
-                                                "and SquadMembers.guildId = WarParticipants.squadId and WarParticipants.warId = ?)";
-
-        try (PreparedStatement stmt = connection.prepareStatement(squadsSql)) {
-            stmt.setString(1, warId);
-            int updated = stmt.executeUpdate();
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            SquadWar squadWar = this.squadWarCollection.findOne(eq("_id", warId));
+            setSquadWarParty(session, squadWar.getSquadIdA(), squadWar.getSquadAWarSignUp().participantIds, squadWar.getSquadAWarSignUp().time);
+            setSquadWarParty(session, squadWar.getSquadIdB(), squadWar.getSquadBWarSignUp().participantIds, squadWar.getSquadBWarSignUp().time);
+            session.commitTransaction();
         }
     }
 

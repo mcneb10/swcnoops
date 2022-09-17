@@ -49,9 +49,9 @@ public interface PlayerDataSource {
 
     List<Squad> searchGuildByName(String searchTerm);
 
-    void saveWarMatchMake(FactionType faction, GuildSession guildId, List<String> participantIds, SquadNotification squadNotification, long time);
+    void saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, SquadNotification squadNotification, long time);
 
-    void saveWarMatchCancel(GuildSession guildSession, SquadNotification squadNotification);
+    void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification);
 
     String matchMake(String guildId);
 
@@ -81,9 +81,6 @@ public interface PlayerDataSource {
                                    SquadNotification attackCompleteNotification, SquadNotification attackReplayNotification, DefendingWarParticipant defendingWarParticipant, long time);
 
     DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);
-
-    WarBattle getWarBattle(String battleId);
-
 
     HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession);
 

@@ -17,18 +17,17 @@ public class SquadNotification {
     public SquadNotification() {
     }
 
-    public SquadNotification(String guildId, String guildName, String id, String message, String name, String playerId, SquadMsgType type)
+    public SquadNotification(String guildId, String guildName, String message, String name, String playerId, SquadMsgType type)
     {
-        this(guildId, guildName, 0, id, message, name, playerId, type, null);
+        this(guildId, guildName, 0, message, name, playerId, type, null);
     }
 
-    public SquadNotification(String guildId, String guildName, long date, String id, String message,
+    public SquadNotification(String guildId, String guildName, long date, String message,
                              String name, String playerId, SquadMsgType type, SquadNotificationData data)
     {
         this.guildId = guildId;
         this.guildName = guildName;
         this.date = date;
-        this.id = id;
         this.message = message;
         this.name = name;
         this.playerId = playerId;
@@ -90,5 +89,17 @@ public class SquadNotification {
 
     public void setMessage(String message) {
         this.message = message;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public void setGuildId(String guildId) {
+        this.guildId = guildId;
+    }
+
+    public void setGuildName(String guildName) {
+        this.guildName = guildName;
     }
 }
