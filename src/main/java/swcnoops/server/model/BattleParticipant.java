@@ -1,29 +1,16 @@
 package swcnoops.server.model;
 
-import com.google.gson.annotations.SerializedName;
-
 public class BattleParticipant {
-    @SerializedName("playerId")
     public String playerId;
-    @SerializedName("name")
     public String name;
-    @SerializedName("guildId")
     public String guildId;
-    @SerializedName("guildName")
     public String guildName;
-    @SerializedName("attackRating")
     public int attackRating;
-    @SerializedName("attackRatingDelta")
     public int attackRatingDelta;
-    @SerializedName("defenseRating")
     public int defenseRating;
-    @SerializedName("defenseRatingDelta")
     public int defenseRatingDelta;
-    @SerializedName("tournamentRating")
     public int tournamentRating;
-    @SerializedName("tournamentRatingDelta")
     public int tournamentRatingDelta;
-    @SerializedName("faction")
     public FactionType faction;
 
     public BattleParticipant(){

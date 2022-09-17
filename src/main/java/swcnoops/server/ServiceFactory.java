@@ -7,7 +7,6 @@ import swcnoops.server.datasource.PlayerDatasourceImpl;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.GameDataManagerImpl;
-import swcnoops.server.json.GsonJsonParser;
 import swcnoops.server.json.JacksonJsonParser;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.Building;
@@ -114,11 +113,7 @@ public class ServiceFactory {
         newInstance.commandTriggerProcessor = new CommandTriggerProcessorImpl();
         newInstance.authenticationServer = new AuthenticationService();
         newInstance.batchResponseReplayer = new BatchResponseReplayer();
-
-        if (config.jsonParse == Config.JsonParser.Jackson)
-            newInstance.jsonParser = new JacksonJsonParser();
-        else
-            newInstance.jsonParser = new GsonJsonParser();
+        newInstance.jsonParser = new JacksonJsonParser();
 
         return newInstance;
     }

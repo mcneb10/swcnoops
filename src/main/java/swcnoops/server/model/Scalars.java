@@ -1,27 +1,15 @@
 package swcnoops.server.model;
 
-import com.google.gson.annotations.SerializedName;
-
 public class Scalars {
-    @SerializedName("attacksLost")
     public int attacksLost;
-    @SerializedName("attacksWon")
     public int attacksWon;
-    @SerializedName("defensesLost")
     public int defensesLost;
-    @SerializedName("defensesWon")
     public int defensesWon;
-    @SerializedName("attacksStarted")
     public int attacksStarted;
-    @SerializedName("attacksCompleted")
     public int attacksCompleted;
-    @SerializedName("attackRating")
     public int attackRating;
-    @SerializedName("defenseRating")
     public int defenseRating;
-    @SerializedName("xp")
     public int xp;
-    @SerializedName("softCash")
     public int softCash;
 
     public Scalars() {

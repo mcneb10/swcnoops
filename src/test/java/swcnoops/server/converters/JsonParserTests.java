@@ -3,7 +3,6 @@ package swcnoops.server.converters;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
-import swcnoops.server.json.GsonJsonParser;
 import swcnoops.server.json.JacksonJsonParser;
 import swcnoops.server.json.JsonParser;
 import org.junit.Test;
@@ -25,9 +24,5 @@ public class JsonParserTests {
         JsonParser jsonParser = new JacksonJsonParser();
         PlayerLoginCommandResult a = jsonParser.toObjectFromResource("newPlayer/playerLogin.json", PlayerLoginCommandResult.class);
         System.out.println(jsonParser.toJson(a));
-
-        JsonParser gsonParser = new GsonJsonParser();
-        PlayerLoginCommandResult a2 = gsonParser.toObjectFromResource("newPlayer/playerLogin.json", PlayerLoginCommandResult.class);
-        System.out.println(gsonParser.toJson(a2));
     }
 }

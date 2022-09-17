@@ -18,8 +18,6 @@ public class Config {
     public String playerLoginTemplate = templateDir + "/" + "playerLogin.json";
     public String playerContentGetTemplate = templateDir + "/" + "playerContentGet.json";
     public String guildWarGetParticipantTemplate = templateDir + "/" + "guildWarGetParticipant.json";
-
-    public JsonParser jsonParse = JsonParser.Jackson;
     public String swcFolderName = "swcFiles";
     public String swcRootPath = "c:/swcnoops/";
     public String layoutsPath = swcRootPath + "layouts";
@@ -77,6 +75,4 @@ public class Config {
 
         return null;
     }
-
-    public enum JsonParser {Jackson, Gson}
 }
