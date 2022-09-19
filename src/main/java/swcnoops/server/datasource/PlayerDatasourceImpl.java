@@ -137,7 +137,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public Player loadPlayer(String playerId) {
         Player player = this.playerCollection.find(eq("_id", playerId)).first();
         SquadInfo squadInfo = this.squadCollection.find(eq("squadMembers.playerId", playerId))
-                .projection(include("_id")).first();
+                .projection(include("_id", "name")).first();
         if (squadInfo != null) {
             player.getPlayerSettings().setGuildId(squadInfo._id);
             player.getPlayerSettings().setGuildName(squadInfo.name);
