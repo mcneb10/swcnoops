@@ -359,16 +359,16 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
 
-        Bson combinedSet;
+        List<Bson> combinedList = new ArrayList<>();
+        combinedList.add(set("playerSettings", playerSession.getPlayerSettings()));
+        combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+
         if (loginDate != null) {
             playerSession.getPlayer().setLoginDate(loginDate);
-            combinedSet = combine(set("playerSettings", playerSession.getPlayerSettings()),
-                    set("loginDate", playerSession.getPlayer().getLoginDate()),
-                    set("keepAlive", playerSession.getPlayer().getKeepAlive()));
-        } else {
-            combinedSet = combine(set("playerSettings", playerSession.getPlayerSettings()),
-                    set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+            combinedList.add(set("loginDate", playerSession.getPlayer().getLoginDate()));
         }
+
+        Bson combinedSet = combine(combinedList);
 
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
                 combinedSet);
