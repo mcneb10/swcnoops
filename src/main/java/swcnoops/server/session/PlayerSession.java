@@ -132,7 +132,7 @@ public interface PlayerSession {
 
     SquadMemberWarData getSquadMemberWarData(long time);
 
-    void warBaseSave(Map<String, Position> positions, long time);
+    void warBaseSave(Map<String, Position> positions, String buildingKey, long time);
 
     void levelUpBase(PlayerMap warMap);
 

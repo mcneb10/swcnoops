@@ -16,7 +16,7 @@ public class GuildWarBaseSave extends AbstractCommandAction<GuildWarBaseSave, Co
     @Override
     protected CommandResult execute(GuildWarBaseSave arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
-        playerSession.warBaseSave(arguments.getPositions(), time);
+        playerSession.warBaseSave(arguments.getPositions(), playerSession.getHeadQuarter().getBuildingKey(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

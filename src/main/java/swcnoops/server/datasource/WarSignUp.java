@@ -14,4 +14,7 @@ public class WarSignUp {
     public List<String> participantIds;
     public long time;
     public Date signUpdate;
+    public boolean isSameFactionWarAllowed;
+    public String guildName;
+    public String icon;
 }

@@ -53,4 +53,6 @@ public interface GuildSettings {
     void setDirty();
 
     List<WarHistory> getWarHistory();
+
+    void membersUpdated();
 }

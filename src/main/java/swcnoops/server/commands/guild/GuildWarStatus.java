@@ -11,6 +11,7 @@ import swcnoops.server.model.SquadMemberWarData;
 import swcnoops.server.model.WarSquad;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
+import swcnoops.server.session.WarSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,12 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
         GuildSession guildSession = playerSession.getGuildSession();
+
+        // TODO - probably need to change this to go through a session and use that to trigger the different stages
+        // of war for processing
+//        WarSession warSession = ServiceFactory.instance().getSessionManager()
+//                .getWarSession(guildSession.getGuildSettings().getWarId());
+
         War war = guildSession.getCurrentWar();
 
         GuildSession squad1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
@@ -32,7 +39,7 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
 
         GuildWarStatusCommandResult guildWarStatusResponse =
                 new GuildWarStatusCommandResult(guildSession);
-        guildWarStatusResponse.inititalise(war, warParticipants1, warParticipants2, time);
+        map(guildWarStatusResponse, war, warParticipants1, warParticipants2);
         patchWarParticipants(guildWarStatusResponse);
 
         // buff bases can not be null otherwise client crashes
@@ -93,5 +100,37 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
     @Override
     public String getAction() {
         return "guild.war.status";
+    }
+
+    private void map(GuildWarStatusCommandResult result, War war, List<SquadMemberWarData> warParticipants1,
+                     List<SquadMemberWarData> warParticipants2)
+    {
+        GuildSession guildSession = result.getGuildSession();
+        if (guildSession != null) {
+            if (war != null) {
+                result.id = war.getWarId();
+                result.prepGraceStartTime = war.getPrepGraceStartTime();
+                result.prepEndTime = war.getPrepEndTime();
+                result.actionGraceStartTime = war.getActionGraceStartTime();
+                result.actionEndTime = war.getActionEndTime();
+                result.cooldownEndTime = war.getCooldownEndTime();
+
+                GuildSession guildSession1 = ServiceFactory.instance().getSessionManager()
+                        .getGuildSession(war.getSquadIdA());
+
+                result.guild = WarSquad.map(guildSession1, warParticipants1);
+
+                GuildSession guildSession2 = ServiceFactory.instance().getSessionManager()
+                        .getGuildSession(war.getSquadIdB());
+                result.rival = WarSquad.map(guildSession2, warParticipants2);
+
+                // we want the player's guild to be on the left of the war screen
+                if (!guildSession.getGuildId().equals(result.guild.guildId)) {
+                    WarSquad temp = result.guild;
+                    result.guild = result.rival;
+                    result.rival = temp;
+                }
+            }
+        }
     }
 }

@@ -47,7 +47,7 @@ public interface PlayerDataSource {
 
     List<Squad> searchGuildByName(String searchTerm);
 
-    void saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, SquadNotification squadNotification, long time);
+    void saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time);
 
     void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification);
 
@@ -59,7 +59,7 @@ public interface PlayerDataSource {
 
     List<SquadMemberWarData> getWarParticipants(String guildId, String warId);
 
-    void saveWarMap(SquadMemberWarData squadMemberWarData);
+    void saveWarMap(PlayerSession playerSession, SquadMemberWarData squadMemberWarData);
 
     void saveWarTroopDonation(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
                               SquadNotification squadNotification);

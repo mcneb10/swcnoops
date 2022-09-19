@@ -164,4 +164,8 @@ public class SelfDonatingSquad implements GuildSettings {
     public List<WarHistory> getWarHistory() {
         return new ArrayList<>();
     }
+
+    @Override
+    public void membersUpdated() {
+    }
 }

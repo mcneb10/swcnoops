@@ -81,8 +81,13 @@ public class GuildSettingsImpl implements GuildSettings {
 
     @Override
     public void setDirty() {
-        this.guildMembers.setDirty();
+        this.membersUpdated();
         this.warHistoryManager.setDirty();
+    }
+
+    @Override
+    public void membersUpdated() {
+        this.guildMembers.setDirty();
     }
 
     @Override

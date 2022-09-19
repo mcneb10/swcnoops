@@ -270,8 +270,8 @@ public class GuildSessionImpl implements GuildSession {
                 playerSession, SquadMsgType.warMatchMakingBegin);
 
         this.getGuildSettings().warMatchmakingStart(time, participantIds);
-        ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this, participantIds,
-                squadNotification, time);
+        ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this,
+                participantIds, isSameFactionWarAllowed, squadNotification, time);
         this.setNotificationDirty(squadNotification.getDate());
         return squadNotification;
     }

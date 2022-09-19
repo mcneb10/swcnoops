@@ -1143,7 +1143,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void warBaseSave(Map<String, Position> positions, long time) {
+    public void warBaseSave(Map<String, Position> positions, String hqKey, long time) {
         this.processCompletedContracts(time);
         SquadMemberWarData squadMemberWarData = this.getSquadMemberWarData(time);
 
@@ -1166,7 +1166,11 @@ public class PlayerSessionImpl implements PlayerSession {
             }
         }
 
-        ServiceFactory.instance().getPlayerDatasource().saveWarMap(squadMemberWarData);
+        // TODO - probably should change when and where we work out the HQ level
+        Building building = buildingMap.get(hqKey);
+        int hqLevel = ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid).getLevel();
+        squadMemberWarData.level = hqLevel;
+        ServiceFactory.instance().getPlayerDatasource().saveWarMap(this, squadMemberWarData);
     }
 
     @Override

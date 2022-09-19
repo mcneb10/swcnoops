@@ -315,6 +315,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()));
     }
 
+    // TODO - probably will need to change this to be smart and only update amended data
     private void savePlayerSettings(PlayerSession playerSession, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDeployablesToPlayerSettings(playerSession);
@@ -322,11 +323,22 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         mapCreatureToPlayerSession(playerSession);
         mapDonatedTroopsToPlayerSession(playerSession);
 
+        int oldHqLevel = playerSession.getPlayerSettings().getHqLevel();
+        int oldXp = playerSession.getPlayerSettings().getScalars().xp;
+
         int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
         int xp = ServiceFactory.getXpFromBuildings(playerSession.getPlayerMapItems().getBaseMap().buildings);
-
         playerSession.getPlayerSettings().setHqLevel(hqLevel);
         playerSession.getPlayerSettings().getScalars().xp = xp;
+
+        // if there is a change then we need to tell the squad
+        GuildSession guildSession = playerSession.getGuildSession();
+        if (guildSession != null && (oldHqLevel != hqLevel || oldXp != xp)) {
+            // TODO - do we need to send a squad notification otherwise how will the squad know
+            // might be able to trick the client by sending a joinRequestRejected without data or something like that
+            setSquadPlayerHQandXp(session, guildSession.getGuildId(), playerSession.getPlayerId(), hqLevel, xp);
+            guildSession.getGuildSettings().membersUpdated();
+        }
 
         playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
@@ -486,7 +498,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         // TODO - change to use aggregate to limit to the latest 20
         Bson squadInWar = or(eq("squadIdA", squadId), eq("squadIdB", squadId));
         FindIterable<SquadWar> squadWarIterable = this.squadWarCollection.find(and(squadInWar, gt("processedEndTime", 0)))
-                .projection(include("warId", "squadIdA", "squadIdB", "processedEndTime", "squadAScore", "squadBScore"));
+                .projection(include("warId", "squadIdA", "squadIdB", "processedEndTime", "squadAScore", "squadBScore",
+                        "squadAWarSignUp.guildName", "squadAWarSignUp.icon", "squadBWarSignUp.guildName", "squadBWarSignUp.icon"));
 
         List<WarHistory> warHistories = new ArrayList<>();
 
@@ -494,12 +507,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             while (cursor.hasNext()) {
                 SquadWar squadWar = cursor.next();
 
-                // TODO - get the guild name and icon
                 WarHistory warHistory = new WarHistory();
                 warHistory.warId = squadWar.getWarId();
                 warHistory.opponentGuildId = squadWar.getSquadIdB();
-                warHistory.opponentName = squadWar.getSquadIdB();
-                warHistory.opponentIcon = null;
+                warHistory.opponentName = squadWar.getSquadBWarSignUp().guildName;
+                warHistory.opponentIcon = squadWar.getSquadBWarSignUp().icon;
                 warHistory.opponentScore = squadWar.getSquadBScore();
                 warHistory.endDate = squadWar.getProcessedEndTime();
 
@@ -507,7 +519,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     warHistory.score = squadWar.getSquadAScore();
                 } else {
                     warHistory.opponentGuildId = squadWar.getSquadIdA();
-                    warHistory.opponentName = squadWar.getSquadIdA();
+                    warHistory.opponentName = squadWar.getSquadAWarSignUp().guildName;
+                    warHistory.opponentIcon = squadWar.getSquadAWarSignUp().icon;
                     warHistory.opponentScore = squadWar.getSquadAScore();
                     warHistory.score = squadWar.getSquadBScore();
                 }
@@ -593,10 +606,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveWarSignUp(FactionType faction, GuildSession guildSession, List<String> participantIds,
-                              SquadNotification squadNotification, long time) {
+                              boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            saveWarSignUp(clientSession, faction, guildSession.getGuildId(), participantIds, time);
+            saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
             resetWarParty(clientSession, guildSession.getGuildId());
             setSquadWarParty(clientSession, guildSession.getGuildId(), participantIds, time);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
@@ -606,16 +619,27 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void saveWarSignUp(ClientSession clientSession, FactionType faction, String guildId, List<String> participantIds,
-                               long time)
+    private void saveWarSignUp(ClientSession clientSession, FactionType faction, GuildSession guildSession, List<String> participantIds,
+                               boolean isSameFactionWarAllowed, long time)
     {
         WarSignUp warSignUp = new WarSignUp();
         warSignUp.faction = faction;
-        warSignUp.guildId = guildId;
+        warSignUp.guildId = guildSession.getGuildId();
+        warSignUp.guildName = guildSession.getGuildName();
+        warSignUp.icon = guildSession.getGuildSettings().getIcon();
         warSignUp.participantIds = participantIds;
+        warSignUp.isSameFactionWarAllowed = isSameFactionWarAllowed;
         warSignUp.time = time;
         warSignUp.signUpdate = new Date();
         this.warSignUpCollection.insertOne(clientSession, warSignUp);
+    }
+
+    private void setSquadPlayerHQandXp(ClientSession clientSession, String guildId, String playerId,
+                                  int hqLevel, int xp)
+    {
+        UpdateResult result = this.squadCollection.updateOne(clientSession,
+                and(eq("_id", guildId), Filters.eq("squadMembers.playerId", playerId)),
+                combine(set("squadMembers.$.hqLevel", hqLevel), set("squadMembers.$.xp", xp)));
     }
 
     private void setSquadWarParty(ClientSession clientSession, String guildId, List<String> participantIds,
@@ -786,9 +810,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveWarMap(SquadMemberWarData squadMemberWarData) {
+    public void saveWarMap(PlayerSession playerSession, SquadMemberWarData squadMemberWarData) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, clientSession);
             SquadMemberWarData updatedData = this.squadMemberWarDataCollection.findOneAndUpdate(clientSession,
                     combine(eq("warId", squadMemberWarData.warId),
                             eq("id", squadMemberWarData.id)),
