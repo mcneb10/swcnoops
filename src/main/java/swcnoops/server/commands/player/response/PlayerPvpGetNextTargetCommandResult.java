@@ -2,6 +2,7 @@ package swcnoops.server.commands.player.response;
 
 import swcnoops.server.model.*;
 import swcnoops.server.requests.AbstractCommandResult;
+import swcnoops.server.requests.ResponseHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,4 +47,18 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
     public int creditsCharged;
     public Object contracts;
     public List<String> equipment = new ArrayList<>();
+
+    private int status = ResponseHelper.RECEIPT_STATUS_COMPLETE;
+
+    public PlayerPvpGetNextTargetCommandResult() {
+    }
+
+    public PlayerPvpGetNextTargetCommandResult(int statusCodePvpTargetNotFound) {
+        this.status = statusCodePvpTargetNotFound;
+    }
+
+    @Override
+    public Integer getStatus() {
+        return this.status;
+    }
 }

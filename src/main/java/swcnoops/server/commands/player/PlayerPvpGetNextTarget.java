@@ -8,8 +8,9 @@ import swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandRes
 import swcnoops.server.game.*;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
+import swcnoops.server.requests.CommandResult;
+import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.CurrencyDelta;
-import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureDataMap;
 import swcnoops.server.session.creature.CreatureManagerFactory;
@@ -23,44 +24,51 @@ import java.util.stream.Collectors;
 /**
  * Finds and returns an enemy base for PVP.
  */
-public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, PlayerPvpGetNextTargetCommandResult> {
+public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, CommandResult> {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
     private List<File> layouts;
     private Random rand = new Random();
 
     @Override
-    protected PlayerPvpGetNextTargetCommandResult execute(PlayerPvpGetNextTarget arguments, long time) throws Exception {
-
-        PlayerPvpGetNextTargetCommandResult response = new PlayerPvpGetNextTargetCommandResult();
-        setupResponse(response, arguments);
-
+    protected CommandResult execute(PlayerPvpGetNextTarget arguments, long time) throws Exception {
+        CommandResult response = setupResponse(arguments);
         return response;
     }
 
-    private void setupResponse(PlayerPvpGetNextTargetCommandResult response, PlayerPvpGetNextTarget arguments) {
-        PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).getPvpSession().getNextMatch();
+    private CommandResult setupResponse(PlayerPvpGetNextTarget arguments) {
+        PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId())
+                .getPvpSession().getNextMatch();
+
+        // TODO - not sure if this is the right code but lets give it a try
+        if (pvpMatch == null) {
+            return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
+        }
+
+        PlayerPvpGetNextTargetCommandResult response = new PlayerPvpGetNextTargetCommandResult();
         response.battleId = pvpMatch.getBattleId();
+
         pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        response.name = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
-        response.guildName = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
         response.playerId = pvpMatch.getParticipantId();
         response.faction = pvpMatch.getFactionType();
-        response.guildId = pvpMatch.getParticipantId();
         response.level = pvpMatch.getLevel();
-        PlayerMap map = new PlayerMap();
-        map.planet = ServiceFactory.instance().getSessionManager()
-                .getPlayerSession(arguments.getPlayerId()).getPlayer().getPlayerSettings().getBaseMap().planet;
-        map.next = 2;
-        response.map = map;
-
+        response.map = new PlayerMap();
         response.champions = new HashMap<>();
 
         if (pvpMatch.isDevBase()) {
+            response.name = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
+            response.guildName = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
+            response.guildId = pvpMatch.getParticipantId();
+            response.map.planet = ServiceFactory.instance().getSessionManager()
+                    .getPlayerSession(arguments.getPlayerId()).getPlayer().getPlayerSettings().getBaseMap().planet;
+            response.map.next = 2;
             response.map.buildings = ServiceFactory.instance().getPlayerDatasource().getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
             setupDevResourcesBaseData(response, arguments.getPlayerId());
         } else {
-            response.map.buildings =
-                    ServiceFactory.instance().getPlayerDatasource().loadPlayer(pvpMatch.getParticipantId()).getPlayerSettings().baseMap.buildings;
+            swcnoops.server.datasource.Player opponentPlayer = ServiceFactory.instance().getPlayerDatasource().loadPlayer(pvpMatch.getParticipantId());
+            response.map = opponentPlayer.getPlayerSettings().baseMap;
+            response.name = opponentPlayer.getPlayerSettings().getName();
+            response.guildName = opponentPlayer.getPlayerSettings().getGuildName();
+            response.guildId = opponentPlayer.getPlayerSettings().getGuildId();
             //TODO, get from defender's file
             setupDevResourcesBaseData(response, arguments.getPlayerId());
         }
@@ -75,6 +83,8 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         //TODO... this properly.
         pvpMatch.setAttackerEquipment(new JsonStringArrayList());
         pvpMatch.setDefenderEquipment(new JsonStringArrayList());
+
+        return response;
     }
 
     private void addParticipantsToMatch(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {

@@ -23,6 +23,7 @@ public class PlayerSettings {
     private Scalars scalars = new Scalars();
     private int hqLevel;
     private PlayerMap warMap;
+    private String guildName;
 
     public PlayerSettings() {
     }
@@ -179,5 +180,13 @@ public class PlayerSettings {
 
     public void setWarMap(PlayerMap warMap) {
         this.warMap = warMap;
+    }
+
+    public void setGuildName(String guildName) {
+        this.guildName = guildName;
+    }
+
+    public String getGuildName() {
+        return guildName;
     }
 }

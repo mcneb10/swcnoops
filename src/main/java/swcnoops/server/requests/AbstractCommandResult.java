@@ -17,9 +17,10 @@ abstract public class AbstractCommandResult implements CommandResult {
         return Integer.valueOf(-1);
     }
 
-    public boolean isSuccess() {
+    protected boolean isSuccess() {
         return success;
     }
+
     @JsonIgnore
     public void setSuccess(boolean success) {
         this.success = success;

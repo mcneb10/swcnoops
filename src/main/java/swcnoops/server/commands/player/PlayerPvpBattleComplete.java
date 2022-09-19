@@ -14,7 +14,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
                 .getPlayerSession(arguments.getPlayerId());
 
         PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId())
-                .getPvpSession().getMatch(arguments.getBattleId());
+                .getPvpSession().getMatch();
 
         BattleReplay battleReplay;
         if (!pvpMatch.isDevBase()) {

@@ -4,10 +4,7 @@ import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.*;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
@@ -82,7 +79,7 @@ public interface PlayerDataSource {
 
     DefendingWarParticipant getDefendingWarParticipantByBattleId(String battleId);
 
-    HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession);
+    PvpMatch getDevBaseMatches(PvpManager pvpManager, Set<String> devBasesSeen);
 
     Buildings getDevBaseMap(String id, FactionType faction);
 
@@ -109,4 +106,8 @@ public interface PlayerDataSource {
     void saveDevBase(DevBase devBase);
 
     void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay);
+
+    PvpMatch getPvPMatches(PvpManager pvpManager, Set<String> playersSeen);
+
+    void pvpReleaseTarget(PvpManager pvpSession);
 }

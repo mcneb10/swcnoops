@@ -23,6 +23,8 @@ public class PvpMatch {
 
     private JsonStringArrayList attackerEquipment;
     private JsonStringArrayList defenderEquipment;
+    private String guildName;
+    private String guildId;
 
 
     public PvpMatch() {
@@ -154,6 +156,22 @@ public class PvpMatch {
 
     public void setDefenderEquipment(JsonStringArrayList defenderEquipment) {
         this.defenderEquipment = defenderEquipment;
+    }
+
+    public String getGuildName() {
+        return guildName;
+    }
+
+    public void setGuildName(String guildName) {
+        this.guildName = guildName;
+    }
+
+    public String getGuildId() {
+        return guildId;
+    }
+
+    public void setGuildId(String guildId) {
+        this.guildId = guildId;
     }
 }
 

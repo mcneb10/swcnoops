@@ -105,6 +105,7 @@ public class CommandFactory {
         this.add(new PlayerFueComplete());
         this.add(new PlayerFueSetQuest());
         this.add(new PlayerPvpGetNextTarget());
+        this.add(new PlayerPvpReleaseTarget());
         this.add(new PlayerPvpBattleComplete());
         this.add(new PlayerEpisodesProgressGet());
         this.add(new PlayerIdentityGet());
@@ -137,7 +138,6 @@ public class CommandFactory {
 //        this.add(new OkCommandAction("player.building.move"));
 
         this.add(new OkCommandAction("player.raids.update"));
-        this.add(new OkCommandAction("player.pvp.releaseTarget"));
 
         // works but needs full support
         this.add(new OkCommandAction("player.perks.activate"));

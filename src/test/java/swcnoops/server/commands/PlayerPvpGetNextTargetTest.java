@@ -4,8 +4,8 @@ import org.junit.Ignore;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.player.PlayerPvpGetNextTarget;
-import swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandResult;
 import org.junit.Test;
+import swcnoops.server.requests.CommandResult;
 
 import static org.junit.Assert.assertNotNull;
 
@@ -20,7 +20,7 @@ public class PlayerPvpGetNextTargetTest {
     @Test
     public void testNextLayout() throws Exception {
         PlayerPvpGetNextTarget playerPvpGetNextTarget = new PlayerPvpGetNextTarget();
-        PlayerPvpGetNextTargetCommandResult response = playerPvpGetNextTarget.execute(null, 1);
+        CommandResult response = playerPvpGetNextTarget.execute(null, 1);
         assertNotNull(response);
     }
 }

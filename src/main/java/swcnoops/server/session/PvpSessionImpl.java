@@ -3,51 +3,62 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.PvpMatch;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.*;
 
 public class PvpSessionImpl implements PvpManager {
-
-    private HashMap<String, PvpMatch> pvpMatches;
+    private Set<String> playersSeen = new HashSet<>();
+    private Set<String> devBasesSeen = new HashSet<>();
 
     private PlayerSession playerSession;
+
+    private PvpMatch currentPvPMatch;
 
     public PvpSessionImpl(PlayerSession playerSession) {
         this.playerSession = playerSession;
 
     }
 
-    @Override
-    public HashMap<String, PvpMatch> getBattles() {
-        return pvpMatches;
-    }
-
-    @Override
-    public void addBattle(String battleId, PvpMatch pvpMatch) {
-        this.pvpMatches.put(battleId, pvpMatch);
-    }
-
-    @Override
-    public void removeBattle(String battleId) {
-        this.pvpMatches.remove(battleId);
-    }
-
+    // Simple match for now to prioritise any random real player before looking at dev bases
     @Override
     public PvpMatch getNextMatch() {
-        Random random = new Random();
-        if (this.pvpMatches == null) {
-            this.pvpMatches = ServiceFactory.instance().getPlayerDatasource().getDevBaseMatches(playerSession);
+        PvpMatch pvpMatch = ServiceFactory.instance().getPlayerDatasource().getPvPMatches(this, this.playersSeen);
+
+        if (pvpMatch != null) {
+            this.playersSeen.add(pvpMatch.getParticipantId());
         }
-        String[] battleId = pvpMatches.keySet().toArray(new String[0]);
-        int matchIndex = random.nextInt(pvpMatches.size());
-        return pvpMatches.get(battleId[matchIndex]);
+
+        if (pvpMatch == null) {
+            pvpMatch = ServiceFactory.instance().getPlayerDatasource().getDevBaseMatches(this, this.devBasesSeen);
+
+            if (pvpMatch != null) {
+                this.devBasesSeen.add(pvpMatch.getParticipantId());
+            } else {
+                this.playersSeen.clear();
+                this.devBasesSeen.clear();
+            }
+        }
+
+        this.currentPvPMatch = pvpMatch;
+        return pvpMatch;
     }
 
     @Override
-    public PvpMatch getMatch(String battleId) {
-        return this.pvpMatches.get(battleId);
+    public PlayerSession getPlayerSession() {
+        return this.playerSession;
+    }
+
+    @Override
+    public PvpMatch getMatch() {
+        return getCurrentPvPMatch();
+    }
+
+    public PvpMatch getCurrentPvPMatch() {
+        return currentPvPMatch;
+    }
+
+    @Override
+    public void pvpReleaseTarget() {
+        ServiceFactory.instance().getPlayerDatasource().pvpReleaseTarget(this);
+        this.currentPvPMatch = null;
     }
 }

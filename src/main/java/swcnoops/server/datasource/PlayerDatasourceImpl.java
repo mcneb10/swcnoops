@@ -76,6 +76,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.playerCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, "dev", "player", Player.class, UuidRepresentation.STANDARD);
 
+        // TODO - need to check if this is actually being used for PvP
+        this.playerCollection.createIndex(compoundIndex(Indexes.descending("playerSettings.faction"),
+                Indexes.descending("currentPvPDefence"),
+                Indexes.descending("keepAlive"),
+                Indexes.descending("playerSettings.hqLevel"),
+                Indexes.descending("playerSettings.scalars.xp")));
+
         this.squadCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, "dev", "squad", SquadInfo.class, UuidRepresentation.STANDARD);
 
@@ -94,6 +101,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         this.devBaseCollection.createIndex(Indexes.text("fileName"));
         this.devBaseCollection.createIndex(Indexes.ascending("checksum"));
+        // TODO - need to check if this is actually being used for PvP
         this.devBaseCollection.createIndex(compoundIndex(Indexes.ascending("hq"), Indexes.ascending("xp")));
 
         this.battleReplayCollection = JacksonMongoCollection.builder()
@@ -130,10 +138,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         Player player = this.playerCollection.find(eq("_id", playerId)).first();
         SquadInfo squadInfo = this.squadCollection.find(eq("squadMembers.playerId", playerId))
                 .projection(include("_id")).first();
-        if (squadInfo != null)
+        if (squadInfo != null) {
             player.getPlayerSettings().setGuildId(squadInfo._id);
-        else
+            player.getPlayerSettings().setGuildName(squadInfo.name);
+        } else {
             player.getPlayerSettings().setGuildId(null);
+            player.getPlayerSettings().setGuildName(null);
+        }
         return player;
     }
 
@@ -1023,7 +1034,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             // TODO - change this to findOneAndUpdate
             Bson defenseMatch = and(eq("warId", warId), eq("id", opponentId),
                     gt("victoryPoints", 0),
-                    or(exists("defenseBattleId", false), lt("defenseExpirationDate", time - 10)));
+                    or(eq("defenseBattleId", null), lt("defenseExpirationDate", time - 10)));
             UpdateResult result = this.squadMemberWarDataCollection.updateOne(session, defenseMatch,
                     combine(set("defenseBattleId", defenseBattleId), set("defenseExpirationDate", defenseExpirationDate)));
 
@@ -1120,57 +1131,143 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public HashMap<String, PvpMatch> getDevBaseMatches(PlayerSession playerSession) {
+    public void pvpReleaseTarget(PvpManager pvpManager) {
+        PvpMatch pvpMatch = pvpManager.getMatch();
+        if (pvpMatch != null && !pvpMatch.isDevBase()) {
+            try (ClientSession clientSession = this.mongoClient.startSession()) {
+                clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+                clearLastPvPAttack(clientSession, pvpManager);
+                clientSession.commitTransaction();
+            }
+        }
+    }
+
+    @Override
+    public PvpMatch getPvPMatches(PvpManager pvpManager, Set<String> playersSeen) {
+        long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        int playerHq = pvpManager.getPlayerSession().getPlayerSettings().getHqLevel();
+        int playerXp = pvpManager.getPlayerSession().getPlayerSettings().getScalars().xp;
+
+        Bson hqQuery = and(gte("playerSettings.hqLevel", playerHq - 1), lte("playerSettings.hqLevel", playerHq + 1));
+        Bson xpQuery = and(gte("playerSettings.scalars.xp", playerXp * 0.9), lte("playerSettings.scalars.xp", playerXp * 1.10));
+        Bson notMe = ne("_id", pvpManager.getPlayerSession().getPlayerId());
+        Bson notAlreadySeen = nin("_id", playersSeen);
+        Bson notBeingAttacked = eq("currentPvPDefence", null);
+        Bson otherFaction = ne("playerSettings.faction", pvpManager.getPlayerSession().getPlayer().getPlayerSettings().getFaction());
+        Bson playerNotPlaying = or(lt("keepAlive", timeNow - 130), eq("keepAlive", null));
+
+        List<Bson> aggregates = Arrays.asList(Aggregates.match(and(notMe, otherFaction, notBeingAttacked, playerNotPlaying, notAlreadySeen, or(hqQuery, xpQuery))),
+                Aggregates.project(include("playerSettings.scalars",
+                        "playerSettings.faction", "playerSettings.hqLevel", "playerSettings.guildId")),
+                Aggregates.sample(1));
+
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+
+            // clear last PvP attack
+            clearLastPvPAttack(clientSession, pvpManager);
+
+            AggregateIterable<Player> inactivePlayersIterable = this.playerCollection.aggregate(clientSession, aggregates);
+
+            PvpMatch pvpMatch = null;
+            try (MongoCursor<Player> inactivePlayerCursor = inactivePlayersIterable.cursor()) {
+                if (inactivePlayerCursor.hasNext()) {
+                    Player opponentPlayer = inactivePlayerCursor.next();
+                    pvpMatch = new PvpMatch();
+                    pvpMatch.setBattleId(ServiceFactory.createRandomUUID());
+                    pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+                    pvpMatch.setPlayerId(pvpManager.getPlayerSession().getPlayerId());
+                    pvpMatch.setParticipantId(opponentPlayer.getPlayerId());
+                    pvpMatch.setGuildId(opponentPlayer.getPlayerSettings().getGuildId());
+                    pvpMatch.setDefenderXp(opponentPlayer.getPlayerSettings().getScalars().xp);
+                    pvpMatch.setFactionType(opponentPlayer.getPlayerSettings().getFaction());
+                    pvpMatch.setDevBase(false);
+                    pvpMatch.setLevel(opponentPlayer.getPlayerSettings().getHqLevel());
+                }
+            }
+
+            if (pvpMatch != null) {
+                PvpAttack pvpAttack = new PvpAttack();
+                pvpAttack.playerId = pvpMatch.getParticipantId();
+                pvpAttack.battleId = pvpMatch.getBattleId();
+                pvpAttack.expiration = pvpMatch.getBattleDate() + 130;
+                pvpManager.getPlayerSession().getPlayer().setCurrentPvPAttack(pvpAttack);
+                this.playerCollection.updateOne(clientSession, eq("_id", pvpManager.getPlayerSession().getPlayerId()),
+                        set("currentPvPAttack", pvpAttack));
+
+                PvpAttack pvpDefence = new PvpAttack();
+                pvpDefence.playerId = pvpManager.getPlayerSession().getPlayerId();
+                pvpDefence.battleId = pvpMatch.getBattleId();
+                pvpDefence.expiration = pvpMatch.getBattleDate() + 130;
+                this.playerCollection.updateOne(clientSession, eq("_id", pvpAttack.playerId),
+                        set("currentPvPDefence", pvpDefence));
+            }
+
+            clientSession.commitTransaction();
+            return pvpMatch;
+        }
+    }
+
+    private void clearLastPvPAttack(ClientSession clientSession, PvpManager pvpManager) {
+        Player lastPlayerValues = this.playerCollection.findOneAndUpdate(clientSession, eq("_id", pvpManager.getPlayerSession().getPlayerId()),
+                unset("currentPvPAttack"), new FindOneAndUpdateOptions().projection(include("currentPvPAttack"))
+                        .returnDocument(ReturnDocument.BEFORE));
+
+        // we clear the opponent we were attacking
+        if (lastPlayerValues.getCurrentPvPAttack() != null) {
+            PvpAttack pvpAttack = lastPlayerValues.getCurrentPvPAttack();
+            Player lastOpponentPlayer = this.playerCollection.findOneAndUpdate(clientSession,
+                    combine(eq("_id", pvpAttack.playerId), eq("currentPvPDefence.battleId", pvpAttack.battleId)),
+                    unset("currentPvPDefence"), new FindOneAndUpdateOptions().projection(include("currentPvPDefence"))
+                            .returnDocument(ReturnDocument.BEFORE));
+        }
+    }
+
+    @Override
+    public PvpMatch getDevBaseMatches(PvpManager pvpManager, Set<String> devBasesSeen) {
 //        SELECT id, buildings, buildings, hqlevel, xp
 //        FROM DevBases
 //        WHERE (hqlevel >= ? -1 AND hqlevel <= ? +1)
 //        or (xp >= ( ? * 0.9) AND xp <= (? * 1.10))
 //        ORDER BY xp desc;
 
-        int playerHq = playerSession.getHeadQuarter().getBuildingData().getLevel();
-        int playerXp = playerSession.getPlayerSettings().getScalars().xp;
+        int playerHq = pvpManager.getPlayerSession().getHeadQuarter().getBuildingData().getLevel();
+        int playerXp = pvpManager.getPlayerSession().getPlayerSettings().getScalars().xp;
         Bson hqQuery = and(gte("hq", playerHq - 1), lte("hq", playerHq + 1));
         Bson xpQuery = and(gte("xp", playerXp * 0.9), lte("xp", playerXp * 1.10));
+        Bson notAlreadySeen = nin("_id", devBasesSeen);
 
-        List<Bson> aggregates = Arrays.asList(Aggregates.match(or(hqQuery, xpQuery)),
+        List<Bson> aggregates = Arrays.asList(Aggregates.match(and(notAlreadySeen, or(hqQuery, xpQuery))),
                 Aggregates.project(include("xp", "hq")),
-                Aggregates.sample(20));
+                Aggregates.sample(1));
 
-        AggregateIterable<DevBase> devBasesIterable = this.devBaseCollection.aggregate(aggregates);
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            // clear last PvP attack
+            clearLastPvPAttack(clientSession, pvpManager);
 
-        HashMap<String, PvpMatch> pvpMatches = new HashMap<>();
+            AggregateIterable<DevBase> devBasesIterable = this.devBaseCollection.aggregate(aggregates);
 
-        try (MongoCursor<DevBase> devBaseCursor = devBasesIterable.cursor()) {
-            while (devBaseCursor.hasNext()) {
-                DevBase devBase = devBaseCursor.next();
-//                BattleParticipant defender = new BattleParticipant();
-//                defender.attackRating = 500;
-//                defender.defenseRating = 500;
-//                defender.playerId = rs.getString("id");
-//                defender.name = "Dev Base";// TODO add randomised names...
-//                defender.attackRatingDelta = 18;
-//                defender.defenseRatingDelta = 18;
-//                defender.faction = playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire;
-//                defender.guildId = rs.getString("id");
-//                defender.guildName = "DEV BASE";
-//                defender.tournamentRating = 0;
-//                defender.tournamentRatingDelta = 0;
-                String battleId = ServiceFactory.createRandomUUID();
-                PvpMatch pvpMatch = new PvpMatch();
-                pvpMatch.setPlayerId(playerSession.getPlayerId());
-                pvpMatch.setParticipantId(devBase._id);
-                pvpMatch.setDefenderXp(devBase.xp);
-                pvpMatch.setBattleId(battleId);
-                pvpMatch.setFactionType(playerSession.getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire);
-                pvpMatch.setDevBase(true);
-                pvpMatch.setLevel(devBase.hq);
-                pvpMatches.put(battleId, pvpMatch);
+            PvpMatch pvpMatch = null;
+
+            try (MongoCursor<DevBase> devBaseCursor = devBasesIterable.cursor()) {
+                if (devBaseCursor.hasNext()) {
+                    DevBase devBase = devBaseCursor.next();
+                    String battleId = ServiceFactory.createRandomUUID();
+                    pvpMatch = new PvpMatch();
+                    pvpMatch.setPlayerId(pvpManager.getPlayerSession().getPlayerId());
+                    pvpMatch.setParticipantId(devBase._id);
+                    pvpMatch.setDefenderXp(devBase.xp);
+                    pvpMatch.setBattleId(battleId);
+                    pvpMatch.setFactionType(pvpManager.getPlayerSession().getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire);
+                    pvpMatch.setDevBase(true);
+                    pvpMatch.setLevel(devBase.hq);
+                }
             }
-        } catch (Exception ex) {
-            throw new RuntimeException(ex);
-        }
 
-        return pvpMatches;
+            clientSession.commitTransaction();
+            return pvpMatch;
+        }
     }
 
     @Override

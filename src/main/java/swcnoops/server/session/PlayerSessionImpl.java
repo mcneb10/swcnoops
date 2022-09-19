@@ -1174,7 +1174,12 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public PvpSessionImpl getPvpSession() {
+    public PvpManager getPvpSession() {
         return pvpSession;
+    }
+
+    @Override
+    public void pvpReleaseTarget() {
+        getPvpSession().pvpReleaseTarget();
     }
 }
