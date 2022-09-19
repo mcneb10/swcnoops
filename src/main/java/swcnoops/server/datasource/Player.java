@@ -2,6 +2,8 @@ package swcnoops.server.datasource;
 
 import org.mongojack.Id;
 
+import java.util.Date;
+
 public class Player {
     @Id
     private String playerId;
@@ -9,6 +11,8 @@ public class Player {
     private PlayerSecret playerSecret;
 
     private PlayerSettings playerSettings;
+    private long keepAlive;
+    private Date loginDate;
 
     public Player() {
     }
@@ -39,5 +43,21 @@ public class Player {
 
     public void setPlayerId(String playerId) {
         this.playerId = playerId;
+    }
+
+    public void setKeepAlive(long keepAlive) {
+        this.keepAlive = keepAlive;
+    }
+
+    public long getKeepAlive() {
+        return keepAlive;
+    }
+
+    public void setLoginDate(Date loginDate) {
+        this.loginDate = loginDate;
+    }
+
+    public Date getLoginDate() {
+        return loginDate;
     }
 }

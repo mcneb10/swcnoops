@@ -135,9 +135,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void savePlayerName(PlayerSession playerSession, String playerName) {
-        playerSession.getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         Bson simpleUpdate = set("playerSettings.name", playerName);
-        Bson simpleUpdateKeepAlive = set("playerSettings.keepAlive", playerSession.getPlayerSettings().getKeepAlive());
+        Bson simpleUpdateKeepAlive = set("keepAlive", playerSession.getPlayer().getKeepAlive());
         Bson combined = combine(simpleUpdate, simpleUpdateKeepAlive);
         UpdateResult result = this.playerCollection.updateOne(Filters.eq("_id", playerSession.getPlayerId()),
                 combined);
@@ -157,6 +157,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
+    public void savePlayerLogin(PlayerSession playerSession) {
+        try (ClientSession session = this.mongoClient.startSession()) {
+            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, new Date(), session);
+            session.commitTransaction();
+        } catch (MongoCommandException e) {
+            throw new RuntimeException("Failed to save player login " + playerSession.getPlayerId(), e);
+        }
+    }
+
+    @Override
     public void savePlayerKeepAlive(PlayerSession playerSession) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
@@ -168,9 +179,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void savePlayerKeepAlive(ClientSession clientSession, PlayerSession playerSession) {
-        playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         UpdateResult result = this.playerCollection.updateOne(clientSession, Filters.eq("_id", playerSession.getPlayerId()),
-                set("playerSettings.keepAlive", playerSession.getPlayer().getPlayerSettings().getKeepAlive()));
+                set("keepAlive", playerSession.getPlayer().getKeepAlive()));
     }
 
     @Override
@@ -178,13 +189,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         ServiceFactory.instance().getSessionManager().resetPlayerSettings(playerSession.getPlayerSettings());
         ServiceFactory.instance().getSessionManager().setFromModel(playerSession.getPlayerSettings(), playerModel);
 
-        playerSession.getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         playerSession.getPlayerSettings().getSharedPreferences().putAll(sharedPrefs);
         playerSession.getPlayer().getPlayerSecret().setMissingSecret(false);
 
         Bson simpleUpdate = set("playerSettings", playerSession.getPlayerSettings());
         Bson recoverUpdate = set("playerSecret.missingSecret", playerSession.getPlayer().getPlayerSecret().getMissingSecret());
-        Bson combined = combine(recoverUpdate, simpleUpdate);
+        Bson keepAliveUpdate = set("keepAlive", playerSession.getPlayer().getKeepAlive());
+        Bson combined = combine(recoverUpdate, simpleUpdate, keepAliveUpdate);
         UpdateResult result = this.playerCollection.updateOne(Filters.eq("_id", playerSession.getPlayerId()),
                 combined);
 
@@ -310,13 +322,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private void saveDonationRecipient(PlayerSession playerSession, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDonatedTroopsToPlayerSession(playerSession);
-        playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
-                set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()));
+                combine(set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()),
+                        set("keepAlive", playerSession.getPlayer().getKeepAlive())));
+    }
+
+    private void savePlayerSettings(PlayerSession playerSession, ClientSession session) {
+        savePlayerSettings(playerSession, null, session);
     }
 
     // TODO - probably will need to change this to be smart and only update amended data
-    private void savePlayerSettings(PlayerSession playerSession, ClientSession session) {
+    private void savePlayerSettings(PlayerSession playerSession, Date loginDate, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDeployablesToPlayerSettings(playerSession);
         playerSession.getPlayerSettings().setBuildContracts(mapContractsToPlayerSettings(playerSession));
@@ -340,9 +357,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             guildSession.getGuildSettings().membersUpdated();
         }
 
-        playerSession.getPlayer().getPlayerSettings().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+
+        Bson combinedSet;
+        if (loginDate != null) {
+            playerSession.getPlayer().setLoginDate(loginDate);
+            combinedSet = combine(set("playerSettings", playerSession.getPlayerSettings()),
+                    set("loginDate", playerSession.getPlayer().getLoginDate()),
+                    set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+        } else {
+            combinedSet = combine(set("playerSettings", playerSession.getPlayerSettings()),
+                    set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+        }
+
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
-                set("playerSettings", playerSession.getPlayer().getPlayerSettings()));
+                combinedSet);
     }
 
     private void mapDonatedTroopsToPlayerSession(PlayerSession playerSession) {

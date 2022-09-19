@@ -332,7 +332,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         this.notificationSession.playerLogin();
         removeEjectedNotifications();
-        this.savePlayerSession();
+        ServiceFactory.instance().getPlayerDatasource().savePlayerLogin(this);
     }
 
     private void removeEjectedNotifications() {

@@ -18,6 +18,8 @@ public interface PlayerDataSource {
 
     void savePlayerSession(PlayerSession playerSession);
 
+    void savePlayerLogin(PlayerSession playerSession);
+
     void saveTroopDonation(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
                            SquadNotification squadNotification);
 

@@ -21,8 +21,6 @@ public class PlayerSettings {
     private String guildId;
     private UnlockedPlanets unlockedPlanets;
     private Scalars scalars = new Scalars();
-
-    private long keepAlive;
     private int hqLevel;
     private PlayerMap warMap;
 
@@ -165,14 +163,6 @@ public class PlayerSettings {
 
     public void setScalars(Scalars scalars) {
         this.scalars = scalars;
-    }
-
-    public long getKeepAlive() {
-        return keepAlive;
-    }
-
-    public void setKeepAlive(long keepAlive) {
-        this.keepAlive = keepAlive;
     }
 
     public void setHqLevel(int hqLevel) {
