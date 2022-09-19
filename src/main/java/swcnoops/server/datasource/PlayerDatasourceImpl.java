@@ -111,6 +111,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         this.squadWarCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, "dev", "squadWar", SquadWar.class, UuidRepresentation.STANDARD);
+        this.squadWarCollection.createIndex(compoundIndex(Indexes.ascending("squadIdA"),
+                Indexes.descending("processedEndTime")));
+        this.squadWarCollection.createIndex(compoundIndex(Indexes.ascending("squadIdB"),
+                Indexes.descending("processedEndTime")));
 
         this.squadMemberWarDataCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, "dev", "squadMemberWarData", SquadMemberWarData.class, UuidRepresentation.STANDARD);
