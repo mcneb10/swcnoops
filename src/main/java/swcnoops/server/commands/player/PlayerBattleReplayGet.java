@@ -33,6 +33,9 @@ public class PlayerBattleReplayGet extends AbstractCommandAction<PlayerBattleRep
     }
 
     private void stopClientCrash(BattleReplay battleReplay) {
+        // we force it to be a PvP replay as for some reason it can crash on iOS but fine on the others
+        battleReplay.replayData.battleType = BattleType.Pvp;
+
         // client does not really support war replays, it will crash if the attacker won stars
         // so for replay we make it 0 stars
         if (battleReplay.replayData.battleType == BattleType.PvpAttackSquadWar)
