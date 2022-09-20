@@ -7,6 +7,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.Command;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.InventoryStorage;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseData;
 import swcnoops.server.session.PlayerSession;
@@ -71,23 +72,25 @@ abstract public class PlayerChecksum<A extends PlayerChecksum, B extends Command
 
         if (playerSession != null) {
             boolean acceptedClientValues = false;
-            if (acceptCredits() && playerSession.getPlayerSettings().getInventoryStorage().credits.amount != parsedArgument.getCredits()) {
-                playerSession.getPlayerSettings().getInventoryStorage().credits.amount = parsedArgument.getCredits();
+            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+
+            if (acceptCredits() && inventoryStorage.credits.amount != parsedArgument.getCredits()) {
+                inventoryStorage.credits.amount = parsedArgument.getCredits();
                 acceptedClientValues = true;
             }
 
-            if (acceptMaterials() && playerSession.getPlayerSettings().getInventoryStorage().materials.amount != parsedArgument.getMaterials()) {
-                playerSession.getPlayerSettings().getInventoryStorage().materials.amount = parsedArgument.getMaterials();
+            if (acceptMaterials() && inventoryStorage.materials.amount != parsedArgument.getMaterials()) {
+                inventoryStorage.materials.amount = parsedArgument.getMaterials();
                 acceptedClientValues = true;
             }
 
-            if (acceptContraband() && playerSession.getPlayerSettings().getInventoryStorage().contraband.amount != parsedArgument.getContraband()) {
-                playerSession.getPlayerSettings().getInventoryStorage().contraband.amount = parsedArgument.getContraband();
+            if (acceptContraband() && inventoryStorage.contraband.amount != parsedArgument.getContraband()) {
+                inventoryStorage.contraband.amount = parsedArgument.getContraband();
                 acceptedClientValues = true;
             }
 
-            if (acceptCrystals() && playerSession.getPlayerSettings().getInventoryStorage().crystals.amount != parsedArgument.getCrystals()) {
-                playerSession.getPlayerSettings().getInventoryStorage().crystals.amount = parsedArgument.getCrystals();
+            if (acceptCrystals() && inventoryStorage.crystals.amount != parsedArgument.getCrystals()) {
+                inventoryStorage.crystals.amount = parsedArgument.getCrystals();
                 acceptedClientValues = true;
             }
 
@@ -95,27 +98,27 @@ abstract public class PlayerChecksum<A extends PlayerChecksum, B extends Command
                 playerSession.savePlayerSession();
             }
 
-            if (playerSession.getPlayerSettings().getInventoryStorage().credits.amount != parsedArgument.getCredits()) {
+            if (inventoryStorage.credits.amount != parsedArgument.getCredits()) {
                 LOG.warn(action + " from Player " + parsedArgument.getPlayerId() + " credits is different to servers " +
-                        playerSession.getPlayerSettings().getInventoryStorage().credits.amount + ", " +
+                        inventoryStorage.credits.amount + ", " +
                         parsedArgument.getCredits());
             }
 
-            if (playerSession.getPlayerSettings().getInventoryStorage().materials.amount != parsedArgument.getMaterials()) {
+            if (inventoryStorage.materials.amount != parsedArgument.getMaterials()) {
                 LOG.warn(action + " from Player " + parsedArgument.getPlayerId() + " materials is different to servers " +
-                        playerSession.getPlayerSettings().getInventoryStorage().materials.amount + ", " +
+                        inventoryStorage.materials.amount + ", " +
                         parsedArgument.getMaterials());
             }
 
-            if (playerSession.getPlayerSettings().getInventoryStorage().contraband.amount != parsedArgument.getContraband()) {
+            if (inventoryStorage.contraband.amount != parsedArgument.getContraband()) {
                 LOG.warn(action + " from Player " + parsedArgument.getPlayerId() + " contraband is different to servers " +
-                        playerSession.getPlayerSettings().getInventoryStorage().contraband.amount + ", " +
+                        inventoryStorage.contraband.amount + ", " +
                         parsedArgument.getContraband());
             }
 
-            if (playerSession.getPlayerSettings().getInventoryStorage().crystals.amount != parsedArgument.getCrystals()) {
+            if (inventoryStorage.crystals.amount != parsedArgument.getCrystals()) {
                 LOG.warn(action + " from Player " + parsedArgument.getPlayerId() + " crystals is different to servers " +
-                        playerSession.getPlayerSettings().getInventoryStorage().crystals.amount + ", " +
+                        inventoryStorage.crystals.amount + ", " +
                         parsedArgument.getCrystals());
             }
         }

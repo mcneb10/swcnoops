@@ -116,13 +116,14 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.defenseRating = 0;//TODO - might be fun to track this actually? - Dev bases with the most wins!
         //Resources as a % of the attacker's total storage
         Random random = new Random();
-        int creditStorage = playerSession.getPlayerSettings().getInventoryStorage().credits.capacity;
-        int materialsStorage = playerSession.getPlayerSettings().getInventoryStorage().materials.capacity;
-        int contraStorage = playerSession.getPlayerSettings().getInventoryStorage().contraband.capacity;
+        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+        int creditStorage = inventoryStorage.credits.capacity;
+        int materialsStorage = inventoryStorage.materials.capacity;
+        int contraStorage = inventoryStorage.contraband.capacity;
 
-        int currentCredits = playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
-        int currentMaterials = playerSession.getPlayerSettings().getInventoryStorage().materials.amount;
-        int currentContraband = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
+        int currentCredits = inventoryStorage.credits.amount;
+        int currentMaterials = inventoryStorage.materials.amount;
+        int currentContraband = inventoryStorage.contraband.amount;
         //TODO may be worth adding these to config instead...
         float resourceScale = 0.1f;
 //        BigDecimal creditsAvailable = creditStorage == currentCredits ? new BigDecimal(0) : new BigDecimal(Math.min(creditStorage * 0.25, creditStorage * random.nextFloat()));

@@ -42,7 +42,6 @@ public class PlayerSessionImpl implements PlayerSession {
     private TroopInventory troopInventory;
     private OffenseLab offenseLab;
     private DonatedTroops donatedTroops;
-    private InventoryStorage inventoryStorage;
     private PlayerMapItems playerMapItems;
     private DroidManager droidManager;
 
@@ -71,7 +70,6 @@ public class PlayerSessionImpl implements PlayerSession {
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
         this.offenseLab = PlayerSessionImpl.offenseLabFactory.createForPlayer(this);
         this.donatedTroops = this.getPlayerSettings().getDonatedTroops();
-        this.inventoryStorage = this.getPlayerSettings().getInventoryStorage();
         this.droidManager = new DroidManager(this);
         mapBuildingContracts(this.getPlayerSettings());
     }
@@ -338,7 +336,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void validateInventoryTotalCapacity(PlayerSession playerSession) {
-        InventoryStorage inventoryStorage = playerSession.getPlayerSettings().getInventoryStorage();
+        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
 
         inventoryStorage.credits.capacity = CurrencyHelper.getTotalCapacity(playerSession, CurrencyType.credits);
         inventoryStorage.materials.capacity = CurrencyHelper.getTotalCapacity(playerSession, CurrencyType.materials);
@@ -739,18 +737,19 @@ public class PlayerSessionImpl implements PlayerSession {
                         currencyDelta.getGivenDelta() + " for player " + playerSession.getPlayerId());
             }
 
+            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
             switch (currencyDelta.getCurrency()) {
                 case credits:
-                    playerSession.getPlayerSettings().getInventoryStorage().credits.amount -= currencyDelta.getGivenDelta();
+                    inventoryStorage.credits.amount -= currencyDelta.getGivenDelta();
                     break;
                 case materials:
-                    playerSession.getPlayerSettings().getInventoryStorage().materials.amount -= currencyDelta.getGivenDelta();
+                    inventoryStorage.materials.amount -= currencyDelta.getGivenDelta();
                     break;
                 case contraband:
-                    playerSession.getPlayerSettings().getInventoryStorage().contraband.amount -= currencyDelta.getGivenDelta();
+                    inventoryStorage.contraband.amount -= currencyDelta.getGivenDelta();
                     break;
                 case crystals:
-                    playerSession.getPlayerSettings().getInventoryStorage().crystals.amount -= currencyDelta.getGivenDelta();
+                    inventoryStorage.crystals.amount -= currencyDelta.getGivenDelta();
                     break;
             }
         }
@@ -765,18 +764,20 @@ public class PlayerSessionImpl implements PlayerSession {
                         currencyDelta.getGivenDelta() + " for player " + playerSession.getPlayerId());
             }
 
+            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+
             switch (currencyDelta.getCurrency()) {
                 case credits:
-                    playerSession.getPlayerSettings().getInventoryStorage().credits.amount += currencyDelta.getGivenDelta();
+                    inventoryStorage.credits.amount += currencyDelta.getGivenDelta();
                     break;
                 case materials:
-                    playerSession.getPlayerSettings().getInventoryStorage().materials.amount += currencyDelta.getGivenDelta();
+                    inventoryStorage.materials.amount += currencyDelta.getGivenDelta();
                     break;
                 case contraband:
-                    playerSession.getPlayerSettings().getInventoryStorage().contraband.amount += currencyDelta.getGivenDelta();
+                    inventoryStorage.contraband.amount += currencyDelta.getGivenDelta();
                     break;
                 case crystals:
-                    playerSession.getPlayerSettings().getInventoryStorage().crystals.amount += currencyDelta.getGivenDelta();
+                    inventoryStorage.crystals.amount += currencyDelta.getGivenDelta();
                     break;
             }
         }
@@ -1083,15 +1084,16 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void storeBuy(String uid, int count, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
+        InventoryStorage inventoryStorage = this.getInventoryStorage();
         if (uid.equals("droids")) {
-            this.getPlayerSettings().getInventoryStorage().droids.amount += count;
+            inventoryStorage.droids.amount += count;
         }
 
         // TODO - do this properly, for now just going to accept what the client says
-        this.getPlayerSettings().getInventoryStorage().credits.amount = credits;
-        this.getPlayerSettings().getInventoryStorage().materials.amount = materials;
-        this.getPlayerSettings().getInventoryStorage().contraband.amount = contraband;
-        this.getPlayerSettings().getInventoryStorage().crystals.amount = crystals;
+        inventoryStorage.credits.amount = credits;
+        inventoryStorage.materials.amount = materials;
+        inventoryStorage.contraband.amount = contraband;
+        inventoryStorage.crystals.amount = crystals;
 
         this.savePlayerSession();
     }
@@ -1200,5 +1202,10 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void pvpReleaseTarget() {
         getPvpSession().pvpReleaseTarget();
+    }
+
+    @Override
+    public InventoryStorage getInventoryStorage() {
+        return this.getPlayerSettings().getInventoryStorage();
     }
 }

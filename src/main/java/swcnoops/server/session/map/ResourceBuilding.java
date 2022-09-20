@@ -4,6 +4,7 @@ import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.CurrencyHelper;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.CurrencyType;
+import swcnoops.server.model.InventoryStorage;
 import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 
@@ -84,15 +85,17 @@ public class ResourceBuilding extends MapItemImpl {
     private int calculateGivenDeltaCollected(CurrencyType currency, int givenTotal, PlayerSession playerSession) {
         int givenDelta = givenTotal;
         if (currency != null) {
+            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+
             switch (currency) {
                 case credits:
-                    givenDelta -= playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
+                    givenDelta -= inventoryStorage.credits.amount;
                     break;
                 case materials:
-                    givenDelta -= playerSession.getPlayerSettings().getInventoryStorage().materials.amount;
+                    givenDelta -= inventoryStorage.materials.amount;
                     break;
                 case contraband:
-                    givenDelta -= playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
+                    givenDelta -= inventoryStorage.contraband.amount;
                     break;
             }
         }

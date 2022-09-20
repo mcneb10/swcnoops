@@ -4,6 +4,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.BuildingType;
 import swcnoops.server.model.Building;
+import swcnoops.server.model.InventoryStorage;
 import swcnoops.server.session.PlayerSession;
 
 public class HeadQuarter extends MapItemImpl {
@@ -29,9 +30,10 @@ public class HeadQuarter extends MapItemImpl {
                 // the inventory needs to have these already there as the game needs it otherwise it wont make a prestige droid
                 // the value also needs to start off as 0, if it has a value then it will do prestige droid collect even if
                 // the player is not at HQ prestige
-                playerSession.getPlayerSettings().getInventoryStorage().droids_prestige.amount = 1;
-                playerSession.getPlayerSettings().getInventoryStorage().droids_prestige.scale = 1;
-                playerSession.getPlayerSettings().getInventoryStorage().droids_prestige.capacity = 1;
+                InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+                inventoryStorage.droids_prestige.amount = 1;
+                inventoryStorage.droids_prestige.scale = 1;
+                inventoryStorage.droids_prestige.capacity = 1;
             }
         }
     }

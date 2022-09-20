@@ -4,6 +4,7 @@ import swcnoops.server.game.BuildingData;
 import swcnoops.server.game.CurrencyHelper;
 import swcnoops.server.model.Building;
 import swcnoops.server.model.CurrencyType;
+import swcnoops.server.model.InventoryStorage;
 import swcnoops.server.session.PlayerSession;
 
 public class StorageBuilding extends MapItemImpl {
@@ -19,15 +20,16 @@ public class StorageBuilding extends MapItemImpl {
 
     private void updateTotalCapacity(PlayerSession playerSession, CurrencyType currency) {
         int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
+        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
         switch (currency) {
             case credits:
-                playerSession.getPlayerSettings().getInventoryStorage().credits.capacity = totalCapacity;
+                inventoryStorage.credits.capacity = totalCapacity;
                 break;
             case materials:
-                playerSession.getPlayerSettings().getInventoryStorage().materials.capacity = totalCapacity;
+                inventoryStorage.materials.capacity = totalCapacity;
                 break;
             case contraband:
-                playerSession.getPlayerSettings().getInventoryStorage().contraband.capacity = totalCapacity;
+                inventoryStorage.contraband.capacity = totalCapacity;
                 break;
         }
     }

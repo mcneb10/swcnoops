@@ -147,7 +147,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory.capacity = -1;
-        playerModel.inventory.storage = playerSession.getPlayerSettings().getInventoryStorage();
+        playerModel.inventory.storage = playerSession.getInventoryStorage();
 
         if (ServiceFactory.instance().getConfig().freeResources &&
                 playerModel.currentQuest != null && playerModel.currentQuest.trim().isEmpty()

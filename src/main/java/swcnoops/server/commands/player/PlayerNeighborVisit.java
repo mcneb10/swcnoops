@@ -28,7 +28,7 @@ public class PlayerNeighborVisit extends AbstractCommandAction<PlayerNeighborVis
             playerNeighborVisitResult.player.playerModel.map = neighborSession.getPlayer().getPlayerSettings().baseMap;
             playerNeighborVisitResult.player.playerModel.inventory = new Inventory();
             playerNeighborVisitResult.player.playerModel.inventory.capacity = -1;
-            playerNeighborVisitResult.player.playerModel.inventory.storage = neighborSession.getPlayerSettings().getInventoryStorage();
+            playerNeighborVisitResult.player.playerModel.inventory.storage = neighborSession.getInventoryStorage();
             playerNeighborVisitResult.player.playerModel.inventory.subStorage = new SubStorage();
 
             if (neighborSession.getGuildSession() != null) {

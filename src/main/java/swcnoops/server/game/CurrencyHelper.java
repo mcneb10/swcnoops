@@ -1,6 +1,7 @@
 package swcnoops.server.game;
 
 import swcnoops.server.model.CurrencyType;
+import swcnoops.server.model.InventoryStorage;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
 import swcnoops.server.session.map.StorageBuilding;
@@ -80,15 +81,16 @@ public class CurrencyHelper {
     {
         int givenCost = 0;
         if (currencyType != null) {
+            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
             switch (currencyType) {
                 case credits:
-                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().credits.amount - givenTotal;
+                    givenCost = inventoryStorage.credits.amount - givenTotal;
                     break;
                 case materials:
-                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().materials.amount - givenTotal;
+                    givenCost = inventoryStorage.materials.amount - givenTotal;
                     break;
                 case contraband:
-                    givenCost = playerSession.getPlayerSettings().getInventoryStorage().contraband.amount - givenTotal;
+                    givenCost = inventoryStorage.contraband.amount - givenTotal;
                     break;
             }
         }
@@ -120,15 +122,16 @@ public class CurrencyHelper {
     {
         int givenRefund = 0;
         if (currencyType != null) {
+            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
             switch (currencyType) {
                 case credits:
-                    givenRefund = credits - playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
+                    givenRefund = credits - inventoryStorage.credits.amount;
                     break;
                 case materials:
-                    givenRefund = materials - playerSession.getPlayerSettings().getInventoryStorage().materials.amount;
+                    givenRefund = materials - inventoryStorage.materials.amount;
                     break;
                 case contraband:
-                    givenRefund = contraband - playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
+                    givenRefund = contraband - inventoryStorage.contraband.amount;
                     break;
             }
         }
@@ -177,16 +180,17 @@ public class CurrencyHelper {
     public static int calculateStorageAvailable(CurrencyType currency, PlayerSession playerSession) {
         int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
         int available = totalCapacity;
+        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
 
         switch (currency) {
             case credits:
-                available -= playerSession.getPlayerSettings().getInventoryStorage().credits.amount;
+                available -= inventoryStorage.credits.amount;
                 break;
             case materials:
-                available -= playerSession.getPlayerSettings().getInventoryStorage().materials.amount;
+                available -= inventoryStorage.materials.amount;
                 break;
             case contraband:
-                available -= playerSession.getPlayerSettings().getInventoryStorage().contraband.amount;
+                available -= inventoryStorage.contraband.amount;
                 break;
             default:
                 available = 0;

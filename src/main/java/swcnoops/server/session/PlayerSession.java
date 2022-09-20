@@ -155,4 +155,6 @@ public interface PlayerSession {
     void pvpBattleComplete(BattleReplay battleReplay, Map<String, Integer> attackingUnitsKilled, PvpMatch pvpMatch, long time);
 
     void pvpReleaseTarget();
+
+    InventoryStorage getInventoryStorage();
 }

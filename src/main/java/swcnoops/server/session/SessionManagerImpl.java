@@ -63,8 +63,9 @@ public class SessionManagerImpl implements SessionManager {
     public void setFromModel(PlayerSettings playerSettings, PlayerModel defaultPlayerModel) {
         if (playerSettings.getBaseMap() == null)
             playerSettings.setBaseMap(defaultPlayerModel.map);
-        if (playerSettings.getInventoryStorage() == null)
-            playerSettings.setInventoryStorage(defaultPlayerModel.inventory.storage);
+
+        playerSettings.defaultInventoryIfNull(defaultPlayerModel.inventory.storage);
+
         if (playerSettings.getFaction() == null)
             playerSettings.setFaction(defaultPlayerModel.faction);
         if (playerSettings.getCurrentQuest() == null)

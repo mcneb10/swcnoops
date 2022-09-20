@@ -189,4 +189,9 @@ public class PlayerSettings {
     public String getGuildName() {
         return guildName;
     }
+
+    public void defaultInventoryIfNull(InventoryStorage storage) {
+        if (this.inventoryStorage == null)
+            this.inventoryStorage = storage;
+    }
 }

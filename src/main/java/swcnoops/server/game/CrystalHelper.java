@@ -1,6 +1,7 @@
 package swcnoops.server.game;
 
 import swcnoops.server.ServiceFactory;
+import swcnoops.server.model.InventoryStorage;
 import swcnoops.server.model.TroopType;
 import swcnoops.server.session.PlayerSession;
 
@@ -44,12 +45,14 @@ public class CrystalHelper {
     }
 
     public static int calculateGivenCrystalDeltaToRemove(PlayerSession playerSession, int crystals) {
-        int givenCrystalsDelta = playerSession.getPlayerSettings().getInventoryStorage().crystals.amount - crystals;
+        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+        int givenCrystalsDelta = inventoryStorage.crystals.amount - crystals;
         return givenCrystalsDelta;
     }
 
     public static int calculateGivenCrystalDeltaToAdd(PlayerSession playerSession, int crystals) {
-        int givenCrystalsDelta = crystals - playerSession.getPlayerSettings().getInventoryStorage().crystals.amount;
+        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+        int givenCrystalsDelta = crystals - inventoryStorage.crystals.amount;
         return givenCrystalsDelta;
     }
 
