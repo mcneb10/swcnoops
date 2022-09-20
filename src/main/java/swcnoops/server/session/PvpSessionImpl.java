@@ -61,4 +61,12 @@ public class PvpSessionImpl implements PvpManager {
         ServiceFactory.instance().getPlayerDatasource().pvpReleaseTarget(this);
         this.currentPvPMatch = null;
     }
+
+    @Override
+    public void playerLogin() {
+        // TODO - maybe reset the player Ids we have already seen for PvP
+        this.playersSeen.clear();
+        this.devBasesSeen.clear();
+        this.currentPvPMatch = null;
+    }
 }

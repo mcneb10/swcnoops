@@ -19,13 +19,9 @@ public class GameConstants {
     public Integer upgrade_all_walls_convenience_tax;
     public Integer credits_coefficient;
     public Integer credits_exponent;
-
     public Float pvp_battle_one_star_victory;
     public Float pvp_battle_two_star_victory;
-
     public Float pvp_battle_three_star_victory;
-
-
     public Integer new_player_protection;
     public Integer pvp_damage_protection_1star;
     public Integer pvp_damage_protection_2star;

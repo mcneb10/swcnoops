@@ -332,7 +332,26 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         this.notificationSession.playerLogin();
         removeEjectedNotifications();
+        validateInventoryTotalCapacity(this);
+        this.getPvpSession().playerLogin();
         ServiceFactory.instance().getPlayerDatasource().savePlayerLogin(this);
+    }
+
+    private void validateInventoryTotalCapacity(PlayerSession playerSession) {
+        InventoryStorage inventoryStorage = playerSession.getPlayerSettings().getInventoryStorage();
+
+        inventoryStorage.credits.capacity = CurrencyHelper.getTotalCapacity(playerSession, CurrencyType.credits);
+        inventoryStorage.materials.capacity = CurrencyHelper.getTotalCapacity(playerSession, CurrencyType.materials);
+        inventoryStorage.contraband.capacity = CurrencyHelper.getTotalCapacity(playerSession, CurrencyType.contraband);
+
+        if (inventoryStorage.credits.amount > inventoryStorage.credits.capacity)
+            inventoryStorage.credits.amount = inventoryStorage.credits.capacity;
+
+        if (inventoryStorage.materials.amount > inventoryStorage.materials.capacity)
+            inventoryStorage.materials.amount = inventoryStorage.materials.capacity;
+
+        if (inventoryStorage.contraband.amount > inventoryStorage.contraband.capacity)
+            inventoryStorage.contraband.amount = inventoryStorage.contraband.capacity;
     }
 
     private void removeEjectedNotifications() {

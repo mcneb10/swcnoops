@@ -10,4 +10,6 @@ public interface PvpManager {
     PlayerSession getPlayerSession();
 
     void pvpReleaseTarget();
+
+    void playerLogin();
 }

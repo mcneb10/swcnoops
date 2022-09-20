@@ -1,13 +1,12 @@
 package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
-import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 
-public class PlayerPvpReleaseTarget extends AbstractCommandAction<PlayerPvpReleaseTarget, CommandResult> {
+public class PlayerPvpReleaseTarget extends PlayerChecksum<PlayerPvpReleaseTarget, CommandResult> {
     @Override
     protected CommandResult execute(PlayerPvpReleaseTarget arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());

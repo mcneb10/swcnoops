@@ -5,6 +5,7 @@ import swcnoops.server.model.FactionType;
 import swcnoops.server.model.JsonStringArrayList;
 
 public class PvpMatch {
+    public int creditsCharged;
     private String battleId;
     private String playerId;
     private String participantId;

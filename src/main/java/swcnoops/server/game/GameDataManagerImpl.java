@@ -7,9 +7,6 @@ import swcnoops.server.datasource.DevBase;
 import swcnoops.server.model.*;
 
 import java.io.*;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
 import java.util.*;
 import java.util.zip.CRC32;
 import java.util.zip.Checksum;
@@ -35,20 +32,36 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<FactionType, List<Integer>> troopSizesAvailableByFaction = new HashMap<>();
 
     private Map<Integer, Float> pvpMedalScaling;
+    private int[] pvpCosts;
 
     @Override
     public void initOnStartup() {
         try {
             loadTroops();
-            loadBaseJson();
+            loadBaseJsonAndGameConstants();
             this.traps = loadTraps();
             loadCampaigns();
             buildCustomTroopMaps();
             setupDevBases();
             this.factionBuildingEquivalentMap = create(this.buildingLevelsByBuildingId);
+            this.initialiseGameConstants();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
         }
+    }
+
+    private void initialiseGameConstants() {
+        this.pvpCosts = this.getPvpCosts();
+    }
+
+    private int[] getPvpCosts() {
+        String costArray[] = this.gameConstants.pvp_search_cost_by_hq_level.split(" ");
+        int[] pvpCosts = new int[costArray.length];
+        for (int i = 0; i < costArray.length; i++) {
+            pvpCosts[i] = Integer.parseInt(costArray[i]);
+        }
+
+        return pvpCosts;
     }
 
     private FactionBuildingEquivalentMap create(Map<String, List<BuildingData>> buildingLevelsByBuildingId) {
@@ -276,7 +289,7 @@ public class GameDataManagerImpl implements GameDataManager {
         }
     }
 
-    private void loadBaseJson() throws Exception {
+    private void loadBaseJsonAndGameConstants() throws Exception {
         Map result = ServiceFactory.instance().getJsonParser()
                 .toObjectFromResource(ServiceFactory.instance().getConfig().baseJson, Map.class);
         Map<String, Map> jsonSpreadSheet = (Map<String, Map>) result;
@@ -287,7 +300,6 @@ public class GameDataManagerImpl implements GameDataManager {
 
         List<Map<String, String>> gameConstants = (List<Map<String, String>>) objectsMap.get("GameConstants");
         this.gameConstants = readGameConstants(gameConstants);
-
     }
 
     private GameConstants readGameConstants(List<Map<String, String>> gameConstants) throws Exception {
@@ -450,9 +462,7 @@ public class GameDataManagerImpl implements GameDataManager {
 
     @Override
     public int getPvpMatchCost(int hQLevel) {
-        String costArray[] = gameConstants.pvp_search_cost_by_hq_level.split(" ");
-        int cost = Integer.parseInt(costArray[hQLevel - 1]);
-        return cost;
+        return this.pvpCosts[hQLevel - 1];
     }
 
     private void setupDevBases() {

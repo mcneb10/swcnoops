@@ -193,6 +193,9 @@ public class CurrencyHelper {
                 break;
         }
 
+        if (available < 0)
+            available = 0;
+
         return available;
     }
 }

@@ -83,6 +83,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 Indexes.descending("playerSettings.hqLevel"),
                 Indexes.descending("playerSettings.scalars.xp")));
 
+        // this unique index is used to prevent 2 players picking the same opponent
+        this.playerCollection.createIndex(Indexes.ascending("currentPvPAttack.playerId"),
+                new IndexOptions().unique(true).partialFilterExpression(exists("currentPvPAttack.playerId")));
+
         this.squadCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, "dev", "squad", SquadInfo.class, UuidRepresentation.STANDARD);
 
@@ -176,6 +180,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             savePlayerSettings(playerSession, new Date(), session);
+            clearLastPvPAttack(session, playerSession.getPvpSession());
             session.commitTransaction();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to save player login " + playerSession.getPlayerId(), e);
@@ -1144,32 +1149,54 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public PvpMatch getPvPMatches(PvpManager pvpManager, Set<String> playersSeen) {
+        PvpMatch pvpMatch = getPvPMatchWithRetry(pvpManager, playersSeen, 2);
+        return pvpMatch;
+    }
+
+    private PvpMatch getPvPMatchWithRetry(PvpManager pvpManager, Set<String> playersSeen, int attempts) {
+        PvpMatch pvpMatch = null;
+        do {
+            try {
+                pvpMatch = getPvPMatch(pvpManager, playersSeen);
+                attempts--;
+            } catch (MongoCommandException e) {
+                // for now we retry again but might need to add some smart things as no point retrying for all exceptions
+            }
+        } while (pvpMatch == null && attempts > 0);
+
+        return pvpMatch;
+    }
+
+    private PvpMatch getPvPMatch(PvpManager pvpManager, Set<String> playersSeen) throws MongoCommandException {
+        PlayerSession playerSession = pvpManager.getPlayerSession();
         long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();
-        int playerHq = pvpManager.getPlayerSession().getPlayerSettings().getHqLevel();
-        int playerXp = pvpManager.getPlayerSession().getPlayerSettings().getScalars().xp;
+        int playerHq = playerSession.getPlayerSettings().getHqLevel();
+        int playerXp = playerSession.getPlayerSettings().getScalars().xp;
 
         Bson hqQuery = and(gte("playerSettings.hqLevel", playerHq - 1), lte("playerSettings.hqLevel", playerHq + 1));
         Bson xpQuery = and(gte("playerSettings.scalars.xp", playerXp * 0.9), lte("playerSettings.scalars.xp", playerXp * 1.10));
         Bson notMe = ne("_id", pvpManager.getPlayerSession().getPlayerId());
         Bson notAlreadySeen = nin("_id", playersSeen);
-        Bson notBeingAttacked = eq("currentPvPDefence", null);
+        Bson notBeingAttacked = or(eq("currentPvPDefence", null), lt("currentPvPDefence.expiration", timeNow - 130));
         Bson otherFaction = ne("playerSettings.faction", pvpManager.getPlayerSession().getPlayer().getPlayerSettings().getFaction());
         Bson playerNotPlaying = or(lt("keepAlive", timeNow - 130), eq("keepAlive", null));
 
-        List<Bson> aggregates = Arrays.asList(Aggregates.match(and(notMe, otherFaction, notBeingAttacked, playerNotPlaying, notAlreadySeen, or(hqQuery, xpQuery))),
+        List<Bson> aggregates = Arrays.asList(
+                Aggregates.match(and(notMe, otherFaction, notBeingAttacked, playerNotPlaying, notAlreadySeen,
+                        or(hqQuery, xpQuery))),
                 Aggregates.project(include("playerSettings.scalars",
-                        "playerSettings.faction", "playerSettings.hqLevel", "playerSettings.guildId")),
+                        "playerSettings.faction", "playerSettings.hqLevel", "playerSettings.guildId", "currentPvPDefence")),
                 Aggregates.sample(1));
+
+        PvpMatch pvpMatch = null;
 
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
 
             // clear last PvP attack
             clearLastPvPAttack(clientSession, pvpManager);
-
             AggregateIterable<Player> inactivePlayersIterable = this.playerCollection.aggregate(clientSession, aggregates);
 
-            PvpMatch pvpMatch = null;
             try (MongoCursor<Player> inactivePlayerCursor = inactivePlayersIterable.cursor()) {
                 if (inactivePlayerCursor.hasNext()) {
                     Player opponentPlayer = inactivePlayerCursor.next();
@@ -1183,6 +1210,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     pvpMatch.setFactionType(opponentPlayer.getPlayerSettings().getFaction());
                     pvpMatch.setDevBase(false);
                     pvpMatch.setLevel(opponentPlayer.getPlayerSettings().getHqLevel());
+                    pvpMatch.creditsCharged = ServiceFactory.instance().getGameDataManager().getPvpMatchCost(playerHq);
+
+                    // they were attacked but has not been cleaned up, we will clean up the attacker otherwise
+                    // unique index will fail
+                    if (opponentPlayer.getCurrentPvPDefence() != null) {
+                        PvpAttack pvpAttackDefence = opponentPlayer.getCurrentPvPDefence();
+                        clearPvPAttacker(clientSession, pvpAttackDefence);
+                    }
                 }
             }
 
@@ -1190,22 +1225,38 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 PvpAttack pvpAttack = new PvpAttack();
                 pvpAttack.playerId = pvpMatch.getParticipantId();
                 pvpAttack.battleId = pvpMatch.getBattleId();
-                pvpAttack.expiration = pvpMatch.getBattleDate() + 130;
+                pvpAttack.expiration = pvpMatch.getBattleDate() + 120 + 30 + 15;                    // 2 minute attack, 30s to decide and a buffer
                 pvpManager.getPlayerSession().getPlayer().setCurrentPvPAttack(pvpAttack);
-                this.playerCollection.updateOne(clientSession, eq("_id", pvpManager.getPlayerSession().getPlayerId()),
-                        set("currentPvPAttack", pvpAttack));
+                pvpManager.getPlayerSession().getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+
+                CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
+                playerSession.processInventoryStorage(currencyDelta);
+
+                this.playerCollection.updateOne(clientSession, eq("_id", playerSession.getPlayerId()),
+                        combine(set("currentPvPAttack", pvpAttack),
+                                set("keepAlive", playerSession.getPlayer().getKeepAlive()),
+                                set("playerSettings.inventoryStorage", playerSession.getPlayerSettings().getInventoryStorage())));
 
                 PvpAttack pvpDefence = new PvpAttack();
                 pvpDefence.playerId = pvpManager.getPlayerSession().getPlayerId();
-                pvpDefence.battleId = pvpMatch.getBattleId();
-                pvpDefence.expiration = pvpMatch.getBattleDate() + 130;
+                pvpDefence.battleId = pvpAttack.battleId;
+                pvpDefence.expiration = pvpAttack.expiration;
                 this.playerCollection.updateOne(clientSession, eq("_id", pvpAttack.playerId),
                         set("currentPvPDefence", pvpDefence));
             }
 
             clientSession.commitTransaction();
-            return pvpMatch;
+        } catch (MongoCommandException ex) {
+            throw ex;
         }
+
+        return pvpMatch;
+    }
+
+    private void clearPvPAttacker(ClientSession clientSession, PvpAttack pvpAttack) {
+        UpdateResult updateResult = this.playerCollection.updateOne(clientSession,
+                combine(eq("_id", pvpAttack.playerId), eq("currentPvPAttack.battleId", pvpAttack.battleId)),
+                unset("currentPvPAttack"));
     }
 
     private void clearLastPvPAttack(ClientSession clientSession, PvpManager pvpManager) {
@@ -1231,6 +1282,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 //        or (xp >= ( ? * 0.9) AND xp <= (? * 1.10))
 //        ORDER BY xp desc;
 
+        PlayerSession playerSession = pvpManager.getPlayerSession();
         int playerHq = pvpManager.getPlayerSession().getHeadQuarter().getBuildingData().getLevel();
         int playerXp = pvpManager.getPlayerSession().getPlayerSettings().getScalars().xp;
         Bson hqQuery = and(gte("hq", playerHq - 1), lte("hq", playerHq + 1));
@@ -1241,14 +1293,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 Aggregates.project(include("xp", "hq")),
                 Aggregates.sample(1));
 
+        PvpMatch pvpMatch = null;
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             // clear last PvP attack
             clearLastPvPAttack(clientSession, pvpManager);
 
             AggregateIterable<DevBase> devBasesIterable = this.devBaseCollection.aggregate(aggregates);
-
-            PvpMatch pvpMatch = null;
 
             try (MongoCursor<DevBase> devBaseCursor = devBasesIterable.cursor()) {
                 if (devBaseCursor.hasNext()) {
@@ -1262,12 +1313,31 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     pvpMatch.setFactionType(pvpManager.getPlayerSession().getFaction().equals(FactionType.empire) ? FactionType.rebel : FactionType.empire);
                     pvpMatch.setDevBase(true);
                     pvpMatch.setLevel(devBase.hq);
+                    pvpMatch.creditsCharged = ServiceFactory.instance().getGameDataManager().getPvpMatchCost(playerHq);
                 }
             }
 
+            if (pvpMatch != null) {
+                PvpAttack pvpAttack = new PvpAttack();
+                pvpAttack.playerId = pvpMatch.getParticipantId();
+                pvpAttack.battleId = pvpMatch.getBattleId();
+                pvpAttack.expiration = pvpMatch.getBattleDate() + 120 + 30 + 15;                    // 2 minute attack, 30s to decide and a buffer
+                pvpManager.getPlayerSession().getPlayer().setCurrentPvPAttack(pvpAttack);
+                pvpManager.getPlayerSession().getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+
+                CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
+                playerSession.processInventoryStorage(currencyDelta);
+
+                this.playerCollection.updateOne(clientSession, eq("_id", playerSession.getPlayerId()),
+                        combine(set("currentPvPAttack", pvpAttack),
+                                set("keepAlive", playerSession.getPlayer().getKeepAlive()),
+                                set("playerSettings.inventoryStorage", playerSession.getPlayerSettings().getInventoryStorage())));
+            }
+
             clientSession.commitTransaction();
-            return pvpMatch;
         }
+
+        return pvpMatch;
     }
 
     @Override
@@ -1286,6 +1356,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             savePlayerSettings(playerSession, session);
             // TODO - to save defenders settings
             saveBattleReplay(session, battleReplay);
+            clearLastPvPAttack(session, playerSession.getPvpSession());
             session.commitTransaction();
         }
     }

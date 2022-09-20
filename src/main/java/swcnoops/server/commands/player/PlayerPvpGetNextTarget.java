@@ -10,12 +10,10 @@ import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.CommandResult;
 import swcnoops.server.requests.ResponseHelper;
-import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureDataMap;
 import swcnoops.server.session.creature.CreatureManagerFactory;
 
-import java.io.File;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.function.Predicate;
@@ -26,19 +24,17 @@ import java.util.stream.Collectors;
  */
 public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, CommandResult> {
     private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
-    private List<File> layouts;
-    private Random rand = new Random();
 
     @Override
     protected CommandResult execute(PlayerPvpGetNextTarget arguments, long time) throws Exception {
-        CommandResult response = setupResponse(arguments);
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
+        PvpMatch pvpMatch = playerSession.getPvpSession().getNextMatch();
+
+        CommandResult response = setupResponse(playerSession, pvpMatch);
         return response;
     }
 
-    private CommandResult setupResponse(PlayerPvpGetNextTarget arguments) {
-        PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId())
-                .getPvpSession().getNextMatch();
-
+    private CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
         // TODO - not sure if this is the right code but lets give it a try
         if (pvpMatch == null) {
             return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
@@ -58,11 +54,10 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.name = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
             response.guildName = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
             response.guildId = pvpMatch.getParticipantId();
-            response.map.planet = ServiceFactory.instance().getSessionManager()
-                    .getPlayerSession(arguments.getPlayerId()).getPlayer().getPlayerSettings().getBaseMap().planet;
+            response.map.planet = playerSession.getPlayer().getPlayerSettings().getBaseMap().planet;
             response.map.next = 2;
             response.map.buildings = ServiceFactory.instance().getPlayerDatasource().getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
-            setupDevResourcesBaseData(response, arguments.getPlayerId());
+            setupDevResourcesBaseData(response, pvpMatch.getPlayerId());
         } else {
             swcnoops.server.datasource.Player opponentPlayer = ServiceFactory.instance().getPlayerDatasource().loadPlayer(pvpMatch.getParticipantId());
             response.map = opponentPlayer.getPlayerSettings().baseMap;
@@ -70,20 +65,16 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.guildName = opponentPlayer.getPlayerSettings().getGuildName();
             response.guildId = opponentPlayer.getPlayerSettings().getGuildId();
             //TODO, get from defender's file
-            setupDevResourcesBaseData(response, arguments.getPlayerId());
+            setupDevResourcesBaseData(response, pvpMatch.getPlayerId());
         }
 
-        response.creditsCharged = ServiceFactory.instance().getGameDataManager().getPvpMatchCost(ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).getHeadQuarter().getBuildingData().getLevel());
+        response.creditsCharged = pvpMatch.creditsCharged;
         response.xp = pvpMatch.getDefenderXp();
-        //TODO - take this value from player's funds...
-        CurrencyDelta currencyDelta = new CurrencyDelta(response.creditsCharged, response.creditsCharged, CurrencyType.credits, true);
-        ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId()).processInventoryStorage(currencyDelta);
         addParticipantsToMatch(response, pvpMatch);
         setupDefenseTroops(response, response.map);
         //TODO... this properly.
         pvpMatch.setAttackerEquipment(new JsonStringArrayList());
         pvpMatch.setDefenderEquipment(new JsonStringArrayList());
-
         return response;
     }
 
@@ -251,47 +242,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         }
 
         return donatedTroops;
-    }
-
-    private Buildings getNextLayout() {
-        Buildings mapObject = null;
-        File layoutFile;
-        try {
-            if (layouts == null || layouts.size() == 0) {
-                layouts = listf(ServiceFactory.instance().getConfig().layoutsPath);
-            }
-
-            int index = rand.nextInt(layouts.size());
-            if (index < 0)
-                index = 0;
-
-            if (index >= layouts.size())
-                index = layouts.size() - 1;
-
-            layoutFile = this.layouts.get(index);
-            this.layouts.remove(index);
-            mapObject = ServiceFactory.instance().getJsonParser().fromJsonFile(layoutFile.getAbsolutePath(), Buildings.class);
-            return mapObject;
-        } catch (Exception ex) {
-            LOG.error("Failed to load next layout", ex);
-        }
-
-        return mapObject;
-    }
-
-    private List<File> listf(String directoryName) {
-        File directory = new File(directoryName);
-        List<File> resultList = new ArrayList<>();
-        // get all the files from a directory
-        File[] fList = directory.listFiles();
-        for (File file : fList) {
-            if (file.isDirectory()) {
-                resultList.addAll(listf(file.getAbsolutePath()));
-            } else if (file.getAbsolutePath().toLowerCase().endsWith(".json")) {
-                resultList.add(file);
-            }
-        }
-        return resultList;
     }
 
     @Override
