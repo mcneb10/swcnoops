@@ -1189,6 +1189,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
+        CurrencyDelta currencyDeltaProcessed = null;
 
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
@@ -1231,6 +1232,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
                 CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
                 playerSession.processInventoryStorage(currencyDelta);
+                currencyDeltaProcessed = currencyDelta;
 
                 this.playerCollection.updateOne(clientSession, eq("_id", playerSession.getPlayerId()),
                         combine(set("currentPvPAttack", pvpAttack),
@@ -1247,6 +1249,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
+            if (currencyDeltaProcessed != null) {
+                currencyDeltaProcessed.rollback();
+                playerSession.processInventoryStorage(currencyDeltaProcessed);
+            }
             throw ex;
         }
 

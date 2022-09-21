@@ -6,7 +6,7 @@ public class CurrencyDelta {
     private int givenDelta;
     private int expectedDelta;
     private CurrencyType currency;
-    final private boolean removeFromInventory;
+    private boolean removeFromInventory;
 
     public CurrencyDelta(int givenDelta, int expectedDelta, CurrencyType currency, boolean removeFromInventory) {
         this.givenDelta = givenDelta;
@@ -29,5 +29,9 @@ public class CurrencyDelta {
 
     public boolean getRemoveFromInventory() {
         return removeFromInventory;
+    }
+
+    public void rollback() {
+        this.removeFromInventory = !this.removeFromInventory;
     }
 }
