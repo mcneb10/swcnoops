@@ -56,7 +56,8 @@ public class PlayerSessionImpl implements PlayerSession {
     private Lock donationLock = new ReentrantLock();
     private Lock notificationLock = new ReentrantLock();
     private InventoryManagerImpl inventoryManager;
-    private SaveOnlyDBCacheObject<PvpAttack> pvPAttack = new SaveOnlyDBCacheObject<PvpAttack>();
+    private DBCacheObjectSaving<PvpAttack> pvPAttack = new SaveOnlyDBCacheObject<>();
+    private ReadOnlyDBCacheObject<PvpAttack> currentPvPDefending;
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -75,6 +76,14 @@ public class PlayerSessionImpl implements PlayerSession {
         mapBuildingContracts(this.getPlayerSettings());
         this.inventoryManager = new InventoryManagerImpl(this,
                 player.getPlayerSettings().getInventoryStorage());
+        this.currentPvPDefending = new ReadOnlyDBCacheObject<PvpAttack>(this.player.getCurrentPvPDefence(), true) {
+            @Override
+            protected PvpAttack loadDBObject() {
+                return ServiceFactory.instance().getPlayerDatasource().loadPlayer(player.getPlayerId(),
+                                false, "currentPvPDefence")
+                        .getCurrentPvPDefence();
+            }
+        };
     }
 
     private void mapBuildingContracts(PlayerSettings playerSettings) {
@@ -210,7 +219,7 @@ public class PlayerSessionImpl implements PlayerSession {
      * @param time
      */
     @Override
-    public String playerBattleStart(String missionUid, long time) {
+    public String playerPveBattleStart(String missionUid, long time) {
         this.processCompletedContracts(time);
         String guid = ServiceFactory.createRandomUUID();
 
@@ -1214,13 +1223,24 @@ public class PlayerSessionImpl implements PlayerSession {
 
 
     @Override
-    public SaveOnlyDBCacheObject<PvpAttack> getCurrentPvPAttack() {
+    public DBCacheObjectSaving<PvpAttack> getCurrentPvPAttack() {
         return this.pvPAttack;
+    }
+
+    @Override
+    public ReadOnlyDBCacheObject<PvpAttack> getCurrentPvPDefence() {
+        return currentPvPDefending;
     }
 
     @Override
     public void doneDBSave() {
         this.pvPAttack.doneDBSave();
         this.inventoryManager.doneDBSave();
+    }
+
+    @Override
+    public void playerPvPBattleStart(long time) {
+        this.processCompletedContracts(time);
+        ServiceFactory.instance().getPlayerDatasource().savePvPBattleStart(this);
     }
 }

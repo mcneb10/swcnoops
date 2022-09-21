@@ -13,7 +13,7 @@ public class PlayerPvpBattleStart extends AbstractCommandAction<PlayerPvpBattleS
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.playerBattleStart(null, time);
+        playerSession.playerPvPBattleStart(time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

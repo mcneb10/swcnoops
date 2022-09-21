@@ -15,7 +15,7 @@ public class PlayerPveStart extends AbstractCommandAction<PlayerPveStart, Player
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        String battleId = playerSession.playerBattleStart(arguments.getMissionUid(), time);
+        String battleId = playerSession.playerPveBattleStart(arguments.getMissionUid(), time);
         PlayerPveStartCommandResult playerPveStartResponse = new PlayerPveStartCommandResult();
         playerPveStartResponse.setBattleId(battleId);
         return playerPveStartResponse;

@@ -55,6 +55,7 @@ public class ResponseHelper {
     static final public int DEACTIVATE_EQUIPMENT_FAILED = 2604;
     static final public int RECEIPT_STATUS_COMPLETE = 0;
     static final public int RECEIPT_STATUS_INITIATED = 6300;
+    static final public int UNSYNCHRONIZED = 5000;
 
     final static public CommandResult SUCCESS_NULL_COMMAND_RESULT = new AbstractCommandResult() {
         @Override
