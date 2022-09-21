@@ -197,6 +197,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             savePlayerSettings(playerSession, new Date(), session);
             clearLastPvPAttack(session, playerSession.getPvpSession());
             session.commitTransaction();
+            playerSession.doneDBSave();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to save player login " + playerSession.getPlayerId(), e);
         }
@@ -214,9 +215,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void savePlayerKeepAlive(ClientSession clientSession, PlayerSession playerSession) {
-        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        UpdateResult result = this.playerCollection.updateOne(clientSession, Filters.eq("_id", playerSession.getPlayerId()),
-                set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+        this.savePlayerSettingsSmart(clientSession, playerSession);
     }
 
     @Override
@@ -372,12 +371,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         if (playerSession.getInventoryManager().needsSaving()) {
             combinedList.add(set("playerSettings.inventoryStorage", playerSession.getInventoryManager().getObjectForSaving()));
-            playerSession.getInventoryManager().doneSaving();
+            playerSession.getInventoryManager().doneDBSave();
         }
 
         if (playerSession.getCurrentPvPAttack().needsSaving()) {
             combinedList.add(set("currentPvPAttack", playerSession.getCurrentPvPAttack().getObjectForSaving()));
-            playerSession.getCurrentPvPAttack().doneSaving();
+            playerSession.getCurrentPvPAttack().doneDBSave();
         }
 
         Bson combinedSet = combine(combinedList);

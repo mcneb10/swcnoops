@@ -161,4 +161,6 @@ public interface PlayerSession {
     InventoryManager getInventoryManager();
 
     SaveOnlyDBCacheObject<PvpAttack> getCurrentPvPAttack();
+
+    void doneDBSave();
 }

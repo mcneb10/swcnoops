@@ -8,7 +8,6 @@ public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
     private long lastLoaded;
     private long dirtyTime;
     private Lock lock = new ReentrantLock();
-    private boolean writing = false;
     private A dbObjectForWrite;
 
     protected DBCacheObjectImpl() {
@@ -61,7 +60,7 @@ public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
     }
 
     @Override
-    public void doneSaving() {
+    public void doneDBSave() {
         // this forces a reload of the data when accessed again, so it does not really matter if the save succeeded
         if (this.dbObjectForWrite != null) {
             this.dbObjectForWrite = null;

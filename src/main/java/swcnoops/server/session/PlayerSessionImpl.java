@@ -1217,4 +1217,10 @@ public class PlayerSessionImpl implements PlayerSession {
     public SaveOnlyDBCacheObject<PvpAttack> getCurrentPvPAttack() {
         return this.pvPAttack;
     }
+
+    @Override
+    public void doneDBSave() {
+        this.pvPAttack.doneDBSave();
+        this.inventoryManager.doneDBSave();
+    }
 }

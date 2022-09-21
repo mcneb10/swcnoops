@@ -9,7 +9,7 @@ public class SaveOnlyDBCacheObject<A> implements DBCacheObjectSaving<A>{
     }
 
     @Override
-    public void doneSaving() {
+    public void doneDBSave() {
         this.object = null;
     }
 

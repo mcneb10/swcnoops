@@ -27,7 +27,7 @@ public class PlayerBattleReplayGet extends AbstractCommandAction<PlayerBattleRep
             }
         }
 
-        if (battleReplay.replayData == null)
+        if (battleReplay == null || battleReplay.replayData == null)
             return new PlayerBattleReplayGetResult(ResponseHelper.REPLAY_DATA_NOT_FOUND);
         return new PlayerBattleReplayGetResult(battleReplay);
     }

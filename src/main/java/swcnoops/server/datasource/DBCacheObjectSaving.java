@@ -3,7 +3,7 @@ package swcnoops.server.datasource;
 public interface DBCacheObjectSaving<A> {
     boolean needsSaving();
 
-    void doneSaving();
+    void doneDBSave();
 
     A getObjectForSaving();
 
