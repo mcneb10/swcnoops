@@ -16,7 +16,7 @@ public class WarHistoryManager {
     }
 
     public void setDirty() {
-        this.dirtyTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        this.dirtyTime = System.currentTimeMillis();
     }
 
     public List<WarHistory> getWarHistory() {
@@ -27,7 +27,7 @@ public class WarHistoryManager {
                 histories = this.warHistories;
                 if (histories == null || this.dirtyTime > this.lastLoadedTime) {
                     this.warHistories = getOrLoad();
-                    this.lastLoadedTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+                    this.lastLoadedTime = System.currentTimeMillis();
                 }
                 histories = this.warHistories;
             }

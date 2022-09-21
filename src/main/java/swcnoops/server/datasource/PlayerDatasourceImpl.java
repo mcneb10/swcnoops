@@ -9,7 +9,6 @@ import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.mongojack.Aggregation;
 import org.mongojack.DBQuery;
-import org.mongojack.DBUpdate;
 import org.mongojack.JacksonMongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -249,13 +248,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             if (guildSession.canEdit()) {
                 Member newMember = GuildHelper.createMember(playerSession);
                 newMember.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-                // for some reason mongoJack did not like the push in a combine so had to use mongoJack DBUpdate builder
-                // we also use a combined query to only push if our playerId is not already there as the array index on
                 // playerId only works across documents and not in the same document
                 Bson combinedQuery = combine(eq("_id", guildSession.getGuildId()),
                         Filters.ne("squadMembers.playerId", newMember.playerId));
                 UpdateResult result = this.squadCollection.updateOne(clientSession, combinedQuery,
-                        DBUpdate.push("squadMembers", newMember).inc("members", 1));
+                        combine(push("squadMembers", newMember), inc("members", 1)));
 
                 deleteJoinRequestNotifications(clientSession, squadNotification.getGuildId(), squadNotification.getPlayerId());
                 setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
