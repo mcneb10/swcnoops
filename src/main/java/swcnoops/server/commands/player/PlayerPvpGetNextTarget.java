@@ -89,7 +89,12 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
         String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
 
-        BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(), playerSession.getPlayerSettings().getName(), playerSession.getPlayerSettings().getGuildId(), guildName, playerSession.getPlayerSettings().getScalars().attackRating, potentialScoreWin, playerSession.getPlayerSettings().getScalars().defenseRating, 0, 0, 0, playerSession.getFaction());
+        BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(),
+                playerSession.getPlayerSettings().getName(),
+                playerSession.getPlayerSettings().getGuildId(),
+                guildName, playerSession.getPlayerSettings().getScalars().attackRating,
+                potentialScoreWin, playerSession.getPlayerSettings().getScalars().defenseRating,
+                0, 0, 0, playerSession.getFaction());
 
         pvpMatch.setDefender(defender);
         pvpMatch.setAttacker(attacker);

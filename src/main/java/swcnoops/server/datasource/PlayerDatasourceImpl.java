@@ -249,7 +249,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             if (guildSession.canEdit()) {
                 Member newMember = GuildHelper.createMember(playerSession);
                 newMember.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-                // for some reason mongoJack did not like the push in a combine
+                // for some reason mongoJack did not like the push in a combine so had to use mongoJack DBUpdate builder
                 // we also use a combined query to only push if our playerId is not already there as the array index on
                 // playerId only works across documents and not in the same document
                 Bson combinedQuery = combine(eq("_id", guildSession.getGuildId()),
@@ -396,6 +396,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         int oldXp = playerSession.getPlayerSettings().getScalars().xp;
 
         int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
+        // TODO - this might need to change based on if the building has completed constructing/building yet or not
         int xp = ServiceFactory.getXpFromBuildings(playerSession.getPlayerMapItems().getBaseMap().buildings);
         playerSession.getPlayerSettings().setHqLevel(hqLevel);
         playerSession.getPlayerSettings().getScalars().xp = xp;
@@ -1373,6 +1374,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            // TODO - would like to change to smart save when it supports all the playerSetting objects
             savePlayerSettings(playerSession, session);
             // TODO - to save defenders settings
             saveBattleReplay(session, battleReplay);
