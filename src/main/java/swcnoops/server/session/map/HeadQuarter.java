@@ -30,7 +30,7 @@ public class HeadQuarter extends MapItemImpl {
                 // the inventory needs to have these already there as the game needs it otherwise it wont make a prestige droid
                 // the value also needs to start off as 0, if it has a value then it will do prestige droid collect even if
                 // the player is not at HQ prestige
-                InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+                InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForWriting();
                 inventoryStorage.droids_prestige.amount = 1;
                 inventoryStorage.droids_prestige.scale = 1;
                 inventoryStorage.droids_prestige.capacity = 1;

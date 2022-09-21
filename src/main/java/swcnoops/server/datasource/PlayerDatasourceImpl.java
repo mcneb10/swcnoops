@@ -140,6 +140,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public Player loadPlayer(String playerId) {
         Player player = this.playerCollection.find(eq("_id", playerId)).first();
+        setGuildInfo(player, playerId);
+        return player;
+    }
+
+    private void setGuildInfo(Player player, String playerId) {
         SquadInfo squadInfo = this.squadCollection.find(eq("squadMembers.playerId", playerId))
                 .projection(include("_id", "name")).first();
         if (squadInfo != null) {
@@ -149,7 +154,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             player.getPlayerSettings().setGuildId(null);
             player.getPlayerSettings().setGuildName(null);
         }
-        return player;
+    }
+
+    @Override
+    public PlayerSettings loadPlayerSettings(String playerId, boolean includeGuildId, String... fieldNames) {
+        Player player = this.playerCollection.find(eq("_id", playerId)).first();
+
+        if (includeGuildId) {
+            setGuildInfo(player, playerId);
+        }
+
+        return player.getPlayerSettings();
     }
 
     @Override
@@ -342,14 +357,32 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private void saveDonationRecipient(PlayerSession playerSession, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDonatedTroopsToPlayerSession(playerSession);
-        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
-                combine(set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()),
-                        set("keepAlive", playerSession.getPlayer().getKeepAlive())));
+                set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()));
     }
 
     private void savePlayerSettings(PlayerSession playerSession, ClientSession session) {
         savePlayerSettings(playerSession, null, session);
+    }
+
+    private void savePlayerSettingsSmart(ClientSession session, PlayerSession playerSession) {
+        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        List<Bson> combinedList = new ArrayList<>();
+        combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+
+        if (playerSession.getInventoryManager().needsSaving()) {
+            combinedList.add(set("playerSettings.inventoryStorage", playerSession.getInventoryManager().getObjectForSaving()));
+            playerSession.getInventoryManager().doneSaving();
+        }
+
+        if (playerSession.getCurrentPvPAttack().needsSaving()) {
+            combinedList.add(set("currentPvPAttack", playerSession.getCurrentPvPAttack().getObjectForSaving()));
+            playerSession.getCurrentPvPAttack().doneSaving();
+        }
+
+        Bson combinedSet = combine(combinedList);
+        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
+                combinedSet);
     }
 
     // TODO - probably will need to change this to be smart and only update amended data
@@ -378,7 +411,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-
         List<Bson> combinedList = new ArrayList<>();
         combinedList.add(set("playerSettings", playerSession.getPlayerSettings()));
         combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
@@ -389,7 +421,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         Bson combinedSet = combine(combinedList);
-
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
                 combinedSet);
     }
@@ -1137,8 +1168,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void pvpReleaseTarget(PvpManager pvpManager) {
-        PvpMatch pvpMatch = pvpManager.getMatch();
-        if (pvpMatch != null && !pvpMatch.isDevBase()) {
+        PvpMatch pvpMatch = pvpManager.getCurrentPvPMatch();
+        if (pvpMatch != null) {
             try (ClientSession clientSession = this.mongoClient.startSession()) {
                 clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
                 clearLastPvPAttack(clientSession, pvpManager);
@@ -1189,8 +1220,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
-        CurrencyDelta currencyDeltaProcessed = null;
-
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
 
@@ -1223,21 +1252,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             if (pvpMatch != null) {
-                PvpAttack pvpAttack = new PvpAttack();
-                pvpAttack.playerId = pvpMatch.getParticipantId();
-                pvpAttack.battleId = pvpMatch.getBattleId();
-                pvpAttack.expiration = pvpMatch.getBattleDate() + 120 + 30 + 15;                    // 2 minute attack, 30s to decide and a buffer
-                pvpManager.getPlayerSession().getPlayer().setCurrentPvPAttack(pvpAttack);
-                pvpManager.getPlayerSession().getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-
-                CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
-                playerSession.processInventoryStorage(currencyDelta);
-                currencyDeltaProcessed = currencyDelta;
-
-                this.playerCollection.updateOne(clientSession, eq("_id", playerSession.getPlayerId()),
-                        combine(set("currentPvPAttack", pvpAttack),
-                                set("keepAlive", playerSession.getPlayer().getKeepAlive()),
-                                set("playerSettings.inventoryStorage", playerSession.getPlayerSettings().getInventoryStorage())));
+                PvpAttack pvpAttack = deductCreditForPvPAttack(pvpManager, pvpMatch);
+                this.savePlayerSettingsSmart(clientSession, playerSession);
 
                 PvpAttack pvpDefence = new PvpAttack();
                 pvpDefence.playerId = pvpManager.getPlayerSession().getPlayerId();
@@ -1249,14 +1265,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
-            if (currencyDeltaProcessed != null) {
-                currencyDeltaProcessed.rollback();
-                playerSession.processInventoryStorage(currencyDeltaProcessed);
-            }
             throw ex;
         }
 
         return pvpMatch;
+    }
+
+    private PvpAttack deductCreditForPvPAttack(PvpManager pvpManager, PvpMatch pvpMatch) {
+        PvpAttack pvpAttack = new PvpAttack();
+        pvpAttack.playerId = pvpMatch.getParticipantId();
+        pvpAttack.battleId = pvpMatch.getBattleId();
+        pvpAttack.expiration = pvpMatch.getBattleDate() + 120 + 30 + 15;                    // 2 minute attack, 30s to decide and a buffer
+        pvpManager.getPlayerSession().getCurrentPvPAttack().setObjectForSaving(pvpAttack);
+        CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
+        pvpManager.getPlayerSession().processInventoryStorage(currencyDelta);
+        return pvpAttack;
     }
 
     private void clearPvPAttacker(ClientSession clientSession, PvpAttack pvpAttack) {
@@ -1271,7 +1294,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         .returnDocument(ReturnDocument.BEFORE));
 
         // we clear the opponent we were attacking
-        if (lastPlayerValues.getCurrentPvPAttack() != null) {
+        boolean isDevBase = false;
+        if (pvpManager.getCurrentPvPMatch() != null)
+            isDevBase = pvpManager.getCurrentPvPMatch().isDevBase();
+
+        if (lastPlayerValues.getCurrentPvPAttack() != null && !isDevBase) {
             PvpAttack pvpAttack = lastPlayerValues.getCurrentPvPAttack();
             Player lastOpponentPlayer = this.playerCollection.findOneAndUpdate(clientSession,
                     combine(eq("_id", pvpAttack.playerId), eq("currentPvPDefence.battleId", pvpAttack.battleId)),
@@ -1324,20 +1351,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             if (pvpMatch != null) {
-                PvpAttack pvpAttack = new PvpAttack();
-                pvpAttack.playerId = pvpMatch.getParticipantId();
-                pvpAttack.battleId = pvpMatch.getBattleId();
-                pvpAttack.expiration = pvpMatch.getBattleDate() + 120 + 30 + 15;                    // 2 minute attack, 30s to decide and a buffer
-                pvpManager.getPlayerSession().getPlayer().setCurrentPvPAttack(pvpAttack);
-                pvpManager.getPlayerSession().getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-
-                CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
-                playerSession.processInventoryStorage(currencyDelta);
-
-                this.playerCollection.updateOne(clientSession, eq("_id", playerSession.getPlayerId()),
-                        combine(set("currentPvPAttack", pvpAttack),
-                                set("keepAlive", playerSession.getPlayer().getKeepAlive()),
-                                set("playerSettings.inventoryStorage", playerSession.getPlayerSettings().getInventoryStorage())));
+                deductCreditForPvPAttack(pvpManager, pvpMatch);
+                this.savePlayerSettingsSmart(clientSession, playerSession);
             }
 
             clientSession.commitTransaction();

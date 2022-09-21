@@ -4,9 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.TroopDonationResult;
+import swcnoops.server.datasource.*;
 import swcnoops.server.datasource.Player;
-import swcnoops.server.datasource.PlayerCampaignMission;
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.*;
 import swcnoops.server.model.*;
 import swcnoops.server.session.map.*;
@@ -56,6 +55,8 @@ public class PlayerSessionImpl implements PlayerSession {
 
     private Lock donationLock = new ReentrantLock();
     private Lock notificationLock = new ReentrantLock();
+    private InventoryManagerImpl inventoryManager;
+    private SaveOnlyDBCacheObject<PvpAttack> pvPAttack = new SaveOnlyDBCacheObject<PvpAttack>();
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -72,6 +73,8 @@ public class PlayerSessionImpl implements PlayerSession {
         this.donatedTroops = this.getPlayerSettings().getDonatedTroops();
         this.droidManager = new DroidManager(this);
         mapBuildingContracts(this.getPlayerSettings());
+        this.inventoryManager = new InventoryManagerImpl(this,
+                player.getPlayerSettings().getInventoryStorage());
     }
 
     private void mapBuildingContracts(PlayerSettings playerSettings) {
@@ -336,7 +339,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void validateInventoryTotalCapacity(PlayerSession playerSession) {
-        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+        InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForWriting();
 
         inventoryStorage.credits.capacity = CurrencyHelper.getTotalCapacity(playerSession, CurrencyType.credits);
         inventoryStorage.materials.capacity = CurrencyHelper.getTotalCapacity(playerSession, CurrencyType.materials);
@@ -737,7 +740,7 @@ public class PlayerSessionImpl implements PlayerSession {
                         currencyDelta.getGivenDelta() + " for player " + playerSession.getPlayerId());
             }
 
-            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+            InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForWriting();
             switch (currencyDelta.getCurrency()) {
                 case credits:
                     inventoryStorage.credits.amount -= currencyDelta.getGivenDelta();
@@ -764,7 +767,7 @@ public class PlayerSessionImpl implements PlayerSession {
                         currencyDelta.getGivenDelta() + " for player " + playerSession.getPlayerId());
             }
 
-            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+            InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForWriting();
 
             switch (currencyDelta.getCurrency()) {
                 case credits:
@@ -1084,7 +1087,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void storeBuy(String uid, int count, int credits, int materials, int contraband, int crystals, long time) {
         this.processCompletedContracts(time);
-        InventoryStorage inventoryStorage = this.getInventoryStorage();
+        InventoryStorage inventoryStorage = this.getInventoryManager().getObjectForWriting();
         if (uid.equals("droids")) {
             inventoryStorage.droids.amount += count;
         }
@@ -1205,7 +1208,13 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public InventoryStorage getInventoryStorage() {
-        return this.getPlayerSettings().getInventoryStorage();
+    public InventoryManager getInventoryManager() {
+        return this.inventoryManager;
+    }
+
+
+    @Override
+    public SaveOnlyDBCacheObject<PvpAttack> getCurrentPvPAttack() {
+        return this.pvPAttack;
     }
 }

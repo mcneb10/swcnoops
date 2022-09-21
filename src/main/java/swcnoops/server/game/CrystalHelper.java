@@ -45,14 +45,8 @@ public class CrystalHelper {
     }
 
     public static int calculateGivenCrystalDeltaToRemove(PlayerSession playerSession, int crystals) {
-        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+        InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForReading();
         int givenCrystalsDelta = inventoryStorage.crystals.amount - crystals;
-        return givenCrystalsDelta;
-    }
-
-    public static int calculateGivenCrystalDeltaToAdd(PlayerSession playerSession, int crystals) {
-        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
-        int givenCrystalsDelta = crystals - inventoryStorage.crystals.amount;
         return givenCrystalsDelta;
     }
 

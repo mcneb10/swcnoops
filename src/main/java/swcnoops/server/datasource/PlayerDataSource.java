@@ -9,6 +9,8 @@ import java.util.*;
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
 
+    PlayerSettings loadPlayerSettings(String playerId, boolean includeGuildId, String... property);
+
     void initOnStartup();
 
     void savePlayerName(PlayerSession playerSession, String playerName);

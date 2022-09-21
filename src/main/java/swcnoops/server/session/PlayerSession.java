@@ -3,6 +3,8 @@ package swcnoops.server.session;
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.Player;
 import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.datasource.PvpAttack;
+import swcnoops.server.datasource.SaveOnlyDBCacheObject;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.map.MapItem;
@@ -156,5 +158,7 @@ public interface PlayerSession {
 
     void pvpReleaseTarget();
 
-    InventoryStorage getInventoryStorage();
+    InventoryManager getInventoryManager();
+
+    SaveOnlyDBCacheObject<PvpAttack> getCurrentPvPAttack();
 }

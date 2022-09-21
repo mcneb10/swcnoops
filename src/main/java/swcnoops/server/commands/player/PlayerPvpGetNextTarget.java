@@ -116,7 +116,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.defenseRating = 0;//TODO - might be fun to track this actually? - Dev bases with the most wins!
         //Resources as a % of the attacker's total storage
         Random random = new Random();
-        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+        InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForReading();
         int creditStorage = inventoryStorage.credits.capacity;
         int materialsStorage = inventoryStorage.materials.capacity;
         int contraStorage = inventoryStorage.contraband.capacity;
