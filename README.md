@@ -1,5 +1,6 @@
 # SwcNoops
-Star Wars Commander private server.
+Star Wars Commander private server MongoDB version. The old version which will be discontinued has been copied over to repo swcnoops0.
+MongoDB instructions to come.
 
 A reverse engineer of the server to run the game Star Wars Commander privately.
 This first version has just enough APIs to provide a set of bases that can be attacked.
