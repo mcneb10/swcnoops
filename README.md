@@ -64,16 +64,14 @@ What works so far
 * Enemy base always has droidekas and creature
 * Transition to prestige
 * Enemy SC to always be full
+* Squad and multiplayer
+* PvP
+* Dual accounts for faction flipping
 
 Things to work on in no particular order (eventually)
-* Creating and Saving War layouts
-* Multiplayer support
-* Multiplayer squad support
-* Replays
 * Planet objectives
 * Daily base defense
 * Handling resources that are collected and raided in attacks
-* Support faction switching (partially done)
 
 Things that may never work.
 * Squad chat
