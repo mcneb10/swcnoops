@@ -27,7 +27,7 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
 
     public PlayerMap map;
     public DonatedTroops guildTroops;
-    public Map<CurrencyType, Map<CurrencyType, Integer>> resources;
+    public Map<String, Map<CurrencyType, Integer>> resources;
 
     public Map<String, Integer> champions;
     public List<CreatureTrapData> creatureTrapData;

@@ -381,6 +381,12 @@ public class PlayerSessionImpl implements PlayerSession {
 
         if (inventoryStorage.contraband.amount > inventoryStorage.contraband.capacity)
             inventoryStorage.contraband.amount = inventoryStorage.contraband.capacity;
+
+        if (ServiceFactory.instance().getConfig().freeResources &&
+                this.getPlayerSettings().getCurrentQuest() != null && this.getPlayerSettings().getCurrentQuest() .trim().isEmpty()
+                && playerSession.getPlayerSettings().getName() != null && !playerSession.getPlayerSettings().getName().isEmpty()) {
+            inventoryStorage.crystals.amount = 9999999;
+        }
     }
 
     private void removeEjectedNotifications() {
@@ -588,24 +594,34 @@ public class PlayerSessionImpl implements PlayerSession {
                                   PvpMatch pvpMatch, long time)
     {
         processBattleComplete(attackingUnitsKilled, time);
-        updatePlayerAfterBattle(battleReplay, pvpMatch);
+        updatePlayerAfterPvPBattle(battleReplay, pvpMatch);
         // TODO - defenders settings
         ServiceFactory.instance().getPlayerDatasource().saveNewPvPBattle(this, battleReplay);
     }
 
-    private void updatePlayerAfterBattle(BattleReplay battleReplay, PvpMatch pvpMatch) {
-        this.updatePlayerInventory(battleReplay);
+    private void updatePlayerAfterPvPBattle(BattleReplay battleReplay, PvpMatch pvpMatch) {
+        this.updatePlayerInventoryAfterPvP(battleReplay);
         this.updateAttackScalars(battleReplay, pvpMatch);
     }
 
-    private void updatePlayerInventory(BattleReplay battleReplay) {
-        int creditsGained = battleReplay.battleLog.looted.credits;
-        int materialsGained = battleReplay.battleLog.looted.materials;
-        int contraGained = battleReplay.battleLog.looted.contraband;
+    // TODO - looks like in PvP will report looted over what is available for our storage
+    private void updatePlayerInventoryAfterPvP(BattleReplay battleReplay) {
+        int creditsGained = battleReplay.battleLog.earned.credits;
+        int creditsAvailable = CurrencyHelper.calculateStorageAvailable(CurrencyType.credits, this);
+        creditsGained = Math.min(creditsAvailable, creditsGained);
+
         CurrencyDelta creditDelta = new CurrencyDelta(creditsGained, creditsGained, CurrencyType.credits, false);
         this.processInventoryStorage(creditDelta);
+
+        int materialsGained = battleReplay.battleLog.earned.materials;
+        int materialsAvailable = CurrencyHelper.calculateStorageAvailable(CurrencyType.materials, this);
+        materialsGained = Math.min(materialsAvailable, materialsGained);
         CurrencyDelta materialDelta = new CurrencyDelta(materialsGained, materialsGained, CurrencyType.materials, false);
         this.processInventoryStorage(materialDelta);
+
+        int contraGained = battleReplay.battleLog.earned.contraband;
+        int contrabandAvailable = CurrencyHelper.calculateStorageAvailable(CurrencyType.contraband, this);
+        contraGained = Math.min(contrabandAvailable, contraGained);
         CurrencyDelta contraDelta = new CurrencyDelta(contraGained, contraGained, CurrencyType.contraband, false);
         this.processInventoryStorage(contraDelta);
     }

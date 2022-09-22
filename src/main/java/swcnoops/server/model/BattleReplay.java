@@ -92,7 +92,7 @@ public class BattleReplay {
         Earned earned = new Earned();
         earned.credits = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootCreditsEarned, 0);
         earned.materials = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootMaterialsEarned, 0);
-        earned.materials = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootContrabandEarned, 0);
+        earned.contraband = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootContrabandEarned, 0);
         battleReplay.battleLog.earned = earned;
 
         Earned looted = new Earned();

@@ -81,6 +81,8 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         return response;
     }
 
+    // TODO - this currently calculates what is stored and not what is available uncollected in the store buildings.
+    // may need to make this smarter as the client can take a list of buildings and its breakdown (I think)
     private void setupResources(PlayerPvpGetNextTargetCommandResult response, Player opponentPlayer) {
         response.attacksWon = opponentPlayer.getPlayerSettings().getScalars().attacksWon;
         response.attackRating = opponentPlayer.getPlayerSettings().getScalars().attackRating;
@@ -265,7 +267,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         return donatedTroops;
     }
 
-    private Map<CurrencyType, Map<CurrencyType, Integer>> createResourceMap(BigDecimal creditsAvailable,
+    private Map<String, Map<CurrencyType, Integer>> createResourceMap(BigDecimal creditsAvailable,
                                                                             BigDecimal materialsAvailable,
                                                                             BigDecimal contraAvailable)
     {
@@ -278,10 +280,12 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         Map<CurrencyType, Integer> buildingLootcontrabandMap = new HashMap<>();
         buildingLootcontrabandMap.put(CurrencyType.contraband, contraAvailable.intValue());
 
-        HashMap<CurrencyType, Map<CurrencyType, Integer>> pvpTargetResourcesMap = new HashMap<>();
-        pvpTargetResourcesMap.put(CurrencyType.credits, buildingLootCreditsMap);
-        pvpTargetResourcesMap.put(CurrencyType.materials, buildingLootmaterialsMap);
-        pvpTargetResourcesMap.put(CurrencyType.contraband, buildingLootcontrabandMap);
+        HashMap<String, Map<CurrencyType, Integer>> pvpTargetResourcesMap = new HashMap<>();
+
+        // TODO - not sure which building to assign this to yet, but this seems to work
+        pvpTargetResourcesMap.put(CurrencyType.credits.toString(), buildingLootCreditsMap);
+        pvpTargetResourcesMap.put(CurrencyType.materials.toString(), buildingLootmaterialsMap);
+        pvpTargetResourcesMap.put(CurrencyType.contraband.toString(), buildingLootcontrabandMap);
 
         return pvpTargetResourcesMap;
     }

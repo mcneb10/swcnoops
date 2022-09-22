@@ -163,13 +163,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory.capacity = -1;
         playerModel.inventory.storage = playerSession.getInventoryManager().getObjectForReading();
-
-        if (ServiceFactory.instance().getConfig().freeResources &&
-                playerModel.currentQuest != null && playerModel.currentQuest.trim().isEmpty()
-                && playerSession.getPlayerSettings().getName() != null && !playerSession.getPlayerSettings().getName().isEmpty()) {
-            playerModel.inventory.storage.crystals.amount = 9999999;
-        }
-
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 
