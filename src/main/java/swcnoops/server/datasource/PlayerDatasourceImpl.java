@@ -437,8 +437,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PvpAttack currentPvPDefence = playerSession.getCurrentPvPDefence().getObjectForReading();
         if (loginDate != null) {
             playerSession.getPlayer().setLoginDate(loginDate);
+            playerSession.getPlayer().setLoginTime(ServiceFactory.getSystemTimeSecondsFromEpoch());
             playerSession.getPlayerSettings().setDamagedBuildings(null);
             combinedList.add(set("loginDate", playerSession.getPlayer().getLoginDate()));
+            combinedList.add(set("loginTime", playerSession.getPlayer().getLoginTime()));
 
             // see if we can remove the attack because it has expired, meaning the attacker crashed
             if (currentPvPDefence != null) {

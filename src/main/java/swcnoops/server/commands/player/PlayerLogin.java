@@ -81,12 +81,13 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
         mapCampaignAndMissions(playerLoginResponse.playerModel, playerSession.getPlayerSettings());
 
-        mapSharedPreferencs(playerLoginResponse, playerSession.getPlayerSettings());
+        mapSharedPreferencs(playerLoginResponse, playerSession);
         mapUnlockedPlanets(playerLoginResponse, playerSession.getPlayerSettings());
 
         playerLoginResponse.liveness = new Liveness();
         playerLoginResponse.liveness.keepAliveTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
+        // TODO - not sure if this should be the servers time now or the time passed in by client
         // this last login seems very important, the client needs it as setting this to funny values
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
@@ -136,7 +137,8 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
     }
 
-    private void mapSharedPreferencs(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
+    private void mapSharedPreferencs(PlayerLoginCommandResult playerLoginResponse, PlayerSession playerSession) {
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
         playerLoginResponse.sharedPrefs.putAll(playerSettings.getSharedPreferences());
 
         // turn off conflicts
@@ -146,6 +148,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // this is to stop armory tutorial from triggering
         playerLoginResponse.sharedPrefs.put("EqpTut", "3");
         playerLoginResponse.sharedPrefs.remove("EqpTutStep");
+
+        // send the last login, this is used by client to work out which battle logs are new
+        playerLoginResponse.sharedPrefs.put("llt", String.valueOf(playerSession.getLastLoginTime()));
     }
 
     private void mapCampaignAndMissions(PlayerModel playerModel, PlayerSettings playerSettings) {

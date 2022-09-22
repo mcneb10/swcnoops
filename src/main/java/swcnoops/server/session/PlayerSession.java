@@ -170,4 +170,6 @@ public interface PlayerSession {
     DBCacheObjectRead<Map<String,Integer>> getDamagedBuildingManager();
 
     void savePlayerLogin(long time);
+
+    long getLastLoginTime();
 }

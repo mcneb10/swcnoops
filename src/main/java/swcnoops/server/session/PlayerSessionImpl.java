@@ -90,6 +90,7 @@ public class PlayerSessionImpl implements PlayerSession {
                             false, "playerSettings.damagedBuildings").getDamagedBuildings();
         }
     };
+    private long lastLoginTime;
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -112,6 +113,12 @@ public class PlayerSessionImpl implements PlayerSession {
         this.scalarsManager.initialise(this.player.getPlayerSettings().getScalars());
         this.currentPvPDefending.initialise(this.player.getCurrentPvPDefence());
         this.damagedBuildingManager.initialise(this.player.getPlayerSettings().getDamagedBuildings());
+        this.lastLoginTime = player.getLoginTime();
+    }
+
+    @Override
+    public long getLastLoginTime() {
+        return lastLoginTime;
     }
 
     private void mapBuildingContracts(PlayerSettings playerSettings) {
