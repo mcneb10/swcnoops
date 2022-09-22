@@ -107,7 +107,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         PvpAttack pvpAttack = playerSession.getCurrentPvPDefence().getObjectForReading();
         if (pvpAttack != null) {
             currentlyDefending = new HashMap<>();
-            currentlyDefending.put("expiration", new Long(pvpAttack.expiration));
+            currentlyDefending.put("expiration", pvpAttack.expiration);
         }
 
         return currentlyDefending;

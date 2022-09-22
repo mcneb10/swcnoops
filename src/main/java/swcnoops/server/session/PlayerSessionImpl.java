@@ -617,7 +617,8 @@ public class PlayerSessionImpl implements PlayerSession {
                         ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory);
                 break;
             case 3:
-                medalsDelta = pvpMatch.getPotentialScoreWin();
+                medalsDelta = (int) (pvpMatch.getPotentialScoreWin() *
+                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_three_star_victory);
                 break;
         }
 

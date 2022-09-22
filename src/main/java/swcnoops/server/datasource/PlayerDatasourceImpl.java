@@ -16,6 +16,7 @@ import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
+import swcnoops.server.game.GameConstants;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -1298,10 +1299,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private PvpAttack deductCreditForPvPAttack(PvpManager pvpManager, PvpMatch pvpMatch) {
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+
         PvpAttack pvpAttack = new PvpAttack();
         pvpAttack.playerId = pvpMatch.getParticipantId();
         pvpAttack.battleId = pvpMatch.getBattleId();
-        pvpAttack.expiration = pvpMatch.getBattleDate() + 30 + 8;                    // 30s to decide and a buffer
+        // 30s to decide and a buffer
+        pvpAttack.expiration = ServiceFactory.getSystemTimeSecondsFromEpoch() + constants.pvp_match_countdown + 8;
         pvpManager.getPlayerSession().getCurrentPvPAttack().setObjectForSaving(pvpAttack);
         CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
         pvpManager.getPlayerSession().processInventoryStorage(currencyDelta);
@@ -1509,13 +1513,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void savePvPBattleStart(PlayerSession playerSession) {
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+
         PvpMatch pvpMatch = playerSession.getPvpSession().getCurrentPvPMatch();
         if (pvpMatch != null) {
             // have to extend the expiration time as player is attacking
             PvpAttack pvpAttack = new PvpAttack();
             pvpAttack.playerId = pvpMatch.getParticipantId();
             pvpAttack.battleId = pvpMatch.getBattleId();
-            pvpAttack.expiration = ServiceFactory.getSystemTimeSecondsFromEpoch() + 120 + 8;
+            pvpAttack.expiration = ServiceFactory.getSystemTimeSecondsFromEpoch() + constants.pvp_match_duration + 8;
             playerSession.getCurrentPvPAttack().setObjectForSaving(pvpAttack);
 
             try (ClientSession session = this.mongoClient.startSession()) {

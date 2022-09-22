@@ -34,8 +34,8 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
 
     public Map<String, Integer> potentialPoints;
 
-    public int potentialMedalsToGain;
-    public int potentialMedalsToLose;
+//    public int potentialMedalsToGain;
+//    public int potentialMedalsToLose;
     //    public int potentialTournamentRatingDeltaWin;
 //    public int potentialTournamentRatingDeltaLose;
 //    public int availableCredits;

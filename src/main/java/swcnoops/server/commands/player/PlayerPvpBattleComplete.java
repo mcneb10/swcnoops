@@ -26,8 +26,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
                     "DevBase", pvpMatch.getFactionType(), time);
         }
 
-        playerSession.pvpBattleComplete(battleReplay,
-                arguments.getAttackingUnitsKilled(), pvpMatch, time);
+        playerSession.pvpBattleComplete(battleReplay, arguments.getAttackingUnitsKilled(), pvpMatch, time);
 
         if (!pvpMatch.isDevBase())
             processDefenderResult();//TODO, set medals/resources/sc of real defender following result of battle

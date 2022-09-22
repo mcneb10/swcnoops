@@ -35,7 +35,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     }
 
     private CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
-        // TODO - not sure if this is the right code but lets give it a try
         if (pvpMatch == null) {
             return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
         }
@@ -47,13 +46,13 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.playerId = pvpMatch.getParticipantId();
         response.faction = pvpMatch.getFactionType();
         response.level = pvpMatch.getLevel();
-        response.map = new PlayerMap();
         response.champions = new HashMap<>();
 
         if (pvpMatch.isDevBase()) {
             response.name = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
             response.guildName = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
             response.guildId = pvpMatch.getParticipantId();
+            response.map = new PlayerMap();
             response.map.planet = playerSession.getPlayer().getPlayerSettings().getBaseMap().planet;
             response.map.next = 2;
             response.map.buildings = ServiceFactory.instance().getPlayerDatasource().getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
@@ -79,13 +78,22 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     }
 
     private void addParticipantsToMatch(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
-        BattleParticipant defender;
         //TODO pull from actual player
         Random random = new Random();
+
+        // TODO - this impacts medals need to decide how to formulate
         int potentialScoreWin = Math.max(random.nextInt(50), 12);
         int potentialScoreLose = Math.max(random.nextInt(50), 12);
 
-        defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName, 0, 0, 0, potentialScoreLose * -1, 0, 0, response.faction);
+        // TODO - these are conflict points, need to decide how to formulate when running conflicts
+        // for now these will be 0
+        int potentialPointsWin = 0;
+        int potentialPointsLose = 0;
+
+        BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
+                0, 0, 0, potentialScoreLose * -1,
+                0, 0, response.faction);
+
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
         String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
 
@@ -98,16 +106,14 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
         pvpMatch.setDefender(defender);
         pvpMatch.setAttacker(attacker);
+        pvpMatch.setPotentialScoreWin(potentialScoreWin);
+        pvpMatch.setPotentialScoreLose(potentialScoreLose);
 
         Map<String, Integer> potentialPoints = new HashMap<>();
         potentialPoints.put("potentialScoreWin", potentialScoreWin);
         potentialPoints.put("potentialScoreLose", potentialScoreLose);
-
-        response.potentialMedalsToGain = potentialScoreWin;
-        response.potentialMedalsToLose = potentialScoreLose;
-
-        pvpMatch.setPotentialScoreWin(potentialScoreWin);
-        pvpMatch.setPotentialScoreLose(potentialScoreLose);
+        potentialPoints.put("potentialPointsWin", potentialPointsWin);
+        potentialPoints.put("potentialPointsLose", potentialPointsLose);
 
         response.potentialPoints = potentialPoints;
     }
@@ -145,6 +151,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         Map<CurrencyType, Integer> buildingLootcontrabandMap = new HashMap<>();
         buildingLootcontrabandMap.put(CurrencyType.contraband, contraAvailable.intValue());
 
+        // TODO - not sure this is correct have to debug it in client
         HashMap<CurrencyType, Map<CurrencyType, Integer>> pvpTargetResourcesMap = new HashMap<>();
         pvpTargetResourcesMap.put(CurrencyType.credits, buildingLootCreditsMap);
         pvpTargetResourcesMap.put(CurrencyType.materials, buildingLootmaterialsMap);
@@ -248,6 +255,29 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         }
 
         return donatedTroops;
+    }
+
+//    private void setupLoot(PlayerPvpGetNextTargetCommandResult response, PlayerMap map) {
+//        response.resources = new HashMap<>();
+//        response.resources.put("bld_107", createResourceMap(50,0,0));
+//        response.resources.put("bld_272", createResourceMap(0,25,0));
+//    }
+
+    private Map<CurrencyType, Integer> createResourceMap(int credits, int materials, int contraband) {
+        Map<CurrencyType, Integer> buildingResource = new HashMap<>();
+        if (credits > 0) {
+            buildingResource.put(CurrencyType.credits, Integer.valueOf(credits));
+        }
+
+        if (materials > 0) {
+            buildingResource.put(CurrencyType.materials, Integer.valueOf(materials));
+        }
+
+        if (contraband > 0) {
+            buildingResource.put(CurrencyType.contraband, Integer.valueOf(contraband));
+        }
+
+        return buildingResource;
     }
 
     @Override
