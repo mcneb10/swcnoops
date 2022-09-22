@@ -27,7 +27,6 @@ public class PvpMatch {
     private String guildName;
     private String guildId;
 
-
     public PvpMatch() {
     }
 

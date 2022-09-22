@@ -1428,6 +1428,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void saveBattleReplay(ClientSession session, BattleReplay battleReplay) {
+        battleReplay.setDate(new Date());
         this.battleReplayCollection.insertOne(session, battleReplay);
     }
 

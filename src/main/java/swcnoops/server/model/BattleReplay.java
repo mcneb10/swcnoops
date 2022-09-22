@@ -2,8 +2,10 @@ package swcnoops.server.model;
 
 import org.mongojack.Id;
 import swcnoops.server.commands.player.PlayerBattleComplete;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.session.PlayerSession;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,7 @@ public class BattleReplay {
     public String defenderId;
     public BattleType battleType;
     public long attackDate;
+    private Date date;
 
     public BattleReplay() {
     }
@@ -42,6 +45,19 @@ public class BattleReplay {
     }
 
     static public BattleReplay map(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
+                                   PvpMatch pvpMatch, long time) {
+        BattleReplay battleReplay = map(playerBattleComplete, attackerSession,
+                pvpMatch.getDefender().playerId,
+                pvpMatch.getDefender().name,
+                pvpMatch.getDefender().faction, time);
+
+        // we overwrite it with the real data
+        battleReplay.battleLog.attacker = pvpMatch.getAttacker();
+        battleReplay.battleLog.defender = pvpMatch.getDefender();
+        return battleReplay;
+    }
+
+    static public BattleReplay map(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
                                              String defenderPlayerId, String defenderName, FactionType defenderFaction, long time)
     {
         BattleReplay battleReplay = new BattleReplay(playerBattleComplete.getBattleId());
@@ -53,6 +69,7 @@ public class BattleReplay {
         battleReplay.battleLog.battleVersion = playerBattleComplete.getBattleVersion();
         battleReplay.battleLog.battleId = playerBattleComplete.getBattleId();
         battleReplay.battleLog.attackDate = time;
+
         battleReplay.battleLog.attacker = new BattleParticipant();
         battleReplay.battleLog.attacker.playerId = attackerSession.getPlayerId();
         battleReplay.battleLog.attacker.name = attackerSession.getPlayerSettings().getName();
@@ -159,5 +176,13 @@ public class BattleReplay {
                 troops.putAll(deploymentData.specialAttack);
         }
         return troops;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Date getDate() {
+        return date;
     }
 }

@@ -598,52 +598,6 @@ public class PlayerSessionImpl implements PlayerSession {
         this.updateAttackScalars(battleReplay, pvpMatch);
     }
 
-    private int getDefendersMedals(int stars, PvpMatch pvpMatch) {
-        int defenderMedals = 0;
-        switch (stars) {
-            case 0:
-                defenderMedals = pvpMatch.getPotentialScoreWin();
-                break;
-            case 1:
-                defenderMedals = (int) (pvpMatch.getPotentialScoreLose() *
-                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_one_star_victory) * -1;
-                break;
-            case 2:
-                defenderMedals = (int) (pvpMatch.getPotentialScoreLose() *
-                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory) * -1;
-                break;
-            case 3:
-                defenderMedals = pvpMatch.getPotentialScoreLose();
-                break;
-        }
-
-        return defenderMedals;
-    }
-
-    private int getAttackerMedals(int stars, PvpMatch pvpMatch) {
-        int medalsDelta = 0;
-
-        switch (stars) {
-            case 0:
-                medalsDelta = pvpMatch.getPotentialScoreLose() * -1;
-                break;
-            case 1:
-                medalsDelta = (int) (pvpMatch.getPotentialScoreWin() *
-                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_one_star_victory);
-                break;
-            case 2:
-                medalsDelta = (int) (pvpMatch.getPotentialScoreWin() *
-                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory);
-                break;
-            case 3:
-                medalsDelta = (int) (pvpMatch.getPotentialScoreWin() *
-                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_three_star_victory);
-                break;
-        }
-
-        return medalsDelta;
-    }
-
     private void updatePlayerInventory(BattleReplay battleReplay) {
         int creditsGained = battleReplay.battleLog.looted.credits;
         int materialsGained = battleReplay.battleLog.looted.materials;
@@ -662,7 +616,7 @@ public class PlayerSessionImpl implements PlayerSession {
         scalars.attacksCompleted = battleReplay.battleLog.isUserEnded ? scalars.attacksCompleted : scalars.attacksCompleted + 1;
         scalars.attacksWon = battleReplay.battleLog.stars > 0 ? scalars.attacksWon + 1 : scalars.attacksWon;
         scalars.attacksLost = battleReplay.battleLog.stars == 0 ? scalars.attacksLost + 1 : scalars.attacksLost;
-        scalars.attackRating = scalars.attackRating + getAttackerMedals(battleReplay.battleLog.stars, pvpMatch);
+        scalars.attackRating = scalars.attackRating + pvpMatch.getAttacker().attackRatingDelta;
     }
 
     private Map<String, Integer> getChampions(Map<String, Integer> attackingUnitsKilled) {

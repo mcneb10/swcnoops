@@ -69,7 +69,8 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
         response.creditsCharged = pvpMatch.creditsCharged;
         response.xp = pvpMatch.getDefenderXp();
-        addParticipantsToMatch(response, pvpMatch);
+        setupParticipants(response, pvpMatch);
+        setupScoreAndPoints(response, pvpMatch);
         setupDefenseTroops(response, response.map);
         //TODO... this properly.
         pvpMatch.setAttackerEquipment(new JsonStringArrayList());
@@ -77,8 +78,28 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         return response;
     }
 
-    private void addParticipantsToMatch(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
-        //TODO pull from actual player
+    private void setupParticipants(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
+        // TODO - get the defenders stats
+        BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
+                0, 0, 0, response.faction);
+
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
+        String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
+
+        Scalars scalars = playerSession.getScalarsManager().getObjectForReading();
+
+        BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(),
+                playerSession.getPlayerSettings().getName(),
+                playerSession.getPlayerSettings().getGuildId(),
+                guildName,
+                scalars.attackRating, scalars.defenseRating, 0,
+                playerSession.getFaction());
+
+        pvpMatch.setDefender(defender);
+        pvpMatch.setAttacker(attacker);
+    }
+
+    private void setupScoreAndPoints(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
         Random random = new Random();
 
         // TODO - this impacts medals need to decide how to formulate
@@ -90,22 +111,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         int potentialPointsWin = 0;
         int potentialPointsLose = 0;
 
-        BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
-                0, 0, 0, potentialScoreLose * -1,
-                0, 0, response.faction);
-
-        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
-        String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
-
-        BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(),
-                playerSession.getPlayerSettings().getName(),
-                playerSession.getPlayerSettings().getGuildId(),
-                guildName, playerSession.getScalarsManager().getObjectForReading().attackRating,
-                potentialScoreWin, playerSession.getScalarsManager().getObjectForReading().defenseRating,
-                0, 0, 0, playerSession.getFaction());
-
-        pvpMatch.setDefender(defender);
-        pvpMatch.setAttacker(attacker);
         pvpMatch.setPotentialScoreWin(potentialScoreWin);
         pvpMatch.setPotentialScoreLose(potentialScoreLose);
 
