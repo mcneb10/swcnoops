@@ -120,7 +120,7 @@ public class WarSessionImpl implements WarSession {
         SquadNotification attackReplayNotification =
                 createWarReplayNotification(playerSession, defenderSession, battleReplay);
 
-        playerSession.battleComplete(battleReplay.battleLog.battleId, battleReplay.battleLog.stars,
+        playerSession.warBattleComplete(battleReplay.battleLog.battleId, battleReplay.battleLog.stars,
                 attackingUnitsKilled, time);
 
         AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackComplete(this,

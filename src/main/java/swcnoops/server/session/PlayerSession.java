@@ -64,7 +64,7 @@ public interface PlayerSession {
 
     int getDonatedTroopsTotalUnits(DonatedTroops donatedTroops);
 
-    void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
+    void warBattleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
 
     void buildingMultimove(PositionMap positions, long time);
 

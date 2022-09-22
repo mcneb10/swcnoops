@@ -562,7 +562,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
+    public void warBattleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time) {
         processBattleComplete(attackingUnitsKilled, time);
         this.savePlayerSession();
     }
