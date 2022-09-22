@@ -100,9 +100,10 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     }
 
     private void setupParticipants(PvpTargetCommandResult response, PvpMatch pvpMatch) {
-        Scalars defendersScalars = pvpMatch.getDefendersScalars();
-        if (defendersScalars == null)
+        if (pvpMatch.getDefendersScalars() == null)
             pvpMatch.setDefendersScalars(new Scalars());
+
+        Scalars defendersScalars = pvpMatch.getDefendersScalars();
 
         BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
                 defendersScalars.attackRating, defendersScalars.defenseRating, 0, pvpMatch.getFactionType());

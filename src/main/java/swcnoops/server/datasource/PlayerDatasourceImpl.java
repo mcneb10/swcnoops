@@ -1237,6 +1237,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 attempts--;
             } catch (MongoCommandException e) {
                 // for now we retry again but might need to add some smart things as no point retrying for all exceptions
+                LOG.warn("An error trying to get a PvP match", e);
             }
         } while (pvpMatch == null && attempts > 0);
 

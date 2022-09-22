@@ -7,6 +7,7 @@ import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattleComplete, PlayerPvpBattleCompleteCommandResult> {
@@ -42,19 +43,21 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
      * @param damagedBuildings
      */
     private void mergeDamagedBuildings(PvpMatch pvpMatch, Map<String, Integer> damagedBuildings) {
-        if (pvpMatch.getDefenderDamagedBuildings() == null)
-            pvpMatch.setDefenderDamagedBuildings(damagedBuildings);
-        else {
-            if (damagedBuildings != null) {
-                Map<String, Integer> alreadyDamaged = pvpMatch.getDefenderDamagedBuildings();
-                for (Map.Entry<String,Integer> attackedBuilding : damagedBuildings.entrySet()) {
-                    Integer damage = alreadyDamaged.get(attackedBuilding.getKey());
-                    if (damage == null) {
-                        damage = attackedBuilding.getValue();
-                    } else {
-                        damage = Math.max(damage, attackedBuilding.getValue());
-                    }
+        if (damagedBuildings != null) {
+            if (pvpMatch.getDefenderDamagedBuildings() == null)
+                pvpMatch.setDefenderDamagedBuildings(new HashMap<>());
 
+            Map<String, Integer> alreadyDamaged = pvpMatch.getDefenderDamagedBuildings();
+            for (Map.Entry<String,Integer> attackedBuilding : damagedBuildings.entrySet()) {
+                Integer damage = alreadyDamaged.get(attackedBuilding.getKey());
+                if (damage == null) {
+                    damage = attackedBuilding.getValue();
+                } else {
+                    damage = Math.max(damage, attackedBuilding.getValue());
+                }
+
+                // no point taking 0 damage buildings
+                if (damage != 0) {
                     alreadyDamaged.put(attackedBuilding.getKey(), damage);
                 }
             }

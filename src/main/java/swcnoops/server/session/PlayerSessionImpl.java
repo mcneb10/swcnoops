@@ -626,9 +626,11 @@ public class PlayerSessionImpl implements PlayerSession {
         pvpMatch.getDefendersScalars().defenseRating += pvpMatch.getDefender().defenseRatingDelta;
 
         // what they gain is what the defender lose
-        pvpMatch.getDefendersInventoryStorage().credits.amount -= pvpMatch.getCreditsGained();
-        pvpMatch.getDefendersInventoryStorage().materials.amount -= pvpMatch.getMaterialsGained();
-        pvpMatch.getDefendersInventoryStorage().contraband.amount -= pvpMatch.getContraGained();
+        if (pvpMatch.getDefendersInventoryStorage() != null) {
+            pvpMatch.getDefendersInventoryStorage().credits.amount -= pvpMatch.getCreditsGained();
+            pvpMatch.getDefendersInventoryStorage().materials.amount -= pvpMatch.getMaterialsGained();
+            pvpMatch.getDefendersInventoryStorage().contraband.amount -= pvpMatch.getContraGained();
+        }
 
         // TODO - might have to modify the defenders map, traps, creature and SC
     }

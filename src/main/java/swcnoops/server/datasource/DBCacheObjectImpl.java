@@ -4,11 +4,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
-    private A dbObject;
-    private long lastLoaded;
-    private long dirtyTime;
+    volatile private A dbObject;
+    volatile private long lastLoaded;
+    volatile private long dirtyTime;
     private Lock lock = new ReentrantLock();
-    private A dbObjectForWrite;
+    volatile private A dbObjectForWrite;
 
     protected DBCacheObjectImpl() {
     }
