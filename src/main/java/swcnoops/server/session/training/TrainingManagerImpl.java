@@ -77,7 +77,7 @@ public class TrainingManagerImpl implements TrainingManager {
     private int calculateGivenTrainingCost(PlayerSession playerSession, int credits, int contraband, CurrencyType trainingCurrency) {
         int givenCost = 0;
         if (trainingCurrency != null) {
-            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+            InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForReading();
             switch (trainingCurrency) {
                 case credits:
                     givenCost = inventoryStorage.credits.amount - credits;

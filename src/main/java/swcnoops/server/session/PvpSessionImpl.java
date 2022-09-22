@@ -48,10 +48,6 @@ public class PvpSessionImpl implements PvpManager {
     }
 
     @Override
-    public PvpMatch getMatch() {
-        return getCurrentPvPMatch();
-    }
-
     public PvpMatch getCurrentPvPMatch() {
         return currentPvPMatch;
     }

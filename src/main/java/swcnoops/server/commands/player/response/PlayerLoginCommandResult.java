@@ -26,5 +26,7 @@ public class PlayerLoginCommandResult extends AbstractCommandResult {
     public Object clientPrefs;
     public Object purchaseTracking;
     public Object scalars;
+
+    public Map<String, Long> currentlyDefending;
 }
 

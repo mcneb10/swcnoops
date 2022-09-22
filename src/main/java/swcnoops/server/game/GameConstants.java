@@ -28,6 +28,8 @@ public class GameConstants {
     public Integer pvp_damage_protection_3star;
 
     public String pvp_search_cost_by_hq_level;
+    public Integer pvp_match_countdown;
+    public Integer pvp_match_duration;
 
     public static GameConstants createFromBaseJson(List<Map<String, String>> gameConstants) throws Exception {
         GameConstants constants = new GameConstants();
@@ -63,6 +65,8 @@ public class GameConstants {
             return Double.valueOf(property);
         } else if (type == Long.class) {
             return Long.valueOf(property);
+        } else if (type == Boolean.class) {
+            return Boolean.valueOf(property);
         }
 
         return null;

@@ -9,7 +9,6 @@ import org.bson.UuidRepresentation;
 import org.bson.conversions.Bson;
 import org.mongojack.Aggregation;
 import org.mongojack.DBQuery;
-import org.mongojack.DBUpdate;
 import org.mongojack.JacksonMongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,6 +16,7 @@ import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
+import swcnoops.server.game.GameConstants;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -140,6 +140,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public Player loadPlayer(String playerId) {
         Player player = this.playerCollection.find(eq("_id", playerId)).first();
+        setGuildInfo(player, playerId);
+        return player;
+    }
+
+    private void setGuildInfo(Player player, String playerId) {
         SquadInfo squadInfo = this.squadCollection.find(eq("squadMembers.playerId", playerId))
                 .projection(include("_id", "name")).first();
         if (squadInfo != null) {
@@ -149,6 +154,23 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             player.getPlayerSettings().setGuildId(null);
             player.getPlayerSettings().setGuildName(null);
         }
+    }
+
+    @Override
+    public PlayerSettings loadPlayerSettings(String playerId, boolean includeGuildId, String... fieldNames) {
+        Player player = this.loadPlayer(playerId, includeGuildId, fieldNames);
+        return player.getPlayerSettings();
+    }
+
+    @Override
+    public Player loadPlayer(String playerId, boolean includeGuildId, String... fieldNames) {
+        Player player = this.playerCollection.find(eq("_id", playerId))
+                .projection(include(fieldNames)).first();
+
+        if (includeGuildId) {
+            setGuildInfo(player, playerId);
+        }
+
         return player;
     }
 
@@ -170,6 +192,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             savePlayerSettings(playerSession, session);
             session.commitTransaction();
+            playerSession.doneDBSave();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to save player session " + playerSession.getPlayerId(), e);
         }
@@ -182,6 +205,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             savePlayerSettings(playerSession, new Date(), session);
             clearLastPvPAttack(session, playerSession.getPvpSession());
             session.commitTransaction();
+            playerSession.doneDBSave();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to save player login " + playerSession.getPlayerId(), e);
         }
@@ -199,9 +223,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void savePlayerKeepAlive(ClientSession clientSession, PlayerSession playerSession) {
-        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-        UpdateResult result = this.playerCollection.updateOne(clientSession, Filters.eq("_id", playerSession.getPlayerId()),
-                set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+        this.savePlayerSettingsSmart(clientSession, playerSession);
     }
 
     @Override
@@ -235,13 +257,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             if (guildSession.canEdit()) {
                 Member newMember = GuildHelper.createMember(playerSession);
                 newMember.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
-                // for some reason mongoJack did not like the push in a combine
-                // we also use a combined query to only push if our playerId is not already there as the array index on
                 // playerId only works across documents and not in the same document
                 Bson combinedQuery = combine(eq("_id", guildSession.getGuildId()),
                         Filters.ne("squadMembers.playerId", newMember.playerId));
                 UpdateResult result = this.squadCollection.updateOne(clientSession, combinedQuery,
-                        DBUpdate.push("squadMembers", newMember).inc("members", 1));
+                        combine(push("squadMembers", newMember), inc("members", 1)));
 
                 deleteJoinRequestNotifications(clientSession, squadNotification.getGuildId(), squadNotification.getPlayerId());
                 setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
@@ -342,14 +362,32 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private void saveDonationRecipient(PlayerSession playerSession, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDonatedTroopsToPlayerSession(playerSession);
-        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
         UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
-                combine(set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()),
-                        set("keepAlive", playerSession.getPlayer().getKeepAlive())));
+                set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()));
     }
 
     private void savePlayerSettings(PlayerSession playerSession, ClientSession session) {
         savePlayerSettings(playerSession, null, session);
+    }
+
+    private void savePlayerSettingsSmart(ClientSession session, PlayerSession playerSession) {
+        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+        List<Bson> combinedList = new ArrayList<>();
+        combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+
+        if (playerSession.getInventoryManager().needsSaving()) {
+            combinedList.add(set("playerSettings.inventoryStorage", playerSession.getInventoryManager().getObjectForSaving()));
+            playerSession.getInventoryManager().doneDBSave();
+        }
+
+        if (playerSession.getCurrentPvPAttack().needsSaving()) {
+            combinedList.add(set("currentPvPAttack", playerSession.getCurrentPvPAttack().getObjectForSaving()));
+            playerSession.getCurrentPvPAttack().doneDBSave();
+        }
+
+        Bson combinedSet = combine(combinedList);
+        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
+                combinedSet);
     }
 
     // TODO - probably will need to change this to be smart and only update amended data
@@ -364,6 +402,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         int oldXp = playerSession.getPlayerSettings().getScalars().xp;
 
         int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
+        // TODO - this might need to change based on if the building has completed constructing/building yet or not
         int xp = ServiceFactory.getXpFromBuildings(playerSession.getPlayerMapItems().getBaseMap().buildings);
         playerSession.getPlayerSettings().setHqLevel(hqLevel);
         playerSession.getPlayerSettings().getScalars().xp = xp;
@@ -377,21 +416,40 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             guildSession.getGuildSettings().membersUpdated();
         }
 
-        playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-
+        Bson playerQuery = null;
         List<Bson> combinedList = new ArrayList<>();
-        combinedList.add(set("playerSettings", playerSession.getPlayerSettings()));
-        combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
 
+        // if we are logging in then we need to check to see if we are being attacked
+        PvpAttack currentPvPDefence = playerSession.getCurrentPvPDefence().getObjectForReading();
         if (loginDate != null) {
             playerSession.getPlayer().setLoginDate(loginDate);
             combinedList.add(set("loginDate", playerSession.getPlayer().getLoginDate()));
+
+            // see if we can remove the attack because it has expired, meaning the attacker crashed
+            if (currentPvPDefence != null) {
+                if (currentPvPDefence.expiration < ServiceFactory.getSystemTimeSecondsFromEpoch()) {
+                    combinedList.add(unset("currentPvPDefence"));
+                    playerSession.getCurrentPvPDefence().setDirty();
+                    playerQuery = combine(eq("_id", playerSession.getPlayerId()),
+                            eq("currentPvPDefence.expiration", currentPvPDefence.expiration));
+                    currentPvPDefence = null;
+                }
+            }
         }
 
-        Bson combinedSet = combine(combinedList);
+        if (playerQuery == null) {
+            playerQuery = eq("_id", playerSession.getPlayerId());
+        }
 
-        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
-                combinedSet);
+        if (currentPvPDefence == null) {
+            combinedList.add(set("playerSettings", playerSession.getPlayerSettings()));
+            playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
+            combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+
+            Bson combinedSet = combine(combinedList);
+            UpdateResult result = this.playerCollection.updateOne(session, playerQuery,
+                    combinedSet);
+        }
     }
 
     private void mapDonatedTroopsToPlayerSession(PlayerSession playerSession) {
@@ -1137,8 +1195,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void pvpReleaseTarget(PvpManager pvpManager) {
-        PvpMatch pvpMatch = pvpManager.getMatch();
-        if (pvpMatch != null && !pvpMatch.isDevBase()) {
+        PvpMatch pvpMatch = pvpManager.getCurrentPvPMatch();
+        if (pvpMatch != null) {
             try (ClientSession clientSession = this.mongoClient.startSession()) {
                 clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
                 clearLastPvPAttack(clientSession, pvpManager);
@@ -1177,7 +1235,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         Bson xpQuery = and(gte("playerSettings.scalars.xp", playerXp * 0.9), lte("playerSettings.scalars.xp", playerXp * 1.10));
         Bson notMe = ne("_id", pvpManager.getPlayerSession().getPlayerId());
         Bson notAlreadySeen = nin("_id", playersSeen);
-        Bson notBeingAttacked = or(eq("currentPvPDefence", null), lt("currentPvPDefence.expiration", timeNow - 130));
+        Bson notBeingAttacked = or(eq("currentPvPDefence", null), lt("currentPvPDefence.expiration", timeNow));
         Bson otherFaction = ne("playerSettings.faction", pvpManager.getPlayerSession().getPlayer().getPlayerSettings().getFaction());
         Bson playerNotPlaying = or(lt("keepAlive", timeNow - 130), eq("keepAlive", null));
 
@@ -1189,8 +1247,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
-        CurrencyDelta currencyDeltaProcessed = null;
-
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
 
@@ -1223,21 +1279,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             if (pvpMatch != null) {
-                PvpAttack pvpAttack = new PvpAttack();
-                pvpAttack.playerId = pvpMatch.getParticipantId();
-                pvpAttack.battleId = pvpMatch.getBattleId();
-                pvpAttack.expiration = pvpMatch.getBattleDate() + 120 + 30 + 15;                    // 2 minute attack, 30s to decide and a buffer
-                pvpManager.getPlayerSession().getPlayer().setCurrentPvPAttack(pvpAttack);
-                pvpManager.getPlayerSession().getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-
-                CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
-                playerSession.processInventoryStorage(currencyDelta);
-                currencyDeltaProcessed = currencyDelta;
-
-                this.playerCollection.updateOne(clientSession, eq("_id", playerSession.getPlayerId()),
-                        combine(set("currentPvPAttack", pvpAttack),
-                                set("keepAlive", playerSession.getPlayer().getKeepAlive()),
-                                set("playerSettings.inventoryStorage", playerSession.getPlayerSettings().getInventoryStorage())));
+                PvpAttack pvpAttack = deductCreditForPvPAttack(pvpManager, pvpMatch);
+                this.savePlayerSettingsSmart(clientSession, playerSession);
 
                 PvpAttack pvpDefence = new PvpAttack();
                 pvpDefence.playerId = pvpManager.getPlayerSession().getPlayerId();
@@ -1249,14 +1292,24 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
-            if (currencyDeltaProcessed != null) {
-                currencyDeltaProcessed.rollback();
-                playerSession.processInventoryStorage(currencyDeltaProcessed);
-            }
             throw ex;
         }
 
         return pvpMatch;
+    }
+
+    private PvpAttack deductCreditForPvPAttack(PvpManager pvpManager, PvpMatch pvpMatch) {
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+
+        PvpAttack pvpAttack = new PvpAttack();
+        pvpAttack.playerId = pvpMatch.getParticipantId();
+        pvpAttack.battleId = pvpMatch.getBattleId();
+        // 30s to decide and a buffer
+        pvpAttack.expiration = ServiceFactory.getSystemTimeSecondsFromEpoch() + constants.pvp_match_countdown + 8;
+        pvpManager.getPlayerSession().getCurrentPvPAttack().setObjectForSaving(pvpAttack);
+        CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
+        pvpManager.getPlayerSession().processInventoryStorage(currencyDelta);
+        return pvpAttack;
     }
 
     private void clearPvPAttacker(ClientSession clientSession, PvpAttack pvpAttack) {
@@ -1271,7 +1324,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         .returnDocument(ReturnDocument.BEFORE));
 
         // we clear the opponent we were attacking
-        if (lastPlayerValues.getCurrentPvPAttack() != null) {
+        boolean isDevBase = false;
+        if (pvpManager.getCurrentPvPMatch() != null)
+            isDevBase = pvpManager.getCurrentPvPMatch().isDevBase();
+
+        if (lastPlayerValues.getCurrentPvPAttack() != null && !isDevBase) {
             PvpAttack pvpAttack = lastPlayerValues.getCurrentPvPAttack();
             Player lastOpponentPlayer = this.playerCollection.findOneAndUpdate(clientSession,
                     combine(eq("_id", pvpAttack.playerId), eq("currentPvPDefence.battleId", pvpAttack.battleId)),
@@ -1324,20 +1381,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             if (pvpMatch != null) {
-                PvpAttack pvpAttack = new PvpAttack();
-                pvpAttack.playerId = pvpMatch.getParticipantId();
-                pvpAttack.battleId = pvpMatch.getBattleId();
-                pvpAttack.expiration = pvpMatch.getBattleDate() + 120 + 30 + 15;                    // 2 minute attack, 30s to decide and a buffer
-                pvpManager.getPlayerSession().getPlayer().setCurrentPvPAttack(pvpAttack);
-                pvpManager.getPlayerSession().getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
-
-                CurrencyDelta currencyDelta = new CurrencyDelta(pvpMatch.creditsCharged, pvpMatch.creditsCharged, CurrencyType.credits, true);
-                playerSession.processInventoryStorage(currencyDelta);
-
-                this.playerCollection.updateOne(clientSession, eq("_id", playerSession.getPlayerId()),
-                        combine(set("currentPvPAttack", pvpAttack),
-                                set("keepAlive", playerSession.getPlayer().getKeepAlive()),
-                                set("playerSettings.inventoryStorage", playerSession.getPlayerSettings().getInventoryStorage())));
+                deductCreditForPvPAttack(pvpManager, pvpMatch);
+                this.savePlayerSettingsSmart(clientSession, playerSession);
             }
 
             clientSession.commitTransaction();
@@ -1359,6 +1404,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            // TODO - would like to change to smart save when it supports all the playerSetting objects
             savePlayerSettings(playerSession, session);
             // TODO - to save defenders settings
             saveBattleReplay(session, battleReplay);
@@ -1462,6 +1508,32 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             this.devBaseCollection.save(devBase);
         } else {
             LOG.debug("dev base with checksum already exists for file " + devBase.fileName);
+        }
+    }
+
+    @Override
+    public void savePvPBattleStart(PlayerSession playerSession) {
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+
+        PvpMatch pvpMatch = playerSession.getPvpSession().getCurrentPvPMatch();
+        if (pvpMatch != null) {
+            // have to extend the expiration time as player is attacking
+            PvpAttack pvpAttack = new PvpAttack();
+            pvpAttack.playerId = pvpMatch.getParticipantId();
+            pvpAttack.battleId = pvpMatch.getBattleId();
+            pvpAttack.expiration = ServiceFactory.getSystemTimeSecondsFromEpoch() + constants.pvp_match_duration + 8;
+            playerSession.getCurrentPvPAttack().setObjectForSaving(pvpAttack);
+
+            try (ClientSession session = this.mongoClient.startSession()) {
+                session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+                this.savePlayerSettingsSmart(session, playerSession);
+                if (!pvpMatch.isDevBase()) {
+                    this.playerCollection.updateOne(session, combine(eq("_id", pvpAttack.playerId),
+                                    eq("currentPvPDefence.battleId", pvpAttack.battleId)),
+                            set("currentPvPDefence.expiration", pvpAttack.expiration));
+                }
+                session.commitTransaction();
+            }
         }
     }
 }

@@ -1,8 +1,8 @@
 package swcnoops.server.session;
 
 import swcnoops.server.commands.guild.TroopDonationResult;
+import swcnoops.server.datasource.*;
 import swcnoops.server.datasource.Player;
-import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.model.*;
 import swcnoops.server.session.map.MapItem;
@@ -33,7 +33,7 @@ public interface PlayerSession {
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
     void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
-    String playerBattleStart(String missionUid, long time);
+    String playerPveBattleStart(String missionUid, long time);
 
     TrainingManager getTrainingManager();
     PlayerSettings getPlayerSettings();
@@ -156,5 +156,12 @@ public interface PlayerSession {
 
     void pvpReleaseTarget();
 
-    InventoryStorage getInventoryStorage();
+    InventoryManager getInventoryManager();
+
+    DBCacheObjectSaving<PvpAttack> getCurrentPvPAttack();
+    ReadOnlyDBCacheObject<PvpAttack> getCurrentPvPDefence();
+
+    void doneDBSave();
+
+    void playerPvPBattleStart(long time);
 }

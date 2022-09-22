@@ -19,6 +19,7 @@ public class CommandFactory {
         this.add(new GetAuthToken());
         this.add(new ConfigEndpointsGet());
         this.add(new PlayerLogin());
+        this.add(new PlayerPvpStatus());
         this.add(new PlayerContentGet());
         this.add(new PlayerDeviceRegister());
         this.add(new PlayerPreferencesSet());

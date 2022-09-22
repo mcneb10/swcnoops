@@ -26,7 +26,7 @@ public class WarSessionImpl implements WarSession {
     public WarSessionImpl(String warId) {
         this.warId = warId;
         this.war = ServiceFactory.instance().getPlayerDatasource().getWar(warId);
-        this.lastLoadedWarTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        this.lastLoadedWarTime = System.currentTimeMillis();
         this.squadA = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
         this.squadB = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
     }
@@ -205,7 +205,7 @@ public class WarSessionImpl implements WarSession {
             try {
                 if (currentWar == null || this.lastLoadedWarTime < this.dirtyTime) {
                     this.war = ServiceFactory.instance().getPlayerDatasource().getWar(this.getWarId());
-                    this.lastLoadedWarTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+                    this.lastLoadedWarTime = System.currentTimeMillis();
                 }
 
                 currentWar = this.war;
@@ -219,6 +219,6 @@ public class WarSessionImpl implements WarSession {
 
     @Override
     public void setDirty() {
-        this.dirtyTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        this.dirtyTime = System.currentTimeMillis();
     }
 }

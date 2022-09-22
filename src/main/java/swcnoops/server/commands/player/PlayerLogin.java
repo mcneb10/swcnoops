@@ -4,6 +4,7 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.datasource.PvpAttack;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
@@ -96,6 +97,20 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
         playerLoginResponse.scalars = playerSession.getPlayerSettings().getScalars();
         playerLoginResponse.playerModel.battleLogs = ServiceFactory.instance().getPlayerDatasource().getPlayerBattleLogs(playerSession.getPlayerId());
+
+        playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
+    }
+
+    private Map<String, Long> mapCurrentlyDefending(PlayerSession playerSession) {
+        Map<String, Long> currentlyDefending = null;
+
+        PvpAttack pvpAttack = playerSession.getCurrentPvPDefence().getObjectForReading();
+        if (pvpAttack != null) {
+            currentlyDefending = new HashMap<>();
+            currentlyDefending.put("expiration", pvpAttack.expiration);
+        }
+
+        return currentlyDefending;
     }
 
     private void mapUnlockedPlanets(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
@@ -147,7 +162,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory.capacity = -1;
-        playerModel.inventory.storage = playerSession.getInventoryStorage();
+        playerModel.inventory.storage = playerSession.getInventoryManager().getObjectForReading();
 
         if (ServiceFactory.instance().getConfig().freeResources &&
                 playerModel.currentQuest != null && playerModel.currentQuest.trim().isEmpty()

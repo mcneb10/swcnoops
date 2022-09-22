@@ -5,7 +5,7 @@ import swcnoops.server.game.PvpMatch;
 public interface PvpManager {
     PvpMatch getNextMatch();
 
-    PvpMatch getMatch();
+    PvpMatch getCurrentPvPMatch();
 
     PlayerSession getPlayerSession();
 

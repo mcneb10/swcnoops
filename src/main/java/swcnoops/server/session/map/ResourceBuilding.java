@@ -85,7 +85,7 @@ public class ResourceBuilding extends MapItemImpl {
     private int calculateGivenDeltaCollected(CurrencyType currency, int givenTotal, PlayerSession playerSession) {
         int givenDelta = givenTotal;
         if (currency != null) {
-            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+            InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForReading();
 
             switch (currency) {
                 case credits:

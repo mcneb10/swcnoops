@@ -14,7 +14,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
                 .getPlayerSession(arguments.getPlayerId());
 
         PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId())
-                .getPvpSession().getMatch();
+                .getPvpSession().getCurrentPvPMatch();
 
         BattleReplay battleReplay;
         if (!pvpMatch.isDevBase()) {
@@ -26,8 +26,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
                     "DevBase", pvpMatch.getFactionType(), time);
         }
 
-        playerSession.pvpBattleComplete(battleReplay,
-                arguments.getAttackingUnitsKilled(), pvpMatch, time);
+        playerSession.pvpBattleComplete(battleReplay, arguments.getAttackingUnitsKilled(), pvpMatch, time);
 
         if (!pvpMatch.isDevBase())
             processDefenderResult();//TODO, set medals/resources/sc of real defender following result of battle

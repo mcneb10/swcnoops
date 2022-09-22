@@ -13,6 +13,7 @@ public class PlayerNeighborVisit extends AbstractCommandAction<PlayerNeighborVis
 
     @Override
     protected PlayerNeighborVisitResult execute(PlayerNeighborVisit arguments, long time) throws Exception {
+        // TODO - change this to read straight from DB
         PlayerSession neighborSession =
                 ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getNeighborId());
 
@@ -28,7 +29,7 @@ public class PlayerNeighborVisit extends AbstractCommandAction<PlayerNeighborVis
             playerNeighborVisitResult.player.playerModel.map = neighborSession.getPlayer().getPlayerSettings().baseMap;
             playerNeighborVisitResult.player.playerModel.inventory = new Inventory();
             playerNeighborVisitResult.player.playerModel.inventory.capacity = -1;
-            playerNeighborVisitResult.player.playerModel.inventory.storage = neighborSession.getInventoryStorage();
+            playerNeighborVisitResult.player.playerModel.inventory.storage = neighborSession.getInventoryManager().getObjectForReading();
             playerNeighborVisitResult.player.playerModel.inventory.subStorage = new SubStorage();
 
             if (neighborSession.getGuildSession() != null) {

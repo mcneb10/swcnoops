@@ -19,7 +19,7 @@ public class GuildMembers {
     public GuildMembers(String guildId, List<Member> members) {
         this.guildId = guildId;
         initialise(members);
-        this.lastUpdatedTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        this.lastUpdatedTime = System.currentTimeMillis();
     }
 
     public String getGuildId() {
@@ -56,7 +56,7 @@ public class GuildMembers {
     }
 
     public void setDirty() {
-        this.dirtyTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+        this.dirtyTime = System.currentTimeMillis();
     }
 
     public List<Member> getMembers() {
@@ -71,7 +71,7 @@ public class GuildMembers {
             try {
                 if (this.members == null || this.dirtyTime > this.lastUpdatedTime) {
                     this.members = this.padMembersToAllowWar(reloadData());
-                    this.lastUpdatedTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
+                    this.lastUpdatedTime = System.currentTimeMillis();
                 }
                 current = this.members;
             } finally {

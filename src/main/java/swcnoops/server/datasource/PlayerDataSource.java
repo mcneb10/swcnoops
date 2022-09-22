@@ -9,6 +9,10 @@ import java.util.*;
 public interface PlayerDataSource {
     Player loadPlayer(String playerId);
 
+    PlayerSettings loadPlayerSettings(String playerId, boolean includeGuildId, String... fieldNames);
+
+    Player loadPlayer(String playerId, boolean includeGuildId, String... fieldNames);
+
     void initOnStartup();
 
     void savePlayerName(PlayerSession playerSession, String playerName);
@@ -110,4 +114,6 @@ public interface PlayerDataSource {
     PvpMatch getPvPMatches(PvpManager pvpManager, Set<String> playersSeen);
 
     void pvpReleaseTarget(PvpManager pvpSession);
+
+    void savePvPBattleStart(PlayerSession playerSession);
 }

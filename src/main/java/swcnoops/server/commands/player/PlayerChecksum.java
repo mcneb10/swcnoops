@@ -72,7 +72,7 @@ abstract public class PlayerChecksum<A extends PlayerChecksum, B extends Command
 
         if (playerSession != null) {
             boolean acceptedClientValues = false;
-            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+            InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForWriting();
 
             if (acceptCredits() && inventoryStorage.credits.amount != parsedArgument.getCredits()) {
                 inventoryStorage.credits.amount = parsedArgument.getCredits();

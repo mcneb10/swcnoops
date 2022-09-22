@@ -81,7 +81,7 @@ public class CurrencyHelper {
     {
         int givenCost = 0;
         if (currencyType != null) {
-            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+            InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForReading();
             switch (currencyType) {
                 case credits:
                     givenCost = inventoryStorage.credits.amount - givenTotal;
@@ -122,7 +122,7 @@ public class CurrencyHelper {
     {
         int givenRefund = 0;
         if (currencyType != null) {
-            InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+            InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForReading();
             switch (currencyType) {
                 case credits:
                     givenRefund = credits - inventoryStorage.credits.amount;
@@ -180,7 +180,7 @@ public class CurrencyHelper {
     public static int calculateStorageAvailable(CurrencyType currency, PlayerSession playerSession) {
         int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
         int available = totalCapacity;
-        InventoryStorage inventoryStorage = playerSession.getInventoryStorage();
+        InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForReading();
 
         switch (currency) {
             case credits:
