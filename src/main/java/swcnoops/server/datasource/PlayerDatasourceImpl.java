@@ -437,16 +437,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PvpAttack currentPvPDefence = playerSession.getCurrentPvPDefence().getObjectForReading();
         if (loginDate != null) {
             playerSession.getPlayer().setLoginDate(loginDate);
+            playerSession.getPlayerSettings().setDamagedBuildings(null);
             combinedList.add(set("loginDate", playerSession.getPlayer().getLoginDate()));
 
             // see if we can remove the attack because it has expired, meaning the attacker crashed
             if (currentPvPDefence != null) {
                 if (currentPvPDefence.expiration < ServiceFactory.getSystemTimeSecondsFromEpoch()) {
-                    combinedList.add(unset("currentPvPDefence"));
                     playerSession.getCurrentPvPDefence().setDirty();
                     playerQuery = combine(eq("_id", playerSession.getPlayerId()),
                             eq("currentPvPDefence.expiration", currentPvPDefence.expiration));
                     currentPvPDefence = null;
+
+                    combinedList.add(unset("currentPvPDefence"));
                 }
             }
         }
@@ -456,9 +458,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         if (currentPvPDefence == null) {
-            combinedList.add(set("playerSettings", playerSession.getPlayerSettings()));
             playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
             combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
+            combinedList.add(set("playerSettings", playerSession.getPlayerSettings()));
 
             Bson combinedSet = combine(combinedList);
             UpdateResult result = this.playerCollection.updateOne(session, playerQuery,
@@ -1256,8 +1258,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         List<Bson> aggregates = Arrays.asList(
                 Aggregates.match(and(notMe, otherFaction, notBeingAttacked, playerNotPlaying, notAlreadySeen,
                         or(hqQuery, xpQuery))),
-                Aggregates.project(include("playerSettings.scalars",
-                        "playerSettings.faction", "playerSettings.hqLevel", "playerSettings.guildId", "currentPvPDefence")),
+                Aggregates.project(include("playerSettings.baseMap",
+                        "playerSettings.faction", "playerSettings.hqLevel",
+                        "playerSettings.guildId", "playerSettings.guildName",
+                        "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
+                        "currentPvPDefence")),
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
@@ -1276,12 +1281,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
                     pvpMatch.setPlayerId(pvpManager.getPlayerSession().getPlayerId());
                     pvpMatch.setParticipantId(opponentPlayer.getPlayerId());
-                    pvpMatch.setGuildId(opponentPlayer.getPlayerSettings().getGuildId());
                     pvpMatch.setDefenderXp(opponentPlayer.getPlayerSettings().getScalars().xp);
                     pvpMatch.setFactionType(opponentPlayer.getPlayerSettings().getFaction());
                     pvpMatch.setDevBase(false);
                     pvpMatch.setLevel(opponentPlayer.getPlayerSettings().getHqLevel());
                     pvpMatch.creditsCharged = ServiceFactory.instance().getGameDataManager().getPvpMatchCost(playerHq);
+                    pvpMatch.setDefendersName(opponentPlayer.getPlayerSettings().getName());
+                    pvpMatch.setDefendersGuildId(opponentPlayer.getPlayerSettings().getGuildId());
+                    pvpMatch.setDefendersName(opponentPlayer.getPlayerSettings().getGuildName());
+                    pvpMatch.setDefendersBaseMap(opponentPlayer.getPlayerSettings().getBaseMap());
+                    pvpMatch.setDefenderDamagedBuildings(opponentPlayer.getPlayerSettings().getDamagedBuildings());
+                    pvpMatch.setDefendersScalars(opponentPlayer.getPlayerSettings().getScalars());
+                    pvpMatch.setDefendersInventoryStorage(opponentPlayer.getPlayerSettings().getInventoryStorage());
 
                     // they were attacked but has not been cleaned up, we will clean up the attacker otherwise
                     // unique index will fail
@@ -1415,15 +1426,29 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay) {
+    public void savePvPBattleComplete(PlayerSession playerSession, PvpMatch pvpMatch, BattleReplay battleReplay) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             // TODO - would like to change to smart save when it supports all the playerSetting objects
             savePlayerSettings(playerSession, session);
-            // TODO - to save defenders settings
+            saveDefendersDamage(session, pvpMatch);
             saveBattleReplay(session, battleReplay);
             clearLastPvPAttack(session, playerSession.getPvpSession());
             session.commitTransaction();
+        }
+    }
+
+    private void saveDefendersDamage(ClientSession session, PvpMatch pvpMatch) {
+        if (!pvpMatch.isDevBase()) {
+            String defenderId = pvpMatch.getParticipantId();
+            String battleId = pvpMatch.getBattleId();
+
+            this.playerCollection.updateOne(session,
+                    combine(eq("_id", defenderId),
+                            eq("currentPvPDefence.battleId", battleId)),
+                    combine(set("playerSettings.scalars", pvpMatch.getDefendersScalars()),
+                            set("playerSettings.inventoryStorage", pvpMatch.getDefendersInventoryStorage()),
+                            set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings())));
         }
     }
 

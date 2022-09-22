@@ -81,7 +81,15 @@ public class PlayerSessionImpl implements PlayerSession {
                             false, "playerSettings.scalars")
                     .getScalars();
         }
-    };;
+    };
+
+    private DBCacheObjectRead<Map<String, Integer>> damagedBuildingManager = new ReadOnlyDBCacheObject<Map<String, Integer>>(true) {
+        @Override
+        protected Map<String, Integer> loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                            false, "playerSettings.damagedBuildings").getDamagedBuildings();
+        }
+    };
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -90,7 +98,7 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public void initialise(Player player) {
         this.player = player;
-        this.playerMapItems = createPlayersMap(this.getPlayerSettings().baseMap);
+        this.playerMapItems = createPlayersMap(this.getPlayerSettings().getBaseMap());
         this.troopInventory = PlayerSessionImpl.troopInventoryFactory.createForPlayer(this);
         this.trainingManager = PlayerSessionImpl.trainingManagerFactory.createForPlayer(this);
         this.creatureManager = PlayerSessionImpl.creatureManagerFactory.createForPlayer(this);
@@ -103,6 +111,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.inventoryManager.initialise(this.player.getPlayerSettings().getInventoryStorage());
         this.scalarsManager.initialise(this.player.getPlayerSettings().getScalars());
         this.currentPvPDefending.initialise(this.player.getCurrentPvPDefence());
+        this.damagedBuildingManager.initialise(this.player.getPlayerSettings().getDamagedBuildings());
     }
 
     private void mapBuildingContracts(PlayerSettings playerSettings) {
@@ -363,6 +372,10 @@ public class PlayerSessionImpl implements PlayerSession {
         removeEjectedNotifications();
         validateInventoryTotalCapacity(this);
         this.getPvpSession().playerLogin();
+    }
+
+    @Override
+    public void savePlayerLogin(long time) {
         ServiceFactory.instance().getPlayerDatasource().savePlayerLogin(this);
     }
 
@@ -594,35 +607,59 @@ public class PlayerSessionImpl implements PlayerSession {
                                   PvpMatch pvpMatch, long time)
     {
         processBattleComplete(attackingUnitsKilled, time);
+        calculateResourcesGained(battleReplay, pvpMatch);
         updatePlayerAfterPvPBattle(battleReplay, pvpMatch);
-        // TODO - defenders settings
-        ServiceFactory.instance().getPlayerDatasource().saveNewPvPBattle(this, battleReplay);
+        updateDefenderAfterPvPBattle(battleReplay, pvpMatch);
+        ServiceFactory.instance().getPlayerDatasource().savePvPBattleComplete(this, pvpMatch, battleReplay);
     }
 
-    private void updatePlayerAfterPvPBattle(BattleReplay battleReplay, PvpMatch pvpMatch) {
-        this.updatePlayerInventoryAfterPvP(battleReplay);
-        this.updateAttackScalars(battleReplay, pvpMatch);
+    private void updateDefenderAfterPvPBattle(BattleReplay battleReplay, PvpMatch pvpMatch) {
+        pvpMatch.getDefendersScalars().defensesWon += battleReplay.battleLog.stars == 0 ? 1 : 0;
+        pvpMatch.getDefendersScalars().defensesLost += battleReplay.battleLog.stars == 0 ? 0 : 1;
+        pvpMatch.getDefendersScalars().defenseRating += pvpMatch.getDefender().defenseRatingDelta;
+
+        // what they gain is what the defender lose
+        pvpMatch.getDefendersInventoryStorage().credits.amount -= pvpMatch.getCreditsGained();
+        pvpMatch.getDefendersInventoryStorage().materials.amount -= pvpMatch.getMaterialsGained();
+        pvpMatch.getDefendersInventoryStorage().contraband.amount -= pvpMatch.getContraGained();
+
+        // TODO - might have to modify the defenders map, traps, creature and SC
     }
 
-    // TODO - looks like in PvP will report looted over what is available for our storage
-    private void updatePlayerInventoryAfterPvP(BattleReplay battleReplay) {
+    private void calculateResourcesGained(BattleReplay battleReplay, PvpMatch pvpMatch) {
         int creditsGained = battleReplay.battleLog.earned.credits;
         int creditsAvailable = CurrencyHelper.calculateStorageAvailable(CurrencyType.credits, this);
         creditsGained = Math.min(creditsAvailable, creditsGained);
-
-        CurrencyDelta creditDelta = new CurrencyDelta(creditsGained, creditsGained, CurrencyType.credits, false);
-        this.processInventoryStorage(creditDelta);
+        pvpMatch.setCreditsGained(creditsGained);
 
         int materialsGained = battleReplay.battleLog.earned.materials;
         int materialsAvailable = CurrencyHelper.calculateStorageAvailable(CurrencyType.materials, this);
         materialsGained = Math.min(materialsAvailable, materialsGained);
-        CurrencyDelta materialDelta = new CurrencyDelta(materialsGained, materialsGained, CurrencyType.materials, false);
-        this.processInventoryStorage(materialDelta);
+        pvpMatch.setMaterialsGained(materialsGained);
 
         int contraGained = battleReplay.battleLog.earned.contraband;
         int contrabandAvailable = CurrencyHelper.calculateStorageAvailable(CurrencyType.contraband, this);
         contraGained = Math.min(contrabandAvailable, contraGained);
-        CurrencyDelta contraDelta = new CurrencyDelta(contraGained, contraGained, CurrencyType.contraband, false);
+        pvpMatch.setContraGained(contraGained);
+    }
+
+    private void updatePlayerAfterPvPBattle(BattleReplay battleReplay, PvpMatch pvpMatch) {
+        this.updatePlayerInventoryAfterPvP(pvpMatch);
+        this.updateAttackScalars(battleReplay, pvpMatch);
+    }
+
+    // TODO - looks like in PvP will report looted over what is available for our storage
+    private void updatePlayerInventoryAfterPvP(PvpMatch pvpMatch) {
+        CurrencyDelta creditDelta = new CurrencyDelta(pvpMatch.getCreditsGained(),
+                pvpMatch.getCreditsGained(), CurrencyType.credits, false);
+        this.processInventoryStorage(creditDelta);
+
+        CurrencyDelta materialDelta = new CurrencyDelta(pvpMatch.getMaterialsGained(),
+                pvpMatch.getMaterialsGained(), CurrencyType.materials, false);
+        this.processInventoryStorage(materialDelta);
+
+        CurrencyDelta contraDelta = new CurrencyDelta(pvpMatch.getContraGained(), pvpMatch.getContraGained(),
+                CurrencyType.contraband, false);
         this.processInventoryStorage(contraDelta);
     }
 
@@ -1238,5 +1275,10 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public DBCacheObject<Scalars> getScalarsManager() {
         return this.scalarsManager;
+    }
+
+    @Override
+    public DBCacheObjectRead<Map<String, Integer>> getDamagedBuildingManager() {
+        return this.damagedBuildingManager;
     }
 }

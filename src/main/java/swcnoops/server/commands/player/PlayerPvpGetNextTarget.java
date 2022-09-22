@@ -56,17 +56,16 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.map = new PlayerMap();
             response.map.planet = playerSession.getPlayer().getPlayerSettings().getBaseMap().planet;
             response.map.next = 2;
-            response.map.buildings = ServiceFactory.instance().getPlayerDatasource().getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
+            response.map.buildings = ServiceFactory.instance().getPlayerDatasource()
+                    .getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
             setupDevResourcesBaseData(response, playerSession);
             setupDefenseTroops(response, response.map);
         } else {
-            swcnoops.server.datasource.Player opponentPlayer = ServiceFactory.instance().getPlayerDatasource()
-                    .loadPlayer(pvpMatch.getParticipantId());
-            response.map = opponentPlayer.getPlayerSettings().baseMap;
-            response.name = opponentPlayer.getPlayerSettings().getName();
-            response.guildName = opponentPlayer.getPlayerSettings().getGuildName();
-            response.guildId = opponentPlayer.getPlayerSettings().getGuildId();
-            setupResources(response, opponentPlayer);
+            response.map = pvpMatch.getDefendersBaseMap();
+            response.name = pvpMatch.getDefendersName();
+            response.guildId = pvpMatch.getDefendersGuildId();
+            response.guildName = pvpMatch.getDefendersGuildName();
+            setupResources(response, pvpMatch);
             setupDefenseTroops(response, response.map);
         }
 
@@ -83,15 +82,15 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
     // TODO - this currently calculates what is stored and not what is available uncollected in the store buildings.
     // may need to make this smarter as the client can take a list of buildings and its breakdown (I think)
-    private void setupResources(PlayerPvpGetNextTargetCommandResult response, Player opponentPlayer) {
-        response.attacksWon = opponentPlayer.getPlayerSettings().getScalars().attacksWon;
-        response.attackRating = opponentPlayer.getPlayerSettings().getScalars().attackRating;
-        response.defensesWon = opponentPlayer.getPlayerSettings().getScalars().defensesWon;
-        response.defenseRating = opponentPlayer.getPlayerSettings().getScalars().defenseRating;
+    private void setupResources(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
+        response.attacksWon = pvpMatch.getDefendersScalars().attacksWon;
+        response.attackRating = pvpMatch.getDefendersScalars().attackRating;
+        response.defensesWon = pvpMatch.getDefendersScalars().defensesWon;
+        response.defenseRating = pvpMatch.getDefendersScalars().defenseRating;
 
         //Resources as a % of the attacker's total storage
         Random random = new Random();
-        InventoryStorage inventoryStorage = opponentPlayer.getPlayerSettings().getInventoryStorage();
+        InventoryStorage inventoryStorage = pvpMatch.getDefendersInventoryStorage();
         int creditAmount = inventoryStorage.credits.amount;
         int materialsAmount = inventoryStorage.materials.amount;
         int contraAmount = inventoryStorage.contraband.amount;
@@ -105,9 +104,9 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     }
 
     private void setupParticipants(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
-        // TODO - get the defenders stats
+        Scalars defendersScalars = pvpMatch.getDefendersScalars();
         BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
-                0, 0, 0, response.faction);
+                defendersScalars.attackRating, defendersScalars.defenseRating, 0, pvpMatch.getFactionType());
 
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
         String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();

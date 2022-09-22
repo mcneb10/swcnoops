@@ -7,6 +7,8 @@ import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 
+import java.util.Map;
+
 public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattleComplete, PlayerPvpBattleCompleteCommandResult> {
     @Override
     protected PlayerPvpBattleCompleteCommandResult execute(PlayerPvpBattleComplete arguments, long time) throws Exception {
@@ -26,20 +28,45 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
                     "DevBase", pvpMatch.getFactionType(), time);
         }
 
+        mergeDamagedBuildings(pvpMatch, arguments.getDamagedBuildings());
         playerSession.pvpBattleComplete(battleReplay, arguments.getAttackingUnitsKilled(), pvpMatch, time);
-
-        if (!pvpMatch.isDevBase())
-            processDefenderResult();//TODO, set medals/resources/sc of real defender following result of battle
 
         PlayerPvpBattleCompleteCommandResult response = new PlayerPvpBattleCompleteCommandResult();
         setupResponse(arguments, response, pvpMatch);
         return response;
     }
 
+    /**
+     * Joins the already damaged buildings with the damage from the latest attack
+     * @param pvpMatch
+     * @param damagedBuildings
+     */
+    private void mergeDamagedBuildings(PvpMatch pvpMatch, Map<String, Integer> damagedBuildings) {
+        if (pvpMatch.getDefenderDamagedBuildings() == null)
+            pvpMatch.setDefenderDamagedBuildings(damagedBuildings);
+        else {
+            if (damagedBuildings != null) {
+                Map<String, Integer> alreadyDamaged = pvpMatch.getDefenderDamagedBuildings();
+                for (Map.Entry<String,Integer> attackedBuilding : damagedBuildings.entrySet()) {
+                    Integer damage = alreadyDamaged.get(attackedBuilding.getKey());
+                    if (damage == null) {
+                        damage = attackedBuilding.getValue();
+                    } else {
+                        damage = Math.max(damage, attackedBuilding.getValue());
+                    }
+
+                    alreadyDamaged.put(attackedBuilding.getKey(), damage);
+                }
+            }
+        }
+    }
+
     private void calculateMatchScoreAndPoints(PvpMatch pvpMatch, int stars, boolean userEnded) {
         // if we want to prevent negative scores and points it should be done here and it will flow to the rest
         // of the code as everything works off the delta
         pvpMatch.getAttacker().attackRatingDelta = getAttackerMedals(stars, pvpMatch);
+
+        pvpMatch.getDefender().defenseRatingDelta = getDefendersMedals(stars, pvpMatch);
     }
 
     private int getDefendersMedals(int stars, PvpMatch pvpMatch) {
@@ -57,7 +84,8 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
                         ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_two_star_victory) * -1;
                 break;
             case 3:
-                defenderMedals = pvpMatch.getPotentialScoreLose();
+                defenderMedals = (int) (pvpMatch.getPotentialScoreLose() *
+                        ServiceFactory.instance().getGameDataManager().getGameConstants().pvp_battle_three_star_victory) * -1;
                 break;
         }
 
@@ -110,9 +138,6 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         looted.materials = arguments.getLoot().get(CurrencyType.materials);
         looted.contraband = arguments.getLoot().get(CurrencyType.contraband);
         response.looted = looted;
-    }
-
-    private void processDefenderResult() {
     }
 
     @Override

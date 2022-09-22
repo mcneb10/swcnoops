@@ -109,7 +109,7 @@ public interface PlayerDataSource {
 
     void saveDevBase(DevBase devBase);
 
-    void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay);
+    void savePvPBattleComplete(PlayerSession playerSession, PvpMatch pvpMatch, BattleReplay battleReplay);
 
     PvpMatch getPvPMatches(PvpManager pvpManager, Set<String> playersSeen);
 

@@ -166,4 +166,8 @@ public interface PlayerSession {
     void playerPvPBattleStart(long time);
 
     DBCacheObject<Scalars> getScalarsManager();
+
+    DBCacheObjectRead<Map<String,Integer>> getDamagedBuildingManager();
+
+    void savePlayerLogin(long time);
 }

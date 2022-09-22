@@ -5,7 +5,6 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerNeighborVisitResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
-import swcnoops.server.session.PlayerSession;
 
 public class PlayerNeighborVisit extends AbstractCommandAction<PlayerNeighborVisit, PlayerNeighborVisitResult> {
     private String neighborId;
@@ -14,27 +13,30 @@ public class PlayerNeighborVisit extends AbstractCommandAction<PlayerNeighborVis
     @Override
     protected PlayerNeighborVisitResult execute(PlayerNeighborVisit arguments, long time) throws Exception {
         // TODO - change this to read straight from DB
-        PlayerSession neighborSession =
-                ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getNeighborId());
+        swcnoops.server.datasource.Player player = ServiceFactory.instance().getPlayerDatasource()
+                .loadPlayer(arguments.getNeighborId(), true,
+                        "playerSettings.baseMap", "playerSettings.faction", "playerSettings.inventoryStorage",
+                        "playerSettings.guildId", "playerSettings.guildName", "playerSettings.scalars");
 
         PlayerNeighborVisitResult playerNeighborVisitResult = new PlayerNeighborVisitResult();
-        if (neighborSession != null) {
+        if (player != null) {
             playerNeighborVisitResult.player = new Player();
-            playerNeighborVisitResult.player.name = neighborSession.getPlayerSettings().getName();
+            playerNeighborVisitResult.player.name = player.getPlayerSettings().getName();
 
-            // TODO - to finish
-            //playerNeighborVisitResult.player.scalars = new Object();
+            // TODO - to finish and populate other things
+            playerNeighborVisitResult.player.scalars = player.getPlayerSettings().getScalars();
             playerNeighborVisitResult.player.playerModel = new PlayerModel();
-            playerNeighborVisitResult.player.playerModel.faction = neighborSession.getFaction();
-            playerNeighborVisitResult.player.playerModel.map = neighborSession.getPlayer().getPlayerSettings().baseMap;
+            playerNeighborVisitResult.player.playerModel.faction = player.getPlayerSettings().getFaction();
+            playerNeighborVisitResult.player.playerModel.map = player.getPlayerSettings().getBaseMap();
             playerNeighborVisitResult.player.playerModel.inventory = new Inventory();
             playerNeighborVisitResult.player.playerModel.inventory.capacity = -1;
-            playerNeighborVisitResult.player.playerModel.inventory.storage = neighborSession.getInventoryManager().getObjectForReading();
+            playerNeighborVisitResult.player.playerModel.inventory.storage = player.getPlayerSettings().getInventoryStorage();
             playerNeighborVisitResult.player.playerModel.inventory.subStorage = new SubStorage();
 
-            if (neighborSession.getGuildSession() != null) {
+            if (player.getPlayerSettings().getGuildId() != null) {
                 playerNeighborVisitResult.player.playerModel.guildInfo = new GuildInfo();
-                playerNeighborVisitResult.player.playerModel.guildInfo.guildName = neighborSession.getGuildSession().getGuildName();
+                playerNeighborVisitResult.player.playerModel.guildInfo.guildId = player.getPlayerSettings().getGuildId();
+                playerNeighborVisitResult.player.playerModel.guildInfo.guildName = player.getPlayerSettings().getGuildName();
             }
 
             playerNeighborVisitResult.player.playerModel.upgrades = new Upgrades();

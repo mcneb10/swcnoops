@@ -40,10 +40,12 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .loginPlayerSession(arguments.getPlayerId());
-        playerSession.playerLogin(time);
 
+        playerSession.playerLogin(time);
         PlayerLoginCommandResult response = loadPlayerTemplate();
         mapLoginForPlayer(response, playerSession);
+        playerSession.savePlayerLogin(time);
+
         return response;
     }
 
@@ -90,13 +92,15 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
-        // TODO - this is to enable switching accounts in settings
-        // needs more work to get this to work
         playerLoginResponse.playerModel.identitySwitchTimes = new HashMap<>();
-        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
-        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
+        if (!playerSession.getPlayer().getPlayerSecret().getMissingSecret()) {
+            playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
+            playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
+        }
+
         playerLoginResponse.scalars = playerSession.getScalarsManager().getObjectForReading();
         playerLoginResponse.playerModel.battleLogs = ServiceFactory.instance().getPlayerDatasource().getPlayerBattleLogs(playerSession.getPlayerId());
+        playerLoginResponse.playerModel.DamagedBuildings = mapDamagedBuildings(playerSession);
 
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
     }
@@ -111,6 +115,11 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
 
         return currentlyDefending;
+    }
+
+    private Map<String, Integer> mapDamagedBuildings(PlayerSession playerSession) {
+        Map<String, Integer> damagedBuildings = playerSession.getDamagedBuildingManager().getObjectForReading();
+        return damagedBuildings;
     }
 
     private void mapUnlockedPlanets(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
