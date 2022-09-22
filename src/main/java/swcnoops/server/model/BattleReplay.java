@@ -109,6 +109,8 @@ public class BattleReplay {
         battleReplay.battleLog.maxLootable = maxLootable;
 
         battleReplay.battleLog.troopsExpended = mapTroopsUsed(playerBattleComplete.getReplayData().battleActions);
+
+        // TODO - determine it is revenge
         battleReplay.battleLog.revenged = false;
         battleReplay.battleLog.planetId = playerBattleComplete.getReplayData().combatEncounter.map.planet;
         battleReplay.battleLog.isUserEnded = playerBattleComplete.isUserEnded();

@@ -1,11 +1,8 @@
 package swcnoops.server.commands.player;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
-import swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandResult;
-import swcnoops.server.datasource.Player;
+import swcnoops.server.commands.player.response.PvpTargetCommandResult;
 import swcnoops.server.game.*;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
@@ -24,7 +21,6 @@ import java.util.stream.Collectors;
  * Finds and returns an enemy base for PVP.
  */
 public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, CommandResult> {
-    private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
 
     @Override
     protected CommandResult execute(PlayerPvpGetNextTarget arguments, long time) throws Exception {
@@ -40,7 +36,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
         }
 
-        PlayerPvpGetNextTargetCommandResult response = new PlayerPvpGetNextTargetCommandResult();
+        PvpTargetCommandResult response = new PvpTargetCommandResult();
         response.battleId = pvpMatch.getBattleId();
 
         pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
@@ -82,7 +78,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
     // TODO - this currently calculates what is stored and not what is available uncollected in the store buildings.
     // may need to make this smarter as the client can take a list of buildings and its breakdown (I think)
-    private void setupResources(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
+    private void setupResources(PvpTargetCommandResult response, PvpMatch pvpMatch) {
         response.attacksWon = pvpMatch.getDefendersScalars().attacksWon;
         response.attackRating = pvpMatch.getDefendersScalars().attackRating;
         response.defensesWon = pvpMatch.getDefendersScalars().defensesWon;
@@ -103,7 +99,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
     }
 
-    private void setupParticipants(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
+    private void setupParticipants(PvpTargetCommandResult response, PvpMatch pvpMatch) {
         Scalars defendersScalars = pvpMatch.getDefendersScalars();
         if (defendersScalars == null)
             pvpMatch.setDefendersScalars(new Scalars());
@@ -127,7 +123,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         pvpMatch.setAttacker(attacker);
     }
 
-    private void setupScoreAndPoints(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
+    private void setupScoreAndPoints(PvpTargetCommandResult response, PvpMatch pvpMatch) {
         Random random = new Random();
 
         // TODO - this impacts medals need to decide how to formulate
@@ -151,7 +147,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.potentialPoints = potentialPoints;
     }
 
-    private void setupDevResourcesBaseData(PlayerPvpGetNextTargetCommandResult response, PlayerSession playerSession) {
+    private void setupDevResourcesBaseData(PvpTargetCommandResult response, PlayerSession playerSession) {
         response.attacksWon = 0;
         response.attackRating = 0;
         response.defensesWon = 0;//TODO - might be fun to track this actually?
@@ -171,7 +167,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
     }
 
-    private void setupDefenseTroops(PlayerPvpGetNextTargetCommandResult response, PlayerMap map) {
+    private void setupDefenseTroops(PvpTargetCommandResult response, PlayerMap map) {
         // enable champions and traps
         response.champions.clear();
         Building scBuilding = null;

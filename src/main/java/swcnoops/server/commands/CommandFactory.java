@@ -61,6 +61,7 @@ public class CommandFactory {
 
         this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
+        this.add(new PlayerPvpGetRevengeTarget());
         this.add(new PlayerPveComplete());
         this.add(new PlayerPveCollect());
         this.add(new PlayerMissionsClaimMission());
