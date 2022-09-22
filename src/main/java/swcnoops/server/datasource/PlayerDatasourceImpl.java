@@ -1260,7 +1260,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         List<Bson> aggregates = Arrays.asList(
                 Aggregates.match(and(notMe, otherFaction, notBeingAttacked, playerNotPlaying, notAlreadySeen,
                         or(hqQuery, xpQuery))),
-                Aggregates.project(include("playerSettings.baseMap",
+                Aggregates.project(include("playerSettings.baseMap", "playerSettings.name",
                         "playerSettings.faction", "playerSettings.hqLevel",
                         "playerSettings.guildId", "playerSettings.guildName",
                         "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
@@ -1290,7 +1290,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                     pvpMatch.creditsCharged = ServiceFactory.instance().getGameDataManager().getPvpMatchCost(playerHq);
                     pvpMatch.setDefendersName(opponentPlayer.getPlayerSettings().getName());
                     pvpMatch.setDefendersGuildId(opponentPlayer.getPlayerSettings().getGuildId());
-                    pvpMatch.setDefendersName(opponentPlayer.getPlayerSettings().getGuildName());
+                    pvpMatch.setDefendersGuildName(opponentPlayer.getPlayerSettings().getGuildName());
                     pvpMatch.setDefendersBaseMap(opponentPlayer.getPlayerSettings().getBaseMap());
                     pvpMatch.setDefenderDamagedBuildings(opponentPlayer.getPlayerSettings().getDamagedBuildings());
                     pvpMatch.setDefendersScalars(opponentPlayer.getPlayerSettings().getScalars());
