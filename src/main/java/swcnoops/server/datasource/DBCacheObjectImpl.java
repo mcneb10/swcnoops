@@ -44,7 +44,7 @@ public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
     @Override
     public A getObjectForWriting() {
         A obj = this.dbObjectForWrite;
-        if (this.dbObjectForWrite == null)
+        if (obj == null)
             obj = this.setObjectForSaving(this.getDBObject());
 
         return obj;

@@ -100,8 +100,8 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(),
                 playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerSettings().getGuildId(),
-                guildName, playerSession.getPlayerSettings().getScalars().attackRating,
-                potentialScoreWin, playerSession.getPlayerSettings().getScalars().defenseRating,
+                guildName, playerSession.getScalarsManager().getObjectForReading().attackRating,
+                potentialScoreWin, playerSession.getScalarsManager().getObjectForReading().defenseRating,
                 0, 0, 0, playerSession.getFaction());
 
         pvpMatch.setDefender(defender);

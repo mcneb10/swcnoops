@@ -380,6 +380,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             playerSession.getInventoryManager().doneDBSave();
         }
 
+        if (playerSession.getScalarsManager().needsSaving()) {
+            combinedList.add(set("playerSettings.scalars", playerSession.getScalarsManager().getObjectForSaving()));
+            playerSession.getScalarsManager().doneDBSave();
+        }
+
         if (playerSession.getCurrentPvPAttack().needsSaving()) {
             combinedList.add(set("currentPvPAttack", playerSession.getCurrentPvPAttack().getObjectForSaving()));
             playerSession.getCurrentPvPAttack().doneDBSave();
@@ -399,13 +404,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         mapDonatedTroopsToPlayerSession(playerSession);
 
         int oldHqLevel = playerSession.getPlayerSettings().getHqLevel();
-        int oldXp = playerSession.getPlayerSettings().getScalars().xp;
+        int oldXp = playerSession.getScalarsManager().getObjectForReading().xp;
 
         int hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
         // TODO - this might need to change based on if the building has completed constructing/building yet or not
         int xp = ServiceFactory.getXpFromBuildings(playerSession.getPlayerMapItems().getBaseMap().buildings);
         playerSession.getPlayerSettings().setHqLevel(hqLevel);
-        playerSession.getPlayerSettings().getScalars().xp = xp;
+        playerSession.getScalarsManager().getObjectForWriting().xp = xp;
 
         // if there is a change then we need to tell the squad
         GuildSession guildSession = playerSession.getGuildSession();
@@ -414,6 +419,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             // might be able to trick the client by sending a joinRequestRejected without data or something like that
             setSquadPlayerHQandXp(session, guildSession.getGuildId(), playerSession.getPlayerId(), hqLevel, xp);
             guildSession.getGuildSettings().membersUpdated();
+        }
+
+        // map DBCache objects
+        // map for inventoryStorage
+        if (playerSession.getInventoryManager().needsSaving()) {
+            playerSession.getPlayerSettings().setInventoryStorage(playerSession.getInventoryManager().getObjectForSaving());
+        }
+        if (playerSession.getScalarsManager().needsSaving()) {
+            playerSession.getPlayerSettings().setScalars(playerSession.getScalarsManager().getObjectForSaving());
         }
 
         Bson playerQuery = null;
@@ -1229,7 +1243,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PlayerSession playerSession = pvpManager.getPlayerSession();
         long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();
         int playerHq = playerSession.getPlayerSettings().getHqLevel();
-        int playerXp = playerSession.getPlayerSettings().getScalars().xp;
+        int playerXp = playerSession.getScalarsManager().getObjectForReading().xp;
 
         Bson hqQuery = and(gte("playerSettings.hqLevel", playerHq - 1), lte("playerSettings.hqLevel", playerHq + 1));
         Bson xpQuery = and(gte("playerSettings.scalars.xp", playerXp * 0.9), lte("playerSettings.scalars.xp", playerXp * 1.10));
@@ -1347,7 +1361,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         PlayerSession playerSession = pvpManager.getPlayerSession();
         int playerHq = pvpManager.getPlayerSession().getHeadQuarter().getBuildingData().getLevel();
-        int playerXp = pvpManager.getPlayerSession().getPlayerSettings().getScalars().xp;
+        int playerXp = pvpManager.getPlayerSession().getScalarsManager().getObjectForReading().xp;
         Bson hqQuery = and(gte("hq", playerHq - 1), lte("hq", playerHq + 1));
         Bson xpQuery = and(gte("xp", playerXp * 0.9), lte("xp", playerXp * 1.10));
         Bson notAlreadySeen = nin("_id", devBasesSeen);

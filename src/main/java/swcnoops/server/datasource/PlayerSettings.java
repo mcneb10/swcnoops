@@ -156,9 +156,6 @@ public class PlayerSettings {
     }
 
     public Scalars getScalars() {
-        if (this.scalars == null)
-            this.scalars = new Scalars(0, 0, 0, 0, 0, 0, 100, 0, 0, 0);
-
         return scalars;
     }
 

@@ -156,7 +156,7 @@ public interface PlayerSession {
 
     void pvpReleaseTarget();
 
-    InventoryManager getInventoryManager();
+    DBCacheObject<InventoryStorage> getInventoryManager();
 
     DBCacheObjectSaving<PvpAttack> getCurrentPvPAttack();
     ReadOnlyDBCacheObject<PvpAttack> getCurrentPvPDefence();
@@ -164,4 +164,6 @@ public interface PlayerSession {
     void doneDBSave();
 
     void playerPvPBattleStart(long time);
+
+    DBCacheObject<Scalars> getScalarsManager();
 }

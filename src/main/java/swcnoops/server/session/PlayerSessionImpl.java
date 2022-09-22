@@ -55,9 +55,10 @@ public class PlayerSessionImpl implements PlayerSession {
 
     private Lock donationLock = new ReentrantLock();
     private Lock notificationLock = new ReentrantLock();
-    private InventoryManagerImpl inventoryManager;
+    private DBCacheObject<InventoryStorage> inventoryManager;
     private DBCacheObjectSaving<PvpAttack> pvPAttack = new SaveOnlyDBCacheObject<>();
     private ReadOnlyDBCacheObject<PvpAttack> currentPvPDefending;
+    private DBCacheObject<Scalars> scalarsManager;
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -74,8 +75,26 @@ public class PlayerSessionImpl implements PlayerSession {
         this.donatedTroops = this.getPlayerSettings().getDonatedTroops();
         this.droidManager = new DroidManager(this);
         mapBuildingContracts(this.getPlayerSettings());
-        this.inventoryManager = new InventoryManagerImpl(this,
-                player.getPlayerSettings().getInventoryStorage());
+
+        // DB cache objects to allow smart saving to DB
+        this.inventoryManager = new DBCacheObjectImpl<InventoryStorage>(this.player.getPlayerSettings().getInventoryStorage()) {
+            @Override
+            protected InventoryStorage loadDBObject() {
+                return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                                false, "playerSettings.inventoryStorage")
+                        .getInventoryStorage();
+            }
+        };
+
+        this.scalarsManager = new DBCacheObjectImpl<Scalars>(player.getPlayerSettings().getScalars()) {
+            @Override
+            protected Scalars loadDBObject() {
+                return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                                false, "playerSettings.scalars")
+                        .getScalars();
+            }
+        };
+
         this.currentPvPDefending = new ReadOnlyDBCacheObject<PvpAttack>(this.player.getCurrentPvPDefence(), true) {
             @Override
             protected PvpAttack loadDBObject() {
@@ -631,14 +650,14 @@ public class PlayerSessionImpl implements PlayerSession {
         int contraGained = battleReplay.battleLog.looted.contraband;
         CurrencyDelta creditDelta = new CurrencyDelta(creditsGained, creditsGained, CurrencyType.credits, false);
         this.processInventoryStorage(creditDelta);
-        CurrencyDelta materialDelta = new CurrencyDelta(creditsGained, materialsGained, CurrencyType.materials, false);
+        CurrencyDelta materialDelta = new CurrencyDelta(materialsGained, materialsGained, CurrencyType.materials, false);
         this.processInventoryStorage(materialDelta);
-        CurrencyDelta contraDelta = new CurrencyDelta(creditsGained, contraGained, CurrencyType.materials, false);
+        CurrencyDelta contraDelta = new CurrencyDelta(contraGained, contraGained, CurrencyType.contraband, false);
         this.processInventoryStorage(contraDelta);
     }
 
     private void updateAttackScalars(BattleReplay battleReplay, PvpMatch pvpMatch) {
-        Scalars scalars = this.getPlayerSettings().getScalars();
+        Scalars scalars = this.getScalarsManager().getObjectForWriting();
         scalars.attacksStarted++;
         scalars.attacksCompleted = battleReplay.battleLog.isUserEnded ? scalars.attacksCompleted : scalars.attacksCompleted + 1;
         scalars.attacksWon = battleReplay.battleLog.stars > 0 ? scalars.attacksWon + 1 : scalars.attacksWon;
@@ -1218,7 +1237,7 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public InventoryManager getInventoryManager() {
+    public DBCacheObject<InventoryStorage> getInventoryManager() {
         return this.inventoryManager;
     }
 
@@ -1237,11 +1256,17 @@ public class PlayerSessionImpl implements PlayerSession {
     public void doneDBSave() {
         this.pvPAttack.doneDBSave();
         this.inventoryManager.doneDBSave();
+        this.scalarsManager.doneDBSave();
     }
 
     @Override
     public void playerPvPBattleStart(long time) {
         this.processCompletedContracts(time);
         ServiceFactory.instance().getPlayerDatasource().savePvPBattleStart(this);
+    }
+
+    @Override
+    public DBCacheObject<Scalars> getScalarsManager() {
+        return this.scalarsManager;
     }
 }

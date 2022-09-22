@@ -12,7 +12,7 @@ public class GuildHelper {
         member.playerId = playerSession.getPlayerId();
         member.planet = playerSession.getPlayerSettings().getBaseMap().planet;
         member.name = playerSession.getPlayerSettings().getName();
-        member.xp = playerSession.getPlayerSettings().getScalars().xp;
+        member.xp = playerSession.getScalarsManager().getObjectForReading().xp;
         member.hqLevel = playerSession.getHeadQuarter().getBuildingData().getLevel();
         return member;
     }

@@ -95,7 +95,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.identitySwitchTimes = new HashMap<>();
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
         playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
-        playerLoginResponse.scalars = playerSession.getPlayerSettings().getScalars();
+        playerLoginResponse.scalars = playerSession.getScalarsManager().getObjectForReading();
         playerLoginResponse.playerModel.battleLogs = ServiceFactory.instance().getPlayerDatasource().getPlayerBattleLogs(playerSession.getPlayerId());
 
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
