@@ -14,7 +14,14 @@ public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
     }
 
     public DBCacheObjectImpl(A initialDBObject) {
+        initialise(initialDBObject);
+    }
+
+    @Override
+    public void initialise(A initialDBObject) {
         setDbObject(initialDBObject);
+        this.dirtyTime = 0;
+        this.dbObjectForWrite = null;
     }
 
     protected A getDBObject() {

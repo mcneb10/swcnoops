@@ -55,10 +55,33 @@ public class PlayerSessionImpl implements PlayerSession {
 
     private Lock donationLock = new ReentrantLock();
     private Lock notificationLock = new ReentrantLock();
-    private DBCacheObject<InventoryStorage> inventoryManager;
+    private DBCacheObject<InventoryStorage> inventoryManager = new DBCacheObjectImpl<InventoryStorage>() {
+        @Override
+        protected InventoryStorage loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                            false, "playerSettings.inventoryStorage")
+                    .getInventoryStorage();
+        }
+    };
+
     private DBCacheObjectSaving<PvpAttack> pvPAttack = new SaveOnlyDBCacheObject<>();
-    private ReadOnlyDBCacheObject<PvpAttack> currentPvPDefending;
-    private DBCacheObject<Scalars> scalarsManager;
+    private ReadOnlyDBCacheObject<PvpAttack> currentPvPDefending = new ReadOnlyDBCacheObject<PvpAttack>(true) {
+        @Override
+        protected PvpAttack loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayer(player.getPlayerId(),
+                            false, "currentPvPDefence")
+                    .getCurrentPvPDefence();
+        }
+    };
+
+    private DBCacheObject<Scalars> scalarsManager = new DBCacheObjectImpl<Scalars>() {
+        @Override
+        protected Scalars loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                            false, "playerSettings.scalars")
+                    .getScalars();
+        }
+    };;
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -77,32 +100,9 @@ public class PlayerSessionImpl implements PlayerSession {
         mapBuildingContracts(this.getPlayerSettings());
 
         // DB cache objects to allow smart saving to DB
-        this.inventoryManager = new DBCacheObjectImpl<InventoryStorage>(this.player.getPlayerSettings().getInventoryStorage()) {
-            @Override
-            protected InventoryStorage loadDBObject() {
-                return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
-                                false, "playerSettings.inventoryStorage")
-                        .getInventoryStorage();
-            }
-        };
-
-        this.scalarsManager = new DBCacheObjectImpl<Scalars>(player.getPlayerSettings().getScalars()) {
-            @Override
-            protected Scalars loadDBObject() {
-                return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
-                                false, "playerSettings.scalars")
-                        .getScalars();
-            }
-        };
-
-        this.currentPvPDefending = new ReadOnlyDBCacheObject<PvpAttack>(this.player.getCurrentPvPDefence(), true) {
-            @Override
-            protected PvpAttack loadDBObject() {
-                return ServiceFactory.instance().getPlayerDatasource().loadPlayer(player.getPlayerId(),
-                                false, "currentPvPDefence")
-                        .getCurrentPvPDefence();
-            }
-        };
+        this.inventoryManager.initialise(this.player.getPlayerSettings().getInventoryStorage());
+        this.scalarsManager.initialise(this.player.getPlayerSettings().getScalars());
+        this.currentPvPDefending.initialise(this.player.getCurrentPvPDefence());
     }
 
     private void mapBuildingContracts(PlayerSettings playerSettings) {

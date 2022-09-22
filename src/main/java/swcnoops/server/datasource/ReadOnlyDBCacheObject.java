@@ -11,8 +11,17 @@ public abstract class ReadOnlyDBCacheObject<A> implements DBCacheObjectRead<A> {
     private boolean nullAllowed = true;
 
     public ReadOnlyDBCacheObject(A object, boolean nullAllowed) {
-        this.dbObject = object;
         this.nullAllowed = nullAllowed;
+        this.initialise(object);
+    }
+
+    public ReadOnlyDBCacheObject(boolean nullAllowed) {
+        this(null, nullAllowed);
+    }
+
+    @Override
+    public void initialise(A initialDBObject) {
+        this.dbObject = initialDBObject;
         this.lastLoaded = System.currentTimeMillis();
     }
 
