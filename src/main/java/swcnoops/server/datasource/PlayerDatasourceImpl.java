@@ -566,10 +566,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void newGuild(PlayerSession playerSession, GuildSettings guildSettings) {
-        createNewGuild(playerSession, guildSettings);
-    }
-
-    private void createNewGuild(PlayerSession playerSession, GuildSettings guildSettings) {
         SquadInfo squadInfo = new SquadInfo();
         squadInfo._id = guildSettings.getGuildId();
         squadInfo.name = guildSettings.getGuildName();
@@ -586,7 +582,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         squadInfo.members = squadInfo.getSquadMembers().size();
         squadInfo.activeMemberCount = squadInfo.getSquadMembers().size();
 
-        this.squadCollection.save(squadInfo);
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            playerSession.getPlayerSettings().setGuildId(squadInfo._id);
+            playerSession.getPlayerSettings().setGuildName(squadInfo.name);
+            savePlayerSettings(playerSession, clientSession);
+            this.squadCollection.insertOne(clientSession, squadInfo);
+            clientSession.commitTransaction();
+            playerSession.doneDBSave();
+        } catch (MongoCommandException e) {
+            throw new RuntimeException("Failed to create new guild player id " + playerSession.getPlayerId(), e);
+        }
     }
 
     @Override

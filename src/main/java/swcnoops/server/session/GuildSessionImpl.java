@@ -325,8 +325,10 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void createNewGuild(PlayerSession playerSession) {
-        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession,
-                this.getGuildSettings());
+        int cost = ServiceFactory.instance().getGameDataManager().getGameConstants().squad_create_cost;
+        CurrencyDelta currencyDelta = new CurrencyDelta(cost, cost, CurrencyType.credits, true);
+        playerSession.processInventoryStorage(currencyDelta);
+        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession, this.getGuildSettings());
     }
 
     @Override

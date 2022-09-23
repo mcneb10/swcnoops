@@ -30,6 +30,7 @@ public class GameConstants {
     public String pvp_search_cost_by_hq_level;
     public Integer pvp_match_countdown;
     public Integer pvp_match_duration;
+    public Integer squad_create_cost;
 
     public static GameConstants createFromBaseJson(List<Map<String, String>> gameConstants) throws Exception {
         GameConstants constants = new GameConstants();

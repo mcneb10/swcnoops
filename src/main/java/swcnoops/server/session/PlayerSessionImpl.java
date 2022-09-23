@@ -529,10 +529,13 @@ public class PlayerSessionImpl implements PlayerSession {
 
     @Override
     public void setGuildSession(GuildSession guildSession) {
-        if (guildSession != null)
+        if (guildSession != null) {
             this.getPlayerSettings().setGuildId(guildSession.getGuildId());
-        else
+            this.getPlayerSettings().setGuildName(guildSession.getGuildName());
+        } else {
             this.getPlayerSettings().setGuildId(null);
+            this.getPlayerSettings().setGuildName(null);
+        }
     }
 
     @Override
