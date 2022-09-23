@@ -64,11 +64,18 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
     }
 
     private void calculateMatchScoreAndPoints(PvpMatch pvpMatch, int stars, boolean userEnded) {
-        // if we want to prevent negative scores and points it should be done here and it will flow to the rest
-        // of the code as everything works off the delta
-        pvpMatch.getAttacker().attackRatingDelta = getAttackerMedals(stars, pvpMatch);
+        // we prevent negative ratings as negative medals prevents players from joining a squad
+        BattleParticipant attacker = pvpMatch.getAttacker();
+        attacker.attackRatingDelta = getAttackerMedals(stars, pvpMatch);
 
-        pvpMatch.getDefender().defenseRatingDelta = getDefendersMedals(stars, pvpMatch);
+        if (attacker.attackRating + attacker.attackRatingDelta < 0)
+            attacker.attackRatingDelta = -attacker.attackRating;
+
+        BattleParticipant defender = pvpMatch.getDefender();
+        defender.defenseRatingDelta = getDefendersMedals(stars, pvpMatch);
+
+        if (defender.defenseRating + defender.defenseRatingDelta < 0)
+            defender.defenseRatingDelta = -defender.defenseRating;
     }
 
     private int getDefendersMedals(int stars, PvpMatch pvpMatch) {
