@@ -296,9 +296,17 @@ public class GuildSessionImpl implements GuildSession {
 
         this.getGuildSettings().setWarMatchmakingSignUpTime(time);
         this.getGuildSettings().setWarId(null);
-        ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this,
+        boolean started = ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this,
                 participantIds, isSameFactionWarAllowed, squadNotification, time);
-        this.setNotificationDirty(squadNotification.getDate());
+
+        if (started) {
+            this.setNotificationDirty(squadNotification.getDate());
+        } else {
+            // TODO - if we have not managed to start the signUp, then we want to roll back signUpTime and WarId
+            // by reading out what is in the DB, we need make those two properties a DBCache object
+            squadNotification = null;
+        }
+
         return squadNotification;
     }
 

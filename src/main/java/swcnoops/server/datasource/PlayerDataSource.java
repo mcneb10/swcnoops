@@ -50,7 +50,7 @@ public interface PlayerDataSource {
 
     List<Squad> searchGuildByName(String searchTerm);
 
-    void saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time);
+    boolean saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time);
 
     void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification);
 

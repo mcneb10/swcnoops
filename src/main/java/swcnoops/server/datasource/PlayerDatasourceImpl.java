@@ -740,8 +740,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void saveWarSignUp(FactionType faction, GuildSession guildSession, List<String> participantIds,
+    public boolean saveWarSignUp(FactionType faction, GuildSession guildSession, List<String> participantIds,
                               boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time) {
+        boolean saved;
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
@@ -749,9 +750,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             setSquadWarParty(clientSession, guildSession.getGuildId(), participantIds, time);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             clientSession.commitTransaction();
-        } catch (MongoCommandException ex) {
-            throw new RuntimeException("Failed to sign up for war " + guildSession.getGuildId(), ex);
+            saved = true;
+        } catch (MongoWriteException ex) {
+            // if duplicate key then most likely already signed up
+            if (ex.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
+                saved = false;
+            } else {
+                throw ex;
+            }
         }
+
+        return saved;
     }
 
     private void saveWarSignUp(ClientSession clientSession, FactionType faction, GuildSession guildSession, List<String> participantIds,
@@ -802,15 +811,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification) {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            deleteWarSignUp(session, guildSession.getGuildId());
-            resetWarParty(session, guildSession.getGuildId());
-            setAndSaveGuildNotification(session, guildSession, squadNotification);
-            session.commitTransaction();
+            if (deleteWarSignUp(session, guildSession.getGuildId())) {
+                resetWarParty(session, guildSession.getGuildId());
+                setAndSaveGuildNotification(session, guildSession, squadNotification);
+                session.commitTransaction();
+            }
         }
     }
 
-    private void deleteWarSignUp(ClientSession clientSession, String guildId) {
-        this.warSignUpCollection.deleteOne(clientSession, eq("guildId", guildId));
+    private boolean deleteWarSignUp(ClientSession clientSession, String guildId) {
+        DeleteResult deleteResult = this.warSignUpCollection.deleteOne(clientSession, eq("guildId", guildId));
+        return deleteResult.getDeletedCount() == 1;
     }
 
     @Override
@@ -1125,7 +1136,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             long defenseExpirationDate = ServiceFactory.getSystemTimeSecondsFromEpoch() +
                     ServiceFactory.instance().getConfig().attackDuration;
 
-            // TODO - change this to findOneAndUpdate
+            // TODO - change this to findOneAndUpdate to only update if no one has claimed it yet
             Bson defenseMatch = and(eq("warId", warId), eq("id", opponentId),
                     gt("victoryPoints", 0),
                     or(eq("defenseBattleId", null), lt("defenseExpirationDate", time - 10)));
