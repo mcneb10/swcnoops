@@ -377,11 +377,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         if (playerSession.getInventoryManager().needsSaving()) {
             combinedList.add(set("playerSettings.inventoryStorage", playerSession.getInventoryManager().getObjectForSaving()));
+//            LOG.info("Going to save smart for inventory credit.amount " + playerSession.getInventoryManager().getObjectForSaving().credits.amount);
+            playerSession.getPlayerSettings().setInventoryStorage(playerSession.getInventoryManager().getObjectForSaving());
             playerSession.getInventoryManager().doneDBSave();
         }
 
         if (playerSession.getScalarsManager().needsSaving()) {
             combinedList.add(set("playerSettings.scalars", playerSession.getScalarsManager().getObjectForSaving()));
+            playerSession.getPlayerSettings().setScalars(playerSession.getScalarsManager().getObjectForSaving());
             playerSession.getScalarsManager().doneDBSave();
         }
 
@@ -460,6 +463,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         if (currentPvPDefence == null) {
+//            LOG.info("In Save for inventory credit amount " + playerSession.getPlayer().getPlayerSettings().getInventoryStorage().credits.amount);
             playerSession.getPlayer().setKeepAlive(ServiceFactory.getSystemTimeSecondsFromEpoch());
             combinedList.add(set("keepAlive", playerSession.getPlayer().getKeepAlive()));
             combinedList.add(set("playerSettings", playerSession.getPlayerSettings()));
