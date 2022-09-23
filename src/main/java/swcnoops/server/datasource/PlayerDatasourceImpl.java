@@ -775,13 +775,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                   long time)
     {
         UpdateResult result = this.squadCollection.updateOne(clientSession,
-                and(eq("_id", guildId), Filters.in("squadMembers.playerId", participantIds)),
-                combine(set("squadMembers.$.warParty", 1), set("warSignUpTime", time)));
+                eq("_id", guildId),
+                combine(set("squadMembers.$[m].warParty", 1), set("warSignUpTime", time)),
+                new UpdateOptions().arrayFilters(Arrays.asList(in("m.playerId", participantIds))));
     }
 
     private void resetWarParty(ClientSession clientSession, String guildId) {
         this.squadCollection.updateOne(clientSession, eq("_id", guildId),
-                combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime"), unset("warId")));
+                combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime")));
     }
 
     private void clearWarParty(ClientSession clientSession, String warId, String guildId) {

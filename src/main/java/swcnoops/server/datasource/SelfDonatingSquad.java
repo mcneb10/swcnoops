@@ -142,7 +142,7 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public void warMatchmakingStart(long time, List<String> participantIds) {
+    public void setWarMatchmakingSignUpTime(Long time) {
 
     }
 
