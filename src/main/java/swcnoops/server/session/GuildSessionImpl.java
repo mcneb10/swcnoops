@@ -295,6 +295,7 @@ public class GuildSessionImpl implements GuildSession {
                 playerSession, SquadMsgType.warMatchMakingBegin);
 
         this.getGuildSettings().setWarMatchmakingSignUpTime(time);
+        this.getGuildSettings().setWarId(null);
         ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this,
                 participantIds, isSameFactionWarAllowed, squadNotification, time);
         this.setNotificationDirty(squadNotification.getDate());
@@ -307,6 +308,7 @@ public class GuildSessionImpl implements GuildSession {
                 playerSession, SquadMsgType.warMatchMakingCancel);
 
         this.getGuildSettings().setWarMatchmakingSignUpTime(null);
+        this.getGuildSettings().setWarId(null);
         ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification);
         this.setNotificationDirty(squadNotification.getDate());
         return squadNotification;

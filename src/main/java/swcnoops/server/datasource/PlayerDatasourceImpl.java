@@ -766,6 +766,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         warSignUp.isSameFactionWarAllowed = isSameFactionWarAllowed;
         warSignUp.time = time;
         warSignUp.signUpdate = new Date();
+        // TODO - how to handle if the squad has already signed up, need to be able to detect that scenario
         this.warSignUpCollection.insertOne(clientSession, warSignUp);
     }
 
@@ -788,7 +789,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void resetWarParty(ClientSession clientSession, String guildId) {
         this.squadCollection.updateOne(clientSession, eq("_id", guildId),
-                combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime")));
+                combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime"),
+                        unset("warId")));
     }
 
     private void clearWarParty(ClientSession clientSession, String warId, String guildId) {
