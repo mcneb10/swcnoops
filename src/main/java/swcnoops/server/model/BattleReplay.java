@@ -37,14 +37,6 @@ public class BattleReplay {
     }
 
     static public BattleReplay map(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
-                                   PlayerSession defenderSession, long time) {
-        return map(playerBattleComplete, attackerSession,
-                defenderSession.getPlayerId(),
-                defenderSession.getPlayerSettings().getName(),
-                defenderSession.getFaction(), time);
-    }
-
-    static public BattleReplay map(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
                                    PvpMatch pvpMatch, long time) {
         BattleReplay battleReplay = map(playerBattleComplete, attackerSession,
                 pvpMatch.getDefender().playerId,

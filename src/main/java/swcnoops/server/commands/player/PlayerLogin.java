@@ -131,6 +131,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         if (playerSession.getPlayerSettings().getGuildId() != null) {
             playerModel.guildInfo = new GuildInfo();
             playerModel.guildInfo.guildId = playerSession.getPlayerSettings().getGuildId();
+            playerModel.guildInfo.guildName = playerSession.getPlayerSettings().getGuildName();
             // TODO - and the rest
         } else {
             playerModel.guildInfo = null;

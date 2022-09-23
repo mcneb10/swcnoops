@@ -94,6 +94,8 @@ public class CommandFactory {
         this.add(new GuildWarAttackPlayerComplete());
         this.add(new GuildWarAttackBaseStart());
         this.add(new GuildWarAttackBaseComplete());
+        this.add(new GuildBattleShare());
+
         this.add(new PlayerBattleReplayGet());
 
         this.add(new GuildWarGetParticipant());

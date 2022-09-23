@@ -100,7 +100,7 @@ public class WarSessionImpl implements WarSession {
     }
 
     @Override
-    public AttackDetail warAttackComplete(PlayerSession playerSession, PlayerSession defenderSession,
+    public AttackDetail warAttackComplete(PlayerSession playerSession,
                                           BattleReplay battleReplay, Map<String, Integer> attackingUnitsKilled,
                                           DefendingWarParticipant defendingWarParticipant, long time)
     {
@@ -118,7 +118,7 @@ public class WarSessionImpl implements WarSession {
         warNotificationData.setOpponentName(battleReplay.battleLog.defender.name);
 
         SquadNotification attackReplayNotification =
-                createWarReplayNotification(playerSession, defenderSession, battleReplay);
+                createWarReplayNotification(playerSession, battleReplay);
 
         playerSession.warBattleComplete(battleReplay.battleLog.battleId, battleReplay.battleLog.stars,
                 attackingUnitsKilled, time);
@@ -134,41 +134,19 @@ public class WarSessionImpl implements WarSession {
     }
 
     private SquadNotification createWarReplayNotification(PlayerSession playerSession,
-                                                          PlayerSession opponentSession,
                                                           BattleReplay battleReplay)
     {
         ShareBattleNotificationData shareBattleNotificationData =
-                createBattleNotification(playerSession, opponentSession, battleReplay);
+                ShareBattleHelper.createBattleNotification(playerSession, battleReplay);
 
         SquadNotification attackReplayNotification =
                 createNotification(playerSession.getGuildSession().getGuildId(),
                         playerSession.getGuildSession().getGuildName(), playerSession, SquadMsgType.shareBattle);
         attackReplayNotification.setData(shareBattleNotificationData);
         attackReplayNotification.setMessage(playerSession.getPlayerSettings().getName() + " attacking " +
-                opponentSession.getPlayerSettings().getName());
+                battleReplay.battleLog.defender.name);
 
         return attackReplayNotification;
-    }
-
-    private ShareBattleNotificationData createBattleNotification(PlayerSession playerSession,
-                                                                 PlayerSession opponentSession,
-                                                                 BattleReplay battleReplay)
-    {
-        ShareBattleNotificationData shareBattleNotificationData =
-                new ShareBattleNotificationData(battleReplay.battleLog.battleId);
-
-        shareBattleNotificationData.setBattleVersion(battleReplay.battleLog.battleVersion);
-        shareBattleNotificationData.setCmsVersion(battleReplay.battleLog.cmsVersion);
-        shareBattleNotificationData.setBattleScoreDelta(0);
-        shareBattleNotificationData.setFaction(playerSession.getFaction());
-        shareBattleNotificationData.setStars(battleReplay.battleLog.stars);
-        shareBattleNotificationData.setDamagePercent(battleReplay.battleLog.baseDamagePercent);
-        shareBattleNotificationData.setType(SquadBattleReplayType.Attack);
-        shareBattleNotificationData.setOpponentId(opponentSession.getPlayerId());
-        shareBattleNotificationData.setOpponentName(opponentSession.getPlayerSettings().getName());
-        shareBattleNotificationData.setOpponentFaction(opponentSession.getFaction());
-
-        return shareBattleNotificationData;
     }
 
     @Override

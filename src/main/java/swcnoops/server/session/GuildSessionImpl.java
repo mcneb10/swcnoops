@@ -5,6 +5,7 @@ import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.GuildSettings;
 import swcnoops.server.datasource.War;
 import swcnoops.server.model.*;
+import swcnoops.server.requests.ResponseHelper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -124,6 +125,30 @@ public class GuildSessionImpl implements GuildSession {
                 createNotification(this.getGuildId(), this.getGuildName(), playerSession, message, SquadMsgType.joinRequest);
         ServiceFactory.instance().getPlayerDatasource().joinRequest(this, playerSession, joinRequestNotification);
         this.setNotificationDirty(joinRequestNotification.getDate());
+    }
+
+    @Override
+    public int battleShare(PlayerSession playerSession, String battleId, String message) {
+        int returnCode = ResponseHelper.REPLAY_DATA_NOT_FOUND;
+
+        BattleReplay battleReplay = ServiceFactory.instance().getPlayerDatasource().getBattleReplay(battleId);
+
+        if (battleReplay != null && battleReplay.battleLog != null) {
+            SquadNotification shareBattleNotification =
+                    createNotification(this.getGuildId(), this.getGuildName(), playerSession, message, SquadMsgType.shareBattle);
+
+            ShareBattleNotificationData shareBattleNotificationData =
+                    ShareBattleHelper.createBattleNotification(playerSession, battleReplay);
+
+            shareBattleNotification.setData(shareBattleNotificationData);
+            ServiceFactory.instance().getPlayerDatasource().battleShare(this, playerSession, shareBattleNotification);
+            this.setNotificationDirty(shareBattleNotification.getDate());
+
+            returnCode = ResponseHelper.RECEIPT_STATUS_COMPLETE;
+        }
+
+        return returnCode;
+
     }
 
     @Override

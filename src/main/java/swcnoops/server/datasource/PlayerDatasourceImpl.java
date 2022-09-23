@@ -1234,6 +1234,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
+    public void battleShare(GuildSessionImpl guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            savePlayerSettings(playerSession, clientSession);
+            if (guildSession.canEdit()) {
+                setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
+            }
+            clientSession.commitTransaction();
+        } catch (MongoCommandException ex) {
+            throw new RuntimeException("Failed to save battleShare for player id=" + playerSession.getPlayerId(), ex);
+        }
+    }
+
+    @Override
     public PvpMatch getPvPRevengeMatch(PvpManager pvpManager, String opponentId, long time) {
         PlayerSession playerSession = pvpManager.getPlayerSession();
         long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();

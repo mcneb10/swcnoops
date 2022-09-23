@@ -33,7 +33,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
     static public CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
         if (pvpMatch == null) {
-            return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
+            return ResponseHelper.newStatusResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
         }
 
         PvpTargetCommandResult response = new PvpTargetCommandResult();

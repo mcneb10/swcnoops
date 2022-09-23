@@ -118,4 +118,6 @@ public interface PlayerDataSource {
     void savePvPBattleStart(PlayerSession playerSession);
 
     PvpMatch getPvPRevengeMatch(PvpManager pvpManager, String opponentId, long time);
+
+    void battleShare(GuildSessionImpl guildSession, PlayerSession playerSession, SquadNotification shareBattleNotification);
 }

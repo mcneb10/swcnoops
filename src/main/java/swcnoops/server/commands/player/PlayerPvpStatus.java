@@ -19,9 +19,9 @@ public class PlayerPvpStatus extends AbstractCommandAction<PlayerPvpStatus, Comm
         CommandResult result;
 
         if (pvpAttack != null)
-            result = ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_IS_UNDER_ATTACK);
+            result = ResponseHelper.newStatusResult(ResponseHelper.STATUS_CODE_PVP_TARGET_IS_UNDER_ATTACK);
         else
-            result = ResponseHelper.newErrorResult(ResponseHelper.UNSYNCHRONIZED);
+            result = ResponseHelper.newStatusResult(ResponseHelper.UNSYNCHRONIZED);
 
         return result;
     }

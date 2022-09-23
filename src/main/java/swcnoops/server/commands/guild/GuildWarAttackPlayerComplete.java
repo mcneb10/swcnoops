@@ -5,6 +5,7 @@ import swcnoops.server.commands.guild.response.BattleIdResult;
 import swcnoops.server.commands.player.PlayerBattleComplete;
 import swcnoops.server.datasource.AttackDetail;
 import swcnoops.server.datasource.DefendingWarParticipant;
+import swcnoops.server.datasource.Player;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.BattleReplay;
 import swcnoops.server.requests.CommandResult;
@@ -26,12 +27,13 @@ public class GuildWarAttackPlayerComplete extends PlayerBattleComplete<GuildWarA
             DefendingWarParticipant defendingWarParticipant = ServiceFactory.instance().getPlayerDatasource()
                     .getDefendingWarParticipantByBattleId(arguments.getBattleId());
 
-            // TODO - change this as we only need the session for their name
-            PlayerSession defenderSession = ServiceFactory.instance().getSessionManager()
-                    .getPlayerSession(defendingWarParticipant.getPlayerId());
-
-            BattleReplay battleReplay = BattleReplay.map(arguments, playerSession, defenderSession, time);
-            attackDetail = warSession.warAttackComplete(playerSession, defenderSession, battleReplay,
+            Player defender = ServiceFactory.instance().getPlayerDatasource()
+                    .loadPlayer(defendingWarParticipant.getPlayerId(), false,
+                            "playerSettings.name", "playerSettings.faction");
+            BattleReplay battleReplay = BattleReplay.map(arguments, playerSession,
+                    defender.getPlayerId(), defender.getPlayerSettings().getName(),
+                    defender.getPlayerSettings().getFaction(), time);
+            attackDetail = warSession.warAttackComplete(playerSession, battleReplay,
                     arguments.getAttackingUnitsKilled(),
                     defendingWarParticipant, time);
         }
