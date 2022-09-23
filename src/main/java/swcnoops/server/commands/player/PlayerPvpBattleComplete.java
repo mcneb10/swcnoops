@@ -19,7 +19,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         PvpMatch pvpMatch = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId())
                 .getPvpSession().getCurrentPvPMatch();
 
-        calculateMatchScoreAndPoints(pvpMatch, arguments.getStars(), arguments.isUserEnded());
+        calculateMatchScoreAndPoints(pvpMatch, arguments.getStars(), arguments.getIsUserEnded());
 
         BattleReplay battleReplay;
         if (!pvpMatch.isDevBase()) {
@@ -32,8 +32,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         mergeDamagedBuildings(pvpMatch, arguments.getDamagedBuildings());
         playerSession.pvpBattleComplete(battleReplay, arguments.getAttackingUnitsKilled(), pvpMatch, time);
 
-        PlayerPvpBattleCompleteCommandResult response = new PlayerPvpBattleCompleteCommandResult();
-        setupResponse(arguments, response, pvpMatch);
+        PlayerPvpBattleCompleteCommandResult response = mapResponse(battleReplay);
         return response;
     }
 
@@ -119,28 +118,31 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         return medalsDelta;
     }
 
-    private void setupResponse(PlayerPvpBattleComplete arguments, PlayerPvpBattleCompleteCommandResult response, PvpMatch pvpMatch) {
+    private PlayerPvpBattleCompleteCommandResult mapResponse(BattleReplay battleReplay) {
+        PlayerPvpBattleCompleteCommandResult response = new PlayerPvpBattleCompleteCommandResult();
         response.attackerTournament.uid = ServiceFactory.createRandomUUID();
-        response.battleVersion = arguments.getBattleVersion();
-        response.cmsVersion = arguments.getCmsVersion();
-        response.stars = arguments.getStars();
-        response.baseDamagePercent = arguments.getBaseDamagePercent();
-        response.battleId = arguments.getBattleId();
-        response.manifestVersion = "02045";
+        response.battleVersion = battleReplay.battleLog.battleVersion;
+        response.cmsVersion = battleReplay.battleLog.cmsVersion;
+        response.stars = battleReplay.battleLog.stars;
+        response.baseDamagePercent = battleReplay.battleLog.baseDamagePercent;
+        response.battleId = battleReplay.battleLog.battleId;
+        response.manifestVersion = battleReplay.battleLog.manifestVersion;
 
-        response.attacker = pvpMatch.getAttacker();
-        response.defender = pvpMatch.getDefender();
+        response.attacker = battleReplay.battleLog.attacker;
+        response.defender = battleReplay.battleLog.defender;
 
-        response.attackDate = pvpMatch.getBattleDate();
-        response.planetId = arguments.getPlanetId();
-        response.potentialMedalGain = pvpMatch.getPotentialScoreWin();
-        response.attackerGuildTroopsExpended = arguments.getAttackerGuildTroopsSpent();
+        response.attackDate = battleReplay.attackDate;
+        response.planetId = battleReplay.battleLog.planetId;
+        response.potentialMedalGain = battleReplay.battleLog.potentialMedalGain;
+        response.attackerGuildTroopsExpended = battleReplay.battleLog.attackerGuildTroopsExpended;
+        response.troopsExpended = battleReplay.battleLog.troopsExpended;
 
-        Earned looted = new Earned();
-        looted.credits = arguments.getLoot().get(CurrencyType.credits);
-        looted.materials = arguments.getLoot().get(CurrencyType.materials);
-        looted.contraband = arguments.getLoot().get(CurrencyType.contraband);
-        response.looted = looted;
+        response.looted = battleReplay.battleLog.looted;
+        response.earned = battleReplay.battleLog.earned;
+
+        response.revenged = battleReplay.battleLog.revenged;
+
+        return response;
     }
 
     @Override

@@ -1233,6 +1233,83 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return pvpMatch;
     }
 
+    @Override
+    public PvpMatch getPvPRevengeMatch(PvpManager pvpManager, String opponentId, long time) {
+        PlayerSession playerSession = pvpManager.getPlayerSession();
+        long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();
+
+        Bson isOpponent = eq("_id", opponentId);
+        Bson notBeingAttacked = or(eq("currentPvPDefence", null), lt("currentPvPDefence.expiration", timeNow));
+        Bson playerNotPlaying = or(lt("keepAlive", timeNow - 130), eq("keepAlive", null));
+
+        List<Bson> aggregates = Arrays.asList(
+                Aggregates.match(and(isOpponent, notBeingAttacked, playerNotPlaying)),
+                Aggregates.project(include("playerSettings.baseMap", "playerSettings.name",
+                        "playerSettings.faction", "playerSettings.hqLevel",
+                        "playerSettings.guildId", "playerSettings.guildName",
+                        "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
+                        "currentPvPDefence")));
+
+        PvpMatch pvpMatch = null;
+        try (ClientSession clientSession = this.mongoClient.startSession()) {
+            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+
+            // clear last PvP attack
+            clearLastPvPAttack(clientSession, pvpManager);
+            AggregateIterable<Player> inactivePlayersIterable = this.playerCollection.aggregate(clientSession, aggregates);
+
+            try (MongoCursor<Player> inactivePlayerCursor = inactivePlayersIterable.cursor()) {
+                if (inactivePlayerCursor.hasNext()) {
+                    Player opponentPlayer = inactivePlayerCursor.next();
+                    pvpMatch = new PvpMatch();
+                    pvpMatch.setBattleId(ServiceFactory.createRandomUUID());
+                    pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+                    pvpMatch.setPlayerId(pvpManager.getPlayerSession().getPlayerId());
+                    pvpMatch.setParticipantId(opponentPlayer.getPlayerId());
+                    pvpMatch.setDefenderXp(opponentPlayer.getPlayerSettings().getScalars().xp);
+                    pvpMatch.setFactionType(opponentPlayer.getPlayerSettings().getFaction());
+                    pvpMatch.setDevBase(false);
+                    pvpMatch.setLevel(opponentPlayer.getPlayerSettings().getHqLevel());
+                    // revenge is free
+                    pvpMatch.creditsCharged = 0;
+                    pvpMatch.setDefendersName(opponentPlayer.getPlayerSettings().getName());
+                    pvpMatch.setDefendersGuildId(opponentPlayer.getPlayerSettings().getGuildId());
+                    pvpMatch.setDefendersGuildName(opponentPlayer.getPlayerSettings().getGuildName());
+                    pvpMatch.setDefendersBaseMap(opponentPlayer.getPlayerSettings().getBaseMap());
+                    pvpMatch.setDefenderDamagedBuildings(opponentPlayer.getPlayerSettings().getDamagedBuildings());
+                    pvpMatch.setDefendersScalars(opponentPlayer.getPlayerSettings().getScalars());
+                    pvpMatch.setDefendersInventoryStorage(opponentPlayer.getPlayerSettings().getInventoryStorage());
+                    pvpMatch.setRevenge(true);
+
+                    // they were attacked but has not been cleaned up, we will clean up the attacker otherwise
+                    // unique index will fail
+                    if (opponentPlayer.getCurrentPvPDefence() != null) {
+                        PvpAttack pvpAttackDefence = opponentPlayer.getCurrentPvPDefence();
+                        clearPvPAttacker(clientSession, pvpAttackDefence);
+                    }
+                }
+            }
+
+            if (pvpMatch != null) {
+                PvpAttack pvpAttack = deductCreditForPvPAttack(pvpManager, pvpMatch);
+                this.savePlayerSettingsSmart(clientSession, playerSession);
+
+                PvpAttack pvpDefence = new PvpAttack();
+                pvpDefence.playerId = pvpManager.getPlayerSession().getPlayerId();
+                pvpDefence.battleId = pvpAttack.battleId;
+                pvpDefence.expiration = pvpAttack.expiration;
+                this.playerCollection.updateOne(clientSession, eq("_id", pvpAttack.playerId),
+                        set("currentPvPDefence", pvpDefence));
+            }
+
+            clientSession.commitTransaction();
+        } catch (MongoCommandException ex) {
+            throw ex;
+        }
+
+        return pvpMatch;
+    }
+
     private PvpMatch getPvPMatchWithRetry(PvpManager pvpManager, Set<String> playersSeen, int attempts) {
         PvpMatch pvpMatch = null;
         do {

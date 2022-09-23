@@ -51,6 +51,8 @@ public class BattleReplay {
                 pvpMatch.getDefender().name,
                 pvpMatch.getDefender().faction, time);
 
+        battleReplay.battleLog.revenged = pvpMatch.isRevenge();
+
         // we overwrite it with the real data
         battleReplay.battleLog.attacker = pvpMatch.getAttacker();
         battleReplay.battleLog.defender = pvpMatch.getDefender();
@@ -110,10 +112,8 @@ public class BattleReplay {
 
         battleReplay.battleLog.troopsExpended = mapTroopsUsed(playerBattleComplete.getReplayData().battleActions);
 
-        // TODO - determine it is revenge
-        battleReplay.battleLog.revenged = false;
         battleReplay.battleLog.planetId = playerBattleComplete.getReplayData().combatEncounter.map.planet;
-        battleReplay.battleLog.isUserEnded = playerBattleComplete.isUserEnded();
+        battleReplay.battleLog.isUserEnded = playerBattleComplete.getIsUserEnded();
 
         // TODO - not sure what this does
         battleReplay.battleLog.server = false;

@@ -116,4 +116,6 @@ public interface PlayerDataSource {
     void pvpReleaseTarget(PvpManager pvpSession);
 
     void savePvPBattleStart(PlayerSession playerSession);
+
+    PvpMatch getPvPRevengeMatch(PvpManager pvpManager, String opponentId, long time);
 }

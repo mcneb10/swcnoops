@@ -1,19 +1,22 @@
 package swcnoops.server.commands.player;
 
+import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
-import swcnoops.server.commands.player.response.PvpTargetCommandResult;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.requests.CommandResult;
-import swcnoops.server.requests.ResponseHelper;
+import swcnoops.server.session.PlayerSession;
 
 public class PlayerPvpGetRevengeTarget extends AbstractCommandAction<PlayerPvpGetRevengeTarget, CommandResult> {
     private String opponentId;
 
     @Override
     protected CommandResult execute(PlayerPvpGetRevengeTarget arguments, long time) throws Exception {
-        // TODO - check player status to see if it can be attacked and return a
-        // PvpTargetCommandResult
-        return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
+        PvpMatch pvpMatch = playerSession.getPvpSession().getRevengeMatch(arguments.getOpponentId(), time);
+
+        CommandResult result = PlayerPvpGetNextTarget.setupResponse(playerSession, pvpMatch);
+        return result;
     }
 
     @Override

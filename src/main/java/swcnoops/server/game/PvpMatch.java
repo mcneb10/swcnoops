@@ -35,7 +35,17 @@ public class PvpMatch {
     private String defendersGuildName;
     private PlayerMap defendersBaseMap;
 
+    private boolean revenge;
+
     public PvpMatch() {
+    }
+
+    public boolean isRevenge() {
+        return revenge;
+    }
+
+    public void setRevenge(boolean revenge) {
+        this.revenge = revenge;
     }
 
     public String getBattleId() {

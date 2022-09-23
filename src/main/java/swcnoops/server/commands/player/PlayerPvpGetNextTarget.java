@@ -31,7 +31,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         return response;
     }
 
-    private CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
+    static public CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
         if (pvpMatch == null) {
             return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
         }
@@ -78,7 +78,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
     // TODO - this currently calculates what is stored and not what is available uncollected in the store buildings.
     // may need to make this smarter as the client can take a list of buildings and its breakdown (I think)
-    private void setupResources(PvpTargetCommandResult response, PvpMatch pvpMatch) {
+    static private void setupResources(PvpTargetCommandResult response, PvpMatch pvpMatch) {
         response.attacksWon = pvpMatch.getDefendersScalars().attacksWon;
         response.attackRating = pvpMatch.getDefendersScalars().attackRating;
         response.defensesWon = pvpMatch.getDefendersScalars().defensesWon;
@@ -99,7 +99,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
     }
 
-    private void setupParticipants(PvpTargetCommandResult response, PvpMatch pvpMatch) {
+    static private void setupParticipants(PvpTargetCommandResult response, PvpMatch pvpMatch) {
         if (pvpMatch.getDefendersScalars() == null)
             pvpMatch.setDefendersScalars(new Scalars());
 
@@ -124,7 +124,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         pvpMatch.setAttacker(attacker);
     }
 
-    private void setupScoreAndPoints(PvpTargetCommandResult response, PvpMatch pvpMatch) {
+    static private void setupScoreAndPoints(PvpTargetCommandResult response, PvpMatch pvpMatch) {
         Random random = new Random();
 
         // TODO - this impacts medals need to decide how to formulate
@@ -148,7 +148,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.potentialPoints = potentialPoints;
     }
 
-    private void setupDevResourcesBaseData(PvpTargetCommandResult response, PlayerSession playerSession) {
+    static private void setupDevResourcesBaseData(PvpTargetCommandResult response, PlayerSession playerSession) {
         response.attacksWon = 0;
         response.attackRating = 0;
         response.defensesWon = 0;//TODO - might be fun to track this actually?
@@ -168,7 +168,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
     }
 
-    private void setupDefenseTroops(PvpTargetCommandResult response, PlayerMap map) {
+    static private void setupDefenseTroops(PvpTargetCommandResult response, PlayerMap map) {
         // enable champions and traps
         response.champions.clear();
         Building scBuilding = null;
@@ -216,7 +216,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     // TODO - this needs to be improved to stop miss hits with the sizes and counts.
     // this can be done by building maps of what is available based on size, and using the random to pick an index of
     // that map.
-    private DonatedTroops createRandomDonatedTroops(FactionType faction, int storage) {
+    static private DonatedTroops createRandomDonatedTroops(FactionType faction, int storage) {
         DonatedTroops donatedTroops = new DonatedTroops();
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         Map<Integer, List<TroopData>> troopSizeMap = gameDataManager.getTroopSizeMap(faction);
@@ -266,7 +266,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         return donatedTroops;
     }
 
-    private Map<String, Map<CurrencyType, Integer>> createResourceMap(BigDecimal creditsAvailable,
+    static private Map<String, Map<CurrencyType, Integer>> createResourceMap(BigDecimal creditsAvailable,
                                                                             BigDecimal materialsAvailable,
                                                                             BigDecimal contraAvailable)
     {
