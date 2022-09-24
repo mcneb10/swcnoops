@@ -2,8 +2,7 @@ package swcnoops.server.session;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.TroopDonationResult;
-import swcnoops.server.datasource.GuildSettings;
-import swcnoops.server.datasource.War;
+import swcnoops.server.datasource.*;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 
@@ -23,6 +22,15 @@ public class GuildSessionImpl implements GuildSession {
     volatile private long latestNotificationDate;
     volatile private long latestDirtyNotificationDate;
     private Lock notificationLock = new ReentrantLock();
+    private MembersManager membersManager;
+
+    private DBCacheObjectRead<List<WarHistory>> warHistoryManager = new ReadOnlyDBCacheObject<List<WarHistory>>(true) {
+        @Override
+        protected List<WarHistory> loadDBObject() {
+            List<WarHistory> warHistories = ServiceFactory.instance().getPlayerDatasource().loadWarHistory(guildSettings.getGuildId());
+            return warHistories;
+        }
+    };
 
     public GuildSessionImpl(GuildSettings guildSettings) {
         this.guildSettings = guildSettings;
@@ -30,6 +38,7 @@ public class GuildSessionImpl implements GuildSession {
         this.getNotifications(0);
         this.latestNotificationDate = getMaxNotificationDate(this.squadNotifications);
         this.latestDirtyNotificationDate = this.latestNotificationDate;
+        this.membersManager = new MembersManager(guildSettings.getGuildId(), guildSettings.getMembers());
     }
 
     private long getMaxNotificationDate(Collection<SquadNotification> squadNotification) {
@@ -96,6 +105,16 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
+    public MembersManager getMembersManager() {
+        return this.membersManager;
+    }
+
+    @Override
+    public DBCacheObjectRead<List<WarHistory>> getWarHistoryManager() {
+        return this.warHistoryManager;
+    }
+
+    @Override
     public String getGuildId() {
         return this.guildSettings.getGuildId();
     }
@@ -116,7 +135,6 @@ public class GuildSessionImpl implements GuildSession {
                 createNotification(this.getGuildId(), this.getGuildName(), playerSession, SquadMsgType.join);
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, playerSession, joinNotification);
         addMember(playerSession);
-        this.setNotificationDirty(joinNotification.getDate());
     }
 
     @Override
@@ -124,7 +142,6 @@ public class GuildSessionImpl implements GuildSession {
         SquadNotification joinRequestNotification =
                 createNotification(this.getGuildId(), this.getGuildName(), playerSession, message, SquadMsgType.joinRequest);
         ServiceFactory.instance().getPlayerDatasource().joinRequest(this, playerSession, joinRequestNotification);
-        this.setNotificationDirty(joinRequestNotification.getDate());
     }
 
     @Override
@@ -142,8 +159,6 @@ public class GuildSessionImpl implements GuildSession {
 
             shareBattleNotification.setData(shareBattleNotificationData);
             ServiceFactory.instance().getPlayerDatasource().battleShare(this, playerSession, shareBattleNotification);
-            this.setNotificationDirty(shareBattleNotification.getDate());
-
             returnCode = ResponseHelper.RECEIPT_STATUS_COMPLETE;
         }
 
@@ -162,7 +177,6 @@ public class GuildSessionImpl implements GuildSession {
         addMember(memberSession);
         memberSession.addSquadNotification(joinRequestAcceptedNotification);
         ServiceFactory.instance().getPlayerDatasource().joinSquad(this, memberSession, joinRequestAcceptedNotification);
-        this.setNotificationDirty(joinRequestAcceptedNotification.getDate());
     }
 
     @Override
@@ -177,7 +191,6 @@ public class GuildSessionImpl implements GuildSession {
         // TODO - the new member probably needs a special notification
         //memberSession.addSquadNotification(joinRequestRejectedNotification);
         ServiceFactory.instance().getPlayerDatasource().joinRejected(this, memberSession, joinRequestRejectedNotification);
-        this.setNotificationDirty(joinRequestRejectedNotification.getDate());
     }
 
     @Override
@@ -185,7 +198,6 @@ public class GuildSessionImpl implements GuildSession {
         SquadNotification leaveNotification = createNotification(this.getGuildId(), this.getGuildName(), playerSession, leaveType);
         ServiceFactory.instance().getPlayerDatasource().leaveSquad(this, playerSession, leaveNotification);
         removeMember(playerSession);
-        this.setNotificationDirty(leaveNotification.getDate());
 
         // the ejected player gets their own one as they are no longer in the squad so will not see the squad message
         if (leaveType == SquadMsgType.ejected) {
@@ -202,12 +214,16 @@ public class GuildSessionImpl implements GuildSession {
         playerSession.setGuildSession(null);
         this.squadNotifications.removeIf(a -> a.getPlayerId() != null
                 && a.getPlayerId().equals(playerSession.getPlayerId()));
-        this.guildSettings.setDirty();
+    }
+
+    @Override
+    public void setDirty() {
+        this.membersManager.setDirty();
+        this.warHistoryManager.setDirty();
     }
 
     private void addMember(PlayerSession playerSession) {
         playerSession.setGuildSession(this);
-        this.guildSettings.setDirty();
     }
 
     @Override
@@ -220,8 +236,6 @@ public class GuildSessionImpl implements GuildSession {
         roleChangeNotification.setData(sqmMemberData);
         ServiceFactory.instance().getPlayerDatasource().changeSquadRole(this, invokerSession, memberSession,
                 roleChangeNotification, squadRole);
-        this.guildSettings.setDirty();
-        this.setNotificationDirty(roleChangeNotification.getDate());
     }
 
     @Override
@@ -229,7 +243,6 @@ public class GuildSessionImpl implements GuildSession {
         SquadNotification squadNotification = this.guildSettings.createTroopRequest(playerSession, message);
         squadNotification.setData(troopRequestData);
         this.saveNotification(squadNotification);
-        this.setNotificationDirty(squadNotification.getDate());
         return squadNotification;
     }
 
@@ -285,7 +298,6 @@ public class GuildSessionImpl implements GuildSession {
         }
 
         playerSession.removeDeployedTroops(troopsDonated, time);
-        this.setNotificationDirty(squadNotification.getDate());
         return new TroopDonationResult(squadNotification, troopsDonated);
     }
 
@@ -299,9 +311,7 @@ public class GuildSessionImpl implements GuildSession {
         boolean started = ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this,
                 participantIds, isSameFactionWarAllowed, squadNotification, time);
 
-        if (started) {
-            this.setNotificationDirty(squadNotification.getDate());
-        } else {
+        if (!started) {
             // TODO - if we have not managed to start the signUp, then we want to roll back signUpTime and WarId
             // by reading out what is in the DB, we need make those two properties a DBCache object
             squadNotification = null;
@@ -315,10 +325,10 @@ public class GuildSessionImpl implements GuildSession {
         SquadNotification squadNotification = createNotification(this.getGuildId(), this.getGuildName(),
                 playerSession, SquadMsgType.warMatchMakingCancel);
 
+        this.setDirty();
         this.getGuildSettings().setWarMatchmakingSignUpTime(null);
         this.getGuildSettings().setWarId(null);
         ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification);
-        this.setNotificationDirty(squadNotification.getDate());
         return squadNotification;
     }
 

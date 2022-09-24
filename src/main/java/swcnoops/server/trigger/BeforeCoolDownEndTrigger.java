@@ -26,9 +26,9 @@ public class BeforeCoolDownEndTrigger implements CommandTrigger {
             WarSession warSession = ServiceFactory.instance().getSessionManager().getWarSession(war.getWarId());
             warSession.setDirty();
             GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(warSession.getGuildIdA());
-            guildSession1.getGuildSettings().setDirty();
+            guildSession1.setDirty();
             GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(warSession.getGuildIdB());
-            guildSession2.getGuildSettings().setDirty();
+            guildSession2.setDirty();
         }
     }
 }

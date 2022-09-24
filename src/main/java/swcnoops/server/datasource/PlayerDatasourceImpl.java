@@ -270,6 +270,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             clientSession.commitTransaction();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
+        } finally {
+            guildSession.setDirty();
         }
     }
 
@@ -286,6 +288,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        } finally {
+            guildSession.setDirty();
         }
     }
 
@@ -301,6 +305,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
             throw new RuntimeException("Failed to save player settings id=" + playerSession.getPlayerId(), ex);
+        } finally {
+            guildSession.setDirty();
         }
     }
 
@@ -328,6 +334,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             session.commitTransaction();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to join player to guild " + playerSession.getPlayerId(), e);
+        } finally {
+            guildSession.setDirty();
         }
     }
 
@@ -350,6 +358,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {
             throw new RuntimeException("Failed to save squad member role id=" + playerSession.getPlayerId(), ex);
+        } finally {
+            guildSession.setDirty();
         }
     }
 
@@ -421,7 +431,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             // TODO - do we need to send a squad notification otherwise how will the squad know
             // might be able to trick the client by sending a joinRequestRejected without data or something like that
             setSquadPlayerHQandXp(session, guildSession.getGuildId(), playerSession.getPlayerId(), hqLevel, xp);
-            guildSession.getGuildSettings().membersUpdated();
+            guildSession.getMembersManager().setDirty();
         }
 
         // map DBCache objects
@@ -572,7 +582,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         squadInfo.openEnrollment = guildSettings.getOpenEnrollment();
         squadInfo.icon = guildSettings.getIcon();
         squadInfo.faction = guildSettings.getFaction();
-        squadInfo.setDescription(guildSettings.getDescription());
+        squadInfo.description = guildSettings.getDescription();
         squadInfo.minScore = guildSettings.getMinScoreAtEnrollment();
 
         Member owner = GuildHelper.createMember(playerSession);
@@ -605,15 +615,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             guildSettings = new GuildSettingsImpl(squadInfo._id);
             guildSettings.setName(squadInfo.name);
             guildSettings.setFaction(squadInfo.faction);
-            guildSettings.setDescription(squadInfo.getDescription());
+            guildSettings.setDescription(squadInfo.description);
             guildSettings.setIcon(squadInfo.icon);
             guildSettings.setOpenEnrollment(squadInfo.openEnrollment);
             guildSettings.setMinScoreAtEnrollment(squadInfo.minScore);
             guildSettings.setWarSignUpTime(squadInfo.warSignUpTime);
             guildSettings.setWarId(squadInfo.warId);
-
-            GuildMembers guildMembers = new GuildMembers(guildSettings.getGuildId(), squadInfo.getSquadMembers());
-            guildSettings.setGuildMembers(guildMembers);
+            guildSettings.setMembers(squadInfo.getSquadMembers());
         }
 
         return guildSettings;
@@ -758,6 +766,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             } else {
                 throw ex;
             }
+        } finally {
+            guildSession.setDirty();
         }
 
         return saved;
@@ -816,6 +826,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 setAndSaveGuildNotification(session, guildSession, squadNotification);
                 session.commitTransaction();
             }
+        } finally {
+            guildSession.setDirty();
         }
     }
 
@@ -1114,13 +1126,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     private void setAndSaveGuildNotification(ClientSession clientSession, GuildSession guildSession, SquadNotification squadNotification) {
         synchronized (guildSession) {
-            if (squadNotification.getDate() == 0)
-                squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
-            // have to reset the ID otherwise a shared notification saving to mongo will fail
-            squadNotification.setId(ServiceFactory.createRandomUUID());
-            squadNotification.setGuildId(guildSession.getGuildId());
-            squadNotification.setGuildName(guildSession.getGuildName());
-            saveNotification(clientSession, squadNotification);
+            try {
+                if (squadNotification.getDate() == 0)
+                    squadNotification.setDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
+                // have to reset the ID otherwise a shared notification saving to mongo will fail
+                squadNotification.setId(ServiceFactory.createRandomUUID());
+                squadNotification.setGuildId(guildSession.getGuildId());
+                squadNotification.setGuildName(guildSession.getGuildName());
+                saveNotification(clientSession, squadNotification);
+            } finally {
+                guildSession.setNotificationDirty(squadNotification.getDate());
+            }
         }
     }
 

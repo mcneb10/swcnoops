@@ -49,10 +49,4 @@ public interface GuildSettings {
     String getWarId();
 
     void setWarId(String warId);
-
-    void setDirty();
-
-    List<WarHistory> getWarHistory();
-
-    void membersUpdated();
 }

@@ -13,8 +13,6 @@ import swcnoops.server.requests.GuildMessages;
 import swcnoops.server.requests.Messages;
 import swcnoops.server.session.GuildSession;
 
-import java.util.ArrayList;
-
 abstract public class GuildCommandAction<A extends GuildCommandAction, B extends GuildResult>
         extends AbstractCommandAction<A, B>
 {
@@ -50,11 +48,11 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         squadResult.name = guildSession.getGuildName();
         squadResult.description = guildSession.getGuildSettings().getDescription();
         squadResult.faction = guildSession.getGuildSettings().getFaction();
-        squadResult.warHistory = guildSession.getGuildSettings().getWarHistory();
+        squadResult.warHistory = guildSession.getWarHistoryManager().getObjectForReading();
         squadResult.currentWarId = guildSession.getGuildSettings().getWarId();
         squadResult.created = guildSession.getGuildSettings().getCreated();
         squadResult.perks = guildSession.getGuildSettings().getPerks();
-        squadResult.members = guildSession.getGuildSettings().getMembers();
+        squadResult.members = guildSession.getMembersManager().getObjectForReading();
         squadResult.warSignUpTime = guildSession.getGuildSettings().getWarSignUpTime();
         squadResult.memberCount = squadResult.members.size();
         squadResult.activeMemberCount = squadResult.members.size();

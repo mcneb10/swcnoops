@@ -1,6 +1,5 @@
 package swcnoops.server.datasource;
 
-import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.model.*;
 import swcnoops.server.session.GuildSession;
@@ -18,12 +17,16 @@ public class GuildSettingsImpl implements GuildSettings {
 
     private Long warSignUpTime;
     private String warId;
-    private GuildMembers guildMembers;
-    private WarHistoryManager warHistoryManager;
+
+    private List<Member> members;
 
     public GuildSettingsImpl(String id) {
         this.id = id;
-        this.warHistoryManager = new WarHistoryManager(id);
+    }
+
+    @Override
+    public List<Member> getMembers() {
+        return this.members;
     }
 
     @Override
@@ -58,11 +61,6 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     @Override
-    public List<Member> getMembers() {
-        return guildMembers.getMembers();
-    }
-
-    @Override
     public String getIcon() {
         return this.icon;
     }
@@ -77,17 +75,6 @@ public class GuildSettingsImpl implements GuildSettings {
 
     public void setFaction(FactionType faction) {
         this.faction = faction;
-    }
-
-    @Override
-    public void setDirty() {
-        this.membersUpdated();
-        this.warHistoryManager.setDirty();
-    }
-
-    @Override
-    public void membersUpdated() {
-        this.guildMembers.setDirty();
     }
 
     @Override
@@ -159,7 +146,6 @@ public class GuildSettingsImpl implements GuildSettings {
     @Override
     public void setWarMatchmakingSignUpTime(Long time) {
         this.setWarSignUpTime(time);
-        this.guildMembers.setDirty();
     }
 
     @Override
@@ -172,12 +158,7 @@ public class GuildSettingsImpl implements GuildSettings {
         return warId;
     }
 
-    protected void setGuildMembers(GuildMembers guildMembers) {
-        this.guildMembers = guildMembers;
-    }
-
-    @Override
-    public List<WarHistory> getWarHistory() {
-        return this.warHistoryManager.getWarHistory();
+    public void setMembers(List<Member> squadMembers) {
+        this.members = squadMembers;
     }
 }

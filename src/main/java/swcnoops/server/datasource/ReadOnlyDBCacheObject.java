@@ -54,6 +54,7 @@ public abstract class ReadOnlyDBCacheObject<A> implements DBCacheObjectRead<A> {
         this.lastLoaded = System.currentTimeMillis();
     }
 
+    @Override
     public void setDirty() {
         this.dirtyTime = System.currentTimeMillis();
     }
