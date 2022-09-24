@@ -71,10 +71,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         .version(ServerApiVersion.V1)
                         .build())
                 .build();
+
+        String mongoDBName = ServiceFactory.instance().getConfig().mongoDBName;
+
         this.mongoClient = MongoClients.create(settings);
-        this.database = mongoClient.getDatabase("dev");
+        this.database = mongoClient.getDatabase(mongoDBName);
         this.playerCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "player", Player.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "player", Player.class, UuidRepresentation.STANDARD);
 
         // TODO - need to check if this is actually being used for PvP
         this.playerCollection.createIndex(compoundIndex(Indexes.descending("playerSettings.faction"),
@@ -88,20 +91,20 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 new IndexOptions().unique(true).partialFilterExpression(exists("currentPvPAttack.playerId")));
 
         this.squadCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "squad", SquadInfo.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "squad", SquadInfo.class, UuidRepresentation.STANDARD);
 
         this.squadCollection.createIndex(Indexes.ascending("squadMembers.playerId"), new IndexOptions().unique(true));
         this.squadCollection.createIndex(Indexes.ascending("faction"));
         this.squadCollection.createIndex(Indexes.text("name"));
 
         this.squadNotificationCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "squadNotification", SquadNotification.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "squadNotification", SquadNotification.class, UuidRepresentation.STANDARD);
 
         this.squadNotificationCollection.createIndex(compoundIndex(Indexes.ascending("guildId"),
                 Indexes.ascending("playerId"), Indexes.ascending("type"), Indexes.descending("date")));
 
         this.devBaseCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "devBase", DevBase.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "devBase", DevBase.class, UuidRepresentation.STANDARD);
 
         this.devBaseCollection.createIndex(Indexes.text("fileName"));
         this.devBaseCollection.createIndex(Indexes.ascending("checksum"));
@@ -109,7 +112,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.devBaseCollection.createIndex(compoundIndex(Indexes.ascending("hq"), Indexes.ascending("xp")));
 
         this.battleReplayCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "battleReplay", BattleReplay.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "battleReplay", BattleReplay.class, UuidRepresentation.STANDARD);
         this.battleReplayCollection.createIndex(compoundIndex(Indexes.ascending("attackerId"),
                 Indexes.descending("battleType"),
                 Indexes.descending("attackDate")));
@@ -118,18 +121,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 Indexes.descending("attackDate")));
 
         this.warSignUpCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "warSignUp", WarSignUp.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "warSignUp", WarSignUp.class, UuidRepresentation.STANDARD);
         this.warSignUpCollection.createIndex(Indexes.ascending("guildId"), new IndexOptions().unique(true));
 
         this.squadWarCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "squadWar", SquadWar.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "squadWar", SquadWar.class, UuidRepresentation.STANDARD);
         this.squadWarCollection.createIndex(compoundIndex(Indexes.ascending("squadIdA"),
                 Indexes.descending("processedEndTime")));
         this.squadWarCollection.createIndex(compoundIndex(Indexes.ascending("squadIdB"),
                 Indexes.descending("processedEndTime")));
 
         this.squadMemberWarDataCollection = JacksonMongoCollection.builder()
-                .build(this.mongoClient, "dev", "squadMemberWarData", SquadMemberWarData.class, UuidRepresentation.STANDARD);
+                .build(this.mongoClient, mongoDBName, "squadMemberWarData", SquadMemberWarData.class, UuidRepresentation.STANDARD);
 
         this.squadMemberWarDataCollection.createIndex(compoundIndex(Indexes.ascending("id"),
                 Indexes.ascending("guildId"),
