@@ -151,8 +151,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             player.getPlayerSettings().setGuildId(squadInfo._id);
             player.getPlayerSettings().setGuildName(squadInfo.name);
         } else {
-            player.getPlayerSettings().setGuildId(null);
-            player.getPlayerSettings().setGuildName(null);
+            // if this is a selfDonateSquad then we dont want to clear it
+            String guildId = player.getPlayerSettings().getGuildId();
+            if (guildId != null && !guildId.equals(playerId)) {
+                player.getPlayerSettings().setGuildId(null);
+                player.getPlayerSettings().setGuildName(null);
+            }
         }
     }
 

@@ -17,4 +17,8 @@ public interface GuildSettings {
     String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId);
 
     Squad getSquad();
+
+    boolean canPadMembers();
+
+    boolean canReload();
 }

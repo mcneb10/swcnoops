@@ -81,4 +81,14 @@ public class SelfDonatingSquad implements GuildSettings {
     public String troopDonationRecipient(PlayerSession playerSession, String recipientPlayerId) {
         return playerSession.getPlayerId();
     }
+
+    @Override
+    public boolean canPadMembers() {
+        return false;
+    }
+
+    @Override
+    public boolean canReload() {
+        return false;
+    }
 }

@@ -9,9 +9,13 @@ import java.util.List;
 
 public class MembersManager extends ReadOnlyDBCacheObject<List<Member>> {
     final private String guildId;
+    final private boolean canPadMembers;
+    final private boolean canReload;
 
-    public MembersManager(String guildId, List<Member> initial) {
+    public MembersManager(String guildId, List<Member> initial, boolean canPadMembers, boolean canReload) {
         super(false);
+        this.canPadMembers = canPadMembers;
+        this.canReload = canReload;
         this.guildId = guildId;
         initialise(initial);
     }
@@ -23,6 +27,9 @@ public class MembersManager extends ReadOnlyDBCacheObject<List<Member>> {
 
     @Override
     protected List<Member> loadDBObject() {
+        if (!this.canReload)
+            return this.dbObject;
+
         List<Member> members = ServiceFactory.instance().getPlayerDatasource().loadSquadMembers(this.guildId);
         return padMembersToAllowWar(members);
     }
@@ -30,6 +37,9 @@ public class MembersManager extends ReadOnlyDBCacheObject<List<Member>> {
     private List<Member> padMembersToAllowWar(List<Member> members) {
         if (members == null)
             members = new ArrayList<>();
+
+        if (!this.canPadMembers)
+            return members;
 
         if (ServiceFactory.instance().getConfig().createBotPlayersInGroup && members.size() > 0) {
             int membersSize = members.size();

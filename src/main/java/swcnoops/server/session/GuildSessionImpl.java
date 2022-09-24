@@ -51,7 +51,8 @@ public class GuildSessionImpl implements GuildSession {
         this.getNotifications(0);
         this.latestNotificationDate = getMaxNotificationDate(this.squadNotifications);
         this.latestDirtyNotificationDate = this.latestNotificationDate;
-        this.membersManager = new MembersManager(guildSettings.getGuildId(), guildSettings.getMembers());
+        this.membersManager = new MembersManager(guildSettings.getGuildId(),
+                guildSettings.getMembers(), guildSettings.canPadMembers(), guildSettings.canReload());
         this.squadManager.initialise(guildSettings.getSquad());
     }
 

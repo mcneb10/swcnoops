@@ -63,4 +63,14 @@ public class GuildSettingsImpl implements GuildSettings {
     public Squad getSquad() {
         return squad;
     }
+
+    @Override
+    public boolean canPadMembers() {
+        return true;
+    }
+
+    @Override
+    public boolean canReload() {
+        return true;
+    }
 }
