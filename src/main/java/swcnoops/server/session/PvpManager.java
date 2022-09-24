@@ -12,4 +12,6 @@ public interface PvpManager {
     void pvpReleaseTarget();
 
     void playerLogin();
+
+    PvpMatch getRevengeMatch(String opponentId, long time);
 }

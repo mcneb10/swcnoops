@@ -106,7 +106,7 @@ public class ResponseHelper {
         return new JsonElementCommandResult(jsonElement);
     }
 
-    public static CommandResult newErrorResult(int statusCodePvpTargetNotFound) {
+    public static CommandResult newStatusResult(int statusCodePvpTargetNotFound) {
         return new CommandResult() {
             @Override
             public Integer getStatus() {

@@ -44,7 +44,7 @@ public interface GuildSettings {
 
     void setWarSignUpTime(Long warSignUpTime);
 
-    void warMatchmakingStart(long time, List<String> participantIds);
+    void setWarMatchmakingSignUpTime(Long time);
 
     String getWarId();
 

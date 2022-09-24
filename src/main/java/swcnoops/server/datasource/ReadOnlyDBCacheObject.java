@@ -4,15 +4,24 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class ReadOnlyDBCacheObject<A> implements DBCacheObjectRead<A> {
-    private A dbObject;
+    volatile private A dbObject;
     private Lock lock = new ReentrantLock();
-    private long lastLoaded;
-    private long dirtyTime;
+    volatile private long lastLoaded;
+    volatile private long dirtyTime;
     private boolean nullAllowed = true;
 
     public ReadOnlyDBCacheObject(A object, boolean nullAllowed) {
-        this.dbObject = object;
         this.nullAllowed = nullAllowed;
+        this.initialise(object);
+    }
+
+    public ReadOnlyDBCacheObject(boolean nullAllowed) {
+        this(null, nullAllowed);
+    }
+
+    @Override
+    public void initialise(A initialDBObject) {
+        this.dbObject = initialDBObject;
         this.lastLoaded = System.currentTimeMillis();
     }
 

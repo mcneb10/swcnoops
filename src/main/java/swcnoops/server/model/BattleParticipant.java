@@ -17,17 +17,17 @@ public class BattleParticipant {
 
     }
 
-    public BattleParticipant(String playerId, String name, String guildId, String guildName, int attackRating, int attackRatingDelta, int defenseRating, int defenseRatingDelta, int tournamentRating, int tournamentRatingDelta, FactionType faction) {
+    public BattleParticipant(String playerId, String name, String guildId, String guildName,
+                             int attackRating, int defenseRating,
+                             int tournamentRating,
+                             FactionType faction) {
         this.playerId = playerId;
         this.name = name;
         this.guildId = guildId;
         this.guildName = guildName;
         this.attackRating = attackRating;
-        this.attackRatingDelta = attackRatingDelta;
         this.defenseRating = defenseRating;
-        this.defenseRatingDelta = defenseRatingDelta;
         this.tournamentRating = tournamentRating;
-        this.tournamentRatingDelta = tournamentRatingDelta;
         this.faction = faction;
     }
 }

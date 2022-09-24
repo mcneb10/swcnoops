@@ -4,17 +4,24 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
-    private A dbObject;
-    private long lastLoaded;
-    private long dirtyTime;
+    volatile private A dbObject;
+    volatile private long lastLoaded;
+    volatile private long dirtyTime;
     private Lock lock = new ReentrantLock();
-    private A dbObjectForWrite;
+    volatile private A dbObjectForWrite;
 
     protected DBCacheObjectImpl() {
     }
 
     public DBCacheObjectImpl(A initialDBObject) {
+        initialise(initialDBObject);
+    }
+
+    @Override
+    public void initialise(A initialDBObject) {
         setDbObject(initialDBObject);
+        this.dirtyTime = 0;
+        this.dbObjectForWrite = null;
     }
 
     protected A getDBObject() {
@@ -44,7 +51,7 @@ public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
     @Override
     public A getObjectForWriting() {
         A obj = this.dbObjectForWrite;
-        if (this.dbObjectForWrite == null)
+        if (obj == null)
             obj = this.setObjectForSaving(this.getDBObject());
 
         return obj;

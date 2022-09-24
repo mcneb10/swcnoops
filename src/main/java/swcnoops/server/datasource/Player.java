@@ -15,6 +15,7 @@ public class Player {
     private Date loginDate;
     private PvpAttack currentPvPAttack;
     private PvpAttack currentPvPDefence;
+    private long loginTime;
 
     public Player() {
     }
@@ -77,5 +78,13 @@ public class Player {
 
     public void setCurrentPvPDefence(PvpAttack currentPvPDefence) {
         this.currentPvPDefence = currentPvPDefence;
+    }
+
+    public void setLoginTime(long loginTime) {
+        this.loginTime = loginTime;
+    }
+
+    public long getLoginTime() {
+        return loginTime;
     }
 }

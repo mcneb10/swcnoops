@@ -4,11 +4,13 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
+import java.util.Map;
+
 public class PlayerSettings {
     private Upgrades upgrades = new Upgrades();
     private String name;
     private FactionType faction;
-    public PlayerMap baseMap;
+    private PlayerMap baseMap;
     private Deployables deployableTroops = new Deployables();
     private BuildUnits buildContracts = new BuildUnits();
     private Creature creature;
@@ -24,6 +26,7 @@ public class PlayerSettings {
     private int hqLevel;
     private PlayerMap warMap;
     private String guildName;
+    private Map<String,Integer> damagedBuildings;
 
     public PlayerSettings() {
     }
@@ -156,9 +159,6 @@ public class PlayerSettings {
     }
 
     public Scalars getScalars() {
-        if (this.scalars == null)
-            this.scalars = new Scalars(0, 0, 0, 0, 0, 0, 100, 0, 0, 0);
-
         return scalars;
     }
 
@@ -193,5 +193,13 @@ public class PlayerSettings {
     public void defaultInventoryIfNull(InventoryStorage storage) {
         if (this.inventoryStorage == null)
             this.inventoryStorage = storage;
+    }
+
+    public Map<String,Integer> getDamagedBuildings() {
+        return damagedBuildings;
+    }
+
+    public void setDamagedBuildings(Map<String,Integer> damagedBuildings) {
+        this.damagedBuildings = damagedBuildings;
     }
 }

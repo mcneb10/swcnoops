@@ -157,7 +157,7 @@ public class GuildSettingsImpl implements GuildSettings {
     }
 
     @Override
-    public void warMatchmakingStart(long time, List<String> participantIds) {
+    public void setWarMatchmakingSignUpTime(Long time) {
         this.setWarSignUpTime(time);
         this.guildMembers.setDirty();
     }

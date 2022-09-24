@@ -1,15 +1,12 @@
 package swcnoops.server.commands.player.response;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.AbstractCommandResult;
-import swcnoops.server.requests.ResponseHelper;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
+public class PvpTargetCommandResult extends AbstractCommandResult {
     public String battleId;
     public String playerId;
     public String name;
@@ -27,7 +24,7 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
 
     public PlayerMap map;
     public DonatedTroops guildTroops;
-    public Map<CurrencyType, Map<CurrencyType, Integer>> resources;
+    public Map<String, Map<CurrencyType, Integer>> resources;
 
     public Map<String, Integer> champions;
     public List<CreatureTrapData> creatureTrapData;
@@ -48,19 +45,4 @@ public class PlayerPvpGetNextTargetCommandResult extends AbstractCommandResult {
     public int creditsCharged;
     public Object contracts;
     public List<String> equipment = new ArrayList<>();
-
-    @JsonIgnore
-    private int status = ResponseHelper.RECEIPT_STATUS_COMPLETE;
-
-    public PlayerPvpGetNextTargetCommandResult() {
-    }
-
-    public PlayerPvpGetNextTargetCommandResult(int statusCodePvpTargetNotFound) {
-        this.status = statusCodePvpTargetNotFound;
-    }
-
-    @Override
-    public Integer getStatus() {
-        return this.status;
-    }
 }

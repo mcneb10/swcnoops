@@ -61,6 +61,7 @@ public class CommandFactory {
 
         this.add(new PlayerPveStart());
         this.add(new PlayerPvpBattleStart());
+        this.add(new PlayerPvpGetRevengeTarget());
         this.add(new PlayerPveComplete());
         this.add(new PlayerPveCollect());
         this.add(new PlayerMissionsClaimMission());
@@ -93,6 +94,8 @@ public class CommandFactory {
         this.add(new GuildWarAttackPlayerComplete());
         this.add(new GuildWarAttackBaseStart());
         this.add(new GuildWarAttackBaseComplete());
+        this.add(new GuildBattleShare());
+
         this.add(new PlayerBattleReplayGet());
 
         this.add(new GuildWarGetParticipant());

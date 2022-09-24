@@ -100,8 +100,12 @@ abstract public class PlayerBattleComplete<A extends PlayerBattleComplete, B ext
         return numVisitors;
     }
 
-    public boolean isUserEnded() {
+    public boolean getIsUserEnded() {
         return isUserEnded;
+    }
+
+    public void setIsUserEnded(boolean userEnded) {
+        isUserEnded = userEnded;
     }
 
     public Map<CurrencyType, Integer> getLoot() {

@@ -64,7 +64,7 @@ public interface PlayerSession {
 
     int getDonatedTroopsTotalUnits(DonatedTroops donatedTroops);
 
-    void battleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
+    void warBattleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
 
     void buildingMultimove(PositionMap positions, long time);
 
@@ -156,7 +156,7 @@ public interface PlayerSession {
 
     void pvpReleaseTarget();
 
-    InventoryManager getInventoryManager();
+    DBCacheObject<InventoryStorage> getInventoryManager();
 
     DBCacheObjectSaving<PvpAttack> getCurrentPvPAttack();
     ReadOnlyDBCacheObject<PvpAttack> getCurrentPvPDefence();
@@ -164,4 +164,12 @@ public interface PlayerSession {
     void doneDBSave();
 
     void playerPvPBattleStart(long time);
+
+    DBCacheObject<Scalars> getScalarsManager();
+
+    DBCacheObjectRead<Map<String,Integer>> getDamagedBuildingManager();
+
+    void savePlayerLogin(long time);
+
+    long getLastLoginTime();
 }

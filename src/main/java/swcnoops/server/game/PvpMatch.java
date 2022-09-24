@@ -1,8 +1,8 @@
 package swcnoops.server.game;
 
-import swcnoops.server.model.BattleParticipant;
-import swcnoops.server.model.FactionType;
-import swcnoops.server.model.JsonStringArrayList;
+import swcnoops.server.model.*;
+
+import java.util.Map;
 
 public class PvpMatch {
     public int creditsCharged;
@@ -24,11 +24,28 @@ public class PvpMatch {
 
     private JsonStringArrayList attackerEquipment;
     private JsonStringArrayList defenderEquipment;
-    private String guildName;
-    private String guildId;
+    private int creditsGained;
+    private int materialsGained;
+    private int contraGained;
+    private Map<String, Integer> defenderDamagedBuildings;
+    private Scalars defendersScalars;
+    private InventoryStorage defendersInventoryStorage;
+    private String defendersName;
+    private String defendersGuildId;
+    private String defendersGuildName;
+    private PlayerMap defendersBaseMap;
 
+    private boolean revenge;
 
     public PvpMatch() {
+    }
+
+    public boolean isRevenge() {
+        return revenge;
+    }
+
+    public void setRevenge(boolean revenge) {
+        this.revenge = revenge;
     }
 
     public String getBattleId() {
@@ -159,20 +176,84 @@ public class PvpMatch {
         this.defenderEquipment = defenderEquipment;
     }
 
-    public String getGuildName() {
-        return guildName;
+    public void setCreditsGained(int creditsGained) {
+        this.creditsGained = creditsGained;
     }
 
-    public void setGuildName(String guildName) {
-        this.guildName = guildName;
+    public int getCreditsGained() {
+        return creditsGained;
     }
 
-    public String getGuildId() {
-        return guildId;
+    public void setMaterialsGained(int materialsGained) {
+        this.materialsGained = materialsGained;
     }
 
-    public void setGuildId(String guildId) {
-        this.guildId = guildId;
+    public int getMaterialsGained() {
+        return materialsGained;
+    }
+
+    public void setContraGained(int contraGained) {
+        this.contraGained = contraGained;
+    }
+
+    public int getContraGained() {
+        return contraGained;
+    }
+
+    public void setDefenderDamagedBuildings(Map<String, Integer> defenderDamagedBuildings) {
+        this.defenderDamagedBuildings = defenderDamagedBuildings;
+    }
+
+    public Map<String, Integer> getDefenderDamagedBuildings() {
+        return defenderDamagedBuildings;
+    }
+
+    public void setDefendersScalars(Scalars defendersScalars) {
+        this.defendersScalars = defendersScalars;
+    }
+
+    public Scalars getDefendersScalars() {
+        return defendersScalars;
+    }
+
+    public void setDefendersInventoryStorage(InventoryStorage defendersInventoryStorage) {
+        this.defendersInventoryStorage = defendersInventoryStorage;
+    }
+
+    public InventoryStorage getDefendersInventoryStorage() {
+        return defendersInventoryStorage;
+    }
+
+    public String getDefendersName() {
+        return defendersName;
+    }
+
+    public void setDefendersName(String defendersName) {
+        this.defendersName = defendersName;
+    }
+
+    public String getDefendersGuildId() {
+        return defendersGuildId;
+    }
+
+    public void setDefendersGuildId(String defendersGuildId) {
+        this.defendersGuildId = defendersGuildId;
+    }
+
+    public String getDefendersGuildName() {
+        return defendersGuildName;
+    }
+
+    public void setDefendersGuildName(String defendersGuildName) {
+        this.defendersGuildName = defendersGuildName;
+    }
+
+    public PlayerMap getDefendersBaseMap() {
+        return defendersBaseMap;
+    }
+
+    public void setDefendersBaseMap(PlayerMap defendersBaseMap) {
+        this.defendersBaseMap = defendersBaseMap;
     }
 }
 

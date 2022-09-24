@@ -2,8 +2,10 @@ package swcnoops.server.model;
 
 import org.mongojack.Id;
 import swcnoops.server.commands.player.PlayerBattleComplete;
+import swcnoops.server.game.PvpMatch;
 import swcnoops.server.session.PlayerSession;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -17,6 +19,7 @@ public class BattleReplay {
     public String defenderId;
     public BattleType battleType;
     public long attackDate;
+    private Date date;
 
     public BattleReplay() {
     }
@@ -34,11 +37,18 @@ public class BattleReplay {
     }
 
     static public BattleReplay map(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
-                                   PlayerSession defenderSession, long time) {
-        return map(playerBattleComplete, attackerSession,
-                defenderSession.getPlayerId(),
-                defenderSession.getPlayerSettings().getName(),
-                defenderSession.getFaction(), time);
+                                   PvpMatch pvpMatch, long time) {
+        BattleReplay battleReplay = map(playerBattleComplete, attackerSession,
+                pvpMatch.getDefender().playerId,
+                pvpMatch.getDefender().name,
+                pvpMatch.getDefender().faction, time);
+
+        battleReplay.battleLog.revenged = pvpMatch.isRevenge();
+
+        // we overwrite it with the real data
+        battleReplay.battleLog.attacker = pvpMatch.getAttacker();
+        battleReplay.battleLog.defender = pvpMatch.getDefender();
+        return battleReplay;
     }
 
     static public BattleReplay map(PlayerBattleComplete playerBattleComplete, PlayerSession attackerSession,
@@ -53,6 +63,7 @@ public class BattleReplay {
         battleReplay.battleLog.battleVersion = playerBattleComplete.getBattleVersion();
         battleReplay.battleLog.battleId = playerBattleComplete.getBattleId();
         battleReplay.battleLog.attackDate = time;
+
         battleReplay.battleLog.attacker = new BattleParticipant();
         battleReplay.battleLog.attacker.playerId = attackerSession.getPlayerId();
         battleReplay.battleLog.attacker.name = attackerSession.getPlayerSettings().getName();
@@ -75,7 +86,7 @@ public class BattleReplay {
         Earned earned = new Earned();
         earned.credits = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootCreditsEarned, 0);
         earned.materials = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootMaterialsEarned, 0);
-        earned.materials = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootContrabandEarned, 0);
+        earned.contraband = Math.max(playerBattleComplete.getReplayData().battleAttributes.lootContrabandEarned, 0);
         battleReplay.battleLog.earned = earned;
 
         Earned looted = new Earned();
@@ -92,9 +103,9 @@ public class BattleReplay {
         battleReplay.battleLog.maxLootable = maxLootable;
 
         battleReplay.battleLog.troopsExpended = mapTroopsUsed(playerBattleComplete.getReplayData().battleActions);
-        battleReplay.battleLog.revenged = false;
+
         battleReplay.battleLog.planetId = playerBattleComplete.getReplayData().combatEncounter.map.planet;
-        battleReplay.battleLog.isUserEnded = playerBattleComplete.isUserEnded();
+        battleReplay.battleLog.isUserEnded = playerBattleComplete.getIsUserEnded();
 
         // TODO - not sure what this does
         battleReplay.battleLog.server = false;
@@ -159,5 +170,13 @@ public class BattleReplay {
                 troops.putAll(deploymentData.specialAttack);
         }
         return troops;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public Date getDate() {
+        return date;
     }
 }

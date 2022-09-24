@@ -55,4 +55,6 @@ public interface GuildSession {
     void setNotificationDirty(long date);
 
     void processGuildGet(long time);
+
+    int battleShare(PlayerSession playerSession, String battleId, String message);
 }

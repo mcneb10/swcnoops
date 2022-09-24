@@ -33,7 +33,7 @@ public class PlayerIdentityGet extends AbstractCommandAction<PlayerIdentityGet, 
             playerLoginCommandResult.name = playerSession.getPlayerSettings().getName();
             playerLoginCommandResult.playerModel = new PlayerModel();
             playerLoginCommandResult.playerModel.faction = playerSession.getFaction();
-            playerLoginCommandResult.playerModel.map = playerSession.getPlayer().getPlayerSettings().baseMap;
+            playerLoginCommandResult.playerModel.map = playerSession.getPlayer().getPlayerSettings().getBaseMap();
             if (playerSession.getGuildSession() != null) {
                 playerLoginCommandResult.playerModel.guildInfo = new GuildInfo();
                 playerLoginCommandResult.playerModel.guildInfo.guildName = playerSession.getGuildSession().getGuildName();

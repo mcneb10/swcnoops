@@ -40,10 +40,12 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     protected PlayerLoginCommandResult execute(PlayerLogin arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .loginPlayerSession(arguments.getPlayerId());
-        playerSession.playerLogin(time);
 
+        playerSession.playerLogin(time);
         PlayerLoginCommandResult response = loadPlayerTemplate();
         mapLoginForPlayer(response, playerSession);
+        playerSession.savePlayerLogin(time);
+
         return response;
     }
 
@@ -79,24 +81,27 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
         mapCampaignAndMissions(playerLoginResponse.playerModel, playerSession.getPlayerSettings());
 
-        mapSharedPreferencs(playerLoginResponse, playerSession.getPlayerSettings());
+        mapSharedPreferencs(playerLoginResponse, playerSession);
         mapUnlockedPlanets(playerLoginResponse, playerSession.getPlayerSettings());
 
         playerLoginResponse.liveness = new Liveness();
         playerLoginResponse.liveness.keepAliveTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
+        // TODO - not sure if this should be the servers time now or the time passed in by client
         // this last login seems very important, the client needs it as setting this to funny values
         // seems to make the client send funny times in the commands. Just not sure if this should be set
         // to the current real world time.
         playerLoginResponse.liveness.lastLoginTime = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
-        // TODO - this is to enable switching accounts in settings
-        // needs more work to get this to work
         playerLoginResponse.playerModel.identitySwitchTimes = new HashMap<>();
-        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
-        playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
-        playerLoginResponse.scalars = playerSession.getPlayerSettings().getScalars();
+        if (!playerSession.getPlayer().getPlayerSecret().getMissingSecret()) {
+            playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId(), playerLoginResponse.liveness.lastLoginTime);
+            playerLoginResponse.playerModel.identitySwitchTimes.put(playerSession.getPlayerId() + "-2", playerLoginResponse.liveness.lastLoginTime);
+        }
+
+        playerLoginResponse.scalars = playerSession.getScalarsManager().getObjectForReading();
         playerLoginResponse.playerModel.battleLogs = ServiceFactory.instance().getPlayerDatasource().getPlayerBattleLogs(playerSession.getPlayerId());
+        playerLoginResponse.playerModel.DamagedBuildings = mapDamagedBuildings(playerSession);
 
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
     }
@@ -113,6 +118,11 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         return currentlyDefending;
     }
 
+    private Map<String, Integer> mapDamagedBuildings(PlayerSession playerSession) {
+        Map<String, Integer> damagedBuildings = playerSession.getDamagedBuildingManager().getObjectForReading();
+        return damagedBuildings;
+    }
+
     private void mapUnlockedPlanets(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
         playerLoginResponse.playerModel.unlockedPlanets = playerSettings.getUnlockedPlanets();
     }
@@ -121,13 +131,15 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         if (playerSession.getPlayerSettings().getGuildId() != null) {
             playerModel.guildInfo = new GuildInfo();
             playerModel.guildInfo.guildId = playerSession.getPlayerSettings().getGuildId();
+            playerModel.guildInfo.guildName = playerSession.getPlayerSettings().getGuildName();
             // TODO - and the rest
         } else {
             playerModel.guildInfo = null;
         }
     }
 
-    private void mapSharedPreferencs(PlayerLoginCommandResult playerLoginResponse, PlayerSettings playerSettings) {
+    private void mapSharedPreferencs(PlayerLoginCommandResult playerLoginResponse, PlayerSession playerSession) {
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
         playerLoginResponse.sharedPrefs.putAll(playerSettings.getSharedPreferences());
 
         // turn off conflicts
@@ -137,6 +149,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         // this is to stop armory tutorial from triggering
         playerLoginResponse.sharedPrefs.put("EqpTut", "3");
         playerLoginResponse.sharedPrefs.remove("EqpTutStep");
+
+        // send the last login, this is used by client to work out which battle logs are new
+        playerLoginResponse.sharedPrefs.put("llt", String.valueOf(playerSession.getLastLoginTime()));
     }
 
     private void mapCampaignAndMissions(PlayerModel playerModel, PlayerSettings playerSettings) {
@@ -163,13 +178,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     private void mapInventory(PlayerModel playerModel, PlayerSession playerSession) {
         playerModel.inventory.capacity = -1;
         playerModel.inventory.storage = playerSession.getInventoryManager().getObjectForReading();
-
-        if (ServiceFactory.instance().getConfig().freeResources &&
-                playerModel.currentQuest != null && playerModel.currentQuest.trim().isEmpty()
-                && playerSession.getPlayerSettings().getName() != null && !playerSession.getPlayerSettings().getName().isEmpty()) {
-            playerModel.inventory.storage.crystals.amount = 9999999;
-        }
-
         playerModel.inventory.subStorage = mapDeployableTroops(playerSession);
     }
 

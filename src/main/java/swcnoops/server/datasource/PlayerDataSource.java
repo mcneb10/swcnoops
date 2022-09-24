@@ -50,7 +50,7 @@ public interface PlayerDataSource {
 
     List<Squad> searchGuildByName(String searchTerm);
 
-    void saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time);
+    boolean saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time);
 
     void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification);
 
@@ -109,11 +109,15 @@ public interface PlayerDataSource {
 
     void saveDevBase(DevBase devBase);
 
-    void saveNewPvPBattle(PlayerSession playerSession, BattleReplay battleReplay);
+    void savePvPBattleComplete(PlayerSession playerSession, PvpMatch pvpMatch, BattleReplay battleReplay);
 
     PvpMatch getPvPMatches(PvpManager pvpManager, Set<String> playersSeen);
 
     void pvpReleaseTarget(PvpManager pvpSession);
 
     void savePvPBattleStart(PlayerSession playerSession);
+
+    PvpMatch getPvPRevengeMatch(PvpManager pvpManager, String opponentId, long time);
+
+    void battleShare(GuildSessionImpl guildSession, PlayerSession playerSession, SquadNotification shareBattleNotification);
 }

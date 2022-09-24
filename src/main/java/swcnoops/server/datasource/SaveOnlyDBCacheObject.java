@@ -1,7 +1,7 @@
 package swcnoops.server.datasource;
 
 public class SaveOnlyDBCacheObject<A> implements DBCacheObjectSaving<A>{
-    private A object;
+    volatile private A object;
 
     @Override
     public boolean needsSaving() {

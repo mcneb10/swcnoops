@@ -65,4 +65,12 @@ public class PvpSessionImpl implements PvpManager {
         this.devBasesSeen.clear();
         this.currentPvPMatch = null;
     }
+
+    @Override
+    public PvpMatch getRevengeMatch(String opponentId, long time) {
+        PvpMatch pvpMatch = ServiceFactory.instance().getPlayerDatasource()
+                .getPvPRevengeMatch(this, opponentId, time);
+        this.currentPvPMatch = pvpMatch;
+        return pvpMatch;
+    }
 }

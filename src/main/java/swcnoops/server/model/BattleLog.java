@@ -17,7 +17,7 @@ public class BattleLog {
     public JsonStringIntegerMap numVisitors;
     public int baseDamagePercent;
     public int stars;
-    public Long manifestVersion;
+    public String manifestVersion;
     public int potentialMedalGain;
     public int defenderPotentialMedalGain;
     public boolean revenged;

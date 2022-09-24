@@ -1,10 +1,8 @@
 package swcnoops.server.commands.player;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
-import swcnoops.server.commands.player.response.PlayerPvpGetNextTargetCommandResult;
+import swcnoops.server.commands.player.response.PvpTargetCommandResult;
 import swcnoops.server.game.*;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
@@ -23,7 +21,6 @@ import java.util.stream.Collectors;
  * Finds and returns an enemy base for PVP.
  */
 public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNextTarget, CommandResult> {
-    private static final Logger LOG = LoggerFactory.getLogger(PlayerPvpGetNextTarget.class);
 
     @Override
     protected CommandResult execute(PlayerPvpGetNextTarget arguments, long time) throws Exception {
@@ -34,12 +31,12 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         return response;
     }
 
-    private CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
+    static public CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
         if (pvpMatch == null) {
-            return ResponseHelper.newErrorResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
+            return ResponseHelper.newStatusResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
         }
 
-        PlayerPvpGetNextTargetCommandResult response = new PlayerPvpGetNextTargetCommandResult();
+        PvpTargetCommandResult response = new PvpTargetCommandResult();
         response.battleId = pvpMatch.getBattleId();
 
         pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
@@ -55,30 +52,79 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.map = new PlayerMap();
             response.map.planet = playerSession.getPlayer().getPlayerSettings().getBaseMap().planet;
             response.map.next = 2;
-            response.map.buildings = ServiceFactory.instance().getPlayerDatasource().getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
-            setupDevResourcesBaseData(response, pvpMatch.getPlayerId());
+            response.map.buildings = ServiceFactory.instance().getPlayerDatasource()
+                    .getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
+            setupDevResourcesBaseData(response, playerSession);
+            setupDefenseTroops(response, response.map);
         } else {
-            swcnoops.server.datasource.Player opponentPlayer = ServiceFactory.instance().getPlayerDatasource().loadPlayer(pvpMatch.getParticipantId());
-            response.map = opponentPlayer.getPlayerSettings().baseMap;
-            response.name = opponentPlayer.getPlayerSettings().getName();
-            response.guildName = opponentPlayer.getPlayerSettings().getGuildName();
-            response.guildId = opponentPlayer.getPlayerSettings().getGuildId();
-            //TODO, get from defender's file
-            setupDevResourcesBaseData(response, pvpMatch.getPlayerId());
+            response.map = pvpMatch.getDefendersBaseMap();
+            response.name = pvpMatch.getDefendersName();
+            response.guildId = pvpMatch.getDefendersGuildId();
+            response.guildName = pvpMatch.getDefendersGuildName();
+            setupResources(response, pvpMatch);
+            setupDefenseTroops(response, response.map);
         }
 
         response.creditsCharged = pvpMatch.creditsCharged;
         response.xp = pvpMatch.getDefenderXp();
-        addParticipantsToMatch(response, pvpMatch);
-        setupDefenseTroops(response, response.map);
+
+        setupParticipants(response, pvpMatch);
+        setupScoreAndPoints(response, pvpMatch);
         //TODO... this properly.
         pvpMatch.setAttackerEquipment(new JsonStringArrayList());
         pvpMatch.setDefenderEquipment(new JsonStringArrayList());
         return response;
     }
 
-    private void addParticipantsToMatch(PlayerPvpGetNextTargetCommandResult response, PvpMatch pvpMatch) {
-        //TODO pull from actual player
+    // TODO - this currently calculates what is stored and not what is available uncollected in the store buildings.
+    // may need to make this smarter as the client can take a list of buildings and its breakdown (I think)
+    static private void setupResources(PvpTargetCommandResult response, PvpMatch pvpMatch) {
+        response.attacksWon = pvpMatch.getDefendersScalars().attacksWon;
+        response.attackRating = pvpMatch.getDefendersScalars().attackRating;
+        response.defensesWon = pvpMatch.getDefendersScalars().defensesWon;
+        response.defenseRating = pvpMatch.getDefendersScalars().defenseRating;
+
+        //Resources as a % of the attacker's total storage
+        Random random = new Random();
+        InventoryStorage inventoryStorage = pvpMatch.getDefendersInventoryStorage();
+        int creditAmount = inventoryStorage.credits.amount;
+        int materialsAmount = inventoryStorage.materials.amount;
+        int contraAmount = inventoryStorage.contraband.amount;
+
+        float resourceScale = 0.5f;
+        BigDecimal creditsAvailable = new BigDecimal(Math.min(creditAmount * resourceScale, creditAmount * random.nextFloat()));
+        BigDecimal materialsAvailable = new BigDecimal(Math.min(materialsAmount * resourceScale, materialsAmount * random.nextFloat()));
+        BigDecimal contraAvailable = new BigDecimal(Math.min(contraAmount * resourceScale, contraAmount * random.nextFloat()));
+
+        response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
+    }
+
+    static private void setupParticipants(PvpTargetCommandResult response, PvpMatch pvpMatch) {
+        if (pvpMatch.getDefendersScalars() == null)
+            pvpMatch.setDefendersScalars(new Scalars());
+
+        Scalars defendersScalars = pvpMatch.getDefendersScalars();
+
+        BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
+                defendersScalars.attackRating, defendersScalars.defenseRating, 0, pvpMatch.getFactionType());
+
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
+        String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
+
+        Scalars scalars = playerSession.getScalarsManager().getObjectForReading();
+
+        BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(),
+                playerSession.getPlayerSettings().getName(),
+                playerSession.getPlayerSettings().getGuildId(),
+                guildName,
+                scalars.attackRating, scalars.defenseRating, 0,
+                playerSession.getFaction());
+
+        pvpMatch.setDefender(defender);
+        pvpMatch.setAttacker(attacker);
+    }
+
+    static private void setupScoreAndPoints(PvpTargetCommandResult response, PvpMatch pvpMatch) {
         Random random = new Random();
 
         // TODO - this impacts medals need to decide how to formulate
@@ -90,22 +136,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         int potentialPointsWin = 0;
         int potentialPointsLose = 0;
 
-        BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
-                0, 0, 0, potentialScoreLose * -1,
-                0, 0, response.faction);
-
-        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
-        String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
-
-        BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(),
-                playerSession.getPlayerSettings().getName(),
-                playerSession.getPlayerSettings().getGuildId(),
-                guildName, playerSession.getPlayerSettings().getScalars().attackRating,
-                potentialScoreWin, playerSession.getPlayerSettings().getScalars().defenseRating,
-                0, 0, 0, playerSession.getFaction());
-
-        pvpMatch.setDefender(defender);
-        pvpMatch.setAttacker(attacker);
         pvpMatch.setPotentialScoreWin(potentialScoreWin);
         pvpMatch.setPotentialScoreLose(potentialScoreLose);
 
@@ -118,9 +148,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.potentialPoints = potentialPoints;
     }
 
-    private void setupDevResourcesBaseData(PlayerPvpGetNextTargetCommandResult response, String attackerId) {
-        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(attackerId);
-
+    static private void setupDevResourcesBaseData(PvpTargetCommandResult response, PlayerSession playerSession) {
         response.attacksWon = 0;
         response.attackRating = 0;
         response.defensesWon = 0;//TODO - might be fun to track this actually?
@@ -132,34 +160,15 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         int materialsStorage = inventoryStorage.materials.capacity;
         int contraStorage = inventoryStorage.contraband.capacity;
 
-        int currentCredits = inventoryStorage.credits.amount;
-        int currentMaterials = inventoryStorage.materials.amount;
-        int currentContraband = inventoryStorage.contraband.amount;
-        //TODO may be worth adding these to config instead...
         float resourceScale = 0.1f;
-//        BigDecimal creditsAvailable = creditStorage == currentCredits ? new BigDecimal(0) : new BigDecimal(Math.min(creditStorage * 0.25, creditStorage * random.nextFloat()));
         BigDecimal creditsAvailable = new BigDecimal(Math.min(creditStorage * resourceScale, creditStorage * random.nextFloat()));
         BigDecimal materialsAvailable = new BigDecimal(Math.min(materialsStorage * resourceScale, materialsStorage * random.nextFloat()));
         BigDecimal contraAvailable = new BigDecimal(Math.min(contraStorage * resourceScale, contraStorage * random.nextFloat()));
 
-        Map<CurrencyType, Integer> buildingLootCreditsMap = new HashMap<>();
-        buildingLootCreditsMap.put(CurrencyType.credits, creditsAvailable.intValue());
-
-        Map<CurrencyType, Integer> buildingLootmaterialsMap = new HashMap<>();
-        buildingLootmaterialsMap.put(CurrencyType.materials, materialsAvailable.intValue());
-
-        Map<CurrencyType, Integer> buildingLootcontrabandMap = new HashMap<>();
-        buildingLootcontrabandMap.put(CurrencyType.contraband, contraAvailable.intValue());
-
-        // TODO - not sure this is correct have to debug it in client
-        HashMap<CurrencyType, Map<CurrencyType, Integer>> pvpTargetResourcesMap = new HashMap<>();
-        pvpTargetResourcesMap.put(CurrencyType.credits, buildingLootCreditsMap);
-        pvpTargetResourcesMap.put(CurrencyType.materials, buildingLootmaterialsMap);
-        pvpTargetResourcesMap.put(CurrencyType.contraband, buildingLootcontrabandMap);
-        response.resources = pvpTargetResourcesMap;
+        response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
     }
 
-    private void setupDefenseTroops(PlayerPvpGetNextTargetCommandResult response, PlayerMap map) {
+    static private void setupDefenseTroops(PvpTargetCommandResult response, PlayerMap map) {
         // enable champions and traps
         response.champions.clear();
         Building scBuilding = null;
@@ -207,7 +216,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
     // TODO - this needs to be improved to stop miss hits with the sizes and counts.
     // this can be done by building maps of what is available based on size, and using the random to pick an index of
     // that map.
-    private DonatedTroops createRandomDonatedTroops(FactionType faction, int storage) {
+    static private DonatedTroops createRandomDonatedTroops(FactionType faction, int storage) {
         DonatedTroops donatedTroops = new DonatedTroops();
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         Map<Integer, List<TroopData>> troopSizeMap = gameDataManager.getTroopSizeMap(faction);
@@ -257,27 +266,27 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         return donatedTroops;
     }
 
-//    private void setupLoot(PlayerPvpGetNextTargetCommandResult response, PlayerMap map) {
-//        response.resources = new HashMap<>();
-//        response.resources.put("bld_107", createResourceMap(50,0,0));
-//        response.resources.put("bld_272", createResourceMap(0,25,0));
-//    }
+    static private Map<String, Map<CurrencyType, Integer>> createResourceMap(BigDecimal creditsAvailable,
+                                                                            BigDecimal materialsAvailable,
+                                                                            BigDecimal contraAvailable)
+    {
+        Map<CurrencyType, Integer> buildingLootCreditsMap = new HashMap<>();
+        buildingLootCreditsMap.put(CurrencyType.credits, creditsAvailable.intValue());
 
-    private Map<CurrencyType, Integer> createResourceMap(int credits, int materials, int contraband) {
-        Map<CurrencyType, Integer> buildingResource = new HashMap<>();
-        if (credits > 0) {
-            buildingResource.put(CurrencyType.credits, Integer.valueOf(credits));
-        }
+        Map<CurrencyType, Integer> buildingLootmaterialsMap = new HashMap<>();
+        buildingLootmaterialsMap.put(CurrencyType.materials, materialsAvailable.intValue());
 
-        if (materials > 0) {
-            buildingResource.put(CurrencyType.materials, Integer.valueOf(materials));
-        }
+        Map<CurrencyType, Integer> buildingLootcontrabandMap = new HashMap<>();
+        buildingLootcontrabandMap.put(CurrencyType.contraband, contraAvailable.intValue());
 
-        if (contraband > 0) {
-            buildingResource.put(CurrencyType.contraband, Integer.valueOf(contraband));
-        }
+        HashMap<String, Map<CurrencyType, Integer>> pvpTargetResourcesMap = new HashMap<>();
 
-        return buildingResource;
+        // TODO - not sure which building to assign this to yet, but this seems to work
+        pvpTargetResourcesMap.put(CurrencyType.credits.toString(), buildingLootCreditsMap);
+        pvpTargetResourcesMap.put(CurrencyType.materials.toString(), buildingLootmaterialsMap);
+        pvpTargetResourcesMap.put(CurrencyType.contraband.toString(), buildingLootcontrabandMap);
+
+        return pvpTargetResourcesMap;
     }
 
     @Override
