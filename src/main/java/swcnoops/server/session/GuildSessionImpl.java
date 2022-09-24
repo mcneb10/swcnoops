@@ -15,6 +15,8 @@ import java.util.stream.Collectors;
 import static swcnoops.server.session.NotificationFactory.createNotification;
 
 public class GuildSessionImpl implements GuildSession {
+    final private String guildId;
+    final private String guildName;
     final private GuildSettings guildSettings;
     final private TroopDonationResult failedTroopDonationResult = new TroopDonationResult(null, new HashMap<>());
     private Collection<SquadNotification> squadNotifications = new ConcurrentLinkedQueue<>();
@@ -23,22 +25,34 @@ public class GuildSessionImpl implements GuildSession {
     volatile private long latestDirtyNotificationDate;
     private Lock notificationLock = new ReentrantLock();
     private MembersManager membersManager;
+    private DBCacheObjectRead<Squad> squadManager = new ReadOnlyDBCacheObject<Squad>(false) {
+        @Override
+        protected Squad loadDBObject() {
+            Squad squad = ServiceFactory.instance().getPlayerDatasource().loadSquad(guildId);
+            if (squad == null)
+                return this.dbObject;
+            return squad;
+        }
+    };
 
     private DBCacheObjectRead<List<WarHistory>> warHistoryManager = new ReadOnlyDBCacheObject<List<WarHistory>>(true) {
         @Override
         protected List<WarHistory> loadDBObject() {
-            List<WarHistory> warHistories = ServiceFactory.instance().getPlayerDatasource().loadWarHistory(guildSettings.getGuildId());
+            List<WarHistory> warHistories = ServiceFactory.instance().getPlayerDatasource().loadWarHistory(guildId);
             return warHistories;
         }
     };
 
     public GuildSessionImpl(GuildSettings guildSettings) {
+        this.guildId = guildSettings.getGuildId();
+        this.guildName = guildSettings.getSquad().name;
         this.guildSettings = guildSettings;
         this.latestDirtyNotificationDate = 1;
         this.getNotifications(0);
         this.latestNotificationDate = getMaxNotificationDate(this.squadNotifications);
         this.latestDirtyNotificationDate = this.latestNotificationDate;
         this.membersManager = new MembersManager(guildSettings.getGuildId(), guildSettings.getMembers());
+        this.squadManager.initialise(guildSettings.getSquad());
     }
 
     private long getMaxNotificationDate(Collection<SquadNotification> squadNotification) {
@@ -100,11 +114,6 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public GuildSettings getGuildSettings() {
-        return this.guildSettings;
-    }
-
-    @Override
     public MembersManager getMembersManager() {
         return this.membersManager;
     }
@@ -116,12 +125,12 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public String getGuildId() {
-        return this.guildSettings.getGuildId();
+        return this.guildId;
     }
 
     @Override
     public String getGuildName() {
-        return this.guildSettings.getGuildName();
+        return this.guildName;
     }
 
     @Override
@@ -306,8 +315,6 @@ public class GuildSessionImpl implements GuildSession {
         SquadNotification squadNotification = createNotification(this.getGuildId(), this.getGuildName(),
                 playerSession, SquadMsgType.warMatchMakingBegin);
 
-        this.getGuildSettings().setWarMatchmakingSignUpTime(time);
-        this.getGuildSettings().setWarId(null);
         boolean started = ServiceFactory.instance().getPlayerDatasource().saveWarSignUp(playerSession.getFaction(), this,
                 participantIds, isSameFactionWarAllowed, squadNotification, time);
 
@@ -324,31 +331,23 @@ public class GuildSessionImpl implements GuildSession {
     public SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time) {
         SquadNotification squadNotification = createNotification(this.getGuildId(), this.getGuildName(),
                 playerSession, SquadMsgType.warMatchMakingCancel);
-
-        this.setDirty();
-        this.getGuildSettings().setWarMatchmakingSignUpTime(null);
-        this.getGuildSettings().setWarId(null);
         ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification);
         return squadNotification;
     }
 
-    @Override
-    public void editGuild(String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment) {
-        this.guildSettings.setDescription(description);
-        this.guildSettings.setIcon(icon);
-        this.guildSettings.setMinScoreAtEnrollment(minScoreAtEnrollment);
-        this.guildSettings.setOpenEnrollment(openEnrollment);
-
-        ServiceFactory.instance().getPlayerDatasource().editGuild(this.getGuildId(),
-                description, icon, minScoreAtEnrollment, openEnrollment);
+    public DBCacheObjectRead<Squad> getSquadManager() {
+        return squadManager;
     }
 
     @Override
-    public void createNewGuild(PlayerSession playerSession) {
-        int cost = ServiceFactory.instance().getGameDataManager().getGameConstants().squad_create_cost;
-        CurrencyDelta currencyDelta = new CurrencyDelta(cost, cost, CurrencyType.credits, true);
-        playerSession.processInventoryStorage(currencyDelta);
-        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession, this.getGuildSettings());
+    public String getWarId() {
+        return squadManager.getObjectForReading().warId;
+    }
+
+    @Override
+    public void editGuild(String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment) {
+        ServiceFactory.instance().getPlayerDatasource().editGuild(this, this.getGuildId(),
+                description, icon, minScoreAtEnrollment, openEnrollment);
     }
 
     @Override
@@ -364,8 +363,8 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public War getCurrentWar() {
         War war = null;
-        if (this.getGuildSettings().getWarId() != null) {
-            war = ServiceFactory.instance().getPlayerDatasource().getWar(this.getGuildSettings().getWarId());
+        if (this.getWarId() != null) {
+            war = ServiceFactory.instance().getPlayerDatasource().getWar(this.getWarId());
         }
 
         return war;
@@ -374,7 +373,7 @@ public class GuildSessionImpl implements GuildSession {
     @Override
     public List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession) {
         List<SquadMemberWarData> squadMemberWarDatums = ServiceFactory.instance().getPlayerDatasource()
-                .getWarParticipants(this.getGuildId(), this.getGuildSettings().getWarId());
+                .getWarParticipants(this.getGuildId(), this.getWarId());
 
         Optional<SquadMemberWarData> playersWarData =
                 squadMemberWarDatums.stream().filter(a -> a.id.equals(playerSession.getPlayerId())).findFirst();

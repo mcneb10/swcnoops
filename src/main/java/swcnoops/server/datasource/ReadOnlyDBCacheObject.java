@@ -4,7 +4,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public abstract class ReadOnlyDBCacheObject<A> implements DBCacheObjectRead<A> {
-    volatile private A dbObject;
+    volatile protected A dbObject;
     private Lock lock = new ReentrantLock();
     volatile private long lastLoaded;
     volatile private long dirtyTime;

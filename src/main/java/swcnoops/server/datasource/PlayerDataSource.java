@@ -26,11 +26,11 @@ public interface PlayerDataSource {
 
     void newPlayer(String playerId, String secret, PlayerModel playerModel, Map<String, String> sharedPrefs, String name);
 
-    void newGuild(PlayerSession playerSession, GuildSettings squadResult);
+    void newGuild(PlayerSession playerSession, Squad squad);
 
     GuildSettings loadGuildSettings(String guildId);
 
-    void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment);
+    void editGuild(GuildSession guildSession, String guildId, String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment);
 
     List<Squad> getGuildList(FactionType faction);
 
@@ -120,4 +120,6 @@ public interface PlayerDataSource {
     PvpMatch getPvPRevengeMatch(PvpManager pvpManager, String opponentId, long time);
 
     void battleShare(GuildSessionImpl guildSession, PlayerSession playerSession, SquadNotification shareBattleNotification);
+
+    Squad loadSquad(String guildId);
 }

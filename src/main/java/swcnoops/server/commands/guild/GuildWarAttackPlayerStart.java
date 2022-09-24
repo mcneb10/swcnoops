@@ -21,7 +21,7 @@ public class GuildWarAttackPlayerStart extends AbstractCommandAction<GuildWarAtt
         GuildSession guildSession = playerSession.getGuildSession();
         if (guildSession != null) {
             WarSession warSession = ServiceFactory.instance().getSessionManager()
-                    .getWarSession(guildSession.getGuildSettings().getWarId());
+                    .getWarSession(guildSession.getWarId());
 
             if (warSession != null) {
                 AttackDetail attackDetail = warSession.warAttackStart(playerSession, arguments.getOpponentId(), time);

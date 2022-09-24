@@ -575,16 +575,16 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void newGuild(PlayerSession playerSession, GuildSettings guildSettings) {
+    public void newGuild(PlayerSession playerSession, Squad squad) {
         SquadInfo squadInfo = new SquadInfo();
-        squadInfo._id = guildSettings.getGuildId();
-        squadInfo.name = guildSettings.getGuildName();
-        squadInfo.openEnrollment = guildSettings.getOpenEnrollment();
-        squadInfo.icon = guildSettings.getIcon();
-        squadInfo.faction = guildSettings.getFaction();
-        squadInfo.description = guildSettings.getDescription();
-        squadInfo.minScore = guildSettings.getMinScoreAtEnrollment();
-
+        squadInfo._id = squad._id;
+        squadInfo.name = squad.name;
+        squadInfo.openEnrollment = squad.openEnrollment;
+        squadInfo.icon = squad.icon;
+        squadInfo.faction = squad.faction;
+        squadInfo.description = squad.description;
+        squadInfo.minScore = squad.minScore;
+        squadInfo.created = squad.created;
         Member owner = GuildHelper.createMember(playerSession);
         owner.isOwner = true;
         owner.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
@@ -599,9 +599,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             savePlayerSettings(playerSession, clientSession);
             this.squadCollection.insertOne(clientSession, squadInfo);
             clientSession.commitTransaction();
-            playerSession.doneDBSave();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to create new guild player id " + playerSession.getPlayerId(), e);
+        } finally {
+            playerSession.doneDBSave();
         }
     }
 
@@ -613,18 +614,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         if (squadInfo != null) {
             guildSettings = new GuildSettingsImpl(squadInfo._id);
-            guildSettings.setName(squadInfo.name);
-            guildSettings.setFaction(squadInfo.faction);
-            guildSettings.setDescription(squadInfo.description);
-            guildSettings.setIcon(squadInfo.icon);
-            guildSettings.setOpenEnrollment(squadInfo.openEnrollment);
-            guildSettings.setMinScoreAtEnrollment(squadInfo.minScore);
-            guildSettings.setWarSignUpTime(squadInfo.warSignUpTime);
-            guildSettings.setWarId(squadInfo.warId);
+            guildSettings.setSquad(squadInfo);
             guildSettings.setMembers(squadInfo.getSquadMembers());
         }
 
         return guildSettings;
+    }
+
+    @Override
+    public Squad loadSquad(String guildId) {
+        SquadInfo squadInfo = this.squadCollection.findOne(eq("_id", guildId),
+                include("name", "faction", "description", "icon", "openEnrollment",
+                        "minScore", "warSignUpTime", "warId", "members", "score", "rank",
+                        "activeMemberCount", "level", "created"));
+
+        return squadInfo;
     }
 
     @Override
@@ -677,15 +681,21 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
 
     @Override
-    public void editGuild(String guildId, String description, String icon, Integer minScoreAtEnrollment,
+    public void editGuild(GuildSession guildSession, String guildId, String description, String icon, Integer minScoreAtEnrollment,
                           boolean openEnrollment) {
-        Bson setDescription = set("description", description);
-        Bson setIcon = set("icon", icon);
-        Bson setMinScoreAtEnrollment = set("minScore", minScoreAtEnrollment);
-        Bson setOpenEnrollment = set("openEnrollment", openEnrollment);
-        Bson combined = combine(setDescription, setIcon, setMinScoreAtEnrollment, setOpenEnrollment);
-        UpdateResult result = this.squadCollection.updateOne(Filters.eq("_id", guildId),
-                combined);
+        try {
+            Bson setDescription = set("description", description);
+            Bson setIcon = set("icon", icon);
+            Bson setMinScoreAtEnrollment = set("minScore", minScoreAtEnrollment);
+            Bson setOpenEnrollment = set("openEnrollment", openEnrollment);
+            Bson combined = combine(setDescription, setIcon, setMinScoreAtEnrollment, setOpenEnrollment);
+            // TODO - no notification is sent so squad does not know, there does not seem to be a notification
+            // for this, maybe can use some other one to trick it
+            UpdateResult result = this.squadCollection.updateOne(Filters.eq("_id", guildId),
+                    combined);
+        } finally {
+            guildSession.getSquadManager().setDirty();
+        }
     }
 
     @Override
@@ -754,8 +764,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
-            resetWarParty(clientSession, guildSession.getGuildId());
-            setSquadWarParty(clientSession, guildSession.getGuildId(), participantIds, time);
+            resetWarParty(clientSession, guildSession);
+            setSquadWarParty(clientSession, guildSession, participantIds, time);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             clientSession.commitTransaction();
             saved = true;
@@ -777,10 +787,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                boolean isSameFactionWarAllowed, long time)
     {
         WarSignUp warSignUp = new WarSignUp();
+        Squad squad = guildSession.getSquadManager().getObjectForReading();
         warSignUp.faction = faction;
-        warSignUp.guildId = guildSession.getGuildId();
-        warSignUp.guildName = guildSession.getGuildName();
-        warSignUp.icon = guildSession.getGuildSettings().getIcon();
+        warSignUp.guildId = squad._id;
+        warSignUp.guildName = squad.name;
+        warSignUp.icon = squad.icon;
         warSignUp.participantIds = participantIds;
         warSignUp.isSameFactionWarAllowed = isSameFactionWarAllowed;
         warSignUp.time = time;
@@ -797,19 +808,27 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 combine(set("squadMembers.$.hqLevel", hqLevel), set("squadMembers.$.xp", xp)));
     }
 
-    private void setSquadWarParty(ClientSession clientSession, String guildId, List<String> participantIds,
+    private void setSquadWarParty(ClientSession clientSession, GuildSession guildSession, List<String> participantIds,
                                   long time)
     {
-        UpdateResult result = this.squadCollection.updateOne(clientSession,
-                eq("_id", guildId),
-                combine(set("squadMembers.$[m].warParty", 1), set("warSignUpTime", time)),
-                new UpdateOptions().arrayFilters(Arrays.asList(in("m.playerId", participantIds))));
+        try {
+            UpdateResult result = this.squadCollection.updateOne(clientSession,
+                    eq("_id", guildSession.getGuildId()),
+                    combine(set("squadMembers.$[m].warParty", 1), set("warSignUpTime", time)),
+                    new UpdateOptions().arrayFilters(Arrays.asList(in("m.playerId", participantIds))));
+        } finally {
+            guildSession.getSquadManager().setDirty();
+        }
     }
 
-    private void resetWarParty(ClientSession clientSession, String guildId) {
-        this.squadCollection.updateOne(clientSession, eq("_id", guildId),
-                combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime"),
-                        unset("warId")));
+    private void resetWarParty(ClientSession clientSession, GuildSession guildSession) {
+        try {
+            this.squadCollection.updateOne(clientSession, eq("_id", guildSession.getGuildId()),
+                    combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime"),
+                            unset("warId")));
+        } finally {
+            guildSession.getSquadManager().setDirty();
+        }
     }
 
     private void clearWarParty(ClientSession clientSession, String warId, String guildId) {
@@ -822,7 +841,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             if (deleteWarSignUp(session, guildSession.getGuildId())) {
-                resetWarParty(session, guildSession.getGuildId());
+                resetWarParty(session, guildSession);
                 setAndSaveGuildNotification(session, guildSession, squadNotification);
                 session.commitTransaction();
             }
@@ -1205,6 +1224,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             this.squadCollection.updateMany(eq("warId", war.getWarId()), combine(unset("warId"), unset("warSignUpTime")));
             session.commitTransaction();
+        } finally {
+            GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
+            GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
+            guildSession1.getSquadManager().setDirty();
+            guildSession2.getSquadManager().setDirty();
         }
     }
 
@@ -1246,6 +1270,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             setAndSaveWarNotification(session, warNotification, warSession, warPreparedNotification);
             session.commitTransaction();
+        } finally {
+            warSession.getGuildASession().getSquadManager().setDirty();
+            warSession.getGuildBSession().getSquadManager().setDirty();
         }
 
         return warNotification;
@@ -1631,8 +1658,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             SquadWar squadWar = this.squadWarCollection.findOne(eq("_id", warId));
-            setSquadWarParty(session, squadWar.getSquadIdA(), squadWar.getSquadAWarSignUp().participantIds, squadWar.getSquadAWarSignUp().time);
-            setSquadWarParty(session, squadWar.getSquadIdB(), squadWar.getSquadBWarSignUp().participantIds, squadWar.getSquadBWarSignUp().time);
+            GuildSession squadASession = ServiceFactory.instance().getSessionManager().getGuildSession(squadWar.getSquadIdA());
+            GuildSession squadBSession = ServiceFactory.instance().getSessionManager().getGuildSession(squadWar.getSquadIdB());
+            setSquadWarParty(session, squadASession, squadWar.getSquadAWarSignUp().participantIds, squadWar.getSquadAWarSignUp().time);
+            setSquadWarParty(session, squadBSession, squadWar.getSquadBWarSignUp().participantIds, squadWar.getSquadBWarSignUp().time);
             session.commitTransaction();
         }
     }

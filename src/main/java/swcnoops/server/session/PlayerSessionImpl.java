@@ -1186,7 +1186,7 @@ public class PlayerSessionImpl implements PlayerSession {
             return null;
 
         SquadMemberWarData squadMemberWarData = ServiceFactory.instance().getPlayerDatasource()
-                .loadPlayerWarData(guildSession.getGuildSettings().getWarId(), this.getPlayerId());
+                .loadPlayerWarData(guildSession.getWarId(), this.getPlayerId());
 
         // put the base onto sullust
         if (squadMemberWarData != null) {

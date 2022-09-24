@@ -84,9 +84,6 @@ public class WarSessionImpl implements WarSession {
 
         WarNotification warNotification = ServiceFactory.instance().getPlayerDatasource()
                 .warPrepared(this, getWarId(), warPreparedNotification);
-
-        this.squadA.getGuildSettings().setWarId(warId);
-        this.squadB.getGuildSettings().setWarId(warId);
     }
 
     @Override

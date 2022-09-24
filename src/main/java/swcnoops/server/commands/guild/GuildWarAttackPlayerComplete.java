@@ -22,7 +22,7 @@ public class GuildWarAttackPlayerComplete extends PlayerBattleComplete<GuildWarA
         AttackDetail attackDetail = null;
         if (guildSession != null) {
             WarSession warSession = ServiceFactory.instance().getSessionManager()
-                    .getWarSession(guildSession.getGuildSettings().getWarId());
+                    .getWarSession(guildSession.getWarId());
 
             DefendingWarParticipant defendingWarParticipant = ServiceFactory.instance().getPlayerDatasource()
                     .getDefendingWarParticipantByBattleId(arguments.getBattleId());

@@ -3,10 +3,11 @@ package swcnoops.server.commands.guild;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.guild.response.SquadResult;
-import swcnoops.server.datasource.GuildSettingsImpl;
 import swcnoops.server.json.JsonParser;
+import swcnoops.server.model.CurrencyType;
+import swcnoops.server.model.Squad;
+import swcnoops.server.session.CurrencyDelta;
 import swcnoops.server.session.GuildSession;
-import swcnoops.server.session.GuildSessionImpl;
 import swcnoops.server.session.PlayerSession;
 
 public class GuildCreate extends AbstractCommandAction<GuildCreate, SquadResult> {
@@ -21,19 +22,25 @@ public class GuildCreate extends AbstractCommandAction<GuildCreate, SquadResult>
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        GuildSettingsImpl guildSettings = new GuildSettingsImpl(ServiceFactory.createRandomUUID());
-        guildSettings.setName(arguments.getName());
-        guildSettings.setDescription(arguments.getDescription());
-        guildSettings.setIcon(arguments.getIcon());
-        guildSettings.setFaction(playerSession.getFaction());
-        guildSettings.setOpenEnrollment(arguments.getOpenEnrollment());
-        guildSettings.setMinScoreAtEnrollment(arguments.getMinScoreAtEnrollment());
-        GuildSession guildSession = new GuildSessionImpl(guildSettings);
+        Squad squad = new Squad();
+        squad._id = ServiceFactory.createRandomUUID();
+        squad.name = arguments.getName();
+        squad.description = arguments.getDescription();
+        squad.faction = playerSession.getFaction();
+        squad.activeMemberCount = 1;
+        squad.members = 1;
+        squad.openEnrollment = arguments.getOpenEnrollment();
+        squad.icon = arguments.getIcon();
+        squad.minScore = arguments.getMinScoreAtEnrollment();
+        squad.created = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
-        guildSession.createNewGuild(playerSession);
+        int cost = ServiceFactory.instance().getGameDataManager().getGameConstants().squad_create_cost;
+        CurrencyDelta currencyDelta = new CurrencyDelta(cost, cost, CurrencyType.credits, true);
+        playerSession.processInventoryStorage(currencyDelta);
+        ServiceFactory.instance().getPlayerDatasource().newGuild(playerSession, squad);
 
-        guildSession = ServiceFactory.instance().getSessionManager()
-                .getGuildSession(playerSession, guildSettings.getGuildId());
+        GuildSession guildSession = ServiceFactory.instance().getSessionManager()
+                .getGuildSession(playerSession, squad._id);
         guildSession.login(playerSession);
         SquadResult squadResult = GuildCommandAction.createSquadResult(guildSession);
         return squadResult;

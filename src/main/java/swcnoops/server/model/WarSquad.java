@@ -13,9 +13,10 @@ public class WarSquad {
 
     static public WarSquad map(GuildSession guildSession, List<SquadMemberWarData> participants) {
         WarSquad warSquad = new WarSquad();
-        warSquad.guildId = guildSession.getGuildId();
-        warSquad.name = guildSession.getGuildName();
-        warSquad.faction = guildSession.getGuildSettings().getFaction();
+        Squad squad = guildSession.getSquadManager().getObjectForReading();
+        warSquad.guildId = squad._id;
+        warSquad.name = squad.name;
+        warSquad.faction = squad.faction;
 
         for (SquadMemberWarData squadMemberWarData : participants) {
             warSquad.participants.add(map(squadMemberWarData));
