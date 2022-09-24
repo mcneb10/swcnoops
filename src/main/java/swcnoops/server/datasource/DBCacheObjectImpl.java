@@ -71,7 +71,7 @@ public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
         // this forces a reload of the data when accessed again, so it does not really matter if the save succeeded
         if (this.dbObjectForWrite != null) {
             this.dbObjectForWrite = null;
-            this.dirtyTime = System.currentTimeMillis();
+            this.setDirty();
         }
     }
 
@@ -93,5 +93,10 @@ public abstract class DBCacheObjectImpl<A> implements DBCacheObject<A> {
     public A setObjectForSaving(A object) {
         this.dbObjectForWrite = object;
         return this.dbObjectForWrite;
+    }
+
+    @Override
+    public void setDirty() {
+        this.dirtyTime = System.currentTimeMillis();
     }
 }

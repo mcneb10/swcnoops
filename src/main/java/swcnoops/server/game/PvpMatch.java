@@ -36,6 +36,7 @@ public class PvpMatch {
     private PlayerMap defendersBaseMap;
 
     private boolean revenge;
+    private DonatedTroops defendersDonatedTroops;
 
     public PvpMatch() {
     }
@@ -254,6 +255,14 @@ public class PvpMatch {
 
     public void setDefendersBaseMap(PlayerMap defendersBaseMap) {
         this.defendersBaseMap = defendersBaseMap;
+    }
+
+    public DonatedTroops getDefendersDonatedTroops() {
+        return defendersDonatedTroops;
+    }
+
+    public void setDefendersDonatedTroops(DonatedTroops defendersDonatedTroops) {
+        this.defendersDonatedTroops = defendersDonatedTroops;
     }
 }
 

@@ -6,22 +6,33 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.PlayerSession;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public class SelfDonatingSquad implements GuildSettings {
-    static final public String NAME = "SelfDonateSquad";
-    static final public String DonateBotName = "DonateBot";
-    final private FactionType faction;
+    static final private String NAME = "SelfDonateSquad";
+    static final private String DonateBotName = "DonateBot";
     final private String guildId;
     final private List<Member> members = new ArrayList<>();
+    final private Squad squad = new Squad();
 
     public SelfDonatingSquad(PlayerSession playerSession) {
-        this.faction = playerSession.getFaction();
         this.guildId = playerSession.getPlayerId();
 
         this.members.add(GuildHelper.createMember(playerSession));
         this.members.add(createDonateBot(playerSession));
+
+        this.squad._id = this.getGuildId();
+        this.squad.name = SelfDonatingSquad.NAME;
+        this.squad.description = "SquadSymbols_11";
+        this.squad.faction = playerSession.getFaction();
+        this.squad.activeMemberCount = 1;
+        this.squad.members = 1;
+        this.squad.openEnrollment = true;
+    }
+
+    @Override
+    public Squad getSquad() {
+        return squad;
     }
 
     private Member createDonateBot(PlayerSession playerSession) {
@@ -32,7 +43,7 @@ public class SelfDonatingSquad implements GuildSettings {
         member.planet = playerSession.getPlayerSettings().getBaseMap().planet;
         member.joinDate = ServiceFactory.getSystemTimeSecondsFromEpoch();
         member.hqLevel = 5;
-        member.name = DonateBotName;
+        member.name = SelfDonatingSquad.DonateBotName;
         return member;
     }
 
@@ -42,58 +53,8 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public String getGuildName() {
-        return NAME;
-    }
-
-    @Override
-    public String getDescription() {
-        return "Allows self donations to SC";
-    }
-
-    @Override
-    public FactionType getFaction() {
-        return faction;
-    }
-
-    @Override
-    public long getCreated() {
-        return 0;
-    }
-
-    @Override
-    public Perks getPerks() {
-        return GuildHelper.emptyPerks;
-    }
-
-    @Override
     public List<Member> getMembers() {
         return members;
-    }
-
-    @Override
-    public String getIcon() {
-        return "SquadSymbols_11";
-    }
-
-    @Override
-    public void setDescription(String description) {
-
-    }
-
-    @Override
-    public void setIcon(String icon) {
-
-    }
-
-    @Override
-    public void setMinScoreAtEnrollment(Integer minScoreAtEnrollment) {
-
-    }
-
-    @Override
-    public void setOpenEnrollment(boolean openEnrollment) {
-
     }
 
     @Override
@@ -103,7 +64,7 @@ public class SelfDonatingSquad implements GuildSettings {
 
     @Override
     public SquadNotification createTroopRequest(PlayerSession playerSession, String message) {
-        Member botMember = playerSession.getGuildSession().getGuildSettings().getMembers()
+        Member botMember = playerSession.getGuildSession().getMembersManager().getObjectForReading()
                 .stream().filter(m -> m.name.equals(SelfDonatingSquad.DonateBotName)).findFirst().get();
 
         String playerId = botMember.playerId;
@@ -122,50 +83,12 @@ public class SelfDonatingSquad implements GuildSettings {
     }
 
     @Override
-    public boolean getOpenEnrollment() {
+    public boolean canPadMembers() {
         return false;
     }
 
     @Override
-    public Integer getMinScoreAtEnrollment() {
-        return Integer.valueOf(0);
-    }
-
-    @Override
-    public Long getWarSignUpTime() {
-        return null;
-    }
-
-    @Override
-    public void setWarSignUpTime(Long warSignUpTime) {
-
-    }
-
-    @Override
-    public void setWarMatchmakingSignUpTime(Long time) {
-
-    }
-
-    @Override
-    public String getWarId() {
-        return null;
-    }
-
-    @Override
-    public void setWarId(String warId) {
-
-    }
-
-    @Override
-    public void setDirty() {
-    }
-
-    @Override
-    public List<WarHistory> getWarHistory() {
-        return new ArrayList<>();
-    }
-
-    @Override
-    public void membersUpdated() {
+    public boolean canReload() {
+        return false;
     }
 }

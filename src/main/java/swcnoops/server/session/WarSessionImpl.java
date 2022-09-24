@@ -71,10 +71,6 @@ public class WarSessionImpl implements WarSession {
         AttackDetail attackDetail = ServiceFactory.instance().getPlayerDatasource().warAttackStart(this,
                 playerSession.getPlayerId(), opponentId, attackStartNotification, time);
 
-        if (attackDetail.getBattleId() != null) {
-            setGuildDirtyNotifcation(attackDetail);
-        }
-
         return attackDetail;
     }
 
@@ -88,15 +84,6 @@ public class WarSessionImpl implements WarSession {
 
         WarNotification warNotification = ServiceFactory.instance().getPlayerDatasource()
                 .warPrepared(this, getWarId(), warPreparedNotification);
-
-        this.squadA.getGuildSettings().setWarId(warId);
-        this.squadB.getGuildSettings().setWarId(warId);
-        setGuildDirtyNotifcation(warNotification);
-    }
-
-    private void setGuildDirtyNotifcation(WarNotification warNotification) {
-        this.squadA.setNotificationDirty(warNotification.getGuildANotificationDate());
-        this.squadB.setNotificationDirty(warNotification.getGuildBNotificationDate());
     }
 
     @Override
@@ -128,8 +115,6 @@ public class WarSessionImpl implements WarSession {
                 defendingWarParticipant,
                 time);
 
-        setGuildDirtyNotifcation(attackDetail);
-
         return attackDetail;
     }
 
@@ -158,8 +143,8 @@ public class WarSessionImpl implements WarSession {
                 try {
                     if (currentWar.getProcessedEndTime() == 0) {
                         processWarEnd(currentWar);
-                        this.getGuildASession().getGuildSettings().setDirty();
-                        this.getGuildBSession().getGuildSettings().setDirty();
+                        this.getGuildASession().setDirty();
+                        this.getGuildBSession().setDirty();
                     }
                 } finally {
                     this.guildGetLock.unlock();;

@@ -1,8 +1,7 @@
 package swcnoops.server.session;
 
 import swcnoops.server.commands.guild.TroopDonationResult;
-import swcnoops.server.commands.player.PlayerBattleComplete;
-import swcnoops.server.datasource.GuildSettings;
+import swcnoops.server.datasource.DBCacheObjectRead;
 import swcnoops.server.datasource.War;
 import swcnoops.server.model.*;
 
@@ -26,13 +25,11 @@ public interface GuildSession {
 
     void leave(PlayerSession playerSession, SquadMsgType leaveType);
 
-    GuildSettings getGuildSettings();
+    MembersManager getMembersManager();
 
     void editGuild(String description, String icon, Integer minScoreAtEnrollment, boolean openEnrollment);
 
     boolean canEdit();
-
-    void createNewGuild(PlayerSession playerSession);
 
     List<SquadNotification> getNotifications(long since);
 
@@ -57,4 +54,12 @@ public interface GuildSession {
     void processGuildGet(long time);
 
     int battleShare(PlayerSession playerSession, String battleId, String message);
+
+    void setDirty();
+
+    DBCacheObjectRead<List<WarHistory>> getWarHistoryManager();
+
+    DBCacheObjectRead<Squad> getSquadManager();
+
+    String getWarId();
 }

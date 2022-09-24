@@ -13,10 +13,6 @@ public class DeleteWarTrigger implements CommandTrigger {
 
         if (guildSession != null) {
             War war = guildSession.getCurrentWar();
-            GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
-            GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
-            guildSession1.getGuildSettings().setWarId(null);
-            guildSession2.getGuildSettings().setWarId(null);
             ServiceFactory.instance().getPlayerDatasource().deleteWarForSquads(war);
         }
     }

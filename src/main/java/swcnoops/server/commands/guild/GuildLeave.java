@@ -22,12 +22,6 @@ public class GuildLeave extends AbstractCommandAction<GuildLeave, CommandResult>
         GuildSession oldSquad = playerSession.getGuildSession();
         if (oldSquad != null) {
             oldSquad.leave(playerSession, SquadMsgType.leave);
-
-            Optional<Member> foundMember =
-                    oldSquad.getGuildSettings().getMembers().stream().filter(a -> a.playerId.equals(playerSession.getPlayerId())).findFirst();
-
-            if (foundMember.isPresent())
-                throw new Exception("Have left Squad but can still find player Id" + playerSession.getPlayerId());
         }
 
         return ResponseHelper.SUCCESS_COMMAND_RESULT;

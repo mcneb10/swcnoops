@@ -15,4 +15,8 @@ public class Squad {
     public int members;
     public int activeMemberCount;
     public int level;
+    public Long warSignUpTime;
+    public String warId;
+    public String description;
+    public long created;
 }

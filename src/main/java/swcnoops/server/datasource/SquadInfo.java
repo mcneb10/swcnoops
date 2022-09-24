@@ -7,9 +7,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class SquadInfo extends Squad {
-    public Long warSignUpTime;
-    public String warId;
-    private String description;
     private List<Member> squadMembers = new ArrayList<>();
 
     public List<Member> getSquadMembers() {
@@ -18,13 +15,5 @@ public class SquadInfo extends Squad {
 
     public void setSquadMembers(List<Member> members) {
         this.squadMembers = members;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
     }
 }

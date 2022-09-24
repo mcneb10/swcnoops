@@ -5,15 +5,10 @@ import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.Command;
 import swcnoops.server.commands.guild.response.GuildResult;
 import swcnoops.server.commands.guild.response.SquadResult;
-import swcnoops.server.model.GuildMessage;
-import swcnoops.server.model.MembershipRestrictions;
-import swcnoops.server.model.SquadMessage;
-import swcnoops.server.model.SquadNotification;
+import swcnoops.server.model.*;
 import swcnoops.server.requests.GuildMessages;
 import swcnoops.server.requests.Messages;
 import swcnoops.server.session.GuildSession;
-
-import java.util.ArrayList;
 
 abstract public class GuildCommandAction<A extends GuildCommandAction, B extends GuildResult>
         extends AbstractCommandAction<A, B>
@@ -45,30 +40,32 @@ abstract public class GuildCommandAction<A extends GuildCommandAction, B extends
         if (guildSession == null)
             return null;
 
+        Squad squad = guildSession.getSquadManager().getObjectForReading();
+
         SquadResult squadResult = new SquadResult();
-        squadResult.id = guildSession.getGuildId();
-        squadResult.name = guildSession.getGuildName();
-        squadResult.description = guildSession.getGuildSettings().getDescription();
-        squadResult.faction = guildSession.getGuildSettings().getFaction();
-        squadResult.warHistory = guildSession.getGuildSettings().getWarHistory();
-        squadResult.currentWarId = guildSession.getGuildSettings().getWarId();
-        squadResult.created = guildSession.getGuildSettings().getCreated();
-        squadResult.perks = guildSession.getGuildSettings().getPerks();
-        squadResult.members = guildSession.getGuildSettings().getMembers();
-        squadResult.warSignUpTime = guildSession.getGuildSettings().getWarSignUpTime();
+        squadResult.id = squad._id;
+        squadResult.name = squad.name;
+        squadResult.description = squad.description;
+        squadResult.faction = squad.faction;
+        squadResult.warHistory = guildSession.getWarHistoryManager().getObjectForReading();
+        squadResult.currentWarId = squad.warId;
+        squadResult.created = squad.created;
+        squadResult.perks = new Perks();
+        squadResult.members = guildSession.getMembersManager().getObjectForReading();
+        squadResult.warSignUpTime = squad.warSignUpTime;
         squadResult.memberCount = squadResult.members.size();
         squadResult.activeMemberCount = squadResult.members.size();
-        squadResult.icon = guildSession.getGuildSettings().getIcon();
+        squadResult.icon = squad.icon;
         squadResult.rank = 1;
         squadResult.level = 1;
         squadResult.lastPerkNotif = 0;
         squadResult.score = 0;
         squadResult.squadWarReadyCount = 0;
         squadResult.membershipRestrictions = new MembershipRestrictions();
-        squadResult.membershipRestrictions.faction = guildSession.getGuildSettings().getFaction();
-        squadResult.membershipRestrictions.openEnrollment = guildSession.getGuildSettings().getOpenEnrollment();
+        squadResult.membershipRestrictions.faction = squad.faction;
+        squadResult.membershipRestrictions.openEnrollment = squad.openEnrollment;
         squadResult.membershipRestrictions.maxSize = 20;
-        squadResult.membershipRestrictions.minScoreAtEnrollment = guildSession.getGuildSettings().getMinScoreAtEnrollment();
+        squadResult.membershipRestrictions.minScoreAtEnrollment = squad.minScore;
         return squadResult;
     }
 }

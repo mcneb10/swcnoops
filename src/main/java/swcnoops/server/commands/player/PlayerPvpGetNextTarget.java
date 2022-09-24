@@ -55,14 +55,16 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.map.buildings = ServiceFactory.instance().getPlayerDatasource()
                     .getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
             setupDevResourcesBaseData(response, playerSession);
-            setupDefenseTroops(response, response.map);
+            setupCreatureAndTraps(response, response.map);
+            setupRandomSCTroops(response, response.map);
         } else {
             response.map = pvpMatch.getDefendersBaseMap();
             response.name = pvpMatch.getDefendersName();
             response.guildId = pvpMatch.getDefendersGuildId();
             response.guildName = pvpMatch.getDefendersGuildName();
             setupResources(response, pvpMatch);
-            setupDefenseTroops(response, response.map);
+            setupCreatureAndTraps(response, response.map);
+            response.guildTroops = pvpMatch.getDefendersDonatedTroops();
         }
 
         response.creditsCharged = pvpMatch.creditsCharged;
@@ -168,10 +170,9 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
     }
 
-    static private void setupDefenseTroops(PvpTargetCommandResult response, PlayerMap map) {
+    static private void setupCreatureAndTraps(PvpTargetCommandResult response, PlayerMap map) {
         // enable champions and traps
         response.champions.clear();
-        Building scBuilding = null;
         for (Building building : map.buildings) {
             BuildingData buildingData =
                     ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
@@ -183,9 +184,6 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
                         break;
                     case trap:
                         building.currentStorage = 1;
-                        break;
-                    case squad:
-                        scBuilding = building;
                         break;
                 }
             }
@@ -205,12 +203,28 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             creatureTrapData.championUid = creatureUid;
             response.creatureTrapData.add(creatureTrapData);
         }
+    }
 
-        // fill SC
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        BuildingData scBuildingData = gameDataManager.getBuildingDataByUid(scBuilding.uid);
+    static private void setupRandomSCTroops(PvpTargetCommandResult response, PlayerMap map) {
+        Building scBuilding = null;
+        for (Building building : map.buildings) {
+            BuildingData buildingData =
+                    ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+            if (buildingData != null) {
+                switch (buildingData.getType()) {
+                    case squad:
+                        scBuilding = building;
+                        break;
+                }
+            }
+        }
+
         response.guildTroops = new DonatedTroops();
-        response.guildTroops = createRandomDonatedTroops(scBuildingData.getFaction(), scBuildingData.getStorage());
+        if (scBuilding != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            BuildingData scBuildingData = gameDataManager.getBuildingDataByUid(scBuilding.uid);
+            response.guildTroops = createRandomDonatedTroops(scBuildingData.getFaction(), scBuildingData.getStorage());
+        }
     }
 
     // TODO - this needs to be improved to stop miss hits with the sizes and counts.

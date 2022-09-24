@@ -104,7 +104,9 @@ public class SessionManagerImpl implements SessionManager {
                 guildSession = this.guilds.get(guildId);
                 if (guildSession == null) {
                     guildSession = createGuildSession(playerSession, guildId);
-                    this.guilds.put(guildSession.getGuildId(), guildSession);
+                    if (guildSession != null) {
+                        this.guilds.put(guildSession.getGuildId(), guildSession);
+                    }
                 }
             } finally {
                 this.guildLock.unlock();
@@ -141,6 +143,9 @@ public class SessionManagerImpl implements SessionManager {
             guildSettings = new SelfDonatingSquad(playerSession);
         else
             guildSettings = loadGuildSettings(guildId);
+
+        if (guildSettings == null)
+            return null;
 
         return new GuildSessionImpl(guildSettings);
     }

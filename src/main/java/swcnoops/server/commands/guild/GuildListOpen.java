@@ -29,14 +29,7 @@ public class GuildListOpen extends AbstractCommandAction<GuildListOpen, GuildLis
 
     private Squad createSelfDonateSquad(PlayerSession playerSession) {
         SelfDonatingSquad selfDonatingSquad = new SelfDonatingSquad(playerSession);
-        Squad squad = new Squad();
-        squad._id = selfDonatingSquad.getGuildId();
-        squad.name = selfDonatingSquad.getGuildName();
-        squad.faction = selfDonatingSquad.getFaction();
-        squad.openEnrollment = true;
-        squad.level = 1;
-        squad.members = selfDonatingSquad.getMembers().size();
-        squad.activeMemberCount = squad.members;
+        Squad squad = selfDonatingSquad.getSquad();
         return squad;
     }
 
