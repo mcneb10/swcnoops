@@ -985,7 +985,7 @@
           "key": "bld_23",
           "x": -7,
           "z": 1,
-          "uid": "rebelMaterialsStorage1",
+          "uid": "rebelCreditStorage1",
           "lastCollectTime": null,
           "currentStorage": 0
         },
@@ -993,7 +993,7 @@
           "key": "bld_24",
           "x": -7,
           "z": 4,
-          "uid": "rebelMaterialsGenerator1",
+          "uid": "rebelCreditGenerator1",
           "lastCollectTime": 1660253908,
           "currentStorage": 0
         },

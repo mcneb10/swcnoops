@@ -985,7 +985,7 @@
           "key": "bld_23",
           "x": -7,
           "z": 1,
-          "uid": "empireMaterialsStorage1",
+          "uid": "empireCreditStorage1",
           "lastCollectTime": null,
           "currentStorage": 0
         },
@@ -993,7 +993,7 @@
           "key": "bld_24",
           "x": -7,
           "z": 4,
-          "uid": "empireMaterialsGenerator1",
+          "uid": "empireCreditGenerator1",
           "lastCollectTime": 1660251395,
           "currentStorage": 0
         },

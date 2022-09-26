@@ -18,6 +18,10 @@ public class StorageBuilding extends MapItemImpl {
         updateTotalCapacity(playerSession, this.buildingData.getCurrency());
     }
 
+    public void factionSwitched(PlayerSession playerSession) {
+        updateTotalCapacity(playerSession, this.buildingData.getCurrency());
+    }
+
     private void updateTotalCapacity(PlayerSession playerSession, CurrencyType currency) {
         int totalCapacity = CurrencyHelper.getTotalCapacity(playerSession, currency);
         InventoryStorage inventoryStorage = playerSession.getInventoryManager().getObjectForWriting();
