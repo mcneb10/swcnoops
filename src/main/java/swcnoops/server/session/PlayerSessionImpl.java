@@ -377,7 +377,10 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processCompletedContracts(ServiceFactory.getSystemTimeSecondsFromEpoch());
         this.notificationSession.playerLogin();
         removeEjectedNotifications();
-        validateInventoryTotalCapacity(this);
+
+        if (this.getFaction() != FactionType.smuggler)
+            validateInventoryTotalCapacity(this);
+
         this.getPvpSession().playerLogin();
     }
 
@@ -977,6 +980,12 @@ public class PlayerSessionImpl implements PlayerSession {
                 BuildingData buildingData = ServiceFactory.instance().getGameDataManager()
                         .getFactionEquivalentOfBuilding(oldBuildingData, faction);
                 mapItem.changeBuildingData(buildingData);
+            }
+
+            // if its a storage building we want to recalculate our inventory capacity
+            if (mapItem instanceof StorageBuilding) {
+                StorageBuilding storageBuilding = (StorageBuilding) mapItem;
+                storageBuilding.factionSwitched(this);
             }
         }
 
