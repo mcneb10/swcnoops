@@ -37,6 +37,7 @@ public class PvpMatch {
 
     private boolean revenge;
     private DonatedTroops defendersDonatedTroops;
+    private Map<String, Integer> defendersDeployableTroopsChampion;
 
     public PvpMatch() {
     }
@@ -263,6 +264,14 @@ public class PvpMatch {
 
     public void setDefendersDonatedTroops(DonatedTroops defendersDonatedTroops) {
         this.defendersDonatedTroops = defendersDonatedTroops;
+    }
+
+    public void setDefendersDeployableTroopsChampion(Map<String, Integer> defendersDeployableTroopsChampion) {
+        this.defendersDeployableTroopsChampion = defendersDeployableTroopsChampion;
+    }
+
+    public Map<String, Integer> getDefendersDeployableTroopsChampion() {
+        return defendersDeployableTroopsChampion;
     }
 }
 

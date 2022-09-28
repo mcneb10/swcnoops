@@ -549,4 +549,13 @@ public class GameDataManagerImpl implements GameDataManager {
         //TODO, make this random based on some stored values.... I have a cunning plan for this, Baldrick
         return "DEV BASE";
     }
+
+    @Override
+    public Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids) {
+        Map<String,Integer> remapped = new HashMap<>();
+        if (troopUids != null) {
+            troopUids.forEach((a, b) -> remapped.put(this.getTroopDataByUid(a).getUnitId(), b));
+        }
+        return remapped;
+    }
 }

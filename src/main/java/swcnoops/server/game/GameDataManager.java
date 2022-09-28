@@ -58,5 +58,5 @@ public interface GameDataManager {
 
     String randomDevBaseName();
 
-//    float getMedalScaling(int stars);
+    Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids);
 }

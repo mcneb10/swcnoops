@@ -201,19 +201,19 @@ public class TrainingManagerImpl implements TrainingManager {
             aTroopType.put(entry.getKey(), entry.getValue());
 
             if (troopData.isSpecialAttack()) {
-                this.specialAttackTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+                this.specialAttackTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
             } else {
                 switch (troopData.getType()) {
                     case infantry:
                     case vehicle:
                     case mercenary:
-                        this.troopTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+                        this.troopTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
                         break;
                     case hero:
-                        this.heroTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+                        this.heroTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
                         break;
                     case champion:
-                        this.championTransport.removeDeployable(remapTroopUidToUnitId(aTroopType));
+                        this.championTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
                         break;
                     default:
                         throw new RuntimeException("Unsupported type for removal " + troopData.getType());
@@ -222,14 +222,6 @@ public class TrainingManagerImpl implements TrainingManager {
 
             aTroopType.clear();
         }
-    }
-
-    @Override
-    public Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids) {
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        Map<String,Integer> remapped = new HashMap<>();
-        troopUids.forEach((a,b) -> remapped.put(gameDataManager.getTroopDataByUid(a).getUnitId(), b));
-        return remapped;
     }
 
     /**

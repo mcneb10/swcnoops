@@ -152,7 +152,7 @@ public interface PlayerSession {
 
     void pveBattleComplete(String battleId, int stars, Map<String, Integer> attackingUnitsKilled, long time);
 
-    void pvpBattleComplete(BattleReplay battleReplay, Map<String, Integer> attackingUnitsKilled, PvpMatch pvpMatch, long time);
+    void pvpBattleComplete(BattleReplay battleReplay, PvpMatch pvpMatch, long time);
 
     void pvpReleaseTarget();
 

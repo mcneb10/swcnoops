@@ -84,7 +84,7 @@ abstract public class PlayerBattleComplete<A extends PlayerBattleComplete, B ext
         return seededTroopsDeployed;
     }
 
-    public Map<String, Integer> getDefendingUnitsKilled() {
+    public JsonStringIntegerMap getDefendingUnitsKilled() {
         return defendingUnitsKilled;
     }
 
