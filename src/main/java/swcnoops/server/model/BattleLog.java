@@ -28,4 +28,6 @@ public class BattleLog {
     public JsonStringArrayList defenderEquipment;
     public String planetId;
     public boolean isUserEnded;
+    public JsonStringIntegerMap defendingUnitsKilled;
+    public JsonStringIntegerMap attackingUnitsKilled;
 }

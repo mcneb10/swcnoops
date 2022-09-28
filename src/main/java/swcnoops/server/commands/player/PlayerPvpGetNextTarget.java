@@ -55,7 +55,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.map.buildings = ServiceFactory.instance().getPlayerDatasource()
                     .getDevBaseMap(pvpMatch.getParticipantId(), pvpMatch.getFactionType());
             setupDevResourcesBaseData(response, playerSession);
-            setupCreatureAndTraps(response, response.map);
+            setupCreatureAndTraps(response, pvpMatch, response.map);
             setupRandomSCTroops(response, response.map);
         } else {
             response.map = pvpMatch.getDefendersBaseMap();
@@ -63,7 +63,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             response.guildId = pvpMatch.getDefendersGuildId();
             response.guildName = pvpMatch.getDefendersGuildName();
             setupResources(response, pvpMatch);
-            setupCreatureAndTraps(response, response.map);
+            setupCreatureAndTraps(response, pvpMatch, response.map);
             response.guildTroops = pvpMatch.getDefendersDonatedTroops();
         }
 
@@ -170,7 +170,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.resources = createResourceMap(creditsAvailable, materialsAvailable, contraAvailable);
     }
 
-    static private void setupCreatureAndTraps(PvpTargetCommandResult response, PlayerMap map) {
+    static private void setupCreatureAndTraps(PvpTargetCommandResult response, PvpMatch pvpMatch, PlayerMap map) {
         // enable champions and traps
         response.champions.clear();
         for (Building building : map.buildings) {
@@ -179,17 +179,24 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             if (buildingData != null) {
                 switch (buildingData.getType()) {
                     case champion_platform:
-                        response.champions.put(buildingData.getLinkedUnit(), Integer.valueOf(1));
-                        building.currentStorage = 1;
+                        building.currentStorage = 0;
+                        TroopData champData =
+                                ServiceFactory.instance().getGameDataManager().getTroopDataByUid(buildingData.getLinkedUnit());
+                        if (pvpMatch.isDevBase() || pvpMatch.getDefendersDeployableTroopsChampion().containsKey(champData.getUid())) {
+                            response.champions.put(buildingData.getLinkedUnit(), Integer.valueOf(1));
+                            building.currentStorage = 1;
+                        }
                         break;
                     case trap:
-                        building.currentStorage = 1;
+                        if (pvpMatch.isDevBase() ) {
+                            building.currentStorage = 1;
+                        }
                         break;
                 }
             }
         }
 
-        // enable creature
+        // TODO - for real PvP enable creature
         CreatureDataMap creatureDataMap = CreatureManagerFactory.findCreatureTrap(map);
         if (creatureDataMap != null && creatureDataMap.building != null) {
             creatureDataMap.building.currentStorage = 1;

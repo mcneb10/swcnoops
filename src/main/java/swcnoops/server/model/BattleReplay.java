@@ -44,6 +44,8 @@ public class BattleReplay {
                 pvpMatch.getDefender().faction, time);
 
         battleReplay.battleLog.revenged = pvpMatch.isRevenge();
+        battleReplay.battleLog.attackingUnitsKilled = playerBattleComplete.getAttackingUnitsKilled();
+        battleReplay.battleLog.defendingUnitsKilled = playerBattleComplete.getDefendingUnitsKilled();
 
         // we overwrite it with the real data
         battleReplay.battleLog.attacker = pvpMatch.getAttacker();

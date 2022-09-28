@@ -257,7 +257,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void joinSquad(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             playerSession.setGuildSession(guildSession);
             savePlayerSettings(playerSession, clientSession);
 
@@ -282,10 +282,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
+    private void startTransaction(ClientSession clientSession) {
+        clientSession.startTransaction(TransactionOptions.builder() .writeConcern(WriteConcern.MAJORITY).build());
+    }
+
     @Override
     public void joinRequest(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             savePlayerSettings(playerSession, clientSession);
 
             if (guildSession.canEdit()) {
@@ -303,7 +307,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void joinRejected(GuildSession guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
 
             if (guildSession.canEdit()) {
                 deleteJoinRequestNotifications(clientSession, squadNotification.getGuildId(), squadNotification.getPlayerId());
@@ -355,7 +359,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void changeSquadRole(GuildSession guildSession, PlayerSession invokerSession, PlayerSession playerSession, SquadNotification squadNotification,
                                 SquadRole squadRole) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             this.savePlayerKeepAlive(clientSession, invokerSession);
             if (guildSession.canEdit()) {
                 updateSquadMember(clientSession, guildSession.getGuildId(), playerSession.getPlayerId(),
@@ -534,7 +538,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                                   SquadNotification squadNotification)
     {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             savePlayerSettings(playerSession, clientSession);
             saveDonationRecipient(recipientPlayerSession, clientSession);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
@@ -569,7 +573,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         player.getPlayerSettings().setName(name);
 
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             // creating a secondary account so we update the primary one
             if (playerId.endsWith("_1")) {
                 String primaryAccount = PlayerIdentitySwitch.getPrimaryAccount(playerId);
@@ -600,7 +604,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         squadInfo.activeMemberCount = squadInfo.getSquadMembers().size();
 
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             playerSession.getPlayerSettings().setGuildId(squadInfo._id);
             playerSession.getPlayerSettings().setGuildName(squadInfo.name);
             savePlayerSettings(playerSession, clientSession);
@@ -738,7 +742,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void saveNotification(GuildSession guildSession, SquadNotification squadNotification) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             clientSession.commitTransaction();
         } catch (MongoCommandException e) {
@@ -769,7 +773,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                               boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time) {
         boolean saved;
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
             resetWarParty(clientSession, guildSession);
             setSquadWarParty(clientSession, guildSession, participantIds, time);
@@ -999,7 +1003,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void saveWarMap(PlayerSession playerSession, SquadMemberWarData squadMemberWarData) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             savePlayerSettings(playerSession, clientSession);
             SquadMemberWarData updatedData = this.squadMemberWarDataCollection.findOneAndUpdate(clientSession,
                     combine(eq("warId", squadMemberWarData.warId),
@@ -1013,7 +1017,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     public void saveWarTroopDonation(GuildSession guildSession, PlayerSession playerSession, SquadMemberWarData squadMemberWarData,
                                      SquadNotification squadNotification) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             savePlayerSettings(playerSession, clientSession);
             saveWarTroopDonation(squadMemberWarData, clientSession);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
@@ -1290,7 +1294,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PvpMatch pvpMatch = pvpManager.getCurrentPvPMatch();
         if (pvpMatch != null) {
             try (ClientSession clientSession = this.mongoClient.startSession()) {
-                clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+                startTransaction(clientSession);
                 clearLastPvPAttack(clientSession, pvpManager);
                 clientSession.commitTransaction();
             }
@@ -1306,7 +1310,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public void battleShare(GuildSessionImpl guildSession, PlayerSession playerSession, SquadNotification squadNotification) {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             savePlayerSettings(playerSession, clientSession);
             if (guildSession.canEdit()) {
                 setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
@@ -1345,12 +1349,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         "playerSettings.faction", "playerSettings.hqLevel",
                         "playerSettings.guildId", "playerSettings.guildName",
                         "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
-                        "currentPvPDefence", "playerSettings.donatedTroops")),
+                        "currentPvPDefence", "playerSettings.donatedTroops", "playerSettings.deployableTroops.champion")),
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
 
             // clear last PvP attack
             clearLastPvPAttack(clientSession, pvpManager);
@@ -1406,6 +1410,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         pvpMatch.setDefenderDamagedBuildings(opponentPlayer.getPlayerSettings().getDamagedBuildings());
         pvpMatch.setDefendersScalars(opponentPlayer.getPlayerSettings().getScalars());
         pvpMatch.setDefendersInventoryStorage(opponentPlayer.getPlayerSettings().getInventoryStorage());
+        pvpMatch.setDefendersDeployableTroopsChampion(opponentPlayer.getPlayerSettings().getDeployableTroops().champion);
         pvpMatch.creditsCharged = creditsCharged;
 
         return pvpMatch;
@@ -1516,7 +1521,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         PvpMatch pvpMatch = null;
         try (ClientSession clientSession = this.mongoClient.startSession()) {
-            clientSession.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+            startTransaction(clientSession);
             // clear last PvP attack
             clearLastPvPAttack(clientSession, pvpManager);
 
@@ -1580,7 +1585,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             eq("currentPvPDefence.battleId", battleId)),
                     combine(set("playerSettings.scalars", pvpMatch.getDefendersScalars()),
                             set("playerSettings.inventoryStorage", pvpMatch.getDefendersInventoryStorage()),
-                            set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings())));
+                            set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings()),
+                            set("playerSettings.deployableTroops.champion", pvpMatch.getDefendersDeployableTroopsChampion()),
+                            set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap())));
         }
     }
 

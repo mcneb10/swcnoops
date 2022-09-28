@@ -30,7 +30,7 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
         }
 
         mergeDamagedBuildings(pvpMatch, arguments.getDamagedBuildings());
-        playerSession.pvpBattleComplete(battleReplay, arguments.getAttackingUnitsKilled(), pvpMatch, time);
+        playerSession.pvpBattleComplete(battleReplay, pvpMatch, time);
 
         PlayerPvpBattleCompleteCommandResult response = mapResponse(battleReplay);
         return response;

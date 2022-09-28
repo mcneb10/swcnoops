@@ -599,11 +599,17 @@ public class PlayerSessionImpl implements PlayerSession {
         this.savePlayerSession();
     }
 
+    private void processPvpBattleComplete(BattleReplay battleReplay, long time) {
+        this.processBattleComplete(battleReplay.battleLog.attackingUnitsKilled, time);
+    }
+
     private void processBattleComplete(Map<String, Integer> attackingUnitsKilled, long time) {
         this.processCompletedContracts(time);
         processCreature(attackingUnitsKilled);
         Map<String, Integer> champions = getChampions(attackingUnitsKilled);
-        Map<String,Integer> killedChampions = this.getTrainingManager().remapTroopUidToUnitId(champions);
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(champions);
+        // TODO - change and simplify deployable troops to use a DBObject
         this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
     }
 
@@ -616,10 +622,10 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void pvpBattleComplete(BattleReplay battleReplay, Map<String, Integer> attackingUnitsKilled,
+    public void pvpBattleComplete(BattleReplay battleReplay,
                                   PvpMatch pvpMatch, long time)
     {
-        processBattleComplete(attackingUnitsKilled, time);
+        processPvpBattleComplete(battleReplay, time);
         calculateResourcesGained(battleReplay, pvpMatch);
         updatePlayerAfterPvPBattle(battleReplay, pvpMatch);
         updateDefenderAfterPvPBattle(battleReplay, pvpMatch);
@@ -639,6 +645,26 @@ public class PlayerSessionImpl implements PlayerSession {
         }
 
         // TODO - might have to modify the defenders map, traps, creature and SC
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        if (pvpMatch.getDefendersDeployableTroopsChampion() != null) {
+            Map<String, Integer> championsKilled = getChampions(battleReplay.battleLog.defendingUnitsKilled);
+            Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(championsKilled);
+            killedChampions.forEach((a, b) -> pvpMatch.getDefendersDeployableTroopsChampion().remove(a));
+        }
+
+        // triggered traps
+        if (pvpMatch.getDefenderDamagedBuildings() != null) {
+            Map<String, Integer> damagedBuildings = pvpMatch.getDefenderDamagedBuildings();
+
+            for (Building building : pvpMatch.getDefendersBaseMap().buildings) {
+                if (damagedBuildings.containsKey(building.key)) {
+                    BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
+                    if (buildingData.getType() == BuildingType.trap) {
+                        building.currentStorage = 0;
+                    }
+                }
+            }
+        }
     }
 
     private void calculateResourcesGained(BattleReplay battleReplay, PvpMatch pvpMatch) {
@@ -689,11 +715,13 @@ public class PlayerSessionImpl implements PlayerSession {
 
     private Map<String, Integer> getChampions(Map<String, Integer> attackingUnitsKilled) {
         Map<String, Integer> champions = new HashMap<>();
-        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        for (Map.Entry<String, Integer> entry : attackingUnitsKilled.entrySet()) {
-            TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
-            if (troopData.getType() == TroopType.champion) {
-                champions.put(entry.getKey(), entry.getValue());
+        if (attackingUnitsKilled != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            for (Map.Entry<String, Integer> entry : attackingUnitsKilled.entrySet()) {
+                TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
+                if (troopData.getType() == TroopType.champion) {
+                    champions.put(entry.getKey(), entry.getValue());
+                }
             }
         }
 
