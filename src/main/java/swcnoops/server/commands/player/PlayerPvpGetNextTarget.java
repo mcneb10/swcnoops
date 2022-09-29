@@ -183,7 +183,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
                     case champion_platform:
                         building.currentStorage = 0;
                         TroopData champData = gameDataManager.getTroopDataByUid(buildingData.getLinkedUnit());
-                        if (pvpMatch.isDevBase() || pvpMatch.getDefendersDeployableTroopsChampion().containsKey(champData.getUid())) {
+                        if (pvpMatch.isDevBase() || pvpMatch.getDefendersDeployableTroopsChampion().containsKey(champData.getUnitId())) {
                             response.champions.put(buildingData.getLinkedUnit(), Integer.valueOf(1));
                             building.currentStorage = 1;
                         }

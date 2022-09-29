@@ -1590,7 +1590,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             set("playerSettings.inventoryStorage", pvpMatch.getDefendersInventoryStorage()),
                             set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings()),
                             set("playerSettings.deployableTroops.champion", pvpMatch.getDefendersDeployableTroopsChampion()),
-                            set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap())));
+                            set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap()),
+                            set("playerSettings.creature", pvpMatch.getDefendersCreature())));
         }
     }
 

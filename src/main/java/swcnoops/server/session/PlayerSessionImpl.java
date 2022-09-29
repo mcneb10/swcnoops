@@ -606,7 +606,7 @@ public class PlayerSessionImpl implements PlayerSession {
     private void processBattleComplete(Map<String, Integer> attackingUnitsKilled, long time) {
         this.processCompletedContracts(time);
         processCreature(attackingUnitsKilled);
-        Map<String, Integer> champions = getChampions(attackingUnitsKilled);
+        Map<String, Integer> champions = getUnitsKilledByTroopType(attackingUnitsKilled, TroopType.champion);
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(champions);
         // TODO - change and simplify deployable troops to use a DBObject
@@ -647,7 +647,7 @@ public class PlayerSessionImpl implements PlayerSession {
         // TODO - might have to modify the defenders map, traps, creature and SC
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         if (pvpMatch.getDefendersDeployableTroopsChampion() != null) {
-            Map<String, Integer> championsKilled = getChampions(battleReplay.battleLog.defendingUnitsKilled);
+            Map<String, Integer> championsKilled = getUnitsKilledByTroopType(battleReplay.battleLog.defendingUnitsKilled, TroopType.champion);
             Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(championsKilled);
             killedChampions.forEach((a, b) -> pvpMatch.getDefendersDeployableTroopsChampion().remove(a));
         }
@@ -663,6 +663,14 @@ public class PlayerSessionImpl implements PlayerSession {
                         building.currentStorage = 0;
                     }
                 }
+            }
+        }
+
+        // creature
+        if (pvpMatch.getDefendersCreature() != null) {
+            Map<String, Integer> creatureKilled = getUnitsKilledByTroopType(battleReplay.battleLog.defendingUnitsKilled, TroopType.creature);
+            if (creatureKilled != null && creatureKilled.size() > 0) {
+                pvpMatch.getDefendersCreature().setCreatureStatus(CreatureStatus.Dead);
             }
         }
     }
@@ -713,19 +721,19 @@ public class PlayerSessionImpl implements PlayerSession {
         scalars.attackRating = scalars.attackRating + pvpMatch.getAttacker().attackRatingDelta;
     }
 
-    private Map<String, Integer> getChampions(Map<String, Integer> attackingUnitsKilled) {
-        Map<String, Integer> champions = new HashMap<>();
+    private Map<String, Integer> getUnitsKilledByTroopType(Map<String, Integer> attackingUnitsKilled, TroopType troopType) {
+        Map<String, Integer> unitsOfType = new HashMap<>();
         if (attackingUnitsKilled != null) {
             GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
             for (Map.Entry<String, Integer> entry : attackingUnitsKilled.entrySet()) {
                 TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
-                if (troopData.getType() == TroopType.champion) {
-                    champions.put(entry.getKey(), entry.getValue());
+                if (troopData.getType() == troopType) {
+                    unitsOfType.put(entry.getKey(), entry.getValue());
                 }
             }
         }
 
-        return champions;
+        return unitsOfType;
     }
 
     @Override
