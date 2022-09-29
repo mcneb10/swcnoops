@@ -1,6 +1,8 @@
 package swcnoops.server.game;
 
+import swcnoops.server.datasource.Creature;
 import swcnoops.server.model.*;
+import swcnoops.server.session.inventory.Troops;
 
 import java.util.Map;
 
@@ -38,6 +40,8 @@ public class PvpMatch {
     private boolean revenge;
     private DonatedTroops defendersDonatedTroops;
     private Map<String, Integer> defendersDeployableTroopsChampion;
+    private Creature defendersCreature;
+    private Troops defendersTroops;
 
     public PvpMatch() {
     }
@@ -272,6 +276,22 @@ public class PvpMatch {
 
     public Map<String, Integer> getDefendersDeployableTroopsChampion() {
         return defendersDeployableTroopsChampion;
+    }
+
+    public void setDefendersCreature(Creature defendersCreature) {
+        this.defendersCreature = defendersCreature;
+    }
+
+    public Creature getDefendersCreature() {
+        return defendersCreature;
+    }
+
+    public void setDefendersTroops(Troops defendersTroops) {
+        this.defendersTroops = defendersTroops;
+    }
+
+    public Troops getDefendersTroops() {
+        return defendersTroops;
     }
 }
 

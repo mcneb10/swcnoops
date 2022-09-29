@@ -606,7 +606,7 @@ public class PlayerSessionImpl implements PlayerSession {
     private void processBattleComplete(Map<String, Integer> attackingUnitsKilled, long time) {
         this.processCompletedContracts(time);
         processCreature(attackingUnitsKilled);
-        Map<String, Integer> champions = getChampions(attackingUnitsKilled);
+        Map<String, Integer> champions = getUnitsKilledByTroopType(attackingUnitsKilled, TroopType.champion);
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(champions);
         // TODO - change and simplify deployable troops to use a DBObject
@@ -644,10 +644,10 @@ public class PlayerSessionImpl implements PlayerSession {
             pvpMatch.getDefendersInventoryStorage().contraband.amount -= pvpMatch.getContraGained();
         }
 
-        // TODO - might have to modify the defenders map, traps, creature and SC
+        // creature
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         if (pvpMatch.getDefendersDeployableTroopsChampion() != null) {
-            Map<String, Integer> championsKilled = getChampions(battleReplay.battleLog.defendingUnitsKilled);
+            Map<String, Integer> championsKilled = getUnitsKilledByTroopType(battleReplay.battleLog.defendingUnitsKilled, TroopType.champion);
             Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(championsKilled);
             killedChampions.forEach((a, b) -> pvpMatch.getDefendersDeployableTroopsChampion().remove(a));
         }
@@ -663,6 +663,48 @@ public class PlayerSessionImpl implements PlayerSession {
                         building.currentStorage = 0;
                     }
                 }
+            }
+        }
+
+        // creature
+        if (pvpMatch.getDefendersCreature() != null) {
+            Map<String, Integer> creatureKilled = getUnitsKilledByTroopType(battleReplay.battleLog.defendingUnitsKilled, TroopType.creature);
+            if (creatureKilled != null && creatureKilled.size() > 0) {
+                pvpMatch.getDefendersCreature().setCreatureStatus(CreatureStatus.Dead);
+            }
+        }
+
+        // SC troops killed
+        if (pvpMatch.getDefendersDonatedTroops() != null && battleReplay.battleLog.defenderGuildTroopsExpended != null) {
+            List<String> allKilledUnits = new ArrayList<>(pvpMatch.getDefendersDonatedTroops().size());
+            for (Map.Entry<String, Integer> killedTroops : battleReplay.battleLog.defenderGuildTroopsExpended.entrySet()) {
+                GuildDonatedTroops guildDonatedTroops = pvpMatch.getDefendersDonatedTroops().get(killedTroops.getKey());
+                if (guildDonatedTroops != null) {
+                    int killed = killedTroops.getValue();
+                    int remaining = 0;
+                    for (Map.Entry<String, Integer> donated : guildDonatedTroops.entrySet()) {
+                        if (donated.getValue() > 0) {
+                            if (donated.getValue() >= killed) {
+                                donated.setValue(donated.getValue() - killed);
+                                killed = 0;
+                            } else if (killed > 0) {
+                                killed = killed - donated.getValue();
+                                donated.setValue(0);
+                            }
+                        }
+
+                        remaining += donated.getValue();
+                    }
+
+                    if (remaining == 0) {
+                        allKilledUnits.add(killedTroops.getKey());
+                    }
+                }
+            }
+
+            // clean up the donated if all dead
+            for (String allKilledUid : allKilledUnits) {
+                pvpMatch.getDefendersDonatedTroops().remove(allKilledUid);
             }
         }
     }
@@ -713,19 +755,19 @@ public class PlayerSessionImpl implements PlayerSession {
         scalars.attackRating = scalars.attackRating + pvpMatch.getAttacker().attackRatingDelta;
     }
 
-    private Map<String, Integer> getChampions(Map<String, Integer> attackingUnitsKilled) {
-        Map<String, Integer> champions = new HashMap<>();
+    private Map<String, Integer> getUnitsKilledByTroopType(Map<String, Integer> attackingUnitsKilled, TroopType troopType) {
+        Map<String, Integer> unitsOfType = new HashMap<>();
         if (attackingUnitsKilled != null) {
             GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
             for (Map.Entry<String, Integer> entry : attackingUnitsKilled.entrySet()) {
                 TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
-                if (troopData.getType() == TroopType.champion) {
-                    champions.put(entry.getKey(), entry.getValue());
+                if (troopData.getType() == troopType) {
+                    unitsOfType.put(entry.getKey(), entry.getValue());
                 }
             }
         }
 
-        return champions;
+        return unitsOfType;
     }
 
     @Override

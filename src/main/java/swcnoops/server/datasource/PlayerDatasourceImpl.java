@@ -1349,7 +1349,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         "playerSettings.faction", "playerSettings.hqLevel",
                         "playerSettings.guildId", "playerSettings.guildName",
                         "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
-                        "currentPvPDefence", "playerSettings.donatedTroops", "playerSettings.deployableTroops.champion")),
+                        "currentPvPDefence", "playerSettings.donatedTroops", "playerSettings.deployableTroops.champion",
+                        "playerSettings.creature", "playerSettings.troops")),
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
@@ -1411,6 +1412,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         pvpMatch.setDefendersScalars(opponentPlayer.getPlayerSettings().getScalars());
         pvpMatch.setDefendersInventoryStorage(opponentPlayer.getPlayerSettings().getInventoryStorage());
         pvpMatch.setDefendersDeployableTroopsChampion(opponentPlayer.getPlayerSettings().getDeployableTroops().champion);
+        pvpMatch.setDefendersCreature(opponentPlayer.getPlayerSettings().getCreature());
+        pvpMatch.setDefendersTroops(opponentPlayer.getPlayerSettings().getTroops());
         pvpMatch.creditsCharged = creditsCharged;
 
         return pvpMatch;
@@ -1580,6 +1583,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             String defenderId = pvpMatch.getParticipantId();
             String battleId = pvpMatch.getBattleId();
 
+            // TODO - there is a race condition here with donated troops as its possible the defender has a donation
+            // while they are being attacked, this update will overwrite the donation.
+            // to properly fix may need optimistic locking with retries, or a more complex
+            // update that can remove the individual donation counts using inc function.
+            // Will need to have a think how to do this as will require redoing donations
             this.playerCollection.updateOne(session,
                     combine(eq("_id", defenderId),
                             eq("currentPvPDefence.battleId", battleId)),
@@ -1587,7 +1595,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             set("playerSettings.inventoryStorage", pvpMatch.getDefendersInventoryStorage()),
                             set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings()),
                             set("playerSettings.deployableTroops.champion", pvpMatch.getDefendersDeployableTroopsChampion()),
-                            set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap())));
+                            set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap()),
+                            set("playerSettings.creature", pvpMatch.getDefendersCreature()),
+                            set("playerSettings.donatedTroops", pvpMatch.getDefendersDonatedTroops())));
         }
     }
 

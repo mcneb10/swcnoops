@@ -5,6 +5,8 @@ import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.DevBase;
 import swcnoops.server.model.*;
+import swcnoops.server.session.inventory.TroopRecord;
+import swcnoops.server.session.inventory.Troops;
 
 import java.io.*;
 import java.util.*;
@@ -557,5 +559,16 @@ public class GameDataManagerImpl implements GameDataManager {
             troopUids.forEach((a, b) -> remapped.put(this.getTroopDataByUid(a).getUnitId(), b));
         }
         return remapped;
+    }
+
+    @Override
+    public TroopData getTroopByUnitId(Troops troops, String unitId) {
+        TroopRecord troopRecord = troops.getTroops().get(unitId);
+
+        int level = 1;
+        if (troopRecord != null)
+            level = troopRecord.getLevel();
+
+        return getTroopDataByUnitId(unitId, level);
     }
 }
