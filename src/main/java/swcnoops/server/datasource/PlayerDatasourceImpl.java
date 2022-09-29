@@ -1583,6 +1583,11 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             String defenderId = pvpMatch.getParticipantId();
             String battleId = pvpMatch.getBattleId();
 
+            // TODO - there is a race condition here with donated troops as its possible the defender has a donation
+            // while they are being attacked, this update will overwrite the donation.
+            // to properly fix may need optimistic locking with retries, or a more complex
+            // update that can remove the individual donation counts using inc function.
+            // Will need to have a think how to do this as will require redoing donations
             this.playerCollection.updateOne(session,
                     combine(eq("_id", defenderId),
                             eq("currentPvPDefence.battleId", battleId)),
@@ -1591,7 +1596,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings()),
                             set("playerSettings.deployableTroops.champion", pvpMatch.getDefendersDeployableTroopsChampion()),
                             set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap()),
-                            set("playerSettings.creature", pvpMatch.getDefendersCreature())));
+                            set("playerSettings.creature", pvpMatch.getDefendersCreature()),
+                            set("playerSettings.donatedTroops", pvpMatch.getDefendersDonatedTroops())));
         }
     }
 

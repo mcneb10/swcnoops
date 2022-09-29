@@ -644,7 +644,7 @@ public class PlayerSessionImpl implements PlayerSession {
             pvpMatch.getDefendersInventoryStorage().contraband.amount -= pvpMatch.getContraGained();
         }
 
-        // TODO - might have to modify the defenders map, traps, creature and SC
+        // creature
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         if (pvpMatch.getDefendersDeployableTroopsChampion() != null) {
             Map<String, Integer> championsKilled = getUnitsKilledByTroopType(battleReplay.battleLog.defendingUnitsKilled, TroopType.champion);
@@ -671,6 +671,40 @@ public class PlayerSessionImpl implements PlayerSession {
             Map<String, Integer> creatureKilled = getUnitsKilledByTroopType(battleReplay.battleLog.defendingUnitsKilled, TroopType.creature);
             if (creatureKilled != null && creatureKilled.size() > 0) {
                 pvpMatch.getDefendersCreature().setCreatureStatus(CreatureStatus.Dead);
+            }
+        }
+
+        // SC troops killed
+        if (pvpMatch.getDefendersDonatedTroops() != null && battleReplay.battleLog.defenderGuildTroopsExpended != null) {
+            List<String> allKilledUnits = new ArrayList<>(pvpMatch.getDefendersDonatedTroops().size());
+            for (Map.Entry<String, Integer> killedTroops : battleReplay.battleLog.defenderGuildTroopsExpended.entrySet()) {
+                GuildDonatedTroops guildDonatedTroops = pvpMatch.getDefendersDonatedTroops().get(killedTroops.getKey());
+                if (guildDonatedTroops != null) {
+                    int killed = killedTroops.getValue();
+                    int remaining = 0;
+                    for (Map.Entry<String, Integer> donated : guildDonatedTroops.entrySet()) {
+                        if (donated.getValue() > 0) {
+                            if (donated.getValue() >= killed) {
+                                donated.setValue(donated.getValue() - killed);
+                                killed = 0;
+                            } else if (killed > 0) {
+                                killed = killed - donated.getValue();
+                                donated.setValue(0);
+                            }
+                        }
+
+                        remaining += donated.getValue();
+                    }
+
+                    if (remaining == 0) {
+                        allKilledUnits.add(killedTroops.getKey());
+                    }
+                }
+            }
+
+            // clean up the donated if all dead
+            for (String allKilledUid : allKilledUnits) {
+                pvpMatch.getDefendersDonatedTroops().remove(allKilledUid);
             }
         }
     }
