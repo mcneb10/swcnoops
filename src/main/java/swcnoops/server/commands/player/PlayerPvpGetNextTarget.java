@@ -11,6 +11,7 @@ import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.creature.CreatureDataMap;
 import swcnoops.server.session.creature.CreatureManagerFactory;
+import swcnoops.server.session.creature.CreatureStatus;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -172,16 +173,16 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
 
     static private void setupCreatureAndTraps(PvpTargetCommandResult response, PvpMatch pvpMatch, PlayerMap map) {
         // enable champions and traps
+        GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+
         response.champions.clear();
         for (Building building : map.buildings) {
-            BuildingData buildingData =
-                    ServiceFactory.instance().getGameDataManager().getBuildingDataByUid(building.uid);
+            BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
             if (buildingData != null) {
                 switch (buildingData.getType()) {
                     case champion_platform:
                         building.currentStorage = 0;
-                        TroopData champData =
-                                ServiceFactory.instance().getGameDataManager().getTroopDataByUid(buildingData.getLinkedUnit());
+                        TroopData champData = gameDataManager.getTroopDataByUid(buildingData.getLinkedUnit());
                         if (pvpMatch.isDevBase() || pvpMatch.getDefendersDeployableTroopsChampion().containsKey(champData.getUid())) {
                             response.champions.put(buildingData.getLinkedUnit(), Integer.valueOf(1));
                             building.currentStorage = 1;
@@ -199,15 +200,27 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         // TODO - for real PvP enable creature
         CreatureDataMap creatureDataMap = CreatureManagerFactory.findCreatureTrap(map);
         if (creatureDataMap != null && creatureDataMap.building != null) {
-            creatureDataMap.building.currentStorage = 1;
             response.creatureTrapData = new ArrayList<>();
             CreatureTrapData creatureTrapData = new CreatureTrapData();
-            creatureTrapData.ready = true;
             creatureTrapData.buildingId = creatureDataMap.building.key;
             creatureTrapData.specialAttackUid = creatureDataMap.trapData.getEventData();
-            String creatureUnitId = CreatureManagerFactory.getRandomCreatureUnitId(creatureDataMap.buildingData.getFaction());
-            String creatureUid = ServiceFactory.instance().getGameDataManager().getTroopDataByUnitId(creatureUnitId, 10).getUid();
-            creatureTrapData.championUid = creatureUid;
+
+            if (pvpMatch.isDevBase()) {
+                String creatureUnitId = CreatureManagerFactory.getRandomCreatureUnitId(creatureDataMap.buildingData.getFaction());
+                String creatureUid = ServiceFactory.instance().getGameDataManager()
+                        .getTroopDataByUnitId(creatureUnitId, creatureDataMap.buildingData.getLevel()).getUid();
+                creatureTrapData.championUid = creatureUid;
+                creatureTrapData.ready = true;
+            } else if (pvpMatch.getDefendersCreature() != null) {
+                TroopData troopData = gameDataManager.getTroopByUnitId(pvpMatch.getDefendersTroops(),
+                        pvpMatch.getDefendersCreature().getCreatureUnitId());
+                creatureTrapData.championUid = troopData.getUid();
+                creatureTrapData.ready = pvpMatch.getDefendersCreature().getCreatureStatus() == CreatureStatus.Alive;
+            }
+
+            if (creatureTrapData.ready)
+                creatureDataMap.building.currentStorage = 1;
+
             response.creatureTrapData.add(creatureTrapData);
         }
     }

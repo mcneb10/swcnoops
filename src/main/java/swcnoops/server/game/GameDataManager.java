@@ -1,6 +1,7 @@
 package swcnoops.server.game;
 
 import swcnoops.server.model.FactionType;
+import swcnoops.server.session.inventory.Troops;
 
 import java.util.List;
 import java.util.Map;
@@ -59,4 +60,6 @@ public interface GameDataManager {
     String randomDevBaseName();
 
     Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids);
+
+    TroopData getTroopByUnitId(Troops troops, String unitId);
 }

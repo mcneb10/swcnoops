@@ -1349,7 +1349,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         "playerSettings.faction", "playerSettings.hqLevel",
                         "playerSettings.guildId", "playerSettings.guildName",
                         "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
-                        "currentPvPDefence", "playerSettings.donatedTroops", "playerSettings.deployableTroops.champion")),
+                        "currentPvPDefence", "playerSettings.donatedTroops", "playerSettings.deployableTroops.champion",
+                        "playerSettings.creature", "playerSettings.troops")),
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
@@ -1411,6 +1412,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         pvpMatch.setDefendersScalars(opponentPlayer.getPlayerSettings().getScalars());
         pvpMatch.setDefendersInventoryStorage(opponentPlayer.getPlayerSettings().getInventoryStorage());
         pvpMatch.setDefendersDeployableTroopsChampion(opponentPlayer.getPlayerSettings().getDeployableTroops().champion);
+        pvpMatch.setDefendersCreature(opponentPlayer.getPlayerSettings().getCreature());
+        pvpMatch.setDefendersTroops(opponentPlayer.getPlayerSettings().getTroops());
         pvpMatch.creditsCharged = creditsCharged;
 
         return pvpMatch;

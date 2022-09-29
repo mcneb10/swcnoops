@@ -1,5 +1,6 @@
 package swcnoops.server.commands.player;
 
+import swcnoops.server.model.CreatureTrapData;
 import swcnoops.server.model.CurrencyType;
 import swcnoops.server.model.JsonStringIntegerMap;
 import swcnoops.server.model.ReplayData;
@@ -15,7 +16,6 @@ abstract public class PlayerBattleComplete<A extends PlayerBattleComplete, B ext
     private String battleVersion;
     private String battleId;
     private String battleUid;
-
     private JsonStringIntegerMap attackingUnitsKilled;
     private JsonStringIntegerMap defenderGuildTroopsSpent;
     private JsonStringIntegerMap attackerGuildTroopsSpent;
@@ -30,6 +30,7 @@ abstract public class PlayerBattleComplete<A extends PlayerBattleComplete, B ext
     private String planetId;
     private ReplayData replayData;
     private boolean isUserEnded; //If the user cancelled the battle before the end. Aka rage quit! :p
+    private List<CreatureTrapData> defenderCreatureTraps;
 
     public JsonStringIntegerMap getAttackerGuildTroopsSpent() {
         return attackerGuildTroopsSpent;
@@ -110,5 +111,13 @@ abstract public class PlayerBattleComplete<A extends PlayerBattleComplete, B ext
 
     public Map<CurrencyType, Integer> getLoot() {
         return loot;
+    }
+
+    public List<CreatureTrapData> getDefenderCreatureTraps() {
+        return defenderCreatureTraps;
+    }
+
+    public void setDefenderCreatureTraps(List<CreatureTrapData> defenderCreatureTraps) {
+        this.defenderCreatureTraps = defenderCreatureTraps;
     }
 }
