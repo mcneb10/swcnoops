@@ -2,6 +2,27 @@
 Star Wars Commander private server MongoDB version. The old version which will be discontinued has been copied over to repo swcnoops0.
 MongoDB instructions to come.
 
+Mongo Setup :
+
+1) Used these instructions to install mongoDB
+   https://www.mongodb.com/docs/manual/tutorial/install-mongodb-on-ubuntu/
+2) Used these instructions to convert the stand alone mongodb to a replica set as that is a for transaction support.
+   https://www.mongodb.com/docs/manual/tutorial/convert-standalone-to-replica-set/
+3) Modify the mongoDB config to enable remote login and replicaSet
+4) Create a new admin user and enable authentication
+   https://www.mongodb.com/features/mongodb-authentication
+5) For authentication to work with replicaSet, have to create a keyfile and configure it, very important the owner of the keyfile must be the same as the user that runs mongod
+   https://www.mongodb.com/docs/manual/tutorial/enforce-keyfile-access-control-in-existing-replica-set/
+   https://stackoverflow.com/questions/28251531/permission-denied-to-read-file-owned-by-user
+
+MongoDB cheat sheet
+
+1) logfile location
+/var/log/mongodb/mongod.log
+2) starting 
+sudo systemctl start mongod
+
+
 A reverse engineer of the server to run the game Star Wars Commander privately.
 This first version has just enough APIs to provide a set of bases that can be attacked.
 

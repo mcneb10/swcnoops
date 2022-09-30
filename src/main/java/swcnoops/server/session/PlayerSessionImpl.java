@@ -239,6 +239,10 @@ public class PlayerSessionImpl implements PlayerSession {
             this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove);
 
+            // TODO - this does not handle receiving donations while doing an attack
+            // will have to rethink how to handle all the race conditions and overwriting.
+            // probably the best way would be to to use the DB to do the removing on a unit level which means
+            // knowing which troops were actually taken for the battle
             if (deployablesToRemove.stream().filter(a -> a.getAction().equals("SquadTroopPlaced")).count() > 0)
                 this.getDonatedTroops().clear();
 
