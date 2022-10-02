@@ -93,7 +93,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.squadCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, mongoDBName, "squad", SquadInfo.class, UuidRepresentation.STANDARD);
 
-        this.squadCollection.createIndex(Indexes.ascending("squadMembers.playerId"), new IndexOptions().unique(true));
+        this.squadCollection.createIndex(Indexes.ascending("squadMembers.playerId"), new IndexOptions().unique(true)
+                .partialFilterExpression(exists("squadMembers.playerId")));
         this.squadCollection.createIndex(Indexes.ascending("faction"));
         this.squadCollection.createIndex(Indexes.text("name"));
 
