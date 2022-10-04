@@ -1094,12 +1094,16 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     private void processCreature(Map<String, Integer> attackingUnitsKilled) {
-        if (this.getCreatureManager().hasCreature()) {
+        if (this.getCreatureManager().hasCreature() && attackingUnitsKilled != null) {
             String creatureUnitId = this.getCreatureManager().getCreatureUnitId();
 
             if (creatureUnitId != null && !creatureUnitId.isEmpty()) {
                 TroopData troopData = this.troopInventory.getTroopByUnitId(creatureUnitId);
-                if (attackingUnitsKilled.containsKey(troopData.getUid()))
+                if (troopData == null) {
+                    LOG.error("Failed to lookup for player " + this.getPlayerId() + " for creature " + creatureUnitId);
+                }
+
+                if (troopData != null && attackingUnitsKilled.containsKey(troopData.getUid()))
                     this.getCreatureManager().getCreature().setCreatureStatus(CreatureStatus.Dead);
             }
         }
