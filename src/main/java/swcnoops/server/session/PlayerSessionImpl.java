@@ -657,7 +657,7 @@ public class PlayerSessionImpl implements PlayerSession {
         }
 
         // triggered traps
-        if (pvpMatch.getDefenderDamagedBuildings() != null) {
+        if (pvpMatch.getDefenderDamagedBuildings() != null && pvpMatch.getDefendersBaseMap() != null) {
             Map<String, Integer> damagedBuildings = pvpMatch.getDefenderDamagedBuildings();
 
             for (Building building : pvpMatch.getDefendersBaseMap().buildings) {
