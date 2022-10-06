@@ -464,6 +464,30 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
+    public Map<String, Integer> levelUpTroopsByUid(Map<String, Integer> donatedTroops) {
+        Map<String, Integer> levelUpTroops = new HashMap<>();
+
+        if (donatedTroops != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            donatedTroops.forEach((donatedUid, numberOf) -> {
+                TroopData troopData = gameDataManager.getTroopDataByUid(donatedUid);
+                if (troopData != null) {
+                    TroopData playersTroopData = this.getTroopInventory().getTroopByUnitId(troopData.getUnitId());
+                    if (playersTroopData != null) {
+                        if (playersTroopData.getLevel() > troopData.getLevel()) {
+                            donatedUid = playersTroopData.getUid();
+                        }
+                    }
+                }
+
+                levelUpTroops.put(donatedUid, numberOf);
+            });
+        }
+
+        return levelUpTroops;
+    }
+
+    @Override
     public boolean setLastNotificationSince(String guildId, long since) {
         return this.notificationSession.setLastNotification(guildId, since);
     }

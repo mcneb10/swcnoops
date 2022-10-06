@@ -291,9 +291,12 @@ public class GuildSessionImpl implements GuildSession {
                 null, playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerId(), SquadMsgType.troopDonation);
 
+        // we level up the troops for the recipient
+        Map<String, Integer> levelUpTroopsByUid = recipientPlayerSession.levelUpTroopsByUid(troopsDonated);
+
         TroopDonationData troopDonationData = new TroopDonationData();
-        troopDonationData.troopsDonated = troopsDonated;
-        troopDonationData.amount = troopsDonated.size();
+        troopDonationData.troopsDonated = levelUpTroopsByUid;
+        troopDonationData.amount = levelUpTroopsByUid.size();
         troopDonationData.requestId = requestId;
         troopDonationData.recipientId = recipientPlayerId;
         squadNotification.setData(troopDonationData);
