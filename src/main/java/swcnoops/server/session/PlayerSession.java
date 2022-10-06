@@ -172,4 +172,6 @@ public interface PlayerSession {
     void savePlayerLogin(long time);
 
     long getLastLoginTime();
+
+    Map<String, Integer> levelUpTroopsByUid(Map<String, Integer> troopsDonated);
 }
