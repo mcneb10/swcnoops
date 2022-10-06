@@ -406,7 +406,17 @@ public class GameDataManagerImpl implements GameDataManager {
 
     @Override
     public BuildingData getBuildingDataByBuildingId(String buildingID, int level) {
-        return this.buildingLevelsByBuildingId.get(buildingID).get(level - 1);
+        List<BuildingData> buildingLevels = this.buildingLevelsByBuildingId.get(buildingID);
+        if (buildingLevels != null) {
+            if (level <= buildingLevels.size())
+                return buildingLevels.get(level - 1);
+
+            LOG.error("Failed to find buildingLevels for " + buildingID + " at level " + level);
+        } else {
+            LOG.error("Failed to find buildingLevels for " + buildingID);
+        }
+
+        return null;
     }
 
     @Override

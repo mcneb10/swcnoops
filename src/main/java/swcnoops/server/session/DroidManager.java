@@ -1,5 +1,7 @@
 package swcnoops.server.session;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.*;
 import swcnoops.server.model.CurrencyType;
@@ -13,6 +15,8 @@ import java.util.LinkedList;
 import java.util.Optional;
 
 public class DroidManager implements Constructor {
+    private static final Logger LOG = LoggerFactory.getLogger(DroidManager.class);
+
     static final private TrainingManagerFactory trainingManagerFactory = new TrainingManagerFactory();
 
     private Collection<BuildUnit> unitsInQueue = new LinkedList<>();
@@ -119,6 +123,12 @@ public class DroidManager implements Constructor {
         BuildingData nextLevelBuildingData = ServiceFactory.instance().getGameDataManager()
                 .getBuildingDataByBuildingId(mapItem.getBuildingData().getBuildingID(),
                         mapItem.getBuildingData().getLevel() + 1);
+
+        if (nextLevelBuildingData == null) {
+            LOG.error("Failed to get next building level for player " + this.playerSession.getPlayerId() + " for mapItem " +
+                    mapItem.getBuildingData().getBuildingID());
+            return null;
+        }
 
         int expectedCost = CurrencyHelper.getConstructionCost(nextLevelBuildingData, currencyType);
 
