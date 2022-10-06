@@ -225,8 +225,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             savePlayerKeepAlive(session, playerSession);
             session.commitTransaction();
-        } catch (MongoCommandException e) {
-            throw new RuntimeException("Failed to save player keepAlive " + playerSession.getPlayerId(), e);
+            playerSession.doneDBSave();
         }
     }
 
@@ -368,6 +367,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             }
             clientSession.commitTransaction();
+            invokerSession.doneDBSave();
         } catch (MongoCommandException ex) {
             throw new RuntimeException("Failed to save squad member role id=" + playerSession.getPlayerId(), ex);
         } finally {
@@ -399,20 +399,16 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         if (playerSession.getInventoryManager().needsSaving()) {
             combinedList.add(set("playerSettings.inventoryStorage", playerSession.getInventoryManager().getObjectForSaving()));
-//            LOG.info("Going to save smart for inventory credit.amount " + playerSession.getInventoryManager().getObjectForSaving().credits.amount);
             playerSession.getPlayerSettings().setInventoryStorage(playerSession.getInventoryManager().getObjectForSaving());
-            playerSession.getInventoryManager().doneDBSave();
         }
 
         if (playerSession.getScalarsManager().needsSaving()) {
             combinedList.add(set("playerSettings.scalars", playerSession.getScalarsManager().getObjectForSaving()));
             playerSession.getPlayerSettings().setScalars(playerSession.getScalarsManager().getObjectForSaving());
-            playerSession.getScalarsManager().doneDBSave();
         }
 
         if (playerSession.getCurrentPvPAttack().needsSaving()) {
             combinedList.add(set("currentPvPAttack", playerSession.getCurrentPvPAttack().getObjectForSaving()));
-            playerSession.getCurrentPvPAttack().doneDBSave();
         }
 
         Bson combinedSet = combine(combinedList);
@@ -611,10 +607,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             savePlayerSettings(playerSession, clientSession);
             this.squadCollection.insertOne(clientSession, squadInfo);
             clientSession.commitTransaction();
+            playerSession.doneDBSave();
         } catch (MongoCommandException e) {
             throw new RuntimeException("Failed to create new guild player id " + playerSession.getPlayerId(), e);
-        } finally {
-            playerSession.doneDBSave();
         }
     }
 
@@ -1388,8 +1383,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             clientSession.commitTransaction();
-        } catch (MongoCommandException ex) {
-            throw ex;
+            playerSession.doneDBSave();
         }
 
         return pvpMatch;
@@ -1552,6 +1546,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             }
 
             clientSession.commitTransaction();
+            playerSession.doneDBSave();
         }
 
         return pvpMatch;
@@ -1725,6 +1720,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                             set("currentPvPDefence.expiration", pvpAttack.expiration));
                 }
                 session.commitTransaction();
+                playerSession.doneDBSave();
             }
         }
     }
