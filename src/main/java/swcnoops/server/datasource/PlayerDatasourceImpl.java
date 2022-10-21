@@ -16,8 +16,7 @@ import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
-import swcnoops.server.game.GameConstants;
-import swcnoops.server.game.PvpMatch;
+import swcnoops.server.game.*;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.*;
@@ -47,6 +46,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private JacksonMongoCollection<SquadWar> squadWarCollection;
     private JacksonMongoCollection<SquadMemberWarData> squadMemberWarDataCollection;
     private MongoDatabase database;
+    private JacksonMongoCollection<Patch> patchesCollection;
 
     public PlayerDatasourceImpl() {
     }
@@ -139,6 +139,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 Indexes.ascending("guildId"),
                 Indexes.ascending("warId")),
                 new IndexOptions().unique(true));
+
+        this.patchesCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, mongoDBName, "patches", Patch.class, UuidRepresentation.STANDARD);
+        this.patchesCollection.createIndex(Indexes.ascending("patchName"), new IndexOptions().unique(true));
     }
 
     @Override
@@ -810,7 +814,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private void setSquadPlayerHQandXp(ClientSession clientSession, String guildId, String playerId,
                                   int hqLevel, int xp)
     {
-        UpdateResult result = this.squadCollection.updateOne(clientSession,
+        Squad result = this.squadCollection.findOneAndUpdate(clientSession,
                 and(eq("_id", guildId), Filters.eq("squadMembers.playerId", playerId)),
                 combine(set("squadMembers.$.hqLevel", hqLevel), set("squadMembers.$.xp", xp)));
     }
