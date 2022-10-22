@@ -20,6 +20,8 @@ import swcnoops.server.session.SessionManagerImpl;
 import swcnoops.server.trigger.CommandTriggerProcessor;
 import swcnoops.server.trigger.CommandTriggerProcessorImpl;
 
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.UUID;
@@ -89,6 +91,24 @@ public class ServiceFactory {
      */
     static public long getSystemTimeSecondsFromEpoch() {
         return System.currentTimeMillis() / 1000;
+    }
+
+    public static long convertJoeDate(String joeDate) {
+        long date = 0;
+        // 20:00,04-10-2022
+        if (joeDate != null && joeDate.length() > 0) {
+            try {
+                String[] dateTime = joeDate.split(",");
+                String utcFormat = dateTime[1] + "T" + dateTime[0] + ":00+0000";
+                ZonedDateTime instant = ZonedDateTime.parse(utcFormat,
+                        DateTimeFormatter.ofPattern("dd-MM-yyyy'T'HH:mm:ssZ"));
+                date = instant.toEpochSecond();
+            } catch (Exception exception) {
+                date = 0;
+            }
+        }
+
+        return date;
     }
 
     final public SessionManager getSessionManager() {

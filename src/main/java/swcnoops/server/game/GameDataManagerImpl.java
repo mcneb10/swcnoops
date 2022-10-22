@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.DevBase;
+import swcnoops.server.game.Joe.JoeFile;
 import swcnoops.server.model.*;
 import swcnoops.server.session.inventory.TroopRecord;
 import swcnoops.server.session.inventory.Troops;
@@ -37,11 +38,14 @@ public class GameDataManagerImpl implements GameDataManager {
     private Map<Integer, Float> pvpMedalScaling;
     private int[] pvpCosts;
     private List<Patch> availablePatches;
+    private PatchData patchData = new PatchData();
 
     @Override
     public void initOnStartup() {
         try {
             initialisePatchesAndManifest();
+            loadPatches();
+            initConflicts();
             loadTroops();
             loadBaseJsonAndGameConstants();
             this.traps = loadTraps();
@@ -52,6 +56,51 @@ public class GameDataManagerImpl implements GameDataManager {
             this.initialiseGameConstants();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
+        }
+    }
+
+    private void initConflicts() {
+        Map<String, TournamentData> map = this.patchData.getMap(TournamentData.class);
+        if (map != null) {
+            List<TournamentData> validConflicts = new ArrayList<>();
+            long now = ServiceFactory.getSystemTimeSecondsFromEpoch();
+            for (TournamentData data : map.values()) {
+                data.parseJoeDates();
+                // conflict is still valid
+                if (data.getStartTime() != 0 && data.getEndTime() != 0) {
+                    if (data.getEndTime() >= now) {
+                        validConflicts.add(data);
+                    }
+                }
+            }
+
+            // sort them in order
+            validConflicts.sort((a,b) -> Long.compare(a.getStartTime(), b.getStartTime()));
+        }
+    }
+
+    private void loadPatches() throws Exception {
+        List<Patch> patches = ServiceFactory.instance().getGameDataManager().getPatchesAvailable();
+        if (patches != null) {
+            Config config = ServiceFactory.instance().getConfig();
+            String newManifestFile = config.getNewManifestTemplatePath() + Config.padManifestVersion(config.getManifestVersionToUse()) + ".json";
+            Manifest manifest = ServiceFactory.instance().getJsonParser().fromJsonFile(newManifestFile, Manifest.class);
+            for (Patch patch : patches) {
+                ManifestPath manifestPath = manifest.paths.get("patches/" + patch.patchName);
+                if (manifestPath == null) {
+                    throw new RuntimeException("Expected manifest " + newManifestFile + " to contain path for " + patch.patchName);
+                }
+
+                String jsonPath = config.getAssetBundlePath() + "/" + manifestPath.v + "/patches/" + patch.patchName;
+                JoeFile joeFile = ServiceFactory.instance().getJsonParser().fromJsonFile(jsonPath, JoeFile.class);
+                mergePatchData(joeFile);
+            }
+        }
+    }
+
+    private void mergePatchData(JoeFile joeFile) throws Exception {
+        if (joeFile != null) {
+            this.patchData.merge(joeFile.getContent().getObjects());
         }
     }
 

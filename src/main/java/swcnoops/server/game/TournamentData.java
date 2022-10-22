@@ -1,6 +1,8 @@
 package swcnoops.server.game;
 
-public class TournamentData {
+import swcnoops.server.ServiceFactory;
+
+public class TournamentData implements JoeData {
     public String uid;
     public String startDate;
     public String endDate;
@@ -16,4 +18,33 @@ public class TournamentData {
     public String foregroundLeftTextureName;
     public String foregroundRightTextureName;
     public String rewardBanner;
+
+    private long startTime;
+    private long endTime;
+
+    @Override
+    public String getUid() {
+        return this.uid;
+    }
+
+    public void parseJoeDates() {
+        this.startTime = ServiceFactory.convertJoeDate(this.startDate);
+        this.endTime = ServiceFactory.convertJoeDate(this.endDate);
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(long endTime) {
+        this.endTime = endTime;
+    }
 }
