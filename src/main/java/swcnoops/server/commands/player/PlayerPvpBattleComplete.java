@@ -76,6 +76,32 @@ public class PlayerPvpBattleComplete extends PlayerBattleComplete<PlayerPvpBattl
 
         if (defender.defenseRating + defender.defenseRatingDelta < 0)
             defender.defenseRatingDelta = -defender.defenseRating;
+
+        attacker.tournamentRatingDelta = getAttackerTournamentMedals(stars, pvpMatch);
+        if (attacker.tournamentRating + attacker.tournamentRatingDelta < 0)
+            attacker.tournamentRatingDelta = -attacker.tournamentRating;
+
+        defender.tournamentRatingDelta = getDefenderTournamentMedals(stars, pvpMatch);
+        if (defender.tournamentRating + defender.tournamentRatingDelta < 0)
+            defender.tournamentRatingDelta = -defender.tournamentRating;
+    }
+
+    private int getAttackerTournamentMedals(int stars, PvpMatch pvpMatch) {
+        int medals = 0;
+
+        if (pvpMatch.getTournamentData() != null)
+            medals = ServiceFactory.instance().getGameDataManager().getTournamentAttackerMedals(stars);
+
+        return medals;
+    }
+
+    private int getDefenderTournamentMedals(int stars, PvpMatch pvpMatch) {
+        int medals = 0;
+
+        if (pvpMatch.getTournamentData() != null)
+            medals = ServiceFactory.instance().getGameDataManager().getTournamentDefenderMedals(stars);
+
+        return medals;
     }
 
     private int getDefendersMedals(int stars, PvpMatch pvpMatch) {

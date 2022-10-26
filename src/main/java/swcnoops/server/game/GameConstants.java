@@ -31,6 +31,15 @@ public class GameConstants {
     public Integer pvp_match_countdown;
     public Integer pvp_match_duration;
     public Integer squad_create_cost;
+    public Integer tournament_medal_base;
+    public Integer tournament_medal_scale;
+    public String tournament_rating_deltas_attacker;
+    public String tournament_rating_deltas_defender;
+
+    public Integer war_prep_duration;
+    public Integer war_cooldown_duration;
+    public Integer war_action_duration;
+    public Integer war_match_check_interval_seconds;
 
     public static GameConstants createFromBaseJson(List<Map<String, String>> gameConstants) throws Exception {
         GameConstants constants = new GameConstants();

@@ -4,6 +4,7 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
+import java.util.List;
 import java.util.Map;
 
 public class PlayerSettings {
@@ -27,6 +28,8 @@ public class PlayerSettings {
     private PlayerMap warMap;
     private String guildName;
     private Map<String,Integer> damagedBuildings;
+
+    private List<TournamentStat> tournaments;
 
     public PlayerSettings() {
     }
@@ -201,5 +204,13 @@ public class PlayerSettings {
 
     public void setDamagedBuildings(Map<String,Integer> damagedBuildings) {
         this.damagedBuildings = damagedBuildings;
+    }
+
+    public List<TournamentStat> getTournaments() {
+        return tournaments;
+    }
+
+    public void setTournaments(List<TournamentStat> tournaments) {
+        this.tournaments = tournaments;
     }
 }

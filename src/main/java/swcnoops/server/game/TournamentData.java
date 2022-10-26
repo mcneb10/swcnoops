@@ -47,4 +47,18 @@ public class TournamentData implements JoeData {
     public void setEndTime(long endTime) {
         this.endTime = endTime;
     }
+
+    public boolean hasExpired(long now) {
+        return this.getEndTime() < now;
+    }
+
+    public boolean isActive(long now) {
+        if (this.getStartTime() != 0 && this.getEndTime() != 0) {
+            if (this.getStartTime() <= now && this.getEndTime() >= now) {
+                return true;
+            }
+        }
+
+        return false;
+    }
 }

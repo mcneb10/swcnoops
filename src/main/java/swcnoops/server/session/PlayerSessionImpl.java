@@ -91,6 +91,13 @@ public class PlayerSessionImpl implements PlayerSession {
         }
     };
     private long lastLoginTime;
+    private DBCacheObject<List<TournamentStat>> tournamentsManager = new DBCacheObjectImpl<List<TournamentStat>>() {
+        @Override
+        protected List<TournamentStat> loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                    false, "playerSettings.tournaments").getTournaments();
+        }
+    };
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -113,6 +120,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.scalarsManager.initialise(this.player.getPlayerSettings().getScalars());
         this.currentPvPDefending.initialise(this.player.getCurrentPvPDefence());
         this.damagedBuildingManager.initialise(this.player.getPlayerSettings().getDamagedBuildings());
+        this.tournamentsManager.initialise(this.player.getPlayerSettings().getTournaments());
         this.lastLoginTime = player.getLoginTime();
     }
 
@@ -665,6 +673,26 @@ public class PlayerSessionImpl implements PlayerSession {
         pvpMatch.getDefendersScalars().defensesLost += battleReplay.battleLog.stars == 0 ? 0 : 1;
         pvpMatch.getDefendersScalars().defenseRating += pvpMatch.getDefender().defenseRatingDelta;
 
+        // update if it was for PvP
+        if (pvpMatch.getTournamentData() != null) {
+            ConflictManager conflictManager = ServiceFactory.instance().getGameDataManager().getConflictManager();
+            TournamentStat tournamentStat = conflictManager.getTournamentStats(pvpMatch.getDefendersTournaments(),
+                    pvpMatch.getTournamentData());
+
+            if (tournamentStat == null) {
+                tournamentStat = new TournamentStat();
+                tournamentStat.uid = pvpMatch.getTournamentData().getUid();
+                if (pvpMatch.getDefendersTournaments() == null) {
+                    pvpMatch.setDefendersTournaments(new ArrayList<>());
+                }
+
+                pvpMatch.getDefendersTournaments().add(tournamentStat);
+            }
+
+            tournamentStat.value += pvpMatch.getDefender().tournamentRatingDelta;
+            tournamentStat.defensesWon = battleReplay.battleLog.stars == 0 ? tournamentStat.defensesWon + 1 : tournamentStat.defensesWon;
+        }
+
         // what they gain is what the defender lose
         if (pvpMatch.getDefendersInventoryStorage() != null) {
             pvpMatch.getDefendersInventoryStorage().credits.amount -= pvpMatch.getCreditsGained();
@@ -757,6 +785,30 @@ public class PlayerSessionImpl implements PlayerSession {
     private void updatePlayerAfterPvPBattle(BattleReplay battleReplay, PvpMatch pvpMatch) {
         this.updatePlayerInventoryAfterPvP(pvpMatch);
         this.updateAttackScalars(battleReplay, pvpMatch);
+        this.updateTournaments(battleReplay, pvpMatch);
+    }
+
+    private void updateTournaments(BattleReplay battleReplay, PvpMatch pvpMatch) {
+        TournamentData tournamentData = pvpMatch.getTournamentData();
+        if (tournamentData != null) {
+            List<TournamentStat> tournamentStats = this.getTournamentsManager().getObjectForWriting();
+            if (tournamentStats == null) {
+                tournamentStats = new ArrayList<>();
+                this.getTournamentsManager().setObjectForSaving(tournamentStats);
+            }
+
+            ConflictManager conflictManager = ServiceFactory.instance().getGameDataManager().getConflictManager();
+            TournamentStat tournamentStat = conflictManager.getTournamentStats(tournamentStats, tournamentData);
+
+            if (tournamentStat == null) {
+                tournamentStat = new TournamentStat();
+                tournamentStat.uid = tournamentData.getUid();
+                tournamentStats.add(tournamentStat);
+            }
+
+            tournamentStat.value += pvpMatch.getAttacker().tournamentRatingDelta;
+            tournamentStat.attacksWon = battleReplay.battleLog.stars > 0 ? tournamentStat.attacksWon + 1 : tournamentStat.attacksWon;
+        }
     }
 
     // TODO - looks like in PvP will report looted over what is available for our storage
@@ -1387,6 +1439,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.pvPAttack.doneDBSave();
         this.inventoryManager.doneDBSave();
         this.scalarsManager.doneDBSave();
+        this.tournamentsManager.doneDBSave();
     }
 
     @Override
@@ -1400,8 +1453,17 @@ public class PlayerSessionImpl implements PlayerSession {
         return this.scalarsManager;
     }
 
+    public DBCacheObject<List<TournamentStat>> getTournamentsManager() {
+        return this.tournamentsManager;
+    }
+
     @Override
     public DBCacheObjectRead<Map<String, Integer>> getDamagedBuildingManager() {
         return this.damagedBuildingManager;
+    }
+
+    @Override
+    public DBCacheObject<List<TournamentStat>> getTournamentManager() {
+        return this.tournamentsManager;
     }
 }

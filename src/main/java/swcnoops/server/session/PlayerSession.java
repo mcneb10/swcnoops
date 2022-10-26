@@ -174,4 +174,6 @@ public interface PlayerSession {
     long getLastLoginTime();
 
     Map<String, Integer> levelUpTroopsByUid(Map<String, Integer> troopsDonated);
+
+    DBCacheObject<List<TournamentStat>> getTournamentManager();
 }

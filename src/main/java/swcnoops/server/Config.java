@@ -41,6 +41,7 @@ public class Config {
     public String mongoDBName = "dev";
 
     public int manifestVersion = 2045;
+    public String coreJsonPatches = "base.json;cae.json";
     private int manifestVersionToUse;
     static final public String manifestFileTemplate = "manifests/__manifest_zyngaswc_prod.";
 

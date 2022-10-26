@@ -2,10 +2,7 @@ package swcnoops.server.game.Joe;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.mongojack.Id;
-import swcnoops.server.game.CampaignData;
-import swcnoops.server.game.CampaignMissionData;
-import swcnoops.server.game.TournamentData;
-import swcnoops.server.game.TroopData;
+import swcnoops.server.game.*;
 
 import java.util.Date;
 import java.util.List;
@@ -69,6 +66,8 @@ public class JoeFile {
         private List<CampaignMissionData> campaignMissionData;
         @JsonProperty("TournamentData")
         private List<TournamentData> tournamentData;
+        @JsonProperty("TournamentTierData")
+        private List<TournamentTierData> tournamentTierData;
 
         public List<CampaignData> getCampaignData() {
             return campaignData;
@@ -92,6 +91,14 @@ public class JoeFile {
 
         public void setTournamentData(List<TournamentData> tournamentData) {
             this.tournamentData = tournamentData;
+        }
+
+        public List<TournamentTierData> getTournamentTierData() {
+            return tournamentTierData;
+        }
+
+        public void setTournamentTierData(List<TournamentTierData> tournamentTierData) {
+            this.tournamentTierData = tournamentTierData;
         }
     }
 }

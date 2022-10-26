@@ -37,15 +37,17 @@ public class GameDataManagerImpl implements GameDataManager {
 
     private Map<Integer, Float> pvpMedalScaling;
     private int[] pvpCosts;
+    private int[] tournamentAttackerMedals;
+    private int[] tournamentDefenderMedals;
     private List<Patch> availablePatches;
     private PatchData patchData = new PatchData();
+    private ConflictManagerImpl conflictManager = new ConflictManagerImpl();
 
     @Override
     public void initOnStartup() {
         try {
             initialisePatchesAndManifest();
             loadPatches();
-            initConflicts();
             loadTroops();
             loadBaseJsonAndGameConstants();
             this.traps = loadTraps();
@@ -54,12 +56,17 @@ public class GameDataManagerImpl implements GameDataManager {
             setupDevBases();
             this.factionBuildingEquivalentMap = create(this.buildingLevelsByBuildingId);
             this.initialiseGameConstants();
+            this.initConflictManager();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
         }
     }
 
-    private void initConflicts() {
+    private void initConflictManager() {
+        Map<String, TournamentTierData> tierDataMap = this.patchData.getMap(TournamentTierData.class);
+        TournamentTierData topTier = tierDataMap.values().stream().filter(t -> t.order == 1).findFirst().get();
+        this.conflictManager.setTopTier(topTier);
+
         Map<String, TournamentData> map = this.patchData.getMap(TournamentData.class);
         if (map != null) {
             List<TournamentData> validConflicts = new ArrayList<>();
@@ -74,27 +81,38 @@ public class GameDataManagerImpl implements GameDataManager {
                 }
             }
 
-            // sort them in order
-            validConflicts.sort((a,b) -> Long.compare(a.getStartTime(), b.getStartTime()));
+            this.conflictManager.setup(validConflicts);
         }
     }
 
     private void loadPatches() throws Exception {
-        List<Patch> patches = ServiceFactory.instance().getGameDataManager().getPatchesAvailable();
-        if (patches != null) {
-            Config config = ServiceFactory.instance().getConfig();
-            String newManifestFile = config.getNewManifestTemplatePath() + Config.padManifestVersion(config.getManifestVersionToUse()) + ".json";
-            Manifest manifest = ServiceFactory.instance().getJsonParser().fromJsonFile(newManifestFile, Manifest.class);
-            for (Patch patch : patches) {
-                ManifestPath manifestPath = manifest.paths.get("patches/" + patch.patchName);
-                if (manifestPath == null) {
-                    throw new RuntimeException("Expected manifest " + newManifestFile + " to contain path for " + patch.patchName);
-                }
+        List<Patch> patches = new ArrayList<>();
 
-                String jsonPath = config.getAssetBundlePath() + "/" + manifestPath.v + "/patches/" + patch.patchName;
-                JoeFile joeFile = ServiceFactory.instance().getJsonParser().fromJsonFile(jsonPath, JoeFile.class);
-                mergePatchData(joeFile);
+        if (ServiceFactory.instance().getConfig().coreJsonPatches != null) {
+            String[] corePatches = ServiceFactory.instance().getConfig().coreJsonPatches.split(";");
+            for (String corePatch : corePatches) {
+                Patch patch = new Patch();
+                patch.patchName = corePatch;
+                patches.add(patch);
             }
+        }
+
+        List<Patch> customPatches = ServiceFactory.instance().getGameDataManager().getPatchesAvailable();
+        if (customPatches != null)
+            patches.addAll(customPatches);
+
+        Config config = ServiceFactory.instance().getConfig();
+        String newManifestFile = config.getNewManifestTemplatePath() + Config.padManifestVersion(config.getManifestVersionToUse()) + ".json";
+        Manifest manifest = ServiceFactory.instance().getJsonParser().fromJsonFile(newManifestFile, Manifest.class);
+        for (Patch patch : patches) {
+            ManifestPath manifestPath = manifest.paths.get("patches/" + patch.patchName);
+            if (manifestPath == null) {
+                throw new RuntimeException("Expected manifest " + newManifestFile + " to contain path for " + patch.patchName);
+            }
+
+            String jsonPath = config.getAssetBundlePath() + "/" + manifestPath.v + "/patches/" + patch.patchName;
+            JoeFile joeFile = ServiceFactory.instance().getJsonParser().fromJsonFile(jsonPath, JoeFile.class);
+            mergePatchData(joeFile);
         }
     }
 
@@ -254,16 +272,48 @@ public class GameDataManagerImpl implements GameDataManager {
 
     private void initialiseGameConstants() {
         this.pvpCosts = this.getPvpCosts();
+        this.tournamentAttackerMedals = this.getTournamentAttackerMedals();
+        this.tournamentDefenderMedals = this.getTournamentDefenderMedals();
+    }
+
+    @Override
+    public int getTournamentAttackerMedals(int stars) {
+        return this.tournamentAttackerMedals[stars];
+    }
+
+    @Override
+    public int getTournamentDefenderMedals(int stars) {
+        return this.tournamentDefenderMedals[stars];
     }
 
     private int[] getPvpCosts() {
-        String costArray[] = this.gameConstants.pvp_search_cost_by_hq_level.split(" ");
-        int[] pvpCosts = new int[costArray.length];
-        for (int i = 0; i < costArray.length; i++) {
-            pvpCosts[i] = Integer.parseInt(costArray[i]);
+        return getGameIntegerArrayFromString(this.gameConstants.pvp_search_cost_by_hq_level);
+    }
+
+    private int[] getGameIntegerArrayFromString(String gameConstantString) {
+        String stringArray[] = gameConstantString.split(" ");
+        int[] integerArray = new int[stringArray.length];
+        for (int i = 0; i < stringArray.length; i++) {
+            integerArray[i] = Integer.parseInt(stringArray[i]);
         }
 
-        return pvpCosts;
+        return integerArray;
+    }
+
+    private int[] getTournamentAttackerMedals() {
+        int[] values = getGameIntegerArrayFromString(this.gameConstants.tournament_rating_deltas_attacker);
+        for (int i = 0; i < values.length; i++) {
+            values[i] = values[i] * this.gameConstants.tournament_medal_scale;
+        }
+        return values;
+    }
+
+    private int[] getTournamentDefenderMedals() {
+        int[] values = getGameIntegerArrayFromString(this.gameConstants.tournament_rating_deltas_defender);
+        for (int i = 0; i < values.length; i++) {
+            values[i] = values[i] * this.gameConstants.tournament_medal_scale;
+        }
+        return values;
     }
 
     private FactionBuildingEquivalentMap create(Map<String, List<BuildingData>> buildingLevelsByBuildingId) {
@@ -801,5 +851,10 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public List<Patch> getPatchesAvailable() {
         return this.availablePatches;
+    }
+
+    @Override
+    public ConflictManager getConflictManager() {
+        return this.conflictManager;
     }
 }

@@ -65,4 +65,9 @@ public interface GameDataManager {
 
     void setPatchesAvailable(List<Patch> availablePatches);
     List<Patch> getPatchesAvailable();
+    ConflictManager getConflictManager();
+
+    int getTournamentAttackerMedals(int stars);
+
+    int getTournamentDefenderMedals(int stars);
 }

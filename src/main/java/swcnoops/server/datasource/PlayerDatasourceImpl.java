@@ -16,6 +16,8 @@ import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.GuildHelper;
 import swcnoops.server.commands.player.PlayerIdentitySwitch;
+import swcnoops.server.datasource.buffers.FixedRingBuffer;
+import swcnoops.server.datasource.buffers.RingBuffer;
 import swcnoops.server.game.*;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -89,6 +91,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         // this unique index is used to prevent 2 players picking the same opponent
         this.playerCollection.createIndex(Indexes.ascending("currentPvPAttack.playerId"),
                 new IndexOptions().unique(true).partialFilterExpression(exists("currentPvPAttack.playerId")));
+
+        // TODO - need to check if the index is being used
+        this.playerCollection.createIndex(compoundIndex(Indexes.ascending("tournaments.uid"), Indexes.descending("tournaments.value")),
+                new IndexOptions().partialFilterExpression(exists("tournaments.uid")));
 
         this.squadCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, mongoDBName, "squad", SquadInfo.class, UuidRepresentation.STANDARD);
@@ -415,8 +421,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             combinedList.add(set("currentPvPAttack", playerSession.getCurrentPvPAttack().getObjectForSaving()));
         }
 
+        if (playerSession.getTournamentManager().needsSaving()) {
+            combinedList.add(set("playerSettings.tournaments", playerSession.getTournamentManager().getObjectForSaving()));
+        }
+
         Bson combinedSet = combine(combinedList);
-        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
+        Player result = this.playerCollection.findOneAndUpdate(session, Filters.eq("_id", playerSession.getPlayerId()),
                 combinedSet);
     }
 
@@ -453,6 +463,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
         if (playerSession.getScalarsManager().needsSaving()) {
             playerSession.getPlayerSettings().setScalars(playerSession.getScalarsManager().getObjectForSaving());
+        }
+        if (playerSession.getTournamentManager().needsSaving()) {
+            playerSession.getPlayerSettings().setTournaments(playerSession.getTournamentManager().getObjectForSaving());
         }
 
         Bson playerQuery = null;
@@ -1350,7 +1363,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                         "playerSettings.guildId", "playerSettings.guildName",
                         "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
                         "currentPvPDefence", "playerSettings.donatedTroops", "playerSettings.deployableTroops.champion",
-                        "playerSettings.creature", "playerSettings.troops")),
+                        "playerSettings.creature", "playerSettings.troops", "playerSettings.tournaments")),
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
@@ -1413,6 +1426,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         pvpMatch.setDefendersDeployableTroopsChampion(opponentPlayer.getPlayerSettings().getDeployableTroops().champion);
         pvpMatch.setDefendersCreature(opponentPlayer.getPlayerSettings().getCreature());
         pvpMatch.setDefendersTroops(opponentPlayer.getPlayerSettings().getTroops());
+        pvpMatch.setDefendersTournaments(opponentPlayer.getPlayerSettings().getTournaments());
         pvpMatch.creditsCharged = creditsCharged;
 
         return pvpMatch;
@@ -1588,16 +1602,23 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             // to properly fix may need optimistic locking with retries, or a more complex
             // update that can remove the individual donation counts using inc function.
             // Will need to have a think how to do this as will require redoing donations
+            List<Bson> sets = new ArrayList<>();
+            sets.add(set("playerSettings.scalars", pvpMatch.getDefendersScalars()));
+            sets.add(set("playerSettings.inventoryStorage", pvpMatch.getDefendersInventoryStorage()));
+            sets.add(set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings()));
+            sets.add(set("playerSettings.deployableTroops.champion", pvpMatch.getDefendersDeployableTroopsChampion()));
+            sets.add(set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap()));
+            sets.add(set("playerSettings.creature", pvpMatch.getDefendersCreature()));
+            sets.add(set("playerSettings.donatedTroops", pvpMatch.getDefendersDonatedTroops()));
+
+            if (pvpMatch.getTournamentData() != null) {
+                sets.add(set("playerSettings.tournaments", pvpMatch.getDefendersTournaments()));
+            }
+
             this.playerCollection.updateOne(session,
                     combine(eq("_id", defenderId),
                             eq("currentPvPDefence.battleId", battleId)),
-                    combine(set("playerSettings.scalars", pvpMatch.getDefendersScalars()),
-                            set("playerSettings.inventoryStorage", pvpMatch.getDefendersInventoryStorage()),
-                            set("playerSettings.damagedBuildings", pvpMatch.getDefenderDamagedBuildings()),
-                            set("playerSettings.deployableTroops.champion", pvpMatch.getDefendersDeployableTroopsChampion()),
-                            set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap()),
-                            set("playerSettings.creature", pvpMatch.getDefendersCreature()),
-                            set("playerSettings.donatedTroops", pvpMatch.getDefendersDonatedTroops())));
+                    combine(sets));
         }
     }
 
@@ -1725,6 +1746,123 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 }
                 session.commitTransaction();
                 playerSession.doneDBSave();
+            }
+        }
+    }
+
+    @Override
+    public TournamentLeaderBoard getTournamentLeaderBoard(String uid, String playerId) {
+        List<Bson> aggregates = Arrays.asList(Aggregates.match(eq("playerSettings.tournaments.uid", uid)),
+                Aggregates.unwind("$playerSettings.tournaments"),
+                Aggregates.match(eq("playerSettings.tournaments.uid", uid)),
+                Aggregates.project(Projections.fields(Projections.computed("uid", "$playerSettings.tournaments.uid"),
+                        Projections.computed("value", "$playerSettings.tournaments.value"),
+                        Projections.computed("attacksWon", "$playerSettings.tournaments.attacksWon"),
+                        Projections.computed("defensesWon", "$playerSettings.tournaments.defensesWon"),
+                        Projections.computed("name", "$playerSettings.name"),
+                        Projections.computed("guildId", "$playerSettings.guildId"),
+                        Projections.computed("faction", "$playerSettings.faction"),
+                        Projections.computed("hqLevel", "$playerSettings.hqLevel"),
+                        Projections.computed("planet", "$playerSettings.baseMap.planet"))),
+                Aggregates.sort(descending("value", "_id")));
+
+        TournamentLeaderBoard tournamentLeaderBoard;
+
+        AggregateIterable<TournamentStat> playerData = this.playerCollection.aggregate(aggregates, TournamentStat.class);
+        try (MongoCursor<TournamentStat> cursor = playerData.cursor()) {
+            TournamentStat previousStat = null;
+            RingBuffer top50 = new FixedRingBuffer(TournamentStat.class, 50);
+            RingBuffer surroundingMe = new FixedRingBuffer(TournamentStat.class, 50);
+            boolean foundPlayer = false;
+            int statsAfterPlayer = 20 / 2;
+
+            TournamentStat lastTournamentStat = null;
+            while (cursor.hasNext()) {
+                TournamentStat tournamentStat = cursor.next();
+                if (previousStat == null) {
+                    previousStat = tournamentStat;
+                    previousStat.rank = 1;
+                } else {
+                    if (tournamentStat.value == previousStat.value) {
+                        tournamentStat.rank = previousStat.rank;
+                    } else {
+                        tournamentStat.rank = previousStat.rank + 1;
+                    }
+                }
+
+                lastTournamentStat = tournamentStat;
+
+                // have we got the top 50 yet
+                if (top50.getNumberOfObjects() < top50.getCapacity()) {
+                    top50.add(tournamentStat);
+                }
+
+                // find rankings surrounding player
+                if (playerId != null) {
+                    if (statsAfterPlayer > 0)
+                        surroundingMe.add(tournamentStat);
+
+                    if (foundPlayer)
+                        statsAfterPlayer--;
+
+                    if (tournamentStat.playerId.equals(playerId)) {
+                        foundPlayer = true;
+                    }
+                }
+            }
+
+            tournamentLeaderBoard = new TournamentLeaderBoard(top50, surroundingMe, lastTournamentStat);
+            populateWithSquadDetails(tournamentLeaderBoard);
+        }
+
+        return tournamentLeaderBoard;
+    }
+
+    private void populateWithSquadDetails(TournamentLeaderBoard tournamentLeaderBoard) {
+        Set<String> guildIds = new HashSet<>();
+        Iterator<TournamentStat> iterator = tournamentLeaderBoard.getTop50().iterator();
+        while (iterator.hasNext()) {
+            TournamentStat stat = iterator.next();
+            if (stat.guildId != null)
+                guildIds.add(stat.guildId);
+        }
+
+        if (tournamentLeaderBoard.getSurroundingMe() != null) {
+            iterator = tournamentLeaderBoard.getSurroundingMe().iterator();
+            while (iterator.hasNext()) {
+                TournamentStat stat = iterator.next();
+                if (stat.guildId != null)
+                    guildIds.add(stat.guildId);
+            }
+        }
+
+        if (guildIds.size() > 0) {
+            Map<String, SquadInfo> squadInfoMap = new HashMap<>();
+
+            FindIterable<SquadInfo> squadInfoFindIterable = this.squadCollection.find(in("_id", guildIds))
+                    .projection(include("name", "icon"));
+            try (MongoCursor<SquadInfo> cursor = squadInfoFindIterable.cursor()) {
+                while (cursor.hasNext()) {
+                    SquadInfo squadInfo = cursor.next();
+                    squadInfoMap.put(squadInfo._id, squadInfo);
+                }
+            }
+
+            populateWithSquadDetails(squadInfoMap, tournamentLeaderBoard.getTop50());
+            populateWithSquadDetails(squadInfoMap, tournamentLeaderBoard.getSurroundingMe());
+        }
+    }
+
+    private void populateWithSquadDetails(Map<String, SquadInfo> squadInfoMap, RingBuffer<TournamentStat> ringBuffer) {
+        if (ringBuffer != null) {
+            Iterator<TournamentStat> iterator = ringBuffer.iterator();
+            while (iterator.hasNext()) {
+                TournamentStat tournamentStat = iterator.next();
+                if (tournamentStat.guildId != null) {
+                    SquadInfo squadInfo = squadInfoMap.get(tournamentStat.guildId);
+                    tournamentStat.guildName = squadInfo.name;
+                    tournamentStat.icon = squadInfo.icon;
+                }
             }
         }
     }

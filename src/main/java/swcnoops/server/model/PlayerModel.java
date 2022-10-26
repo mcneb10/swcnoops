@@ -19,7 +19,7 @@ public class PlayerModel {
     public List<BattleLog> battleLogs;
     public Map<String,Campaign> campaigns;
     public Map<String,Mission> missions;
-    public Object tournaments;
+    public Map<String, LeaderboardBattleHistory> tournaments;
     public Boolean isFueInProgress;
     public Map<String,Integer> DamagedBuildings;
     public Object deviceInfo;

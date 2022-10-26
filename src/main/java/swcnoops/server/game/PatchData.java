@@ -13,6 +13,7 @@ public class PatchData {
         merge((List<JoeData>)(List<?>)joeObjects.getTournamentData());
         merge((List<JoeData>)(List<?>)joeObjects.getCampaignData());
         merge((List<JoeData>)(List<?>)joeObjects.getCampaignMissionData());
+        merge((List<JoeData>)(List<?>)joeObjects.getTournamentTierData());
     }
 
     private void merge(List<JoeData> patchDatum) throws Exception {
