@@ -27,6 +27,13 @@ public class FixedRingBuffer<T> implements RingBuffer<T> {
     }
 
     @Override
+    public void clear() {
+        this.numberOfObjects = 0;
+        this.tail = 0;
+        this.head = -1;
+    }
+
+    @Override
     public int getTail() {
         return this.tail;
     }

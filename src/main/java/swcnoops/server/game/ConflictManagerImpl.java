@@ -14,6 +14,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ConflictManagerImpl implements ConflictManager {
     private volatile List<TournamentData> conflicts = new ArrayList<>();
     private Map<String, TournamentData> planetConflicts = new ConcurrentHashMap<>();
+    private Map<String, TournamentData> tournaments = new ConcurrentHashMap<>();
     private TournamentTierData topTier;
 
     public void setup(List<TournamentData> validConflicts) {
@@ -26,6 +27,7 @@ public class ConflictManagerImpl implements ConflictManager {
             for (TournamentData tournamentData : this.conflicts) {
                 if (tournamentData.isActive(now)) {
                     this.planetConflicts.put(tournamentData.planetId, tournamentData);
+                    this.tournaments.put(tournamentData.getUid(), tournamentData);
                 }
             }
         }
@@ -77,16 +79,35 @@ public class ConflictManagerImpl implements ConflictManager {
         return tournamentStat;
     }
 
-    private void calculatePercentile(RingBuffer top50, TournamentStat lastTournamentStat) {
-        Iterator<TournamentStat> statIterator = top50.iterator();
+    @Override
+    public TournamentData getTournament(String uid) {
+        return tournaments.get(uid);
+    }
 
+    private void calculatePercentile(RingBuffer top50, TournamentStat lastTournamentStat) {
+        float maxRank = calculateMaxRank(lastTournamentStat);
+
+        Iterator<TournamentStat> statIterator = top50.iterator();
+        while (statIterator.hasNext()) {
+            TournamentStat stat = statIterator.next();
+            calculatePercentile(stat, maxRank);
+        }
+    }
+
+    @Override
+    public void calculatePercentile(TournamentStat foundPlayer, TournamentStat lastTournamentStat) {
+        float maxRank = calculateMaxRank(lastTournamentStat);
+        calculatePercentile(foundPlayer, maxRank);
+    }
+
+    private float calculateMaxRank(TournamentStat lastTournamentStat) {
         float maxRank = lastTournamentStat.rank;
         float maxTierRank = 100 / this.getTopTier().percentage;
         maxRank = Math.max(maxTierRank, maxRank);
+        return maxRank;
+    }
 
-        while (statIterator.hasNext()) {
-            TournamentStat stat = statIterator.next();
-            stat.percentile = 100 * (stat.rank / maxRank);
-        }
+    private void calculatePercentile(TournamentStat foundPlayer, float maxRank) {
+        foundPlayer.percentile = 100 - (100 * (foundPlayer.rank / maxRank));
     }
 }

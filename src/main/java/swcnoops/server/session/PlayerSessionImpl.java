@@ -679,18 +679,11 @@ public class PlayerSessionImpl implements PlayerSession {
             TournamentStat tournamentStat = conflictManager.getTournamentStats(pvpMatch.getDefendersTournaments(),
                     pvpMatch.getTournamentData());
 
-            if (tournamentStat == null) {
-                tournamentStat = new TournamentStat();
-                tournamentStat.uid = pvpMatch.getTournamentData().getUid();
-                if (pvpMatch.getDefendersTournaments() == null) {
-                    pvpMatch.setDefendersTournaments(new ArrayList<>());
-                }
-
-                pvpMatch.getDefendersTournaments().add(tournamentStat);
+            // only if the player has attacked at least once to join conflict its defence will count
+            if (tournamentStat != null) {
+                tournamentStat.value += pvpMatch.getDefender().tournamentRatingDelta;
+                tournamentStat.defensesWon = battleReplay.battleLog.stars == 0 ? tournamentStat.defensesWon + 1 : tournamentStat.defensesWon;
             }
-
-            tournamentStat.value += pvpMatch.getDefender().tournamentRatingDelta;
-            tournamentStat.defensesWon = battleReplay.battleLog.stars == 0 ? tournamentStat.defensesWon + 1 : tournamentStat.defensesWon;
         }
 
         // what they gain is what the defender lose

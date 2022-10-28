@@ -12,4 +12,8 @@ public interface ConflictManager {
     void calculatePercentile(TournamentLeaderBoard leaderBoard);
 
     TournamentStat getTournamentStats(List<TournamentStat> tournaments, TournamentData tournamentData);
+
+    TournamentData getTournament(String uid);
+
+    void calculatePercentile(TournamentStat foundPlayer, TournamentStat lastTournamentStat);
 }

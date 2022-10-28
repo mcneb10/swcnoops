@@ -6,5 +6,10 @@ import swcnoops.server.requests.AbstractCommandResult;
 import java.util.Map;
 
 public class TournamentRanksResult extends AbstractCommandResult {
-    public Map<String, TournamentStat> tournamentRankResponse;
+    public Map<String, TournamentStat> tournaments;
+
+    @Override
+    public Object getResult() {
+        return this.tournaments;
+    }
 }

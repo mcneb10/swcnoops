@@ -10,4 +10,6 @@ public interface RingBuffer<T> extends Iterable<T> {
     int getNumberOfObjects();
 
     int getCapacity();
+
+    void clear();
 }

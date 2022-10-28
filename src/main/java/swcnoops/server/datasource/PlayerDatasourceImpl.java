@@ -1770,7 +1770,6 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         AggregateIterable<TournamentStat> playerData = this.playerCollection.aggregate(aggregates, TournamentStat.class);
         try (MongoCursor<TournamentStat> cursor = playerData.cursor()) {
-            TournamentStat previousStat = null;
             RingBuffer top50 = new FixedRingBuffer(TournamentStat.class, 50);
             RingBuffer surroundingMe = new FixedRingBuffer(TournamentStat.class, 50);
             boolean foundPlayer = false;
@@ -1779,14 +1778,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             TournamentStat lastTournamentStat = null;
             while (cursor.hasNext()) {
                 TournamentStat tournamentStat = cursor.next();
-                if (previousStat == null) {
-                    previousStat = tournamentStat;
-                    previousStat.rank = 1;
+                if (lastTournamentStat == null) {
+                    tournamentStat.rank = 1;
                 } else {
-                    if (tournamentStat.value == previousStat.value) {
-                        tournamentStat.rank = previousStat.rank;
+                    if (tournamentStat.value == lastTournamentStat.value) {
+                        tournamentStat.rank = lastTournamentStat.rank;
                     } else {
-                        tournamentStat.rank = previousStat.rank + 1;
+                        tournamentStat.rank = lastTournamentStat.rank + 1;
                     }
                 }
 
@@ -1816,6 +1814,49 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
 
         return tournamentLeaderBoard;
+    }
+
+    @Override
+    public TournamentStat getTournamentPlayerRank(String uid, String playerId) {
+        List<Bson> aggregates = Arrays.asList(Aggregates.match(eq("playerSettings.tournaments.uid", uid)),
+                Aggregates.unwind("$playerSettings.tournaments"),
+                Aggregates.match(eq("playerSettings.tournaments.uid", uid)),
+                Aggregates.project(Projections.fields(Projections.computed("uid", "$playerSettings.tournaments.uid"),
+                        Projections.computed("value", "$playerSettings.tournaments.value"),
+                        Projections.computed("attacksWon", "$playerSettings.tournaments.attacksWon"),
+                        Projections.computed("defensesWon", "$playerSettings.tournaments.defensesWon"))),
+                Aggregates.sort(descending("value", "_id")));
+
+        AggregateIterable<TournamentStat> playerData = this.playerCollection.aggregate(aggregates, TournamentStat.class);
+        TournamentStat foundPlayer = null;
+        try (MongoCursor<TournamentStat> cursor = playerData.cursor()) {
+            TournamentStat lastTournamentStat = null;
+            while (cursor.hasNext()) {
+                TournamentStat tournamentStat = cursor.next();
+                if (lastTournamentStat == null) {
+                    tournamentStat.rank = 1;
+                } else {
+                    if (tournamentStat.value == lastTournamentStat.value) {
+                        tournamentStat.rank = lastTournamentStat.rank;
+                    } else {
+                        tournamentStat.rank = lastTournamentStat.rank + 1;
+                    }
+                }
+
+                lastTournamentStat = tournamentStat;
+
+                if (foundPlayer == null && tournamentStat.playerId.equals(playerId)) {
+                    foundPlayer = tournamentStat;
+                }
+            }
+
+            if (foundPlayer != null) {
+                ConflictManager conflictManager = ServiceFactory.instance().getGameDataManager().getConflictManager();
+                conflictManager.calculatePercentile(foundPlayer, lastTournamentStat);
+            }
+        }
+
+        return foundPlayer;
     }
 
     private void populateWithSquadDetails(TournamentLeaderBoard tournamentLeaderBoard) {

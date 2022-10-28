@@ -5,6 +5,7 @@ import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.Command;
 import swcnoops.server.datasource.PlayerSettings;
 import swcnoops.server.datasource.PvpAttack;
+import swcnoops.server.datasource.TournamentStat;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
@@ -102,8 +103,36 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.scalars = playerSession.getScalarsManager().getObjectForReading();
         playerLoginResponse.playerModel.battleLogs = ServiceFactory.instance().getPlayerDatasource().getPlayerBattleLogs(playerSession.getPlayerId());
         playerLoginResponse.playerModel.DamagedBuildings = mapDamagedBuildings(playerSession);
+        playerLoginResponse.playerModel.tournaments = mapTournaments(playerSession);
 
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
+    }
+
+    private Map<String, Tournament> mapTournaments(PlayerSession playerSession) {
+        Map<String, Tournament> tournaments = null;
+
+        List<TournamentStat> tournamentStats = playerSession.getPlayerSettings().getTournaments();
+
+        if (tournamentStats != null) {
+            tournaments = new HashMap<>();
+            for (TournamentStat tournamentStat : tournamentStats) {
+                Tournament tournament = new Tournament();
+                tournament.uid = tournamentStat.uid;
+                tournament.bestTier = 1;
+                tournament.rating = tournamentStat.value;
+                tournament.redeemedRewards = null;
+                tournament.collected = false;
+
+                // TODO - when conflict finishes
+                tournament.finalRank = new TournamentRank();
+                tournament.finalRank.percentile = 2;
+                tournament.finalRank.tier = null;
+                
+                tournaments.put(tournamentStat.uid, tournament);
+            }
+        }
+
+        return tournaments;
     }
 
     private Map<String, Long> mapCurrentlyDefending(PlayerSession playerSession) {

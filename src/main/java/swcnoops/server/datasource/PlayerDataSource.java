@@ -124,4 +124,6 @@ public interface PlayerDataSource {
     Squad loadSquad(String guildId);
 
     TournamentLeaderBoard getTournamentLeaderBoard(String uid, String playerId);
+
+    TournamentStat getTournamentPlayerRank(String uid, String playerId);
 }

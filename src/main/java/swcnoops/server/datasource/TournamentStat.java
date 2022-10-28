@@ -1,8 +1,10 @@
 package swcnoops.server.datasource;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import org.mongojack.Id;
 import swcnoops.server.model.FactionType;
 
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class TournamentStat {
     @Id
     public String playerId;
@@ -11,7 +13,7 @@ public class TournamentStat {
     public int attacksWon;
     public int defensesWon;
     public Integer rank;
-    public float percentile;
+    public Float percentile;
     public String name;
     public FactionType faction;
     public String planet;
