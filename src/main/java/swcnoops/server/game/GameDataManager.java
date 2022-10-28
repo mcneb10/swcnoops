@@ -62,4 +62,12 @@ public interface GameDataManager {
     Map<String,Integer> remapTroopUidToUnitId(Map<String, Integer> troopUids);
 
     TroopData getTroopByUnitId(Troops troops, String unitId);
+
+    void setPatchesAvailable(List<Patch> availablePatches);
+    List<Patch> getPatchesAvailable();
+    ConflictManager getConflictManager();
+
+    int getTournamentAttackerMedals(int stars);
+
+    int getTournamentDefenderMedals(int stars);
 }

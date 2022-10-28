@@ -16,15 +16,10 @@ public class Config {
      */
     public String templateDir = "newPlayer";
     public String playerLoginTemplate = templateDir + "/" + "playerLogin.json";
-    public String playerContentGetTemplate = templateDir + "/" + "playerContentGet.json";
-    public String guildWarGetParticipantTemplate = templateDir + "/" + "guildWarGetParticipant.json";
     public String swcFolderName = "swcFiles";
     public String swcRootPath = "c:/swcnoops/";
     public String layoutsPath = swcRootPath + "layouts";
     public String event2BiLoggingIpAddress = "http://192.168.1.142:8080";
-    public String playerSqliteDB = "jdbc:sqlite:" + swcRootPath + "players.db";
-    public String playerCreatePlayerDBSqlResource = "sqlite/createPlayerSqliteTable.sql";
-
     public String troopJson = "patches/manifest45/trp.json";
     public String baseJson = "patches/manifest45/base.json";
     public String caeJson = "patches/manifest45/cae.json";
@@ -44,6 +39,32 @@ public class Config {
     public boolean handleMissingAccounts = true;
     public String mongoDBConnection = "mongodb+srv://user:password@localhost/?retryWrites=true&w=majority";
     public String mongoDBName = "dev";
+
+    public int manifestVersion = 2045;
+    public String coreJsonPatches = "base.json;cae.json";
+    private int manifestVersionToUse;
+    static final public String manifestFileTemplate = "manifests/__manifest_zyngaswc_prod.";
+
+    public String getAssetBundlePath() {
+        return ServiceFactory.instance().getConfig().swcRootPath + "/" +
+                ServiceFactory.instance().getConfig().swcFolderName;
+    }
+
+    public String getPatchesPath() {
+        return getAssetBundlePath() + "/patches/";
+    }
+
+    public String getNewManifestTemplatePath() {
+        return getAssetBundlePath() + "/" + manifestFileTemplate;
+    }
+
+    public String getBaseManifestPath() {
+        return getNewManifestTemplatePath() + padManifestVersion(this.manifestVersion) + ".json";
+    }
+
+    static public String padManifestVersion(int manifestVersion) {
+        return String.format("%05d", manifestVersion);
+    }
 
     public void setFromProperties(Properties properties) throws Exception {
         Class<?> clazz = this.getClass();
@@ -75,5 +96,16 @@ public class Config {
         }
 
         return null;
+    }
+
+    public void setManifestVersionToUse(int manifestVersionToUse) {
+        this.manifestVersionToUse = manifestVersionToUse;
+    }
+
+    public int getManifestVersionToUse() {
+        if (manifestVersionToUse == 0)
+            return Integer.valueOf(this.manifestVersion);
+
+        return manifestVersionToUse;
     }
 }

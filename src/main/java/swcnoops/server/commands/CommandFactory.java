@@ -32,7 +32,6 @@ public class CommandFactory {
         this.add(new GuildGet());
         this.add(new GuildWarStatus());
         this.add(new PlayerKeepAlive());
-        this.add(new PlayerLeaderboardTournamentGetRanks());
         this.add(new PlayerStoreOffersGet());
         this.add(new PlayerStoreShardOffersGet());
         this.add(new PlayerCrateCheckDaily());
@@ -127,6 +126,9 @@ public class CommandFactory {
         this.add(new PlayerCrateAward());
 
         this.add(new PlayerNeighborVisit());
+        this.add(new PlayerLeaderboardTournamentGetLeaders());
+        this.add(new PlayerLeaderboardTournamentGetRanks());
+        this.add(new PlayerLeaderboardTournamentGetRank());
 
         // TODO - this command looks like it will bring up some sort of dialog on the client related to CommandCenterVO
         this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));

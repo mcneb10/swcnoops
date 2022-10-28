@@ -3,6 +3,7 @@ package swcnoops.server.commands.player;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PvpTargetCommandResult;
+import swcnoops.server.datasource.TournamentStat;
 import swcnoops.server.game.*;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
@@ -45,6 +46,13 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         response.faction = pvpMatch.getFactionType();
         response.level = pvpMatch.getLevel();
         response.champions = new HashMap<>();
+
+        // set tournament
+        TournamentData tournamentData = ServiceFactory.instance().getGameDataManager().getConflictManager()
+                .getConflict(playerSession.getPlayerSettings().getBaseMap().planet);
+        if (tournamentData.isActive(ServiceFactory.getSystemTimeSecondsFromEpoch())) {
+            pvpMatch.setTournamentData(tournamentData);
+        }
 
         if (pvpMatch.isDevBase()) {
             response.name = ServiceFactory.instance().getGameDataManager().randomDevBaseName();
@@ -107,20 +115,27 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
             pvpMatch.setDefendersScalars(new Scalars());
 
         Scalars defendersScalars = pvpMatch.getDefendersScalars();
+        ConflictManager conflictManager = ServiceFactory.instance().getGameDataManager().getConflictManager();
+        TournamentStat defendersTournamentStat = conflictManager.getTournamentStats(pvpMatch.getDefendersTournaments(),
+                pvpMatch.getTournamentData());
+        int defendersTournamentRating = defendersTournamentStat != null ? defendersTournamentStat.value : 0;
 
         BattleParticipant defender = new BattleParticipant(response.playerId, response.name, response.guildId, response.guildName,
-                defendersScalars.attackRating, defendersScalars.defenseRating, 0, pvpMatch.getFactionType());
+                defendersScalars.attackRating, defendersScalars.defenseRating, defendersTournamentRating, pvpMatch.getFactionType());
 
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(pvpMatch.getPlayerId());
         String guildName = playerSession.getGuildSession() == null ? null : playerSession.getGuildSession().getGuildName();
 
         Scalars scalars = playerSession.getScalarsManager().getObjectForReading();
+        TournamentStat attackersTournamentStat = conflictManager.getTournamentStats(playerSession.getPlayerSettings().getTournaments(),
+                pvpMatch.getTournamentData());
 
+        int attackerTournamentRating = attackersTournamentStat != null ? attackersTournamentStat.value : 0;
         BattleParticipant attacker = new BattleParticipant(pvpMatch.getPlayerId(),
                 playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerSettings().getGuildId(),
                 guildName,
-                scalars.attackRating, scalars.defenseRating, 0,
+                scalars.attackRating, scalars.defenseRating, attackerTournamentRating,
                 playerSession.getFaction());
 
         pvpMatch.setDefender(defender);
@@ -133,14 +148,19 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         // TODO - this impacts medals need to decide how to formulate
         int potentialScoreWin = Math.max(random.nextInt(50), 12);
         int potentialScoreLose = Math.max(random.nextInt(50), 12);
-
-        // TODO - these are conflict points, need to decide how to formulate when running conflicts
-        // for now these will be 0
         int potentialPointsWin = 0;
         int potentialPointsLose = 0;
 
+        if (pvpMatch.getTournamentData() != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            potentialPointsWin = gameDataManager.getTournamentAttackerMedals(3);
+            potentialPointsLose = gameDataManager.getTournamentAttackerMedals(0);
+        }
+
         pvpMatch.setPotentialScoreWin(potentialScoreWin);
         pvpMatch.setPotentialScoreLose(potentialScoreLose);
+        pvpMatch.setPotentialPointsWin(potentialPointsWin);
+        pvpMatch.setPotentialPointsLose(potentialPointsLose);
 
         Map<String, Integer> potentialPoints = new HashMap<>();
         potentialPoints.put("potentialScoreWin", potentialScoreWin);

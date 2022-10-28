@@ -2,8 +2,10 @@ package swcnoops.server.game;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import swcnoops.server.Config;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.datasource.DevBase;
+import swcnoops.server.game.Joe.JoeFile;
 import swcnoops.server.model.*;
 import swcnoops.server.session.inventory.TroopRecord;
 import swcnoops.server.session.inventory.Troops;
@@ -35,10 +37,17 @@ public class GameDataManagerImpl implements GameDataManager {
 
     private Map<Integer, Float> pvpMedalScaling;
     private int[] pvpCosts;
+    private int[] tournamentAttackerMedals;
+    private int[] tournamentDefenderMedals;
+    private List<Patch> availablePatches;
+    private PatchData patchData = new PatchData();
+    private ConflictManagerImpl conflictManager = new ConflictManagerImpl();
 
     @Override
     public void initOnStartup() {
         try {
+            initialisePatchesAndManifest();
+            loadPatches();
             loadTroops();
             loadBaseJsonAndGameConstants();
             this.traps = loadTraps();
@@ -47,23 +56,264 @@ public class GameDataManagerImpl implements GameDataManager {
             setupDevBases();
             this.factionBuildingEquivalentMap = create(this.buildingLevelsByBuildingId);
             this.initialiseGameConstants();
+            this.initConflictManager();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
         }
     }
 
+    private void initConflictManager() {
+        Map<String, TournamentTierData> tierDataMap = this.patchData.getMap(TournamentTierData.class);
+        TournamentTierData topTier = tierDataMap.values().stream().filter(t -> t.order == 1).findFirst().get();
+        this.conflictManager.setTopTier(topTier);
+
+        Map<String, TournamentData> map = this.patchData.getMap(TournamentData.class);
+        if (map != null) {
+            List<TournamentData> validConflicts = new ArrayList<>();
+            long now = ServiceFactory.getSystemTimeSecondsFromEpoch();
+            for (TournamentData data : map.values()) {
+                data.parseJoeDates();
+                // conflict is still valid
+                if (data.getStartTime() != 0 && data.getEndTime() != 0) {
+                    if (data.getEndTime() >= now) {
+                        validConflicts.add(data);
+                    }
+                }
+            }
+
+            this.conflictManager.setup(validConflicts);
+        }
+    }
+
+    private void loadPatches() throws Exception {
+        List<Patch> patches = new ArrayList<>();
+
+        if (ServiceFactory.instance().getConfig().coreJsonPatches != null) {
+            String[] corePatches = ServiceFactory.instance().getConfig().coreJsonPatches.split(";");
+            for (String corePatch : corePatches) {
+                Patch patch = new Patch();
+                patch.patchName = corePatch;
+                patches.add(patch);
+            }
+        }
+
+        List<Patch> customPatches = ServiceFactory.instance().getGameDataManager().getPatchesAvailable();
+        if (customPatches != null)
+            patches.addAll(customPatches);
+
+        Config config = ServiceFactory.instance().getConfig();
+        String newManifestFile = config.getNewManifestTemplatePath() + Config.padManifestVersion(config.getManifestVersionToUse()) + ".json";
+        Manifest manifest = ServiceFactory.instance().getJsonParser().fromJsonFile(newManifestFile, Manifest.class);
+        for (Patch patch : patches) {
+            ManifestPath manifestPath = manifest.paths.get("patches/" + patch.patchName);
+            if (manifestPath == null) {
+                throw new RuntimeException("Expected manifest " + newManifestFile + " to contain path for " + patch.patchName);
+            }
+
+            String jsonPath = config.getAssetBundlePath() + "/" + manifestPath.v + "/patches/" + patch.patchName;
+            JoeFile joeFile = ServiceFactory.instance().getJsonParser().fromJsonFile(jsonPath, JoeFile.class);
+            mergePatchData(joeFile);
+        }
+    }
+
+    private void mergePatchData(JoeFile joeFile) throws Exception {
+        if (joeFile != null) {
+            this.patchData.merge(joeFile.getContent().getObjects());
+        }
+    }
+
+    private void initialisePatchesAndManifest() throws Exception {
+        // see if we have any patches we want to include
+        List<Patch> availablePatches = loadPatchesFromFile();
+        List<Patch> patchesWithJsonFile = validatePatchPath(availablePatches);
+
+        Manifest baseManifest = ServiceFactory.instance().getJsonParser()
+                .fromJsonFile(ServiceFactory.instance().getConfig().getBaseManifestPath(), Manifest.class);
+
+        List<Patch> patchesMissing = validateWithManifest(patchesWithJsonFile, baseManifest);
+
+        if (patchesMissing.size() > 0) {
+            int patchedManifestFileVersion = createNewManifest(patchesWithJsonFile, patchesMissing, baseManifest);
+            ServiceFactory.instance().getConfig().setManifestVersionToUse(patchedManifestFileVersion);
+        }
+
+        ServiceFactory.instance().getGameDataManager().setPatchesAvailable(patchesWithJsonFile);
+    }
+
+    private List<Patch> loadPatchesFromFile() throws Exception {
+        List<Patch> patches = new ArrayList<>();
+        String unprocessedPatchesRoot = ServiceFactory.instance().getConfig().getPatchesPath();
+
+        Map<String, Patch> versionMap = new HashMap<>();
+        File versionFile = new File(unprocessedPatchesRoot + "/version.json");
+        if (versionFile.exists()) {
+            PatchVersions patchVersions = ServiceFactory.instance().getJsonParser()
+                    .fromJsonFile(unprocessedPatchesRoot + "/version.json", PatchVersions.class);
+
+            if (patchVersions != null && patchVersions.patches != null) {
+                for (Patch patch : patchVersions.patches) {
+                    versionMap.put(patch.patchName, patch);
+                }
+            }
+        }
+
+        List<File> patchFiles = GameDataManagerImpl.listFiles(unprocessedPatchesRoot);
+        for (File patchFile : patchFiles) {
+            String patchName = patchFile.getName();
+            if (patchName.toLowerCase().endsWith(".json") && !patchName.equalsIgnoreCase("version.json")) {
+                Patch patch = new Patch();
+                patch.patchName = patchFile.getName();
+                patch.crcChecksum = Long.toHexString(GameDataManagerImpl.getCRC32Checksum(new FileInputStream(patchFile))).toUpperCase();
+
+                Patch patchVersion = versionMap.get(patchName);
+                if (patchVersion != null) {
+                    patch.version = patchVersion.version;
+                }
+
+                patches.add(patch);
+            }
+        }
+
+        return patches;
+    }
+
+    private int createNewManifest(List<Patch> availablePatches, List<Patch> patchesMissing, Manifest baseManifest)
+            throws Exception
+    {
+        int nextPossiblePatchVersion = Integer.parseInt(baseManifest.version) + 1;
+        boolean foundNextManifestVersion = false;
+        boolean createNewManifest = false;
+
+        do {
+            String newManifestFile = ServiceFactory.instance().getConfig().getNewManifestTemplatePath() +
+                    Config.padManifestVersion(nextPossiblePatchVersion) + ".json";
+            File newFile = new File(newManifestFile);
+            if (newFile.exists()) {
+                LOG.info("Manifest for patches already exists, will check if patches match " + newManifestFile);
+                Manifest newManifest = ServiceFactory.instance().getJsonParser()
+                        .fromJsonFile(newManifestFile, Manifest.class);
+                List<Patch> patchesMissingInNew = validateWithManifest(availablePatches, newManifest);
+                if (patchesMissingInNew.size() > 0) {
+                    nextPossiblePatchVersion++;
+                } else {
+                    // this version has all the patches and is correct
+                    foundNextManifestVersion = true;
+                }
+            } else {
+                foundNextManifestVersion = true;
+                createNewManifest = true;
+            }
+        } while(!foundNextManifestVersion);
+
+        if (createNewManifest) {
+            for (Patch patch : patchesMissing) {
+                ManifestPath manifestPath = new ManifestPath();
+                manifestPath.crc = patch.crcChecksum;
+                manifestPath.v = patch.version;
+
+                baseManifest.paths.put("patches/" + patch.patchName, manifestPath);
+                baseManifest.paths.put("patches/" + patch.patchName + ".joe", manifestPath);
+                baseManifest.paths.put("patches/" + patch.patchName + ".standalonewindows.assetbundle", manifestPath);
+                baseManifest.paths.put("patches/" + patch.patchName + ".ios.assetbundle", manifestPath);
+                baseManifest.paths.put("patches/" + patch.patchName + ".android.assetbundle", manifestPath);
+            }
+
+            String newManifestFile = ServiceFactory.instance().getConfig().getNewManifestTemplatePath() +
+                    Config.padManifestVersion(nextPossiblePatchVersion) + ".json";
+            LOG.info("Going to create manifest for patches " + newManifestFile);
+            File newFile = new File(newManifestFile);
+            if (!newFile.exists()) {
+                baseManifest.version = Config.padManifestVersion(nextPossiblePatchVersion);
+                String manifestJson = ServiceFactory.instance().getJsonParser().toJson(baseManifest);
+                FileWriter myWriter = new FileWriter(newManifestFile);
+                myWriter.write(manifestJson);
+                myWriter.close();
+            } else {
+                throw new Exception("Manifest already exists but was expecting to create one " + newManifestFile);
+            }
+        }
+
+        return nextPossiblePatchVersion;
+    }
+
+    private List<Patch> validateWithManifest(List<Patch> patchesWithJsonFile, Manifest baseManifest) {
+        List<Patch> missingPatches = new ArrayList<>();
+        for (Patch patch : patchesWithJsonFile) {
+            ManifestPath manifestPath = baseManifest.paths.get("patches/" + patch.patchName);
+            if (manifestPath != null) {
+                // check to see if same version and CRC
+                if (manifestPath.v != patch.version || !manifestPath.crc.equalsIgnoreCase(patch.crcChecksum))
+                    manifestPath = null;
+            }
+
+            if (manifestPath == null)
+                missingPatches.add(patch);
+        }
+
+        return missingPatches;
+    }
+
+    private List<Patch> validatePatchPath(List<Patch> patches) throws Exception {
+        List<Patch> processedPatches = new ArrayList<>();
+        String patchesPath = ServiceFactory.instance().getConfig().getAssetBundlePath();
+        for (Patch patch : patches) {
+            String patchFullPath = patchesPath + "/" + patch.version + "/patches/" + patch.patchName;
+            File file = new File(patchFullPath);
+            if (!file.exists()) {
+                throw new Exception("Patch file " + patch.patchName + " has not been processed, could not find " + patchFullPath);
+            }
+
+            processedPatches.add(patch);
+        }
+
+        return processedPatches;
+    }
+
+
     private void initialiseGameConstants() {
         this.pvpCosts = this.getPvpCosts();
+        this.tournamentAttackerMedals = this.getTournamentAttackerMedals();
+        this.tournamentDefenderMedals = this.getTournamentDefenderMedals();
+    }
+
+    @Override
+    public int getTournamentAttackerMedals(int stars) {
+        return this.tournamentAttackerMedals[stars];
+    }
+
+    @Override
+    public int getTournamentDefenderMedals(int stars) {
+        return this.tournamentDefenderMedals[stars];
     }
 
     private int[] getPvpCosts() {
-        String costArray[] = this.gameConstants.pvp_search_cost_by_hq_level.split(" ");
-        int[] pvpCosts = new int[costArray.length];
-        for (int i = 0; i < costArray.length; i++) {
-            pvpCosts[i] = Integer.parseInt(costArray[i]);
+        return getGameIntegerArrayFromString(this.gameConstants.pvp_search_cost_by_hq_level);
+    }
+
+    private int[] getGameIntegerArrayFromString(String gameConstantString) {
+        String stringArray[] = gameConstantString.split(" ");
+        int[] integerArray = new int[stringArray.length];
+        for (int i = 0; i < stringArray.length; i++) {
+            integerArray[i] = Integer.parseInt(stringArray[i]);
         }
 
-        return pvpCosts;
+        return integerArray;
+    }
+
+    private int[] getTournamentAttackerMedals() {
+        int[] values = getGameIntegerArrayFromString(this.gameConstants.tournament_rating_deltas_attacker);
+        for (int i = 0; i < values.length; i++) {
+            values[i] = values[i] * this.gameConstants.tournament_medal_scale;
+        }
+        return values;
+    }
+
+    private int[] getTournamentDefenderMedals() {
+        int[] values = getGameIntegerArrayFromString(this.gameConstants.tournament_rating_deltas_defender);
+        for (int i = 0; i < values.length; i++) {
+            values[i] = values[i] * this.gameConstants.tournament_medal_scale;
+        }
+        return values;
     }
 
     private FactionBuildingEquivalentMap create(Map<String, List<BuildingData>> buildingLevelsByBuildingId) {
@@ -483,7 +733,7 @@ public class GameDataManagerImpl implements GameDataManager {
         }
 
         try {
-            List<File> layouts = listf(ServiceFactory.instance().getConfig().layoutsPath);
+            List<File> layouts = listFiles(ServiceFactory.instance().getConfig().layoutsPath);
             for (File layoutFile : layouts) {
                 Buildings mapObject = ServiceFactory.instance().getJsonParser()
                         .fromJsonFile(layoutFile.getAbsolutePath(), Buildings.class);
@@ -536,14 +786,25 @@ public class GameDataManagerImpl implements GameDataManager {
         return crc32.getValue();
     }
 
-    private List<File> listf(String directoryName) {
+    public static long getCRC32Checksum(InputStream in) throws IOException {
+        Checksum crcMaker = new CRC32();
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while((bytesRead = in.read(buffer)) != -1) {
+            crcMaker.update(buffer, 0, bytesRead);
+        }
+        long crc = crcMaker.getValue(); // This is your error checking code
+        return crc;
+    }
+
+    static public List<File> listFiles(String directoryName) {
         File directory = new File(directoryName);
         List<File> resultList = new ArrayList<>();
         // get all the files from a directory
         File[] fList = directory.listFiles();
         for (File file : fList) {
             if (file.isDirectory()) {
-                resultList.addAll(listf(file.getAbsolutePath()));
+                resultList.addAll(listFiles(file.getAbsolutePath()));
             } else if (file.getAbsolutePath().toLowerCase().endsWith(".json")) {
                 resultList.add(file);
             }
@@ -580,5 +841,20 @@ public class GameDataManagerImpl implements GameDataManager {
             level = troopRecord.getLevel();
 
         return getTroopDataByUnitId(unitId, level);
+    }
+
+    @Override
+    public void setPatchesAvailable(List<Patch> availablePatches) {
+        this.availablePatches = availablePatches;
+    }
+
+    @Override
+    public List<Patch> getPatchesAvailable() {
+        return this.availablePatches;
+    }
+
+    @Override
+    public ConflictManager getConflictManager() {
+        return this.conflictManager;
     }
 }

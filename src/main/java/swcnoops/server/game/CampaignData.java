@@ -2,7 +2,7 @@ package swcnoops.server.game;
 
 import swcnoops.server.model.FactionType;
 
-public class CampaignData {
+public class CampaignData implements JoeData {
     private FactionType faction;
     private String reward;
     private boolean timed;
@@ -21,6 +21,7 @@ public class CampaignData {
         return timed;
     }
 
+    @Override
     public String getUid() {
         return uid;
     }

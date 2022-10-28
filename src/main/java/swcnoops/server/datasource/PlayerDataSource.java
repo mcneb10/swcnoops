@@ -122,4 +122,8 @@ public interface PlayerDataSource {
     void battleShare(GuildSessionImpl guildSession, PlayerSession playerSession, SquadNotification shareBattleNotification);
 
     Squad loadSquad(String guildId);
+
+    TournamentLeaderBoard getTournamentLeaderBoard(String uid, String playerId);
+
+    TournamentStat getTournamentPlayerRank(String uid, String playerId);
 }

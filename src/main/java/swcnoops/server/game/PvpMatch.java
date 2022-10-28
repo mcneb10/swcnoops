@@ -1,9 +1,11 @@
 package swcnoops.server.game;
 
 import swcnoops.server.datasource.Creature;
+import swcnoops.server.datasource.TournamentStat;
 import swcnoops.server.model.*;
 import swcnoops.server.session.inventory.Troops;
 
+import java.util.List;
 import java.util.Map;
 
 public class PvpMatch {
@@ -42,6 +44,10 @@ public class PvpMatch {
     private Map<String, Integer> defendersDeployableTroopsChampion;
     private Creature defendersCreature;
     private Troops defendersTroops;
+    private int potentialPointsWin;
+    private int potentialPointsLose;
+    private TournamentData tournamentData;
+    private List<TournamentStat> defendersTournaments;
 
     public PvpMatch() {
     }
@@ -292,6 +298,38 @@ public class PvpMatch {
 
     public Troops getDefendersTroops() {
         return defendersTroops;
+    }
+
+    public void setPotentialPointsWin(int potentialPointsWin) {
+        this.potentialPointsWin = potentialPointsWin;
+    }
+
+    public int getPotentialPointsWin() {
+        return potentialPointsWin;
+    }
+
+    public void setPotentialPointsLose(int potentialPointsLose) {
+        this.potentialPointsLose = potentialPointsLose;
+    }
+
+    public int getPotentialPointsLose() {
+        return potentialPointsLose;
+    }
+
+    public void setTournamentData(TournamentData tournamentData) {
+        this.tournamentData = tournamentData;
+    }
+
+    public TournamentData getTournamentData() {
+        return tournamentData;
+    }
+
+    public List<TournamentStat> getDefendersTournaments() {
+        return defendersTournaments;
+    }
+
+    public void setDefendersTournaments(List<TournamentStat> defendersTournaments) {
+        this.defendersTournaments = defendersTournaments;
     }
 }
 

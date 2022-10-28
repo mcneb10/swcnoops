@@ -3,7 +3,7 @@ package swcnoops.server.game;
 /**
  * Not everything is being mapped
  */
-public class CampaignMissionData {
+public class CampaignMissionData implements JoeData {
     private String ambientMusic;
     private String battleMusic;
     private String bi_chap_id;
@@ -64,6 +64,7 @@ public class CampaignMissionData {
         return goalString;
     }
 
+    @Override
     public String getUid() {
         return uid;
     }
