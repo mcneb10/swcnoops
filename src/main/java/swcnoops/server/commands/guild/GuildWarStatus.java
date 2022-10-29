@@ -11,7 +11,6 @@ import swcnoops.server.model.SquadMemberWarData;
 import swcnoops.server.model.WarSquad;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
-import swcnoops.server.session.WarSession;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,10 +31,10 @@ public class GuildWarStatus extends AbstractCommandAction<GuildWarStatus, GuildW
         War war = guildSession.getCurrentWar();
 
         GuildSession squad1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
-        List<SquadMemberWarData> warParticipants1 = squad1.getWarParticipants(playerSession);
+        List<SquadMemberWarData> warParticipants1 = squad1.getWarParticipants(playerSession, war.getWarId());
 
         GuildSession squad2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
-        List<SquadMemberWarData> warParticipants2 = squad2.getWarParticipants(playerSession);
+        List<SquadMemberWarData> warParticipants2 = squad2.getWarParticipants(playerSession, war.getWarId());
 
         GuildWarStatusCommandResult guildWarStatusResponse =
                 new GuildWarStatusCommandResult(guildSession);

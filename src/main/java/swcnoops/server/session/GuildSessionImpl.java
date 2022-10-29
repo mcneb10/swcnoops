@@ -375,16 +375,9 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession) {
+    public List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession, String warId) {
         List<SquadMemberWarData> squadMemberWarDatums = ServiceFactory.instance().getPlayerDatasource()
-                .getWarParticipants(this.getGuildId(), this.getWarId());
-
-        Optional<SquadMemberWarData> playersWarData =
-                squadMemberWarDatums.stream().filter(a -> a.id.equals(playerSession.getPlayerId())).findFirst();
-
-        if (playersWarData.isPresent()) {
-            playerSession.levelUpBase(playersWarData.get().warMap);
-        }
+                .getWarParticipants(this.getGuildId(), warId);
 
         return squadMemberWarDatums;
     }

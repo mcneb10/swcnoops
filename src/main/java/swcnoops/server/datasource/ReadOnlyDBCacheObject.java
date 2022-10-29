@@ -17,6 +17,8 @@ public abstract class ReadOnlyDBCacheObject<A> implements DBCacheObjectRead<A> {
 
     public ReadOnlyDBCacheObject(boolean nullAllowed) {
         this(null, nullAllowed);
+        // we set it dirty at start to allow the first call to read to go back to the DB
+        this.dirtyTime = this.lastLoaded + 1;
     }
 
     @Override

@@ -1347,11 +1347,13 @@ public class PlayerSessionImpl implements PlayerSession {
         // put the base onto sullust
         if (squadMemberWarData != null) {
             squadMemberWarData.warMap.planet = "planet24";
+            MapHelper.enableTraps(squadMemberWarData.warMap);
 
             // TODO - level up buildings to what the player currently has although not sure if levelling up still should
             // happen once war starts???
-            if (squadMemberWarData.id.equals(this.getPlayerId()))
+            if (squadMemberWarData.id.equals(this.getPlayerId())) {
                 levelUpBase(squadMemberWarData.warMap);
+            }
         }
 
         return squadMemberWarData;
