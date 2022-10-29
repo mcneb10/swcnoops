@@ -85,19 +85,23 @@ public class ConflictManagerImpl implements ConflictManager {
     }
 
     private void calculatePercentile(RingBuffer top50, TournamentStat lastTournamentStat) {
-        float maxRank = calculateMaxRank(lastTournamentStat);
+        if (lastTournamentStat != null) {
+            float maxRank = calculateMaxRank(lastTournamentStat);
 
-        Iterator<TournamentStat> statIterator = top50.iterator();
-        while (statIterator.hasNext()) {
-            TournamentStat stat = statIterator.next();
-            calculatePercentile(stat, maxRank);
+            Iterator<TournamentStat> statIterator = top50.iterator();
+            while (statIterator.hasNext()) {
+                TournamentStat stat = statIterator.next();
+                calculatePercentile(stat, maxRank);
+            }
         }
     }
 
     @Override
     public void calculatePercentile(TournamentStat foundPlayer, TournamentStat lastTournamentStat) {
-        float maxRank = calculateMaxRank(lastTournamentStat);
-        calculatePercentile(foundPlayer, maxRank);
+        if (lastTournamentStat != null) {
+            float maxRank = calculateMaxRank(lastTournamentStat);
+            calculatePercentile(foundPlayer, maxRank);
+        }
     }
 
     private float calculateMaxRank(TournamentStat lastTournamentStat) {
@@ -108,6 +112,7 @@ public class ConflictManagerImpl implements ConflictManager {
     }
 
     private void calculatePercentile(TournamentStat foundPlayer, float maxRank) {
-        foundPlayer.percentile = 100 - (100 * (foundPlayer.rank / maxRank));
+        if (foundPlayer != null)
+            foundPlayer.percentile = 100 - (100 * (foundPlayer.rank / maxRank));
     }
 }
