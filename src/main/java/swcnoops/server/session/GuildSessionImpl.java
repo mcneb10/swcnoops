@@ -284,15 +284,15 @@ public class GuildSessionImpl implements GuildSession {
             troopsInSC = recipientPlayerSession.getDonatedTroops();
         }
 
-        if (!recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId(), troopsInSC))
+        // we level up the troops for the recipient
+        Map<String, Integer> levelUpTroopsByUid = recipientPlayerSession.levelUpTroopsByUid(troopsDonated);
+
+        if (!recipientPlayerSession.processDonatedTroops(levelUpTroopsByUid, playerSession.getPlayerId(), troopsInSC))
             return failedTroopDonationResult;
 
         SquadNotification squadNotification = new SquadNotification(this.getGuildId(), this.getGuildName(),
                 null, playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerId(), SquadMsgType.troopDonation);
-
-        // we level up the troops for the recipient
-        Map<String, Integer> levelUpTroopsByUid = recipientPlayerSession.levelUpTroopsByUid(troopsDonated);
 
         TroopDonationData troopDonationData = new TroopDonationData();
         troopDonationData.troopsDonated = levelUpTroopsByUid;
@@ -310,6 +310,8 @@ public class GuildSessionImpl implements GuildSession {
                     recipientPlayerSession, squadNotification);
         }
 
+        // we have to pass in the exact troops that was donated (not levelled up) otherwise it will not,
+        // remove properly (need to fix probably needs new way to do troop contracts and deployable troops)
         playerSession.removeDeployedTroops(troopsDonated, time);
         return new TroopDonationResult(squadNotification, troopsDonated);
     }
