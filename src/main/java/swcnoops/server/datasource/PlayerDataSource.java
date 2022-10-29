@@ -52,7 +52,7 @@ public interface PlayerDataSource {
 
     boolean saveWarSignUp(FactionType faction, GuildSession guildId, List<String> participantIds, boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time);
 
-    void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification);
+    boolean cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification);
 
     String matchMake(String guildId);
 

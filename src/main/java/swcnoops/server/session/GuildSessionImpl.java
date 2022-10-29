@@ -228,6 +228,7 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void setDirty() {
+        this.squadManager.setDirty();
         this.membersManager.setDirty();
         this.warHistoryManager.setDirty();
     }
@@ -337,7 +338,10 @@ public class GuildSessionImpl implements GuildSession {
     public SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time) {
         SquadNotification squadNotification = createNotification(this.getGuildId(), this.getGuildName(),
                 playerSession, SquadMsgType.warMatchMakingCancel);
-        ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification);
+
+        if (!ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification))
+            squadNotification = null;
+
         return squadNotification;
     }
 

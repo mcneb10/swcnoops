@@ -788,15 +788,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public boolean saveWarSignUp(FactionType faction, GuildSession guildSession, List<String> participantIds,
                               boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time) {
-        boolean saved;
+        boolean saved = false;
+
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             startTransaction(clientSession);
-            saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
-            resetWarParty(clientSession, guildSession);
-            setSquadWarParty(clientSession, guildSession, participantIds, time);
-            setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
-            clientSession.commitTransaction();
-            saved = true;
+            if (checkAndResetSquadWarParty(clientSession, guildSession)) {
+                saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
+                setSquadWarParty(clientSession, guildSession, participantIds, time);
+                setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
+                clientSession.commitTransaction();
+                saved = true;
+            }
         } catch (MongoWriteException ex) {
             // if duplicate key then most likely already signed up
             if (ex.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
@@ -849,7 +851,26 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void resetWarParty(ClientSession clientSession, GuildSession guildSession) {
+    private boolean checkAndResetSquadWarParty(ClientSession clientSession, GuildSession guildSession) {
+        boolean doneReset = false;
+        try {
+            SquadInfo squadInfo = this.squadCollection.findOneAndUpdate(clientSession,
+                    combine(eq("_id", guildSession.getGuildId()), exists("warSignUpTime", false)),
+                    combine(set("squadMembers.$[].warParty", 0), unset("warId")));
+
+            if (squadInfo != null) {
+                doneReset = true;
+            } else {
+                LOG.warn("Failed to reset squad for match making " + guildSession.getGuildId());
+            }
+        } finally {
+            guildSession.getSquadManager().setDirty();
+        }
+
+        return doneReset;
+    }
+
+    private void cancelWarSignUp(ClientSession clientSession, GuildSession guildSession) {
         try {
             this.squadCollection.updateOne(clientSession, eq("_id", guildSession.getGuildId()),
                     combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime"),
@@ -865,22 +886,28 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     @Override
-    public void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification) {
+    public boolean cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification) {
+        boolean cancelled = false;
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             if (deleteWarSignUp(session, guildSession.getGuildId())) {
-                resetWarParty(session, guildSession);
+                cancelWarSignUp(session, guildSession);
                 setAndSaveGuildNotification(session, guildSession, squadNotification);
                 session.commitTransaction();
+                cancelled = true;
+            } else {
+                LOG.warn("Failed to cancel war sign up for squad " + guildSession.getGuildId());
             }
         } finally {
             guildSession.setDirty();
         }
+
+        return cancelled;
     }
 
     private boolean deleteWarSignUp(ClientSession clientSession, String guildId) {
-        DeleteResult deleteResult = this.warSignUpCollection.deleteOne(clientSession, eq("guildId", guildId));
-        return deleteResult.getDeletedCount() == 1;
+        WarSignUp deleteResult = this.warSignUpCollection.findOneAndDelete(clientSession, eq("guildId", guildId));
+        return deleteResult != null;
     }
 
     @Override
@@ -1251,15 +1278,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void deleteWarForSquads(War war) {
-        try (ClientSession session = this.mongoClient.startSession()) {
-            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            this.squadCollection.updateMany(eq("warId", war.getWarId()), combine(unset("warId"), unset("warSignUpTime")));
-            session.commitTransaction();
-        } finally {
-            GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
-            GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
-            guildSession1.getSquadManager().setDirty();
-            guildSession2.getSquadManager().setDirty();
+        if (war != null) {
+            try (ClientSession session = this.mongoClient.startSession()) {
+                session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+                this.squadCollection.updateMany(eq("warId", war.getWarId()),
+                        combine(unset("warId"), unset("warSignUpTime"), set("squadMembers.$[].warParty", 0)));
+                session.commitTransaction();
+            } finally {
+                GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
+                GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
+                guildSession1.setDirty();
+                guildSession2.setDirty();
+            }
         }
     }
 
