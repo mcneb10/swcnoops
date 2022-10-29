@@ -7,14 +7,18 @@ abstract public class AbstractCommandResult implements CommandResult {
     // a response then it is working
     @JsonIgnore
     transient private boolean success = true;
-
+    private Integer errorCode = -1;
     @JsonIgnore
     @Override
     public Integer getStatus() {
         if (isSuccess())
             return Integer.valueOf(ResponseHelper.RECEIPT_STATUS_COMPLETE);
 
-        return Integer.valueOf(-1);
+        return errorCode;
+    }
+
+    public void setErrorCode(Integer errorCode) {
+        this.errorCode = errorCode;
     }
 
     protected boolean isSuccess() {

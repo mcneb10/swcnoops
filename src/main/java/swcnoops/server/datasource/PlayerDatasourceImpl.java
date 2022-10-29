@@ -1,14 +1,13 @@
 package swcnoops.server.datasource;
 
 import com.mongodb.*;
+import com.mongodb.bulk.BulkWriteResult;
 import com.mongodb.client.*;
 import com.mongodb.client.model.*;
 import com.mongodb.client.result.DeleteResult;
 import com.mongodb.client.result.UpdateResult;
-import org.bson.UuidRepresentation;
+import org.bson.*;
 import org.bson.conversions.Bson;
-import org.mongojack.Aggregation;
-import org.mongojack.DBQuery;
 import org.mongojack.JacksonMongoCollection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,6 +46,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     private JacksonMongoCollection<WarSignUp> warSignUpCollection;
     private JacksonMongoCollection<SquadWar> squadWarCollection;
     private JacksonMongoCollection<SquadMemberWarData> squadMemberWarDataCollection;
+    private JacksonMongoCollection<PlayerWarMap> playerWarMapCollection;
+
     private MongoDatabase database;
     private JacksonMongoCollection<Patch> patchesCollection;
 
@@ -149,6 +150,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         this.patchesCollection = JacksonMongoCollection.builder()
                 .build(this.mongoClient, mongoDBName, "patches", Patch.class, UuidRepresentation.STANDARD);
         this.patchesCollection.createIndex(Indexes.ascending("patchName"), new IndexOptions().unique(true));
+
+        this.playerWarMapCollection = JacksonMongoCollection.builder()
+                .build(this.mongoClient, mongoDBName, "playerWarMap", PlayerWarMap.class, UuidRepresentation.STANDARD);
     }
 
     @Override
@@ -784,15 +788,17 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     @Override
     public boolean saveWarSignUp(FactionType faction, GuildSession guildSession, List<String> participantIds,
                               boolean isSameFactionWarAllowed, SquadNotification squadNotification, long time) {
-        boolean saved;
+        boolean saved = false;
+
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             startTransaction(clientSession);
-            saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
-            resetWarParty(clientSession, guildSession);
-            setSquadWarParty(clientSession, guildSession, participantIds, time);
-            setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
-            clientSession.commitTransaction();
-            saved = true;
+            if (checkAndResetSquadWarParty(clientSession, guildSession)) {
+                saveWarSignUp(clientSession, faction, guildSession, participantIds, isSameFactionWarAllowed, time);
+                setSquadWarParty(clientSession, guildSession, participantIds, time);
+                setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
+                clientSession.commitTransaction();
+                saved = true;
+            }
         } catch (MongoWriteException ex) {
             // if duplicate key then most likely already signed up
             if (ex.getError().getCategory() == ErrorCategory.DUPLICATE_KEY) {
@@ -845,7 +851,26 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
     }
 
-    private void resetWarParty(ClientSession clientSession, GuildSession guildSession) {
+    private boolean checkAndResetSquadWarParty(ClientSession clientSession, GuildSession guildSession) {
+        boolean doneReset = false;
+        try {
+            SquadInfo squadInfo = this.squadCollection.findOneAndUpdate(clientSession,
+                    combine(eq("_id", guildSession.getGuildId()), exists("warSignUpTime", false)),
+                    combine(set("squadMembers.$[].warParty", 0), unset("warId")));
+
+            if (squadInfo != null) {
+                doneReset = true;
+            } else {
+                LOG.warn("Failed to reset squad for match making " + guildSession.getGuildId());
+            }
+        } finally {
+            guildSession.getSquadManager().setDirty();
+        }
+
+        return doneReset;
+    }
+
+    private void cancelWarSignUp(ClientSession clientSession, GuildSession guildSession) {
         try {
             this.squadCollection.updateOne(clientSession, eq("_id", guildSession.getGuildId()),
                     combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime"),
@@ -856,27 +881,33 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void clearWarParty(ClientSession clientSession, String warId, String guildId) {
-        this.squadCollection.updateOne(clientSession, combine(eq("_id", guildId), eq("warId", warId)),
+        this.squadCollection.findOneAndUpdate(clientSession, combine(eq("_id", guildId), eq("warId", warId)),
                 combine(set("squadMembers.$[].warParty", 0), unset("warSignUpTime")));
     }
 
     @Override
-    public void cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification) {
+    public boolean cancelWarSignUp(GuildSession guildSession, SquadNotification squadNotification) {
+        boolean cancelled = false;
         try (ClientSession session = this.mongoClient.startSession()) {
             session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
             if (deleteWarSignUp(session, guildSession.getGuildId())) {
-                resetWarParty(session, guildSession);
+                cancelWarSignUp(session, guildSession);
                 setAndSaveGuildNotification(session, guildSession, squadNotification);
                 session.commitTransaction();
+                cancelled = true;
+            } else {
+                LOG.warn("Failed to cancel war sign up for squad " + guildSession.getGuildId());
             }
         } finally {
             guildSession.setDirty();
         }
+
+        return cancelled;
     }
 
     private boolean deleteWarSignUp(ClientSession clientSession, String guildId) {
-        DeleteResult deleteResult = this.warSignUpCollection.deleteOne(clientSession, eq("guildId", guildId));
-        return deleteResult.getDeletedCount() == 1;
+        WarSignUp deleteResult = this.warSignUpCollection.findOneAndDelete(clientSession, eq("guildId", guildId));
+        return deleteResult != null;
     }
 
     @Override
@@ -920,7 +951,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void setSquadWarId(ClientSession clientSession, String guildId, String warId) {
-        UpdateResult result = this.squadCollection.updateOne(clientSession,
+        SquadInfo result = this.squadCollection.findOneAndUpdate(clientSession,
                 eq("_id", guildId),
                 set("warId", warId));
     }
@@ -937,8 +968,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         for (String playerId : warSignUp.participantIds) {
             if (!playerId.contains("BOT")) {
                 Player player = this.playerCollection.find(eq("_id", playerId))
-                        .projection(include("playerSettings.warMap", "playerSettings.baseMap",
+                        .projection(include("playerSettings.baseMap",
                                 "playerSettings.name", "playerSettings.hqLevel")).first();
+
+                PlayerWarMap playerWarMap = this.playerWarMapCollection.findOne(eq("_id", playerId));
 
                 SquadMemberWarData squadMemberWarData = new SquadMemberWarData();
                 squadMemberWarData.warId = warId;
@@ -947,11 +980,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 squadMemberWarData.turns = 3;
                 squadMemberWarData.victoryPoints = 3;
 
-                PlayerMap playerMap = player.getPlayerSettings().getWarMap();
+                PlayerMap playerMap = playerWarMap != null ? playerWarMap : null;
                 if (playerMap == null)
                     playerMap = player.getPlayerSettings().getBaseMap();
 
                 squadMemberWarData.warMap = playerMap;
+                MapHelper.enableTraps(squadMemberWarData.warMap);
                 squadMemberWarData.name = player.getPlayerSettings().getName();
                 squadMemberWarData.level = player.getPlayerSettings().getHqLevel();
                 squadMembers.add(squadMemberWarData);
@@ -1199,23 +1233,23 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             Bson defenseMatch = and(eq("warId", warId), eq("id", opponentId),
                     gt("victoryPoints", 0),
                     or(eq("defenseBattleId", null), lt("defenseExpirationDate", time - 10)));
-            UpdateResult result = this.squadMemberWarDataCollection.updateOne(session, defenseMatch,
+            SquadMemberWarData result = this.squadMemberWarDataCollection.findOneAndUpdate(session, defenseMatch,
                     combine(set("defenseBattleId", defenseBattleId), set("defenseExpirationDate", defenseExpirationDate)));
 
-            if (result.getMatchedCount() == 1) {
+            if (result != null) {
                 attackDetail = new AttackDetail(defenseBattleId, defenseExpirationDate);
             }
 
             if (attackDetail != null) {
                 Bson attackerMatch = and(eq("warId", warId), eq("id", playerId),
                         gt("turns", 0));
-                UpdateResult updatePlayersTurns = this.squadMemberWarDataCollection.updateOne(session, attackerMatch,
+                SquadMemberWarData updatePlayersTurns = this.squadMemberWarDataCollection.findOneAndUpdate(session, attackerMatch,
                         combine(set("attackBattleId", defenseBattleId),
                                 set("attackExpirationDate", defenseExpirationDate),
                                 inc("turns", -1)));
 
                 // if not changed then ran out of turns
-                if (updatePlayersTurns.getMatchedCount() != 1) {
+                if (updatePlayersTurns == null) {
                     attackDetail = new AttackDetail(ResponseHelper.STATUS_CODE_GUILD_WAR_NOT_ENOUGH_TURNS);
                 }
             } else {
@@ -1244,15 +1278,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void deleteWarForSquads(War war) {
-        try (ClientSession session = this.mongoClient.startSession()) {
-            session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
-            this.squadCollection.updateMany(eq("warId", war.getWarId()), combine(unset("warId"), unset("warSignUpTime")));
-            session.commitTransaction();
-        } finally {
-            GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
-            GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
-            guildSession1.getSquadManager().setDirty();
-            guildSession2.getSquadManager().setDirty();
+        if (war != null) {
+            try (ClientSession session = this.mongoClient.startSession()) {
+                session.startTransaction(TransactionOptions.builder().writeConcern(WriteConcern.MAJORITY).build());
+                this.squadCollection.updateMany(eq("warId", war.getWarId()),
+                        combine(unset("warId"), unset("warSignUpTime"), set("squadMembers.$[].warParty", 0)));
+                session.commitTransaction();
+            } finally {
+                GuildSession guildSession1 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdA());
+                GuildSession guildSession2 = ServiceFactory.instance().getSessionManager().getGuildSession(war.getSquadIdB());
+                guildSession1.setDirty();
+                guildSession2.setDirty();
+            }
         }
     }
 
@@ -1663,9 +1700,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             SquadTotalScore squadAScore = null;
             SquadTotalScore squadBScore = null;
 
-            // TODO - find out how to do this properly using mongo driver instead of mongojack
-            Aggregation.Pipeline<?> pipeline = Aggregation.match(DBQuery.is("warId", warId)).group("guildId")
-                    .set("totalScore", Aggregation.Group.sum("score"));
+            List<Bson> pipeline = Arrays.asList(Aggregates.match(eq("warId", warId)),
+                    Aggregates.group("$guildId", Accumulators.sum("totalScore", "$score")));
+
             AggregateIterable<SquadTotalScore> squadMemberWarData =
                     this.squadMemberWarDataCollection.aggregate(session, pipeline, SquadTotalScore.class);
 
@@ -1683,20 +1720,59 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 throw new RuntimeException("Failed to sum up squad war scores");
 
             long time = ServiceFactory.getSystemTimeSecondsFromEpoch();
-            UpdateResult result = this.squadWarCollection.updateOne(session, combine(eq("_id", warId)),
+            SquadWar squadWar = this.squadWarCollection.findOneAndUpdate(session,
+                    combine(eq("_id", warId), eq("processedEndTime", 0)),
                     combine(set("processedEndTime", time),
                             set("squadAScore", squadAScore.totalScore),
                             set("squadBScore", squadBScore.totalScore)));
 
-            if (result.getMatchedCount() == 1) {
+            if (squadWar != null) {
                 clearWarParty(session, warId, squadIdA);
                 clearWarParty(session, warId, squadIdB);
+                copyPlayerWarMap(session, squadWar);
+                session.commitTransaction();
             }
-
-            session.commitTransaction();
         }
 
         return this.getWar(warId);
+    }
+
+    private void copyPlayerWarMap(ClientSession session, SquadWar squadWar) {
+        Set<String> playerIds = new HashSet<>();
+        playerIds.addAll(squadWar.getSquadAWarSignUp().participantIds);
+        playerIds.addAll(squadWar.getSquadBWarSignUp().participantIds);
+        FindIterable<SquadMemberWarData> findIterable = this.squadMemberWarDataCollection
+                .find(combine(eq("warId", squadWar.getWarId()), in("id", playerIds)))
+                .projection(include("id", "warMap"));
+
+        List<PlayerWarMap> playerWarMaps = new ArrayList<>();
+
+        try (MongoCursor<SquadMemberWarData> cursor = findIterable.cursor()) {
+            cursor.forEachRemaining(s -> {
+                PlayerWarMap playerWarMap = new PlayerWarMap();
+                playerWarMap.playerId = s.id;
+                playerWarMap.buildings = s.warMap.buildings;
+                playerWarMap.planet = s.warMap.planet;
+                playerWarMap.next = s.warMap.next;
+                playerWarMap.timestamp = new Date();
+                playerWarMaps.add(playerWarMap);
+            });
+        }
+
+        if (playerWarMaps != null && playerWarMaps.size() > 0) {
+            List<UpdateOneModel<PlayerWarMap>> upserts = new ArrayList<>();
+            playerWarMaps.forEach(m -> {
+                BsonDocumentWrapper document = new BsonDocumentWrapper<>(m,
+                        this.playerWarMapCollection.getCodecRegistry().get(PlayerWarMap.class));
+                String a = document.toString();
+                Document.parse(a);
+
+                UpdateOneModel upsert = new UpdateOneModel<PlayerWarMap>(eq("_id", m.playerId),
+                        new Document("$set", document), new UpdateOptions().upsert(true));
+                upserts.add(upsert);
+            });
+            BulkWriteResult bulkWriteResult = this.playerWarMapCollection.bulkWrite(session, upserts);
+        }
     }
 
     @Override

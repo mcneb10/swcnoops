@@ -228,6 +228,7 @@ public class GuildSessionImpl implements GuildSession {
 
     @Override
     public void setDirty() {
+        this.squadManager.setDirty();
         this.membersManager.setDirty();
         this.warHistoryManager.setDirty();
     }
@@ -284,15 +285,15 @@ public class GuildSessionImpl implements GuildSession {
             troopsInSC = recipientPlayerSession.getDonatedTroops();
         }
 
-        if (!recipientPlayerSession.processDonatedTroops(troopsDonated, playerSession.getPlayerId(), troopsInSC))
+        // we level up the troops for the recipient
+        Map<String, Integer> levelUpTroopsByUid = recipientPlayerSession.levelUpTroopsByUid(troopsDonated);
+
+        if (!recipientPlayerSession.processDonatedTroops(levelUpTroopsByUid, playerSession.getPlayerId(), troopsInSC))
             return failedTroopDonationResult;
 
         SquadNotification squadNotification = new SquadNotification(this.getGuildId(), this.getGuildName(),
                 null, playerSession.getPlayerSettings().getName(),
                 playerSession.getPlayerId(), SquadMsgType.troopDonation);
-
-        // we level up the troops for the recipient
-        Map<String, Integer> levelUpTroopsByUid = recipientPlayerSession.levelUpTroopsByUid(troopsDonated);
 
         TroopDonationData troopDonationData = new TroopDonationData();
         troopDonationData.troopsDonated = levelUpTroopsByUid;
@@ -310,6 +311,8 @@ public class GuildSessionImpl implements GuildSession {
                     recipientPlayerSession, squadNotification);
         }
 
+        // we have to pass in the exact troops that was donated (not levelled up) otherwise it will not,
+        // remove properly (need to fix probably needs new way to do troop contracts and deployable troops)
         playerSession.removeDeployedTroops(troopsDonated, time);
         return new TroopDonationResult(squadNotification, troopsDonated);
     }
@@ -335,7 +338,10 @@ public class GuildSessionImpl implements GuildSession {
     public SquadNotification warMatchmakingCancel(PlayerSession playerSession, long time) {
         SquadNotification squadNotification = createNotification(this.getGuildId(), this.getGuildName(),
                 playerSession, SquadMsgType.warMatchMakingCancel);
-        ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification);
+
+        if (!ServiceFactory.instance().getPlayerDatasource().cancelWarSignUp(this, squadNotification))
+            squadNotification = null;
+
         return squadNotification;
     }
 
@@ -375,16 +381,9 @@ public class GuildSessionImpl implements GuildSession {
     }
 
     @Override
-    public List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession) {
+    public List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession, String warId) {
         List<SquadMemberWarData> squadMemberWarDatums = ServiceFactory.instance().getPlayerDatasource()
-                .getWarParticipants(this.getGuildId(), this.getWarId());
-
-        Optional<SquadMemberWarData> playersWarData =
-                squadMemberWarDatums.stream().filter(a -> a.id.equals(playerSession.getPlayerId())).findFirst();
-
-        if (playersWarData.isPresent()) {
-            playerSession.levelUpBase(playersWarData.get().warMap);
-        }
+                .getWarParticipants(this.getGuildId(), warId);
 
         return squadMemberWarDatums;
     }

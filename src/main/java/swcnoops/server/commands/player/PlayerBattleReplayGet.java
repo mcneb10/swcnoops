@@ -3,7 +3,7 @@ package swcnoops.server.commands.player;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerBattleReplayGetResult;
-import swcnoops.server.datasource.WarBattle;
+import swcnoops.server.game.MapHelper;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
@@ -20,7 +20,7 @@ public class PlayerBattleReplayGet extends AbstractCommandAction<PlayerBattleRep
         if (battleReplay != null) {
             switch (battleReplay.battleType) {
                 case PvpAttackSquadWar:
-                    stopClientCrash(battleReplay);
+                    modifyForReplay(battleReplay);
                     break;
                 default:
                     break;
@@ -30,6 +30,11 @@ public class PlayerBattleReplayGet extends AbstractCommandAction<PlayerBattleRep
         if (battleReplay == null || battleReplay.replayData == null)
             return new PlayerBattleReplayGetResult(ResponseHelper.REPLAY_DATA_NOT_FOUND);
         return new PlayerBattleReplayGetResult(battleReplay);
+    }
+
+    private void modifyForReplay(BattleReplay battleReplay) {
+        stopClientCrash(battleReplay);
+        MapHelper.enableTraps(battleReplay.replayData.combatEncounter.map);
     }
 
     private void stopClientCrash(BattleReplay battleReplay) {

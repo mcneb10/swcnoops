@@ -6,6 +6,7 @@ import swcnoops.server.commands.guild.response.GuildResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.SquadNotification;
 import swcnoops.server.requests.CommandResult;
+import swcnoops.server.requests.ResponseHelper;
 import swcnoops.server.session.GuildSession;
 import swcnoops.server.session.PlayerSession;
 
@@ -22,6 +23,12 @@ public class GuildWarMatchmakingCancel extends AbstractCommandAction<GuildWarMat
         }
 
         GuildResult guildResult = new GuildResult(guildSession);
+
+        if (squadNotification == null) {
+            guildResult.setErrorCode(ResponseHelper.STATUS_CODE_GUILD_WAR_WRONG_PHASE);
+            guildResult.setSuccess(false);
+        }
+
         guildResult.setSquadNotification(squadNotification);
         return guildResult;
     }

@@ -25,7 +25,6 @@ public class PlayerSettings {
     private UnlockedPlanets unlockedPlanets;
     private Scalars scalars = new Scalars();
     private int hqLevel;
-    private PlayerMap warMap;
     private String guildName;
     private Map<String,Integer> damagedBuildings;
 
@@ -175,14 +174,6 @@ public class PlayerSettings {
 
     public int getHqLevel() {
         return hqLevel;
-    }
-
-    public PlayerMap getWarMap() {
-        return warMap;
-    }
-
-    public void setWarMap(PlayerMap warMap) {
-        this.warMap = warMap;
     }
 
     public void setGuildName(String guildName) {

@@ -47,7 +47,7 @@ public interface GuildSession {
 
     War getCurrentWar();
 
-    List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession);
+    List<SquadMemberWarData> getWarParticipants(PlayerSession playerSession, String warId);
 
     void setNotificationDirty(long date);
 
