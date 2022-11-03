@@ -2,6 +2,7 @@ package swcnoops.server.model;
 
 import org.mongojack.Id;
 import swcnoops.server.commands.player.PlayerBattleComplete;
+import swcnoops.server.commands.player.PlayerRaidsComplete;
 import swcnoops.server.game.PvpMatch;
 import swcnoops.server.session.PlayerSession;
 
@@ -26,6 +27,17 @@ public class BattleReplay {
 
     public BattleReplay(String battleId) {
         this.battleId = battleId;
+    }
+
+    public static BattleReplay map(PlayerRaidsComplete playerRaidsComplete, PlayerSession defenderSession, long time) {
+        BattleReplay battleReplay = map(playerRaidsComplete, null,
+                defenderSession.getPlayerId(),
+                defenderSession.getPlayerSettings().getName(),
+                defenderSession.getFaction(),
+                time);
+        battleReplay.battleLog.attackingUnitsKilled = playerRaidsComplete.getAttackingUnitsKilled();
+        battleReplay.battleLog.defendingUnitsKilled = playerRaidsComplete.getDefendingUnitsKilled();
+        return battleReplay;
     }
 
     public String getBattleId() {
@@ -57,7 +69,7 @@ public class BattleReplay {
                                              String defenderPlayerId, String defenderName, FactionType defenderFaction, long time)
     {
         BattleReplay battleReplay = new BattleReplay(playerBattleComplete.getBattleId());
-        battleReplay.attackerId = attackerSession.getPlayerId();
+        battleReplay.attackerId = attackerSession != null ? attackerSession.getPlayerId() : null;
         battleReplay.defenderId = defenderPlayerId;
         battleReplay.battleType = playerBattleComplete.getReplayData().battleType;
         battleReplay.attackDate = time;
@@ -67,9 +79,11 @@ public class BattleReplay {
         battleReplay.battleLog.attackDate = time;
 
         battleReplay.battleLog.attacker = new BattleParticipant();
-        battleReplay.battleLog.attacker.playerId = attackerSession.getPlayerId();
-        battleReplay.battleLog.attacker.name = attackerSession.getPlayerSettings().getName();
-        battleReplay.battleLog.attacker.faction = attackerSession.getFaction();
+        if (attackerSession != null) {
+            battleReplay.battleLog.attacker.playerId = attackerSession.getPlayerId();
+            battleReplay.battleLog.attacker.name = attackerSession.getPlayerSettings().getName();
+            battleReplay.battleLog.attacker.faction = attackerSession.getFaction();
+        }
 
         battleReplay.battleLog.defender = new BattleParticipant();
         battleReplay.battleLog.defender.playerId = defenderPlayerId;

@@ -40,6 +40,7 @@ public class GameConstants {
     public Integer war_cooldown_duration;
     public Integer war_action_duration;
     public Integer war_match_check_interval_seconds;
+    public Integer raids_hq_unlock_level;
 
     public static GameConstants createFromBaseJson(List<Map<String, String>> gameConstants) throws Exception {
         GameConstants constants = new GameConstants();

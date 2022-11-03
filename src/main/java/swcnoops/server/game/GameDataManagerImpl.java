@@ -43,6 +43,8 @@ public class GameDataManagerImpl implements GameDataManager {
     private PatchData patchData = new PatchData();
     private ConflictManagerImpl conflictManager = new ConflictManagerImpl();
 
+    private RaidManager raidManager = new RaidManagerImpl();
+
     @Override
     public void initOnStartup() {
         try {
@@ -57,9 +59,32 @@ public class GameDataManagerImpl implements GameDataManager {
             this.factionBuildingEquivalentMap = create(this.buildingLevelsByBuildingId);
             this.initialiseGameConstants();
             this.initConflictManager();
+            this.initRaidManager();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
         }
+    }
+
+    @Override
+    public PatchData getPatchData() {
+        return patchData;
+    }
+
+    private void initRaidManager() {
+        Map<String, RaidData> raidDataMap = this.patchData.getMap(RaidData.class);
+
+        if (raidDataMap != null) {
+            for (RaidData data : raidDataMap.values()) {
+                data.initOrderValue();
+            }
+
+            this.raidManager.setup(raidDataMap.values(), this.patchData.getMap(RaidMissionPoolData.class));
+        }
+    }
+
+    @Override
+    public RaidManager getRaidManager() {
+        return raidManager;
     }
 
     private void initConflictManager() {

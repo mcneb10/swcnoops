@@ -23,7 +23,7 @@ public class PlayerModel {
     public Boolean isFueInProgress;
     public Map<String,Integer> DamagedBuildings;
     public Object deviceInfo;
-    public Double timeZoneOffset;
+    public float timeZoneOffset;
     public List<Contract> contracts;
     public Object frozenBuildings;
     public boolean isConnectedAccount;
@@ -42,7 +42,7 @@ public class PlayerModel {
     public Object playerObjectives;
     public Long lastObjectiveCheckTime;
     //TODO - public Raids raids;
-    public Object raids;
+    public Map<String, Raid> raids;
     public Object perksInfo;
     public Object armoryInfo;
     public Object episodeProgressInfo;

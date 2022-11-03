@@ -429,6 +429,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             combinedList.add(set("playerSettings.tournaments", playerSession.getTournamentManager().getObjectForSaving()));
         }
 
+        if (playerSession.getRaidLogsManager().needsSaving()) {
+            combinedList.add(set("playerSettings.raidLogs", playerSession.getRaidLogsManager().getObjectForSaving()));
+        }
+
         Bson combinedSet = combine(combinedList);
         Player result = this.playerCollection.findOneAndUpdate(session, Filters.eq("_id", playerSession.getPlayerId()),
                 combinedSet);
@@ -470,6 +474,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
         if (playerSession.getTournamentManager().needsSaving()) {
             playerSession.getPlayerSettings().setTournaments(playerSession.getTournamentManager().getObjectForSaving());
+        }
+        if (playerSession.getRaidLogsManager().needsSaving()) {
+            playerSession.getPlayerSettings().setRaidLogs(playerSession.getRaidLogsManager().getObjectForSaving());
         }
 
         Bson playerQuery = null;
