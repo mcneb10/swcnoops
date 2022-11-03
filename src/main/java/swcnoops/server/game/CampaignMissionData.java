@@ -17,7 +17,7 @@ public class CampaignMissionData implements JoeData {
     private String goalString;
     private String uid;
     private int unlockOrder;
-    private int materialRewards;
+    private String materialRewards;
     private String progressString;
 
     public String getAmbientMusic() {
@@ -73,7 +73,7 @@ public class CampaignMissionData implements JoeData {
         return unlockOrder;
     }
 
-    public int getMaterialRewards() {
+    public String getMaterialRewards() {
         return materialRewards;
     }
 

@@ -8,6 +8,7 @@ import swcnoops.server.datasource.PvpAttack;
 import swcnoops.server.datasource.TournamentStat;
 import swcnoops.server.game.ContractType;
 import swcnoops.server.game.GameDataManager;
+import swcnoops.server.game.RaidManager;
 import swcnoops.server.game.TroopData;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.commands.player.response.PlayerLoginCommandResult;
@@ -26,6 +27,16 @@ import swcnoops.server.session.training.DeployableQueue;
 import java.util.*;
 
 public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginCommandResult> {
+    private float timeZoneOffset;
+
+    public float getTimeZoneOffset() {
+        return timeZoneOffset;
+    }
+
+    public void setTimeZoneOffset(float timeZoneOffset) {
+        this.timeZoneOffset = timeZoneOffset;
+    }
+
     @Override
     final public String getAction() {
         return "player.login";
@@ -44,8 +55,9 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
 
         playerSession.playerLogin(time);
         PlayerLoginCommandResult response = loadPlayerTemplate();
-        mapLoginForPlayer(response, playerSession);
-        playerSession.savePlayerLogin(time);
+        playerSession.getPlayerSettings().setTimeZoneOffset(arguments.getTimeZoneOffset());
+        mapLoginForPlayer(response, playerSession, time);
+        playerSession.savePlayerLogin(arguments.getTimeZoneOffset(), time);
 
         return response;
     }
@@ -57,7 +69,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
     }
 
     // TODO - setup map and troops
-    private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, PlayerSession playerSession) {
+    private void mapLoginForPlayer(PlayerLoginCommandResult playerLoginResponse, PlayerSession playerSession, long time) {
         playerLoginResponse.playerModel.map = playerSession.getPlayerMapItems().getBaseMap();
         playerLoginResponse.playerId = playerSession.getPlayerId();
         playerLoginResponse.name = playerSession.getPlayer().getPlayerSettings().getName();
@@ -81,6 +93,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         mapCreatureTrapData(playerLoginResponse.playerModel, playerSession);
 
         mapCampaignAndMissions(playerLoginResponse.playerModel, playerSession.getPlayerSettings());
+        mapRaids(playerLoginResponse.playerModel, playerSession, time);
 
         mapSharedPreferencs(playerLoginResponse, playerSession);
         mapUnlockedPlanets(playerLoginResponse, playerSession.getPlayerSettings());
@@ -104,8 +117,26 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.battleLogs = ServiceFactory.instance().getPlayerDatasource().getPlayerBattleLogs(playerSession.getPlayerId());
         playerLoginResponse.playerModel.DamagedBuildings = mapDamagedBuildings(playerSession);
         playerLoginResponse.playerModel.tournaments = mapTournaments(playerSession);
+        playerLoginResponse.playerModel.timeZoneOffset = playerSession.getPlayerSettings().getTimeZoneOffset();
 
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
+
+    }
+
+    private void mapRaids(PlayerModel playerModel, PlayerSession playerSession, long time) {
+        playerModel.raids = new HashMap<>();
+        RaidManager raidManager = ServiceFactory.instance().getGameDataManager().getRaidManager();
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        List<Raid> playersRaids = raidManager.getRaids(playerSettings.getUnlockedPlanets(),
+                playerSession.getRaidLogsManager().getObjectForReading(),
+                playerSettings.getTimeZoneOffset(),
+                playerSettings.getFaction(),
+                playerSettings.getHqLevel(),
+                time);
+
+        if (playersRaids != null) {
+            playersRaids.forEach(r -> playerModel.raids.put(r.planetId, r));
+        }
     }
 
     private Map<String, Tournament> mapTournaments(PlayerSession playerSession) {
@@ -171,8 +202,6 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         playerLoginResponse.sharedPrefs.putAll(playerSettings.getSharedPreferences());
 
-        // turn off conflicts
-        playerLoginResponse.sharedPrefs.put("tv", null);
         // this disables login to google at start up
         playerLoginResponse.sharedPrefs.put("promptedForGoogleSignin", "1");
         // this is to stop armory tutorial from triggering

@@ -14,6 +14,8 @@ public class PatchData {
         merge((List<JoeData>)(List<?>)joeObjects.getCampaignData());
         merge((List<JoeData>)(List<?>)joeObjects.getCampaignMissionData());
         merge((List<JoeData>)(List<?>)joeObjects.getTournamentTierData());
+        merge((List<JoeData>)(List<?>)joeObjects.getRaid());
+        merge((List<JoeData>)(List<?>)joeObjects.getRaidMissionPool());
     }
 
     private void merge(List<JoeData> patchDatum) throws Exception {
@@ -39,12 +41,13 @@ public class PatchData {
 
     private void merge(JoeData existingData, JoeData data) throws Exception {
         Class<?> clazz = data.getClass();
-        for (Field field : clazz.getFields()) {
+        for (Field field : clazz.getDeclaredFields()) {
             set(field, existingData, data);
         }
     }
 
     private void set(Field field, JoeData existingData, JoeData data) throws Exception {
+        field.setAccessible(true);
         Object value = field.get(data);
         if (field.getType().isPrimitive()) {
             if (!isZero(value)) {
@@ -62,6 +65,8 @@ public class PatchData {
             return (((Integer)value).intValue() == 0);
         } else if (value instanceof Long) {
             return (((Long)value).longValue() == 0);
+        } else if (value instanceof Boolean) {
+            return (((Boolean)value) == null);
         }
 
         throw new RuntimeException("Unsupported primitive type " + value.getClass());

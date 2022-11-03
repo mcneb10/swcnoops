@@ -129,9 +129,10 @@ public class CommandFactory {
         this.add(new PlayerLeaderboardTournamentGetLeaders());
         this.add(new PlayerLeaderboardTournamentGetRanks());
         this.add(new PlayerLeaderboardTournamentGetRank());
+        this.add(new PlayerStoreTournamentRedeem());
 
         // TODO - this command looks like it will bring up some sort of dialog on the client related to CommandCenterVO
-        this.add(new OkListCommandAction("player.holonet.getCommandCenterEntry"));
+        this.add(new PlayerHolonetGetCommandCenterEntry());
 
         // TODO - this command looks like it will give an update on war etc.. related to TransmissionVO
         this.add(new OkListCommandAction("player.holonet.getEventMessage"));
@@ -143,7 +144,9 @@ public class CommandFactory {
 //        this.add(new OkCommandAction("player.missions.startSpecop"));
 //        this.add(new OkCommandAction("player.building.move"));
 
-        this.add(new OkCommandAction("player.raids.update"));
+        this.add(new PlayerRaidsUpdate());
+        this.add(new PlayerRaidsStart());
+        this.add(new PlayerRaidsComplete());
 
         // works but needs full support
         this.add(new OkCommandAction("player.perks.activate"));

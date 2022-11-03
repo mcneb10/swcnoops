@@ -90,7 +90,7 @@ public class PlayerSessionImpl implements PlayerSession {
                             false, "playerSettings.damagedBuildings").getDamagedBuildings();
         }
     };
-    private long lastLoginTime;
+
     private DBCacheObject<List<TournamentStat>> tournamentsManager = new DBCacheObjectImpl<List<TournamentStat>>() {
         @Override
         protected List<TournamentStat> loadDBObject() {
@@ -98,6 +98,17 @@ public class PlayerSessionImpl implements PlayerSession {
                     false, "playerSettings.tournaments").getTournaments();
         }
     };
+
+    private DBCacheObject<Map<String, Long>> raidLogsManager = new DBCacheObjectImpl<Map<String, Long>>() {
+        @Override
+        protected Map<String, Long> loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                    false, "playerSettings.raidLogs").getRaidLogs();
+        }
+    };
+
+    private long lastLoginTime;
+    private Raid nextRaidSession;
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -121,6 +132,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.currentPvPDefending.initialise(this.player.getCurrentPvPDefence());
         this.damagedBuildingManager.initialise(this.player.getPlayerSettings().getDamagedBuildings());
         this.tournamentsManager.initialise(this.player.getPlayerSettings().getTournaments());
+        this.raidLogsManager.initialise(this.player.getPlayerSettings().getRaidLogs());
         this.lastLoginTime = player.getLoginTime();
     }
 
@@ -397,7 +409,8 @@ public class PlayerSessionImpl implements PlayerSession {
     }
 
     @Override
-    public void savePlayerLogin(long time) {
+    public void savePlayerLogin(float timeZoneOffset, long time) {
+        this.getPlayerSettings().setTimeZoneOffset(timeZoneOffset);
         ServiceFactory.instance().getPlayerDatasource().savePlayerLogin(this);
     }
 
@@ -639,10 +652,31 @@ public class PlayerSessionImpl implements PlayerSession {
         this.processBattleComplete(battleReplay.battleLog.attackingUnitsKilled, time);
     }
 
-    private void processBattleComplete(Map<String, Integer> attackingUnitsKilled, long time) {
+    @Override
+    public void raidsComplete(Raid nextRaidSession, BattleReplay battleReplay, Map<String, Integer> damagedBuildings, long time) {
+        this.processBattleComplete(battleReplay.battleLog.defendingUnitsKilled, time);
+        this.setTriggeredTraps(damagedBuildings, this.getPlayerSettings().getBaseMap().buildings);
+        this.updateRaidLog(nextRaidSession, battleReplay);
+        this.savePlayerSession();
+    }
+
+    private void updateRaidLog(Raid nextRaidSession, BattleReplay battleReplay) {
+        // if successful
+        if (battleReplay.battleLog.stars > 0 && !battleReplay.battleLog.isUserEnded) {
+            Map<String, Long> logs = this.getRaidLogsManager().getObjectForWriting();
+            if (logs == null) {
+                logs = new HashMap<>();
+                this.getRaidLogsManager().setObjectForSaving(logs);
+            }
+
+            logs.put(nextRaidSession.planetId, nextRaidSession.raidStartTimeNoOffset);
+        }
+    }
+
+    private void processBattleComplete(Map<String, Integer> unitsKilled, long time) {
         this.processCompletedContracts(time);
-        processCreature(attackingUnitsKilled);
-        Map<String, Integer> champions = getUnitsKilledByTroopType(attackingUnitsKilled, TroopType.champion);
+        processCreature(unitsKilled);
+        Map<String, Integer> champions = getUnitsKilledByTroopType(unitsKilled, TroopType.champion);
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
         Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(champions);
         // TODO - change and simplify deployable troops to use a DBObject
@@ -704,15 +738,8 @@ public class PlayerSessionImpl implements PlayerSession {
         // triggered traps
         if (pvpMatch.getDefenderDamagedBuildings() != null && pvpMatch.getDefendersBaseMap() != null) {
             Map<String, Integer> damagedBuildings = pvpMatch.getDefenderDamagedBuildings();
-
-            for (Building building : pvpMatch.getDefendersBaseMap().buildings) {
-                if (damagedBuildings.containsKey(building.key)) {
-                    BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
-                    if (buildingData.getType() == BuildingType.trap) {
-                        building.currentStorage = 0;
-                    }
-                }
-            }
+            Buildings buildings = pvpMatch.getDefendersBaseMap().buildings;
+            this.setTriggeredTraps(damagedBuildings, buildings);
         }
 
         // creature
@@ -754,6 +781,21 @@ public class PlayerSessionImpl implements PlayerSession {
             // clean up the donated if all dead
             for (String allKilledUid : allKilledUnits) {
                 pvpMatch.getDefendersDonatedTroops().remove(allKilledUid);
+            }
+        }
+    }
+
+    private void setTriggeredTraps(Map<String, Integer> damagedBuildings, Buildings buildings) {
+        if (damagedBuildings != null && buildings != null) {
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+
+            for (Building building : buildings) {
+                if (damagedBuildings.containsKey(building.key)) {
+                    BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.uid);
+                    if (buildingData.getType() == BuildingType.trap) {
+                        building.currentStorage = 0;
+                    }
+                }
             }
         }
     }
@@ -1435,6 +1477,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.inventoryManager.doneDBSave();
         this.scalarsManager.doneDBSave();
         this.tournamentsManager.doneDBSave();
+        this.raidLogsManager.doneDBSave();
     }
 
     @Override
@@ -1460,5 +1503,20 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public DBCacheObject<List<TournamentStat>> getTournamentManager() {
         return this.tournamentsManager;
+    }
+
+    @Override
+    public void setNextRaidSession(Raid raid) {
+        this.nextRaidSession = raid;
+    }
+
+    @Override
+    public Raid getNextRaidSession() {
+        return nextRaidSession;
+    }
+
+    @Override
+    public DBCacheObject<Map<String, Long>> getRaidLogsManager() {
+        return this.raidLogsManager;
     }
 }

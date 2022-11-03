@@ -68,6 +68,10 @@ public class JoeFile {
         private List<TournamentData> tournamentData;
         @JsonProperty("TournamentTierData")
         private List<TournamentTierData> tournamentTierData;
+        @JsonProperty("Raid")
+        private List<RaidData> raid;
+        @JsonProperty("RaidMissionPool")
+        private List<RaidMissionPoolData> raidMissionPool;
 
         public List<CampaignData> getCampaignData() {
             return campaignData;
@@ -99,6 +103,22 @@ public class JoeFile {
 
         public void setTournamentTierData(List<TournamentTierData> tournamentTierData) {
             this.tournamentTierData = tournamentTierData;
+        }
+
+        public List<RaidData> getRaid() {
+            return raid;
+        }
+
+        public void setRaid(List<RaidData> raid) {
+            this.raid = raid;
+        }
+
+        public List<RaidMissionPoolData> getRaidMissionPool() {
+            return raidMissionPool;
+        }
+
+        public void setRaidMissionPool(List<RaidMissionPoolData> raidMissionPool) {
+            this.raidMissionPool = raidMissionPool;
         }
     }
 }

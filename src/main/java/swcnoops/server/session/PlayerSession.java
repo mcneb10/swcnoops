@@ -169,11 +169,19 @@ public interface PlayerSession {
 
     DBCacheObjectRead<Map<String,Integer>> getDamagedBuildingManager();
 
-    void savePlayerLogin(long time);
+    void savePlayerLogin(float timeZoneOffset, long time);
 
     long getLastLoginTime();
 
     Map<String, Integer> levelUpTroopsByUid(Map<String, Integer> troopsDonated);
 
     DBCacheObject<List<TournamentStat>> getTournamentManager();
+
+    void raidsComplete(Raid nextRaidSession, BattleReplay battleReplay, Map<String, Integer> damagedBuildings, long time);
+
+    void setNextRaidSession(Raid raid);
+
+    Raid getNextRaidSession();
+
+    DBCacheObject<Map<String, Long>> getRaidLogsManager();
 }

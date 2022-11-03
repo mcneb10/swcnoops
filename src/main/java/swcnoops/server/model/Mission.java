@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Mission {
-//    public boolean activated;
+    public boolean activated;
     public String campaignUid;
     public boolean collected;
     public boolean completed;

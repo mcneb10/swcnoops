@@ -50,7 +50,7 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         // set tournament
         TournamentData tournamentData = ServiceFactory.instance().getGameDataManager().getConflictManager()
                 .getConflict(playerSession.getPlayerSettings().getBaseMap().planet);
-        if (tournamentData.isActive(ServiceFactory.getSystemTimeSecondsFromEpoch())) {
+        if (tournamentData != null && tournamentData.isActive(ServiceFactory.getSystemTimeSecondsFromEpoch())) {
             pvpMatch.setTournamentData(tournamentData);
         }
 

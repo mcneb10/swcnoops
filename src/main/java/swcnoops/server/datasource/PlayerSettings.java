@@ -29,6 +29,8 @@ public class PlayerSettings {
     private Map<String,Integer> damagedBuildings;
 
     private List<TournamentStat> tournaments;
+    private float timeZoneOffset;
+    private Map<String, Long> raidLogs;
 
     public PlayerSettings() {
     }
@@ -203,5 +205,21 @@ public class PlayerSettings {
 
     public void setTournaments(List<TournamentStat> tournaments) {
         this.tournaments = tournaments;
+    }
+
+    public void setTimeZoneOffset(float timeZoneOffset) {
+        this.timeZoneOffset = timeZoneOffset;
+    }
+
+    public float getTimeZoneOffset() {
+        return timeZoneOffset;
+    }
+
+    public Map<String, Long> getRaidLogs() {
+        return raidLogs;
+    }
+
+    public void setRaidLogs(Map<String, Long> raidLogs) {
+        this.raidLogs = raidLogs;
     }
 }

@@ -9,6 +9,8 @@ import java.util.Map;
 public interface GameDataManager {
     void initOnStartup();
 
+    PatchData getPatchData();
+
     /**
      * Troop data includes specialAttacks
      *
@@ -70,4 +72,6 @@ public interface GameDataManager {
     int getTournamentAttackerMedals(int stars);
 
     int getTournamentDefenderMedals(int stars);
+
+    RaidManager getRaidManager();
 }
