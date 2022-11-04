@@ -16,6 +16,8 @@ public class PatchData {
         merge((List<JoeData>)(List<?>)joeObjects.getTournamentTierData());
         merge((List<JoeData>)(List<?>)joeObjects.getRaid());
         merge((List<JoeData>)(List<?>)joeObjects.getRaidMissionPool());
+        merge((List<JoeData>)(List<?>)joeObjects.getObjSeries());
+        merge((List<JoeData>)(List<?>)joeObjects.getObjTable());
     }
 
     private void merge(List<JoeData> patchDatum) throws Exception {
