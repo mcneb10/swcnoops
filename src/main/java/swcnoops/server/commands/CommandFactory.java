@@ -120,6 +120,8 @@ public class CommandFactory {
         this.add(new PlayerLeaderboardGetForFriends());
 
         this.add(new PlayerPlanetObjective());
+        this.add(new PlayerObjectiveForceUpdate());
+        this.add(new PlayerObjectiveClaim());
         this.add(new PlayerPlanetRelocate());
 
         this.add(new PlayerStoreCrateBuy());

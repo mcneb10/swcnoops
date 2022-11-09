@@ -143,6 +143,10 @@ public class RaidManagerImpl implements RaidManager {
     @Override
     public List<Raid> getRaids(UnlockedPlanets unlockedPlanets, Map<String, Long> raidLogs,
                                float timeZoneOffset, FactionType faction, int hqLevel, long time) {
+
+        if (hqLevel < ServiceFactory.instance().getGameDataManager().getGameConstants().raids_hq_unlock_level)
+            return null;
+
         List<Raid> playerRaids = new ArrayList<>();
 
         Raid planet1Raid = calculateRaidTimes("planet1", timeZoneOffset, faction, hqLevel, raidLogs, time);

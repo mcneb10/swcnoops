@@ -17,7 +17,7 @@ public class ObjTableData implements JoeData {
     private String objBucket;
     private String objIcon;
     private String objString;
-    private String type;
+    private GoalType type;
     private String uid;
     private int weight;
 
@@ -77,7 +77,7 @@ public class ObjTableData implements JoeData {
         return objString;
     }
 
-    public String getType() {
+    public GoalType getType() {
         return type;
     }
 

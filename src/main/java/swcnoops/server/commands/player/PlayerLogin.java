@@ -118,9 +118,53 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.DamagedBuildings = mapDamagedBuildings(playerSession);
         playerLoginResponse.playerModel.tournaments = mapTournaments(playerSession);
         playerLoginResponse.playerModel.timeZoneOffset = playerSession.getPlayerSettings().getTimeZoneOffset();
-
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
 
+        playerLoginResponse.playerModel.playerObjectives = mapObjectives(playerSession.getPlayerSettings().getHqLevel());
+    }
+
+    private Map<String, ObjectiveGroup> mapObjectives(int hqLevel) {
+        if (hqLevel < ServiceFactory.instance().getGameDataManager().getGameConstants().objectives_unlocked)
+            return null;
+
+        Map<String, ObjectiveGroup> groupMap = new HashMap<>();
+        ObjectiveGroup objectiveGroup = new ObjectiveGroup("obj_tatooine_series22_518");
+        objectiveGroup.startTime = ServiceFactory.getSystemTimeSecondsFromEpoch() - 10;
+        objectiveGroup.endTime = ServiceFactory.getSystemTimeSecondsFromEpoch() + (30);
+        objectiveGroup.graceTime = objectiveGroup.endTime;
+        objectiveGroup.progress = new ArrayList<>();
+        ObjectiveProgress objectiveProgress = new ObjectiveProgress();
+        objectiveGroup.progress.add(objectiveProgress);
+        objectiveProgress.uid = "obj_donate_social_e";
+        objectiveProgress.claimAttempt = false;
+        objectiveProgress.count = 0;
+        objectiveProgress.hq = 3;
+        objectiveProgress.target = 9;
+        objectiveProgress.planetId = "planet1";
+        objectiveProgress.state = ObjectiveState.active;
+
+        objectiveProgress = new ObjectiveProgress();
+        objectiveGroup.progress.add(objectiveProgress);
+        objectiveProgress.uid = "obj_donate_social_e";
+        objectiveProgress.claimAttempt = false;
+        objectiveProgress.count = 0;
+        objectiveProgress.hq = 3;
+        objectiveProgress.target = 9;
+        objectiveProgress.planetId = "planet1";
+        objectiveProgress.state = ObjectiveState.active;
+
+        objectiveProgress = new ObjectiveProgress();
+        objectiveGroup.progress.add(objectiveProgress);
+        objectiveProgress.uid = "obj_donate_social_e";
+        objectiveProgress.claimAttempt = false;
+        objectiveProgress.count = 0;
+        objectiveProgress.hq = 3;
+        objectiveProgress.target = 9;
+        objectiveProgress.planetId = "planet1";
+        objectiveProgress.state = ObjectiveState.active;
+
+        groupMap.put("planet1", objectiveGroup);
+        return groupMap;
     }
 
     private void mapRaids(PlayerModel playerModel, PlayerSession playerSession, long time) {

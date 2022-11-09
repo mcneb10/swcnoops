@@ -2,27 +2,27 @@ package swcnoops.server.commands.player;
 
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
-import swcnoops.server.commands.player.response.PlayerPlanetObjectiveResult;
+import swcnoops.server.commands.player.response.PlayerObjectiveForceResult;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.ObjectiveGroup;
 import swcnoops.server.model.ObjectiveProgress;
 import swcnoops.server.model.ObjectiveState;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
-// TODO - to finish to provide planet objectives
-// tied to the code PlanetDetailsLargeObjectivesViewModule.RefreshScreenForPlanetChange
-public class PlayerPlanetObjective extends AbstractCommandAction<PlayerPlanetObjective, PlayerPlanetObjectiveResult> {
+/**
+ * Called by client when it has been given invalid objectives
+ */
+public class PlayerObjectiveForceUpdate extends AbstractCommandAction<PlayerObjectiveForceUpdate, PlayerObjectiveForceResult> {
+    private String planetId;
+
     @Override
-    protected PlayerPlanetObjectiveResult execute(PlayerPlanetObjective arguments, long time) throws Exception {
-        PlayerPlanetObjectiveResult playerPlanetObjectiveResult = new PlayerPlanetObjectiveResult();
-
-        Map<String, ObjectiveGroup> groupMap = new HashMap<>();
-        ObjectiveGroup objectiveGroup = new ObjectiveGroup("obj_tatooine_series22_518");
+    protected PlayerObjectiveForceResult execute(PlayerObjectiveForceUpdate arguments, long time) throws Exception {
+        PlayerObjectiveForceResult playerObjectiveForceResult = new PlayerObjectiveForceResult();
+        ObjectiveGroup objectiveGroup = new ObjectiveGroup("obj_tatooine_series22_520");
+        playerObjectiveForceResult.setObjectiveGroup(objectiveGroup);
         objectiveGroup.startTime = ServiceFactory.getSystemTimeSecondsFromEpoch() - 10;
-        objectiveGroup.endTime = ServiceFactory.getSystemTimeSecondsFromEpoch() + (30);
+        objectiveGroup.endTime = ServiceFactory.getSystemTimeSecondsFromEpoch() + (60);
         objectiveGroup.graceTime = objectiveGroup.endTime;
         objectiveGroup.progress = new ArrayList<>();
         ObjectiveProgress objectiveProgress = new ObjectiveProgress();
@@ -55,17 +55,24 @@ public class PlayerPlanetObjective extends AbstractCommandAction<PlayerPlanetObj
         objectiveProgress.planetId = "planet1";
         objectiveProgress.state = ObjectiveState.active;
 
-        playerPlanetObjectiveResult.getGroups().put("planet1",objectiveGroup);
-        return playerPlanetObjectiveResult;
+        return playerObjectiveForceResult;
     }
 
     @Override
-    protected PlayerPlanetObjective parseArgument(JsonParser jsonParser, Object argumentObject) {
-        return jsonParser.fromJsonObject(argumentObject, PlayerPlanetObjective.class);
+    protected PlayerObjectiveForceUpdate parseArgument(JsonParser jsonParser, Object argumentObject) {
+        return jsonParser.fromJsonObject(argumentObject, PlayerObjectiveForceUpdate.class);
     }
 
     @Override
     public String getAction() {
-        return "player.planet.objective";
+        return "player.objective.forceUpdate";
+    }
+
+    public String getPlanetId() {
+        return planetId;
+    }
+
+    public void setPlanetId(String planetId) {
+        this.planetId = planetId;
     }
 }
