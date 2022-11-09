@@ -18,8 +18,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PlayerLeaderboardTournamentGetRanks extends AbstractCommandAction<PlayerLeaderboardTournamentGetRanks, TournamentRanksResult> {
     @Override
     protected TournamentRanksResult execute(PlayerLeaderboardTournamentGetRanks arguments, long time) throws Exception {
-        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
-                .loginPlayerSession(arguments.getPlayerId());
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
 
         List<TournamentStat> tournamentStats = playerSession.getTournamentManager().getObjectForReading();
         TournamentRanksResult tournamentRanksResult = new TournamentRanksResult();
