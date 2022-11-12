@@ -48,6 +48,9 @@ public class PvpMatch {
     private int potentialPointsLose;
     private TournamentData tournamentData;
     private List<TournamentStat> defendersTournaments;
+    private long protectedUntil;
+    private boolean playerProtected;
+    private long defendersProtectedUntil;
 
     public PvpMatch() {
     }
@@ -330,6 +333,34 @@ public class PvpMatch {
 
     public void setDefendersTournaments(List<TournamentStat> defendersTournaments) {
         this.defendersTournaments = defendersTournaments;
+    }
+
+    public long getProtectedUntil() {
+        return protectedUntil;
+    }
+
+    public void setProtectedUntil(long protectedUntil) {
+        this.protectedUntil = protectedUntil;
+    }
+
+    public boolean isPlayerProtected() {
+        return getPlayerProtected();
+    }
+
+    public void setPlayerProtected(long time) {
+        this.playerProtected = (time <= this.getProtectedUntil());
+    }
+
+    public boolean getPlayerProtected() {
+        return playerProtected;
+    }
+
+    public long getDefendersProtectedUntil() {
+        return defendersProtectedUntil;
+    }
+
+    public void setDefendersProtectedUntil(long defendersProtectedUntil) {
+        this.defendersProtectedUntil = defendersProtectedUntil;
     }
 }
 

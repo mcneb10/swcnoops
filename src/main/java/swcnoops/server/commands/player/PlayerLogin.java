@@ -121,6 +121,20 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
 
         playerLoginResponse.playerModel.playerObjectives = mapObjectives(playerSession.getPlayerSettings(), time);
+
+        mapProtection(playerLoginResponse.playerModel, playerSession, time);
+    }
+
+    private void mapProtection(PlayerModel playerModel, PlayerSession playerSession, long time) {
+        // TODO - reset if no protection anymore and if not a bought one
+        if (playerSession.getProtectionManager().getObjectForReading() != null) {
+            Long protectedUntil = playerSession.getProtectionManager().getObjectForReading();
+            if (protectedUntil != 0 && protectedUntil < time) {
+                playerSession.getProtectionManager().setObjectForSaving(Long.valueOf(0));
+            }
+
+            playerModel.protectedUntil = playerSession.getProtectionManager().getObjectForReading();
+        }
     }
 
     private Map<String, ObjectiveGroup> mapObjectives(PlayerSettings playerSettings, long time) {

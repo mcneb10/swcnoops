@@ -15,7 +15,7 @@ public class PlayerPvpGetRevengeTarget extends AbstractCommandAction<PlayerPvpGe
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
         PvpMatch pvpMatch = playerSession.getPvpSession().getRevengeMatch(arguments.getOpponentId(), time);
 
-        CommandResult result = PlayerPvpGetNextTarget.setupResponse(playerSession, pvpMatch);
+        CommandResult result = PlayerPvpGetNextTarget.setupResponse(playerSession, pvpMatch, time);
         return result;
     }
 
