@@ -84,6 +84,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         // TODO - need to check if this is actually being used for PvP
         this.playerCollection.createIndex(compoundIndex(Indexes.descending("playerSettings.faction"),
+                Indexes.descending("playerSettings.protectedUntil"),
                 Indexes.descending("currentPvPDefence"),
                 Indexes.descending("keepAlive"),
                 Indexes.descending("playerSettings.hqLevel"),
@@ -433,6 +434,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             combinedList.add(set("playerSettings.raidLogs", playerSession.getRaidLogsManager().getObjectForSaving()));
         }
 
+        if (playerSession.getProtectionManager().needsSaving()) {
+            combinedList.add(set("playerSettings.protectedUntil", playerSession.getProtectionManager().getObjectForSaving()));
+        }
+
         Bson combinedSet = combine(combinedList);
         Player result = this.playerCollection.findOneAndUpdate(session, Filters.eq("_id", playerSession.getPlayerId()),
                 combinedSet);
@@ -477,6 +482,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
         if (playerSession.getRaidLogsManager().needsSaving()) {
             playerSession.getPlayerSettings().setRaidLogs(playerSession.getRaidLogsManager().getObjectForSaving());
+        }
+        if (playerSession.getProtectionManager().needsSaving()) {
+            playerSession.getPlayerSettings().setProtectedUntil(playerSession.getProtectionManager().getObjectForSaving());
         }
 
         Bson playerQuery = null;
@@ -1383,6 +1391,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         PlayerSession playerSession = pvpManager.getPlayerSession();
         long timeNow = ServiceFactory.getSystemTimeSecondsFromEpoch();
 
+        // TODO - maybe do something here for protected player, or when player is on different planet, logged in etc...
+        // should return the correct error message rather than not found
         Bson isOpponent = eq("_id", opponentId);
         Bson notBeingAttacked = or(eq("currentPvPDefence", null), lt("currentPvPDefence.expiration", timeNow));
         Bson playerNotPlaying = or(lt("keepAlive", timeNow - 130), eq("keepAlive", null));
@@ -1390,7 +1400,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         // revenge is free
         int creditsCharge = 0;
-        PvpMatch pvpMatch = createPvpMatch(match, creditsCharge, playerSession, pvpManager);
+        PvpMatch pvpMatch = createPvpMatch(match, creditsCharge, playerSession, pvpManager, timeNow);
 
         if (pvpMatch != null) {
             pvpMatch.setRevenge(true);
@@ -1400,14 +1410,15 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return pvpMatch;
     }
 
-    private PvpMatch createPvpMatch(Bson match, int creditCharge, PlayerSession playerSession, PvpManager pvpManager) {
+    private PvpMatch createPvpMatch(Bson match, int creditCharge, PlayerSession playerSession, PvpManager pvpManager, long time) {
         List<Bson> aggregates = Arrays.asList(match,
                 Aggregates.project(include("playerSettings.baseMap", "playerSettings.name",
                         "playerSettings.faction", "playerSettings.hqLevel",
                         "playerSettings.guildId", "playerSettings.guildName",
                         "playerSettings.inventoryStorage", "playerSettings.scalars", "playerSettings.damagedBuildings",
                         "currentPvPDefence", "playerSettings.donatedTroops", "playerSettings.deployableTroops.champion",
-                        "playerSettings.creature", "playerSettings.troops", "playerSettings.tournaments")),
+                        "playerSettings.creature", "playerSettings.troops", "playerSettings.tournaments",
+                        "playerSettings.protectedUntil")),
                 Aggregates.sample(1));
 
         PvpMatch pvpMatch = null;
@@ -1421,7 +1432,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             try (MongoCursor<Player> inactivePlayerCursor = inactivePlayersIterable.cursor()) {
                 if (inactivePlayerCursor.hasNext()) {
                     Player opponentPlayer = inactivePlayerCursor.next();
-                    pvpMatch = mapPvPMatch(playerSession.getPlayerId(), creditCharge, opponentPlayer);
+                    pvpMatch = mapPvPMatch(playerSession.getPlayerId(), creditCharge, opponentPlayer, time);
                     // they were attacked but has not been cleaned up, we will clean up the attacker otherwise
                     // unique index will fail
                     if (opponentPlayer.getCurrentPvPDefence() != null) {
@@ -1431,15 +1442,18 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 }
             }
 
-            if (pvpMatch != null) {
+            // TODO - need to reset attackers protection if its a revenge attack (need to see what client does)
+            // pvp match will only have isPlayerProtected if this is a revenge attack
+            if (pvpMatch != null && !pvpMatch.isPlayerProtected()) {
                 PvpAttack pvpAttack = deductCreditForPvPAttack(pvpManager, pvpMatch);
+                playerSession.getProtectionManager().setObjectForSaving(Long.valueOf(0));
                 this.savePlayerSettingsSmart(clientSession, playerSession);
 
                 PvpAttack pvpDefence = new PvpAttack();
                 pvpDefence.playerId = pvpManager.getPlayerSession().getPlayerId();
                 pvpDefence.battleId = pvpAttack.battleId;
                 pvpDefence.expiration = pvpAttack.expiration;
-                this.playerCollection.updateOne(clientSession, eq("_id", pvpAttack.playerId),
+                this.playerCollection.findOneAndUpdate(clientSession, eq("_id", pvpAttack.playerId),
                         set("currentPvPDefence", pvpDefence));
             }
 
@@ -1450,7 +1464,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         return pvpMatch;
     }
 
-    private PvpMatch mapPvPMatch(String attackerId, int creditsCharged, Player opponentPlayer) {
+    private PvpMatch mapPvPMatch(String attackerId, int creditsCharged, Player opponentPlayer, long time) {
         PvpMatch pvpMatch = new PvpMatch();
         pvpMatch.setBattleId(ServiceFactory.createRandomUUID());
         pvpMatch.setBattleDate(ServiceFactory.getSystemTimeSecondsFromEpoch());
@@ -1472,7 +1486,8 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         pvpMatch.setDefendersTroops(opponentPlayer.getPlayerSettings().getTroops());
         pvpMatch.setDefendersTournaments(opponentPlayer.getPlayerSettings().getTournaments());
         pvpMatch.creditsCharged = creditsCharged;
-
+        pvpMatch.setProtectedUntil(opponentPlayer.getPlayerSettings().getProtectedUntil());
+        pvpMatch.setPlayerProtected(time);
         return pvpMatch;
     }
 
@@ -1502,13 +1517,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         Bson notMe = ne("_id", pvpManager.getPlayerSession().getPlayerId());
         Bson notAlreadySeen = nin("_id", playersSeen);
         Bson notBeingAttacked = or(eq("currentPvPDefence", null), lt("currentPvPDefence.expiration", timeNow));
+        Bson notProtected = or(eq("playerSettings.protectedUntil", null), lt("playerSettings.protectedUntil", timeNow));
         Bson otherFaction = ne("playerSettings.faction", pvpManager.getPlayerSession().getPlayer().getPlayerSettings().getFaction());
         Bson playerNotPlaying = or(lt("keepAlive", timeNow - 130), eq("keepAlive", null));
-        Bson match = Aggregates.match(and(notMe, otherFaction, notBeingAttacked, playerNotPlaying, notAlreadySeen,
+        Bson match = Aggregates.match(and(notMe, otherFaction, notBeingAttacked, notProtected, playerNotPlaying, notAlreadySeen,
                 or(hqQuery, xpQuery)));
 
         int creditsCharged = ServiceFactory.instance().getGameDataManager().getPvpMatchCost(playerHq);
-        PvpMatch pvpMatch = createPvpMatch(match, creditsCharged, playerSession, pvpManager);
+        PvpMatch pvpMatch = createPvpMatch(match, creditsCharged, playerSession, pvpManager, timeNow);
 
         if (pvpMatch != null) {
             pvpMatch.setDevBase(false);
@@ -1536,7 +1552,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
     }
 
     private void clearPvPAttacker(ClientSession clientSession, PvpAttack pvpAttack) {
-        UpdateResult updateResult = this.playerCollection.updateOne(clientSession,
+        Player player = this.playerCollection.findOneAndUpdate(clientSession,
                 combine(eq("_id", pvpAttack.playerId), eq("currentPvPAttack.battleId", pvpAttack.battleId)),
                 unset("currentPvPAttack"));
     }
@@ -1604,6 +1620,7 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
             if (pvpMatch != null) {
                 deductCreditForPvPAttack(pvpManager, pvpMatch);
+                playerSession.getProtectionManager().setObjectForSaving(Long.valueOf(0));
                 this.savePlayerSettingsSmart(clientSession, playerSession);
             }
 
@@ -1654,12 +1671,13 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             sets.add(set("playerSettings.baseMap", pvpMatch.getDefendersBaseMap()));
             sets.add(set("playerSettings.creature", pvpMatch.getDefendersCreature()));
             sets.add(set("playerSettings.donatedTroops", pvpMatch.getDefendersDonatedTroops()));
+            sets.add(set("playerSettings.protectedUntil", pvpMatch.getDefendersProtectedUntil()));
 
             if (pvpMatch.getTournamentData() != null) {
                 sets.add(set("playerSettings.tournaments", pvpMatch.getDefendersTournaments()));
             }
 
-            this.playerCollection.updateOne(session,
+            Player player = this.playerCollection.findOneAndUpdate(session,
                     combine(eq("_id", defenderId),
                             eq("currentPvPDefence.battleId", battleId)),
                     combine(sets));

@@ -29,14 +29,17 @@ public class PlayerPvpGetNextTarget extends AbstractCommandAction<PlayerPvpGetNe
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
         PvpMatch pvpMatch = playerSession.getPvpSession().getNextMatch();
 
-        CommandResult response = setupResponse(playerSession, pvpMatch);
+        CommandResult response = setupResponse(playerSession, pvpMatch, time);
         return response;
     }
 
-    static public CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch) {
+    static public CommandResult setupResponse(PlayerSession playerSession, PvpMatch pvpMatch, long time) {
         if (pvpMatch == null) {
             return ResponseHelper.newStatusResult(ResponseHelper.STATUS_CODE_PVP_TARGET_NOT_FOUND);
         }
+
+        if (pvpMatch.isPlayerProtected())
+            return ResponseHelper.newStatusResult(ResponseHelper.STATUS_CODE_PVP_TARGET_IS_UNDER_PROTECTION);
 
         PvpTargetCommandResult response = new PvpTargetCommandResult();
         response.battleId = pvpMatch.getBattleId();

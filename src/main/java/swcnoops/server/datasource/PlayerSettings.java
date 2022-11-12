@@ -31,6 +31,7 @@ public class PlayerSettings {
     private List<TournamentStat> tournaments;
     private float timeZoneOffset;
     private Map<String, Long> raidLogs;
+    private long protectedUntil;
 
     public PlayerSettings() {
     }
@@ -221,5 +222,13 @@ public class PlayerSettings {
 
     public void setRaidLogs(Map<String, Long> raidLogs) {
         this.raidLogs = raidLogs;
+    }
+
+    public long getProtectedUntil() {
+        return protectedUntil;
+    }
+
+    public void setProtectedUntil(long protectedUntil) {
+        this.protectedUntil = protectedUntil;
     }
 }

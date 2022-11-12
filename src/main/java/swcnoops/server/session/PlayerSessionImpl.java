@@ -107,6 +107,14 @@ public class PlayerSessionImpl implements PlayerSession {
         }
     };
 
+    private DBCacheObject<Long> protectionManager = new DBCacheObjectImpl<Long>() {
+        @Override
+        protected Long loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                    false, "playerSettings.protectedUntil").getProtectedUntil();
+        }
+    };
+
     private long lastLoginTime;
     private Raid nextRaidSession;
 
@@ -133,6 +141,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.damagedBuildingManager.initialise(this.player.getPlayerSettings().getDamagedBuildings());
         this.tournamentsManager.initialise(this.player.getPlayerSettings().getTournaments());
         this.raidLogsManager.initialise(this.player.getPlayerSettings().getRaidLogs());
+        this.protectionManager.initialise(this.player.getPlayerSettings().getProtectedUntil());
         this.lastLoginTime = player.getLoginTime();
     }
 
@@ -710,6 +719,8 @@ public class PlayerSessionImpl implements PlayerSession {
         pvpMatch.getDefendersScalars().defensesLost += battleReplay.battleLog.stars == 0 ? 0 : 1;
         pvpMatch.getDefendersScalars().defenseRating += pvpMatch.getDefender().defenseRatingDelta;
 
+        pvpMatch.setDefendersProtectedUntil(calculateProtectedUntil(battleReplay.battleLog.stars));
+
         // update if it was for PvP
         if (pvpMatch.getTournamentData() != null) {
             ConflictManager conflictManager = ServiceFactory.instance().getGameDataManager().getConflictManager();
@@ -786,6 +797,30 @@ public class PlayerSessionImpl implements PlayerSession {
                 pvpMatch.getDefendersDonatedTroops().remove(allKilledUid);
             }
         }
+    }
+
+    private long calculateProtectedUntil(int attackersStars) {
+        int protectionMinutes = 0;
+
+        GameConstants constants = ServiceFactory.instance().getGameDataManager().getGameConstants();
+        switch (attackersStars) {
+            case 1 :
+                protectionMinutes = constants.pvp_damage_protection_1star;
+                break;
+            case 2 :
+                protectionMinutes = constants.pvp_damage_protection_2star;
+                break;
+            case 3 :
+                protectionMinutes = constants.pvp_damage_protection_3star;
+                break;
+        }
+
+        long protectedUntil = 0;
+
+        if (protectionMinutes != 0)
+            protectedUntil = ServiceFactory.getSystemTimeSecondsFromEpoch() + (protectionMinutes * 60);
+
+        return protectedUntil;
     }
 
     private void setTriggeredTraps(Map<String, Integer> damagedBuildings, Buildings buildings) {
@@ -1481,6 +1516,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.scalarsManager.doneDBSave();
         this.tournamentsManager.doneDBSave();
         this.raidLogsManager.doneDBSave();
+        this.protectionManager.doneDBSave();
     }
 
     @Override
@@ -1521,5 +1557,10 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public DBCacheObject<Map<String, Long>> getRaidLogsManager() {
         return this.raidLogsManager;
+    }
+
+    @Override
+    public DBCacheObject<Long> getProtectionManager() {
+        return this.protectionManager;
     }
 }
