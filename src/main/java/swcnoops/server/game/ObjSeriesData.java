@@ -1,5 +1,7 @@
 package swcnoops.server.game;
 
+import swcnoops.server.ServiceFactory;
+
 public class ObjSeriesData implements JoeData {
     private String endDate;
     private int graceHours;
@@ -14,6 +16,8 @@ public class ObjSeriesData implements JoeData {
     private String planetUid;
     private String startDate;
     private String uid;
+    private long startTime;
+    private long endTime;
 
     public String getEndDate() {
         return endDate;
@@ -66,5 +70,18 @@ public class ObjSeriesData implements JoeData {
     @Override
     public String getUid() {
         return uid;
+    }
+
+    public void parseJoeDates() {
+        this.startTime = ServiceFactory.convertJoeDate(this.startDate);
+        this.endTime = ServiceFactory.convertJoeDate(this.endDate);
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public long getEndTime() {
+        return endTime;
     }
 }

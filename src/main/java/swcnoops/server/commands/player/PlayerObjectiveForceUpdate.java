@@ -3,12 +3,11 @@ package swcnoops.server.commands.player;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerObjectiveForceResult;
+import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.game.ObjectiveManager;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.ObjectiveGroup;
-import swcnoops.server.model.ObjectiveProgress;
-import swcnoops.server.model.ObjectiveState;
-
-import java.util.ArrayList;
+import swcnoops.server.session.PlayerSession;
 
 /**
  * Called by client when it has been given invalid objectives
@@ -18,43 +17,17 @@ public class PlayerObjectiveForceUpdate extends AbstractCommandAction<PlayerObje
 
     @Override
     protected PlayerObjectiveForceResult execute(PlayerObjectiveForceUpdate arguments, long time) throws Exception {
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+
+        ObjectiveManager objectiveManager = ServiceFactory.instance().getGameDataManager().getObjectiveManager();
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        ObjectiveGroup objectiveGroup = objectiveManager.getObjectiveGroup(arguments.getPlanetId(),
+                playerSettings.getFaction(),
+                playerSettings.getHqLevel());
+
         PlayerObjectiveForceResult playerObjectiveForceResult = new PlayerObjectiveForceResult();
-        ObjectiveGroup objectiveGroup = new ObjectiveGroup("obj_tatooine_series22_520");
         playerObjectiveForceResult.setObjectiveGroup(objectiveGroup);
-        objectiveGroup.startTime = ServiceFactory.getSystemTimeSecondsFromEpoch() - 10;
-        objectiveGroup.endTime = ServiceFactory.getSystemTimeSecondsFromEpoch() + (60);
-        objectiveGroup.graceTime = objectiveGroup.endTime;
-        objectiveGroup.progress = new ArrayList<>();
-        ObjectiveProgress objectiveProgress = new ObjectiveProgress();
-        objectiveGroup.progress.add(objectiveProgress);
-        objectiveProgress.uid = "obj_donate_social_e";
-        objectiveProgress.claimAttempt = false;
-        objectiveProgress.count = 0;
-        objectiveProgress.hq = 3;
-        objectiveProgress.target = 9;
-        objectiveProgress.planetId = "planet1";
-        objectiveProgress.state = ObjectiveState.active;
-
-        objectiveProgress = new ObjectiveProgress();
-        objectiveGroup.progress.add(objectiveProgress);
-        objectiveProgress.uid = "obj_donate_social_e";
-        objectiveProgress.claimAttempt = false;
-        objectiveProgress.count = 0;
-        objectiveProgress.hq = 3;
-        objectiveProgress.target = 8;
-        objectiveProgress.planetId = "planet1";
-        objectiveProgress.state = ObjectiveState.active;
-
-        objectiveProgress = new ObjectiveProgress();
-        objectiveGroup.progress.add(objectiveProgress);
-        objectiveProgress.uid = "obj_train_soldier_easy_r";
-        objectiveProgress.claimAttempt = false;
-        objectiveProgress.count = 0;
-        objectiveProgress.hq = 3;
-        objectiveProgress.target = 1;
-        objectiveProgress.planetId = "planet1";
-        objectiveProgress.state = ObjectiveState.active;
-
         return playerObjectiveForceResult;
     }
 

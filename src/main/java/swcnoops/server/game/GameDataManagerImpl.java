@@ -44,6 +44,7 @@ public class GameDataManagerImpl implements GameDataManager {
     private ConflictManagerImpl conflictManager = new ConflictManagerImpl();
 
     private RaidManager raidManager = new RaidManagerImpl();
+    private ObjectiveManager objectiveManager = new ObjectiveManagerImpl();
 
     @Override
     public void initOnStartup() {
@@ -60,8 +61,21 @@ public class GameDataManagerImpl implements GameDataManager {
             this.initialiseGameConstants();
             this.initConflictManager();
             this.initRaidManager();
+            this.initObjectiveManager();
         } catch (Exception ex) {
             throw new RuntimeException("Failed to load game data from patches", ex);
+        }
+    }
+
+    private void initObjectiveManager() {
+        Map<String, ObjSeriesData> objSeriesDataMap = this.patchData.getMap(ObjSeriesData.class);
+
+        if (objSeriesDataMap != null) {
+            for (ObjSeriesData data : objSeriesDataMap.values()) {
+                data.parseJoeDates();
+            }
+
+            this.objectiveManager.setup(objSeriesDataMap.values(), this.patchData.getMap(ObjTableData.class));
         }
     }
 
@@ -85,6 +99,11 @@ public class GameDataManagerImpl implements GameDataManager {
     @Override
     public RaidManager getRaidManager() {
         return raidManager;
+    }
+
+    @Override
+    public ObjectiveManager getObjectiveManager() {
+        return this.objectiveManager;
     }
 
     private void initConflictManager() {

@@ -20,6 +20,7 @@ public class ObjTableData implements JoeData {
     private GoalType type;
     private String uid;
     private int weight;
+    private int minHQ;
 
     public String getCrateRewardUid() {
         return crateRewardUid;
@@ -88,5 +89,13 @@ public class ObjTableData implements JoeData {
 
     public int getWeight() {
         return weight;
+    }
+
+    public int getMinHQ() {
+        return minHQ;
+    }
+
+    public void setMinHQ(int minHQ) {
+        this.minHQ = minHQ;
     }
 }
