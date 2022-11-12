@@ -1,18 +1,28 @@
 package swcnoops.server.commands.player;
 
+import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.AbstractCommandAction;
 import swcnoops.server.commands.player.response.PlayerPlanetObjectiveResult;
+import swcnoops.server.datasource.PlayerSettings;
+import swcnoops.server.game.ObjectiveManager;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.ObjectiveGroup;
+import swcnoops.server.session.PlayerSession;
+import java.util.Map;
 
-// TODO - to finish to provide planet objectives
-// tied to the code PlanetDetailsLargeObjectivesViewModule.RefreshScreenForPlanetChange
-// we use a fake planet and fake objective so it does not crash the screen
 public class PlayerPlanetObjective extends AbstractCommandAction<PlayerPlanetObjective, PlayerPlanetObjectiveResult> {
     @Override
     protected PlayerPlanetObjectiveResult execute(PlayerPlanetObjective arguments, long time) throws Exception {
-        PlayerPlanetObjectiveResult playerPlanetObjectiveResult = new PlayerPlanetObjectiveResult();
-        playerPlanetObjectiveResult.getGroups().put("planetBoo", new ObjectiveGroup("obj_anh40_dbl_tatooine_s"));
+        PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
+                .getPlayerSession(arguments.getPlayerId());
+
+        ObjectiveManager objectiveManager = ServiceFactory.instance().getGameDataManager().getObjectiveManager();
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        Map<String, ObjectiveGroup> groups = objectiveManager.getObjectiveGroups(playerSettings.getUnlockedPlanets(),
+                playerSettings.getFaction(),
+                playerSettings.getHqLevel());
+
+        PlayerPlanetObjectiveResult playerPlanetObjectiveResult = new PlayerPlanetObjectiveResult(groups);
         return playerPlanetObjectiveResult;
     }
 

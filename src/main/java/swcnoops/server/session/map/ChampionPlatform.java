@@ -22,6 +22,9 @@ public class ChampionPlatform extends MapItemImpl {
         TroopData troopData = ServiceFactory.instance().getGameDataManager()
                 .getTroopDataByUid(this.getBuildingData().getLinkedUnit());
 
+        // TODO - when a new platform is built the deployableQueue.totalDeployable is not including the
+        // platform and the deka (although does not seem to impact anything really)
+        // should clean this up properly.
         playerSession.getTrainingManager().getDeployableChampion().getDeployableUnits()
                 .put(troopData.getUnitId(), new Integer(1));
         playerSession.getTroopInventory().upgradeTroop(troopData, endTime);

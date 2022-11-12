@@ -31,7 +31,7 @@ public interface PlayerSession {
     void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, int crystals, long time);
 
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
-    void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time);
+    void removeSpentTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     String playerPveBattleStart(String missionUid, long time);
 

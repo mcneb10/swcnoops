@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.game.GameDataManager;
 import swcnoops.server.game.TroopData;
+import swcnoops.server.session.PlayerSession;
 import swcnoops.server.session.map.MapItem;
 
 import java.util.*;
@@ -20,8 +21,10 @@ public class DeployableQueue {
     final private Map<String, Integer> deployableUnits = new HashMap<>();
     final private List<BuildUnit> unitsInQueue = new ArrayList<>();
     final private List<MapItem> mapItems = new ArrayList<>();
+    final private PlayerSession playerSession;
 
-    public DeployableQueue() {
+    public DeployableQueue(PlayerSession playerSession) {
+        this.playerSession = playerSession;
     }
 
     public void addStorage(MapItem mapItem)
@@ -51,28 +54,18 @@ public class DeployableQueue {
         return deployableUnits;
     }
 
-    public void removeDeployable(Map<String, Integer> deployables) {
-        deployables.entrySet().iterator();
-
-        Iterator<Map.Entry<String,Integer>> troopIterator = deployables.entrySet().iterator();
-        while(troopIterator.hasNext()) {
-            Map.Entry<String,Integer> entry = troopIterator.next();
-            removeDeployable(entry.getKey(), entry.getValue());
-        }
-    }
-
-    public void removeDeployable(String key, Integer value) {
-        boolean removed = false;
+    public int removeDeployable(String key, Integer value) {
+        int removed = 0;
 
         if (this.deployableUnits.containsKey(key)) {
-            removed = true;
 
             int onBoard = this.deployableUnits.get(key).intValue();
             // number from client is negative
             int numberToRemove = Math.abs(value.intValue());
             if (onBoard < numberToRemove) {
                 numberToRemove = onBoard;
-                LOG.warn("Removing of deployable had to adjust the amount " + key + " from number " + value + " to " + numberToRemove);
+                LOG.warn("Removing of deployable had to adjust the amount " + key + " from number " + value + " to "
+                        + numberToRemove + " " + this.playerSession.getPlayerId());
             }
 
             onBoard = onBoard - numberToRemove;
@@ -83,11 +76,11 @@ public class DeployableQueue {
             } else {
                 this.deployableUnits.put(key, Integer.valueOf(onBoard));
             }
+
+            removed = numberToRemove;
         }
 
-        if (!removed) {
-            LOG.warn("Removing of deployable did not remove " + key + " number " + value);
-        }
+        return removed;
     }
 
     public void findAndMoveCompletedUnitsToDeployable(long clientTime) {
@@ -107,14 +100,6 @@ public class DeployableQueue {
                     buildUnit.getConstructor().removeCompletedBuildUnit(buildUnit);
                     this.moveUnitToDeployable(buildUnit);
                 }
-            }
-        }
-    }
-
-    public void moveUnitToDeployable(List<BuildUnit> buildUnits) {
-        if (buildUnits != null) {
-            for (BuildUnit buildUnit : buildUnits) {
-                moveUnitToDeployable(buildUnit);
             }
         }
     }
@@ -141,11 +126,6 @@ public class DeployableQueue {
         this.unitsInQueue.add(buildUnit);
     }
 
-    public void removeUnitsFromQueue(List<BuildUnit> buildUnits) {
-        if (buildUnits != null)
-            this.unitsInQueue.removeAll(buildUnits);
-    }
-
     public void initialiseDeployableUnits(Map<String, Integer> storage) {
         this.deployableUnits.clear();
         this.deployableUnits.putAll(storage);
@@ -156,5 +136,46 @@ public class DeployableQueue {
             TroopData troopData = gameDataManager.getTroopDataByUnitId(entry.getKey(), 1);
             this.totalDeployable += troopData.getSize() * entry.getValue();
         }
+    }
+
+    public void removeUnits(List<BuildUnit> removed, boolean isBuyout) {
+        if (!isBuyout) {
+            this.removeUnitsFromQueue(removed);
+        } else {
+            this.moveUnitToDeployable(removed);
+        }
+    }
+
+    private void removeUnitsFromQueue(List<BuildUnit> buildUnits) {
+        if (buildUnits != null)
+            this.unitsInQueue.removeAll(buildUnits);
+    }
+
+    private void moveUnitToDeployable(List<BuildUnit> buildUnits) {
+        if (buildUnits != null) {
+            for (BuildUnit buildUnit : buildUnits) {
+                moveUnitToDeployable(buildUnit);
+            }
+        }
+    }
+
+    public void removeUnits(BuildUnit buildUnit) {
+        if (buildUnit != null)
+            this.unitsInQueue.remove(buildUnit);
+    }
+
+    public List<BuildUnit> getNearestBuildUnits(String unitId, int remaining) {
+        List<BuildUnit> nearest = new ArrayList<>(remaining);
+
+        for (BuildUnit buildUnit : this.getUnitsInQueue()) {
+            if (buildUnit != null && buildUnit.getUnitId() != null && buildUnit.getUnitId().equals(unitId)) {
+                nearest.add(buildUnit);
+                remaining--;
+                if (remaining == 0)
+                    break;
+            }
+        }
+
+        return nearest;
     }
 }

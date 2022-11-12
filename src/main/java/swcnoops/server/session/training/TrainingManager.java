@@ -25,9 +25,9 @@ public interface TrainingManager {
                            ContractType contractType);
     void initialiseBuildUnit(BuildUnit buildUnit);
 
-    void removeDeployedTroops(Map<String, Integer> deployablesToRemove);
+    void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
 
-    void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove);
+    void removeSpentTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     void initialiseDeployables(Deployables deployables);
 

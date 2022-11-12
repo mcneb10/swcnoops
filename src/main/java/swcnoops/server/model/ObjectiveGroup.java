@@ -9,8 +9,14 @@ public class ObjectiveGroup {
     public String groupId;
     public List<ObjectiveProgress> progress = new ArrayList<>();
     public long startTime;
+    public String planetId;
 
-    public ObjectiveGroup(String groupId) {
+    public ObjectiveGroup(String groupId, String planetId) {
         this.groupId = groupId;
+        this.planetId = planetId;
+    }
+
+    public String getPlanetId() {
+        return planetId;
     }
 }

@@ -118,9 +118,21 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.DamagedBuildings = mapDamagedBuildings(playerSession);
         playerLoginResponse.playerModel.tournaments = mapTournaments(playerSession);
         playerLoginResponse.playerModel.timeZoneOffset = playerSession.getPlayerSettings().getTimeZoneOffset();
-
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
 
+        playerLoginResponse.playerModel.playerObjectives = mapObjectives(playerSession.getPlayerSettings(), time);
+    }
+
+    private Map<String, ObjectiveGroup> mapObjectives(PlayerSettings playerSettings, long time) {
+        int hqLevel = playerSettings.getHqLevel();
+        if (hqLevel < ServiceFactory.instance().getGameDataManager().getGameConstants().objectives_unlocked)
+            return null;
+
+        Map<String, ObjectiveGroup> groups = ServiceFactory.instance().getGameDataManager()
+                .getObjectiveManager().getObjectiveGroups(playerSettings.getUnlockedPlanets(),
+                        playerSettings.getFaction(),
+                        hqLevel);
+        return groups;
     }
 
     private void mapRaids(PlayerModel playerModel, PlayerSession playerSession, long time) {

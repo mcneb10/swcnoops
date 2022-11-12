@@ -242,7 +242,7 @@ public class PlayerSessionImpl implements PlayerSession {
     public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
             this.processCompletedContracts(time);
-            this.trainingManager.removeDeployedTroops(deployablesToRemove);
+            this.trainingManager.removeDeployedTroops(deployablesToRemove, time);
             this.savePlayerSession();
         }
     }
@@ -254,10 +254,10 @@ public class PlayerSessionImpl implements PlayerSession {
      * @param time
      */
     @Override
-    public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove, long time) {
+    public void removeSpentTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         if (deployablesToRemove != null) {
             this.processCompletedContracts(time);
-            this.trainingManager.removeDeployedTroops(deployablesToRemove);
+            this.trainingManager.removeSpentTroops(deployablesToRemove, time);
 
             // TODO - this does not handle receiving donations while doing an attack
             // will have to rethink how to handle all the race conditions and overwriting.
@@ -678,9 +678,12 @@ public class PlayerSessionImpl implements PlayerSession {
         processCreature(unitsKilled);
         Map<String, Integer> champions = getUnitsKilledByTroopType(unitsKilled, TroopType.champion);
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        Map<String,Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(champions);
+        Map<String, Integer> killedChampions = gameDataManager.remapTroopUidToUnitId(champions);
         // TODO - change and simplify deployable troops to use a DBObject
-        this.getTrainingManager().getDeployableChampion().removeDeployable(killedChampions);
+        // TODO - add handling to remove contract
+        killedChampions.forEach((k,v) -> {
+            this.getTrainingManager().getDeployableChampion().removeDeployable(k, v);
+        });
     }
 
     @Override

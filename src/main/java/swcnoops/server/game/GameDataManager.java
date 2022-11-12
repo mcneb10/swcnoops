@@ -74,4 +74,6 @@ public interface GameDataManager {
     int getTournamentDefenderMedals(int stars);
 
     RaidManager getRaidManager();
+
+    ObjectiveManager getObjectiveManager();
 }

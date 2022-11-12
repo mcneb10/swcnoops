@@ -15,7 +15,7 @@ public class PlayerModel {
     public String currentQuest;
     public Long protectedUntil;
     public Long protectionFrom;
-    public Object protectionCooldownUntil;
+    public Map<String, Long> protectionCooldownUntil;
     public List<BattleLog> battleLogs;
     public Map<String,Campaign> campaigns;
     public Map<String,Mission> missions;
@@ -39,7 +39,7 @@ public class PlayerModel {
     public Integer relocationStarCount;
     public Object holonetRewards;
     //TODO - public PlayerObjectives playerObjectives;
-    public Object playerObjectives;
+    public Map<String, ObjectiveGroup> playerObjectives;
     public Long lastObjectiveCheckTime;
     //TODO - public Raids raids;
     public Map<String, Raid> raids;

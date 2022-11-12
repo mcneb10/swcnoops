@@ -25,10 +25,10 @@ public class TrainingManagerImpl implements TrainingManager {
 
     public TrainingManagerImpl(PlayerSession playerSession) {
         this.playerSession = playerSession;
-        this.troopTransport = new DeployableQueue();
-        this.specialAttackTransport = new DeployableQueue();
-        this.heroTransport = new DeployableQueue();
-        this.championTransport = new DeployableQueue();
+        this.troopTransport = new DeployableQueue(playerSession);
+        this.specialAttackTransport = new DeployableQueue(playerSession);
+        this.heroTransport = new DeployableQueue(playerSession);
+        this.championTransport = new DeployableQueue(playerSession);
     }
 
     @Override
@@ -126,6 +126,7 @@ public class TrainingManagerImpl implements TrainingManager {
      * we move completed troops last because its possible they managed to remove it
      * while we think it had completed and already moved to be a deployable
      * troops are cancelled from the back of their slot.
+     * Any remaining troops will be taken from the deployable queue.
      * @param buildingId
      * @param unitTypeId
      * @param quantity
@@ -140,8 +141,24 @@ public class TrainingManagerImpl implements TrainingManager {
         List<BuildUnit> cancelledContracts =
                 builder.remove(troopData.getUnitId(), quantity, time, false);
 
+        int remainingCancel = 0;
         if (cancelledContracts.size() != quantity) {
-            LOG.warn("Number of units to cancel " + unitTypeId + " removed " + cancelledContracts.size() + " but expected " + quantity);
+            LOG.warn("Number of " + unitTypeId + " units to cancel, removed " + cancelledContracts.size() + " but expected "
+                    + quantity + " " + this.playerSession.getPlayerId());
+
+            remainingCancel = quantity - cancelledContracts.size();
+            Integer deployedCount = builder.getDeployableQueue().getDeployableUnits().get(troopData.getUnitId());
+            if (deployedCount == null || deployedCount < remainingCancel) {
+                LOG.warn("There are none or not enough " + unitTypeId + " in deployable " + remainingCancel + " for cancelling "
+                        + this.playerSession.getPlayerId());
+            }
+
+            if (deployedCount != null) {
+                int deployableCancel = Math.min(remainingCancel, deployedCount);
+                int deployableRemoved = builder.getDeployableQueue().removeDeployable(troopData.getUnitId(), deployableCancel);
+                LOG.warn("Removing " + unitTypeId + " in deployable " + deployableCancel + " for cancelling, and did "
+                        + deployableRemoved + " " + this.playerSession.getPlayerId());
+            }
         }
 
         CurrencyType trainingCurrency = getTrainingCurrency(troopData);
@@ -153,6 +170,12 @@ public class TrainingManagerImpl implements TrainingManager {
         int availableStorage = CurrencyHelper.calculateStorageAvailable(trainingCurrency, playerSession);
         if (expectedRefund > availableStorage)
             expectedRefund = availableStorage;
+
+        if (remainingCancel > 0) {
+            LOG.warn("Could not correctly calculate refund as there are uncounted units that were not in the build queue "
+                    + remainingCancel + " " + this.playerSession.getPlayerId());
+        }
+
         return new CurrencyDelta(givenDelta, expectedRefund, trainingCurrency, false);
     }
 
@@ -172,6 +195,20 @@ public class TrainingManagerImpl implements TrainingManager {
         List<BuildUnit> boughtOutContracts =
                 builder.remove(troopData.getUnitId(), quantity, time, true);
 
+        int remainingBuyOut = 0;
+        if (boughtOutContracts.size() != quantity) {
+            LOG.warn("Number of units " + unitTypeId + " to buy out " + boughtOutContracts.size() + " but expected "
+                    + quantity + " " + this.playerSession.getPlayerId());
+
+            // the remaining would off been considered completed and be sent as deployable
+            remainingBuyOut = quantity - boughtOutContracts.size();
+            Integer deployedCount = builder.getDeployableQueue().getDeployableUnits().get(troopData.getUnitId());
+            if (deployedCount == null || deployedCount < remainingBuyOut) {
+                LOG.warn("There are none or not enough " + unitTypeId + " in deployable " + remainingBuyOut + " for buyout "
+                        + this.playerSession.getPlayerId());
+            }
+        }
+
         // calculate how much time is being bought out with crystals
         int expectedCrystals = 0;
         if (boughtOutContracts != null && boughtOutContracts.size() > 0) {
@@ -180,8 +217,13 @@ public class TrainingManagerImpl implements TrainingManager {
             expectedCrystals = CrystalHelper.secondsToCrystals(secondsToBuy, troopData);
         }
 
+        if (remainingBuyOut > 0) {
+            LOG.warn("Could not correctly calculate buyout as there are remaining units that is in the build queue "
+                    + remainingBuyOut + " " + this.playerSession.getPlayerId());
+        }
+
         int givenCrystalsDelta = CrystalHelper.calculateGivenCrystalDeltaToRemove(this.playerSession, crystals);
-        return new CurrencyDelta(givenCrystalsDelta,expectedCrystals, CurrencyType.crystals, true);
+        return new CurrencyDelta(givenCrystalsDelta, expectedCrystals, CurrencyType.crystals, true);
     }
 
     @Override
@@ -193,60 +235,126 @@ public class TrainingManagerImpl implements TrainingManager {
     }
 
     @Override
-    public void removeDeployedTroops(Map<String, Integer> deployablesToRemove) {
+    public void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time) {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
-        Map<String, Integer> aTroopType = new HashMap<>();
+        Set<Builder> adjustedBuilders = new HashSet<>();
         for (Map.Entry<String, Integer> entry : deployablesToRemove.entrySet()) {
             TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
-            aTroopType.put(entry.getKey(), entry.getValue());
+            DeployableQueue deployableQueue = getDeployable(troopData);
+            Set<Builder> builders = this.removeDeployedTroopsWithBuilderAdjustment(deployableQueue, troopData, entry.getValue());
+            adjustedBuilders.addAll(builders);
+        }
 
-            if (troopData.isSpecialAttack()) {
-                this.specialAttackTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
-            } else {
-                switch (troopData.getType()) {
-                    case infantry:
-                    case vehicle:
-                    case mercenary:
-                        this.troopTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
-                        break;
-                    case hero:
-                        this.heroTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
-                        break;
-                    case champion:
-                        this.championTransport.removeDeployable(gameDataManager.remapTroopUidToUnitId(aTroopType));
-                        break;
-                    default:
-                        throw new RuntimeException("Unsupported type for removal " + troopData.getType());
-                }
+        recalculateBuilders(adjustedBuilders, time);
+    }
+
+    /**
+     * This will remove troops from deployable queue and any remaining counts will be taken from the builder.
+     * This is to handle the scenario that the client has different states to the server.
+     * This should keep the server and client in sync in most cases.
+     * @param deployableQueue
+     * @param troopData
+     * @param value
+     * @return
+     */
+    private Set<Builder> removeDeployedTroopsWithBuilderAdjustment(DeployableQueue deployableQueue, TroopData troopData, Integer value) {
+        value = Math.abs(value);
+        int removed = deployableQueue.removeDeployable(troopData.getUnitId(), value);
+
+        Set<Builder> amendedBuilder = new HashSet<>();
+
+        // does not match going have try and adjust
+        if (value != removed) {
+            int remaining = value - removed;
+            List<BuildUnit> buildUnits = deployableQueue.getNearestBuildUnits(troopData.getUnitId(), remaining);
+            for (BuildUnit buildUnit : buildUnits) {
+                Builder builder = getBuilder(buildUnit.getBuildingId());
+                amendedBuilder.add(builder);
+                builder.removeCompletedBuildUnit(buildUnit);
+                deployableQueue.removeUnits(buildUnit);
             }
 
-            aTroopType.clear();
+            LOG.warn("Adjusting deployable queue, removing from a builder for unit " + troopData.getUnitId() + ", removing " + remaining +
+                    " and did " + buildUnits.size() + " " + this.playerSession.getPlayerId());
         }
+
+        return amendedBuilder;
+    }
+
+    private DeployableQueue getDeployable(TroopData troopData) {
+        DeployableQueue queue;
+
+        if (troopData.isSpecialAttack()) {
+            queue = this.specialAttackTransport;
+        } else {
+            switch (troopData.getType()) {
+                case infantry:
+                case vehicle:
+                case mercenary:
+                    queue = this.troopTransport;
+                    break;
+                case hero:
+                    queue = this.heroTransport;
+                    break;
+                case champion:
+                    queue = this.championTransport;
+                    break;
+                default:
+                    throw new RuntimeException("Unsupported type for removal " + troopData.getType());
+            }
+        }
+
+        return queue;
     }
 
     /**
      * Removal during a battle.
-     * TODO - We do not remove champions because if they stay alive then we want to keep them.
+     * We do not remove champions because if they stay alive then we want to keep them.
      * need to remove them only when they have been killed.
      * @param deployablesToRemove - list of deployment records from client
      */
     @Override
-    public void removeDeployedTroops(List<DeploymentRecord> deployablesToRemove) {
+    public void removeSpentTroops(List<DeploymentRecord> deployablesToRemove, long time) {
         GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+        Set<Builder> adjustedBuilders = new HashSet<>();
         for (DeploymentRecord deploymentRecord : deployablesToRemove) {
-            TroopData troopData = gameDataManager.getTroopDataByUid(deploymentRecord.getUid());
-            switch (deploymentRecord.getAction()) {
-                case "HeroDeployed":
-                    this.heroTransport.removeDeployable(troopData.getUnitId(), Integer.valueOf(1));
-                    break;
-                case "TroopPlaced":
-                    this.troopTransport.removeDeployable(troopData.getUnitId(), Integer.valueOf(1));
-                    break;
-                case "SpecialAttackDeployed":
-                    this.specialAttackTransport.removeDeployable(troopData.getUnitId(), Integer.valueOf(1));
-                    break;
+            DeployableQueue deployableQueue = getSpentDeployable(deploymentRecord);
+            if (deployableQueue != null) {
+                TroopData troopData = gameDataManager.getTroopDataByUid(deploymentRecord.getUid());
+                Set<Builder> builders = removeDeployedTroopsWithBuilderAdjustment(deployableQueue, troopData, Integer.valueOf(1));
+                adjustedBuilders.addAll(builders);
             }
         }
+
+        recalculateBuilders(adjustedBuilders, time);
+    }
+
+    private void recalculateBuilders(Set<Builder> adjustedBuilders, long time) {
+        Set<DeployableQueue> queues = new HashSet<>();
+        adjustedBuilders.forEach(b -> {
+            b.recalculateBuildUnitTimes(time);
+            queues.add(b.getDeployableQueue());
+        });
+
+        queues.forEach( q -> q.sortUnitsInQueue());
+    }
+
+    private DeployableQueue getSpentDeployable(DeploymentRecord deploymentRecord) {
+        DeployableQueue deployableQueue = null;
+
+        switch (deploymentRecord.getAction()) {
+            case "HeroDeployed":
+                deployableQueue = this.heroTransport;
+                break;
+            case "TroopPlaced":
+                deployableQueue = this.troopTransport;
+                break;
+            case "SpecialAttackDeployed":
+                deployableQueue = this.specialAttackTransport;
+                break;
+        }
+
+        return deployableQueue;
     }
 
     private Builder getBuilder(String buildingId) {

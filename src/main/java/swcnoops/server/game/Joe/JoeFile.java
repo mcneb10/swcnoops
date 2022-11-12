@@ -73,6 +73,12 @@ public class JoeFile {
         @JsonProperty("RaidMissionPool")
         private List<RaidMissionPoolData> raidMissionPool;
 
+        @JsonProperty("ObjSeries")
+        private List<ObjSeriesData> objSeries;
+
+        @JsonProperty("ObjTable")
+        private List<ObjTableData> objTable;
+
         public List<CampaignData> getCampaignData() {
             return campaignData;
         }
@@ -119,6 +125,22 @@ public class JoeFile {
 
         public void setRaidMissionPool(List<RaidMissionPoolData> raidMissionPool) {
             this.raidMissionPool = raidMissionPool;
+        }
+
+        public List<ObjSeriesData> getObjSeries() {
+            return objSeries;
+        }
+
+        public void setObjSeries(List<ObjSeriesData> objSeries) {
+            this.objSeries = objSeries;
+        }
+
+        public List<ObjTableData> getObjTable() {
+            return objTable;
+        }
+
+        public void setObjTable(List<ObjTableData> objTable) {
+            this.objTable = objTable;
         }
     }
 }
