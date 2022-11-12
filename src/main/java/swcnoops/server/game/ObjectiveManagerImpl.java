@@ -28,7 +28,9 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
 
         List<ObjectiveGroup> objectiveGroups = new ArrayList<>(unlockedPlanets.size());
         for (String planetId : unlockedPlanets) {
-            objectiveGroups.add(getObjectiveGroup(planetId, faction, hqLevel));
+            ObjectiveGroup objectiveGroup = getObjectiveGroup(planetId, faction, hqLevel);
+            if (objectiveGroup != null)
+                objectiveGroups.add(objectiveGroup);
         }
 
         Map<String, ObjectiveGroup> groupMap = new HashMap<>();
@@ -40,7 +42,14 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
     @Override
     public ObjectiveGroup getObjectiveGroup(String planetId, FactionType faction, int hqLevel) {
         ObjSeriesData planetData = this.planetSeries.get(planetId);
+        if (planetData == null)
+            return null;
+
         ObjectiveGroup objectiveGroup = createObjectiveGroup(planetData);
+
+        if (objectiveGroup == null)
+            return null;
+
         ObjectiveProgress objectiveProgress1 = createObjectiveProgress(faction, planetData.getObjBucket(), hqLevel);
         objectiveProgress1.planetId = planetId;
         objectiveGroup.progress.add(objectiveProgress1);
