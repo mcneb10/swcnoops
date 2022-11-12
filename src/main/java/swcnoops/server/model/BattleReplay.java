@@ -56,8 +56,6 @@ public class BattleReplay {
                 pvpMatch.getDefender().faction, time);
 
         battleReplay.battleLog.revenged = pvpMatch.isRevenge();
-        battleReplay.battleLog.attackingUnitsKilled = playerBattleComplete.getAttackingUnitsKilled();
-        battleReplay.battleLog.defendingUnitsKilled = playerBattleComplete.getDefendingUnitsKilled();
 
         // we overwrite it with the real data
         battleReplay.battleLog.attacker = pvpMatch.getAttacker();
@@ -73,6 +71,9 @@ public class BattleReplay {
         battleReplay.defenderId = defenderPlayerId;
         battleReplay.battleType = playerBattleComplete.getReplayData().battleType;
         battleReplay.attackDate = time;
+
+        battleReplay.battleLog.attackingUnitsKilled = playerBattleComplete.getAttackingUnitsKilled();
+        battleReplay.battleLog.defendingUnitsKilled = playerBattleComplete.getDefendingUnitsKilled();
 
         battleReplay.battleLog.battleVersion = playerBattleComplete.getBattleVersion();
         battleReplay.battleLog.battleId = playerBattleComplete.getBattleId();
@@ -125,7 +126,6 @@ public class BattleReplay {
 
         // TODO - not sure what this does
         battleReplay.battleLog.server = false;
-
         battleReplay.replayData = playerBattleComplete.getReplayData();
         return battleReplay;
     }

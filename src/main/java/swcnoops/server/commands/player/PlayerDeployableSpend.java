@@ -19,7 +19,7 @@ public class PlayerDeployableSpend extends AbstractCommandAction<PlayerDeployabl
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager()
                 .getPlayerSession(arguments.getPlayerId());
 
-        playerSession.removeDeployedTroops(arguments.getUnits(), time);
+        playerSession.removeSpentTroops(arguments.getUnits(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 

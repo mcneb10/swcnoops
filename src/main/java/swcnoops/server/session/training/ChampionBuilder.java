@@ -38,11 +38,7 @@ public class ChampionBuilder extends Builder {
 
         DeployableQueue transport = this.getDeployableQueue();
         if (transport != null) {
-            if (!isBuyout) {
-                transport.removeUnitsFromQueue(removed);
-            } else {
-                transport.moveUnitToDeployable(removed);
-            }
+            transport.removeUnits(removed, isBuyout);
             transport.sortUnitsInQueue();
         }
 

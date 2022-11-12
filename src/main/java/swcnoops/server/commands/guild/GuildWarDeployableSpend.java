@@ -18,9 +18,7 @@ public class GuildWarDeployableSpend extends AbstractCommandAction<GuildWarDeplo
     @Override
     protected CommandResult execute(GuildWarDeployableSpend arguments, long time) throws Exception {
         PlayerSession playerSession = ServiceFactory.instance().getSessionManager().getPlayerSession(arguments.getPlayerId());
-
-        // TODO - probably need to record that it is from war
-        playerSession.removeDeployedTroops(arguments.getUnits(), time);
+        playerSession.removeSpentTroops(arguments.getUnits(), time);
         return ResponseHelper.SUCCESS_COMMAND_RESULT;
     }
 
