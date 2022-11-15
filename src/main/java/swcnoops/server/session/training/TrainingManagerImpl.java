@@ -195,6 +195,8 @@ public class TrainingManagerImpl implements TrainingManager {
         List<BuildUnit> boughtOutContracts =
                 builder.remove(troopData.getUnitId(), quantity, time, true);
 
+        processObjectives(boughtOutContracts);
+
         int remainingBuyOut = 0;
         if (boughtOutContracts.size() != quantity) {
             LOG.warn("Number of units " + unitTypeId + " to buy out " + boughtOutContracts.size() + " but expected "
@@ -207,6 +209,11 @@ public class TrainingManagerImpl implements TrainingManager {
                 LOG.warn("There are none or not enough " + unitTypeId + " in deployable " + remainingBuyOut + " for buyout "
                         + this.playerSession.getPlayerId());
             }
+
+            // TODO - we dont do the ones in deployable because if they got in there then they would of been
+            // accounted for when moving completed contracts
+            // maybe we change this to keep the contracts and have markers on them to indicate
+            // if they have been counted towards the objectives
         }
 
         // calculate how much time is being bought out with crystals
@@ -228,10 +235,65 @@ public class TrainingManagerImpl implements TrainingManager {
 
     @Override
     public void moveCompletedBuildUnits(long clientTime) {
-        this.troopTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
-        this.specialAttackTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
-        this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
-        this.championTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed1 = this.troopTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed2 = this.specialAttackTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed3 = this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed4 = this.championTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+
+        processObjectives(completed1);
+        processObjectives(completed2);
+        processObjectives(completed3);
+        processObjectives(completed4);
+    }
+
+    private void processObjectives(List<BuildUnit> buildUnits) {
+        // TODO - find matching objectives
+        String planetId = this.getPlayerSession().getPlayerSettings().getBaseMap().planet;
+        ObjectiveGroup objectiveGroup = this.getPlayerSession().getPlayerObjectivesManager()
+                .getObjectForReading().get(planetId);
+
+        if (buildUnits.size() > 0) {
+            if (objectiveGroup != null && objectiveGroup.progress != null) {
+                for (ObjectiveProgress objectiveProgress : objectiveGroup.progress) {
+                    if (objectiveProgress.state == ObjectiveState.active) {
+                        ObjTableData objTableData = getObjTableData(objectiveProgress);
+                        if (objTableData.getType() == GoalType.TrainTroopID) {
+                            buildUnits.forEach(u -> {
+                                if (objTableData.getItem() != null && objTableData.getItem().equals(u.getUnitId())) {
+                                    if (objectiveProgress.count < objectiveProgress.target) {
+                                        objectiveProgress.count++;
+                                        if (objectiveProgress.count == objectiveProgress.target) {
+                                            objectiveProgress.state = ObjectiveState.complete;
+                                        }
+                                    }
+                                    this.getPlayerSession().getPlayerObjectivesManager().getObjectForWriting();
+                                }
+                            });
+                        } else if (objTableData.getType() == GoalType.TrainTroopType) {
+                            buildUnits.forEach(u -> {
+                                TroopData troopData = this.getPlayerSession().getTroopInventory().getTroopByUnitId(u.getUnitId());
+
+                                if (troopData != null && troopData.getType().name().equals(objTableData.getItem())) {
+                                    if (objectiveProgress.count < objectiveProgress.target) {
+                                        objectiveProgress.count++;
+                                        if (objectiveProgress.count == objectiveProgress.target) {
+                                            objectiveProgress.state = ObjectiveState.complete;
+                                        }
+                                    }
+                                    this.getPlayerSession().getPlayerObjectivesManager().getObjectForWriting();
+                                }
+                            });
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private ObjTableData getObjTableData(ObjectiveProgress objectiveProgress) {
+        ObjTableData objTableData = ServiceFactory.instance().getGameDataManager().getPatchData().getMap(ObjTableData.class)
+                .get(objectiveProgress.uid);
+        return objTableData;
     }
 
     @Override
