@@ -7,6 +7,6 @@ import swcnoops.server.requests.AbstractCommandResult;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class TournamentRankResult extends AbstractCommandResult {
     public Tournament tournament;
-    public float percentile;
+    public Float percentile;
     public String tier;
 }
