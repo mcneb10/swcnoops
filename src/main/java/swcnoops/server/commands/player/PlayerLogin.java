@@ -119,8 +119,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.tournaments = mapTournaments(playerSession);
         playerLoginResponse.playerModel.timeZoneOffset = playerSession.getPlayerSettings().getTimeZoneOffset();
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
-
-        playerLoginResponse.playerModel.playerObjectives = mapObjectives(playerSession.getPlayerSettings(), time);
+        playerLoginResponse.playerModel.playerObjectives = mapObjectives(playerSession, time);
 
         mapProtection(playerLoginResponse.playerModel, playerSession, time);
     }
@@ -137,15 +136,21 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
     }
 
-    private Map<String, ObjectiveGroup> mapObjectives(PlayerSettings playerSettings, long time) {
+    private Map<String, ObjectiveGroup> mapObjectives(PlayerSession playerSession, long time) {
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
         int hqLevel = playerSettings.getHqLevel();
         if (hqLevel < ServiceFactory.instance().getGameDataManager().getGameConstants().objectives_unlocked)
             return null;
 
-        Map<String, ObjectiveGroup> groups = ServiceFactory.instance().getGameDataManager()
-                .getObjectiveManager().getObjectiveGroups(playerSettings.getUnlockedPlanets(),
+        Map<String, ObjectiveGroup> groups = playerSession.getPlayerObjectivesManager().getObjectForReading();
+
+        groups = ServiceFactory.instance().getGameDataManager()
+                .getObjectiveManager().getObjectiveGroups(groups, playerSettings.getUnlockedPlanets(),
                         playerSettings.getFaction(),
-                        hqLevel);
+                        hqLevel,
+                        playerSettings.getTimeZoneOffset());
+        playerSession.getPlayerObjectivesManager().setObjectForSaving(groups);
+
         return groups;
     }
 

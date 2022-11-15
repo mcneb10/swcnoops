@@ -3,6 +3,9 @@ package swcnoops.server.game;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.model.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 public class ObjectiveManagerImpl implements ObjectiveManager {
@@ -17,18 +20,61 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
     }
 
     @Override
-    public Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets, FactionType faction, int hqLevel) {
-        if (unlockedPlanets == null) {
-            unlockedPlanets = new UnlockedPlanets();
+    public Map<String, ObjectiveGroup> getObjectiveGroups(Map<String, ObjectiveGroup> existingObjectives,
+                                                          UnlockedPlanets unlockedPlanets, FactionType faction,
+                                                          int hqLevel, float offset)
+    {
+        unlockedPlanets = this.verifyPlanets(unlockedPlanets);
+
+        this.removeExpiredObjectives(existingObjectives);
+        UnlockedPlanets planetObjectivesMissing = this.determineObjectivePlanets(existingObjectives, unlockedPlanets);
+        if (!planetObjectivesMissing.isEmpty()) {
+            Map<String, ObjectiveGroup> newObjectiveGroups = this.getObjectiveGroups(planetObjectivesMissing, faction,
+                    hqLevel, offset);
+
+            if (!newObjectiveGroups.isEmpty()) {
+                if (existingObjectives == null) {
+                    existingObjectives = newObjectiveGroups;
+                } else {
+                    existingObjectives.putAll(newObjectiveGroups);
+                }
+            }
         }
 
-        if (!unlockedPlanets.contains("planet1")) {
-            unlockedPlanets.add("planet1");
-        }
+        return existingObjectives;
+    }
 
+    private UnlockedPlanets determineObjectivePlanets(Map<String, ObjectiveGroup> existingObjectives, UnlockedPlanets unlockedPlanets) {
+        if (existingObjectives == null || existingObjectives.isEmpty())
+            return unlockedPlanets;
+
+        UnlockedPlanets requiredPlanets = new UnlockedPlanets();
+        unlockedPlanets.forEach(p -> {
+            if (!existingObjectives.containsKey(p))
+                requiredPlanets.add(p);
+        });
+        return requiredPlanets;
+    }
+
+    private void removeExpiredObjectives(Map<String, ObjectiveGroup> existingObjectives) {
+        if (existingObjectives != null) {
+            long now = ServiceFactory.getSystemTimeSecondsFromEpoch();
+            for (String planet : existingObjectives.keySet()) {
+                ObjectiveGroup objectiveGroup = existingObjectives.get(planet);
+                if (objectiveGroup.endTime < now) {
+                    existingObjectives.remove(planet);
+                }
+            }
+        }
+    }
+
+    @Override
+    public Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets, FactionType faction, int hqLevel, float offset)
+    {
+        unlockedPlanets = this.verifyPlanets(unlockedPlanets);
         List<ObjectiveGroup> objectiveGroups = new ArrayList<>(unlockedPlanets.size());
         for (String planetId : unlockedPlanets) {
-            ObjectiveGroup objectiveGroup = getObjectiveGroup(planetId, faction, hqLevel);
+            ObjectiveGroup objectiveGroup = getObjectiveGroup(planetId, faction, hqLevel, offset);
             if (objectiveGroup != null)
                 objectiveGroups.add(objectiveGroup);
         }
@@ -39,13 +85,25 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         return groupMap;
     }
 
+    private UnlockedPlanets verifyPlanets(UnlockedPlanets unlockedPlanets) {
+        if (unlockedPlanets == null) {
+            unlockedPlanets = new UnlockedPlanets();
+        }
+
+        if (!unlockedPlanets.contains("planet1")) {
+            unlockedPlanets.add("planet1");
+        }
+
+        return unlockedPlanets;
+    }
+
     @Override
-    public ObjectiveGroup getObjectiveGroup(String planetId, FactionType faction, int hqLevel) {
+    public ObjectiveGroup getObjectiveGroup(String planetId, FactionType faction, int hqLevel, float offset) {
         ObjSeriesData planetData = this.planetSeries.get(planetId);
         if (planetData == null)
             return null;
 
-        ObjectiveGroup objectiveGroup = createObjectiveGroup(planetData);
+        ObjectiveGroup objectiveGroup = createObjectiveGroup(planetData, offset);
 
         if (objectiveGroup == null)
             return null;
@@ -117,10 +175,23 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         return target;
     }
 
-    private ObjectiveGroup createObjectiveGroup(ObjSeriesData planetData) {
+    private ObjectiveGroup createObjectiveGroup(ObjSeriesData planetData, float offset) {
         // TODO - generate an index number for player, and determine start and end for player obj refresh
         ObjectiveGroup objectiveGroup = new ObjectiveGroup(planetData.getUid() + "_1", planetData.getPlanetUid());
-        objectiveGroup.startTime = ServiceFactory.getSystemTimeSecondsFromEpoch() - 10;
+
+        // get the time as will use that for the daily objective
+        String startDate = planetData.getStartDate();
+        String hour = startDate.substring(0, 2);
+        String minutes = startDate.substring(3,5);
+
+        ZonedDateTime dayForStartOfDay = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.DAYS);
+        long startHour = Long.parseLong(hour);
+        long startMinute = Long.parseLong(minutes);
+        ZonedDateTime startOfObjective = dayForStartOfDay.plusHours(startHour)
+                .plusMinutes(startMinute);
+        long startTime = startOfObjective.toEpochSecond() - ((long)(offset * 60 * 60));
+
+        objectiveGroup.startTime = startTime;
         objectiveGroup.endTime = objectiveGroup.startTime + (60 * 60 * planetData.getPeriodHours());
         objectiveGroup.graceTime = objectiveGroup.endTime;
         return objectiveGroup;

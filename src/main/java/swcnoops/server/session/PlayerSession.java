@@ -184,6 +184,7 @@ public interface PlayerSession {
     Raid getNextRaidSession();
 
     DBCacheObject<Map<String, Long>> getRaidLogsManager();
+    DBCacheObject<Map<String, ObjectiveGroup>> getPlayerObjectivesManager();
 
     DBCacheObject<Long> getProtectionManager();
 }

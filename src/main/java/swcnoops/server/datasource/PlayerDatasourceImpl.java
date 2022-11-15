@@ -438,6 +438,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
             combinedList.add(set("playerSettings.protectedUntil", playerSession.getProtectionManager().getObjectForSaving()));
         }
 
+        if (playerSession.getPlayerObjectivesManager().needsSaving()) {
+            combinedList.add(set("playerSettings.playerObjectives", playerSession.getPlayerObjectivesManager().getObjectForSaving()));
+        }
+
         Bson combinedSet = combine(combinedList);
         Player result = this.playerCollection.findOneAndUpdate(session, Filters.eq("_id", playerSession.getPlayerId()),
                 combinedSet);
@@ -485,6 +489,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
         if (playerSession.getProtectionManager().needsSaving()) {
             playerSession.getPlayerSettings().setProtectedUntil(playerSession.getProtectionManager().getObjectForSaving());
+        }
+        if (playerSession.getPlayerObjectivesManager().needsSaving()) {
+            playerSession.getPlayerSettings().setPlayerObjectives(playerSession.getPlayerObjectivesManager().getObjectForSaving());
         }
 
         Bson playerQuery = null;

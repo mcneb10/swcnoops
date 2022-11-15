@@ -20,7 +20,8 @@ public class PlayerPlanetObjective extends AbstractCommandAction<PlayerPlanetObj
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         Map<String, ObjectiveGroup> groups = objectiveManager.getObjectiveGroups(playerSettings.getUnlockedPlanets(),
                 playerSettings.getFaction(),
-                playerSettings.getHqLevel());
+                playerSettings.getHqLevel(),
+                playerSettings.getTimeZoneOffset());
 
         PlayerPlanetObjectiveResult playerPlanetObjectiveResult = new PlayerPlanetObjectiveResult(groups);
         return playerPlanetObjectiveResult;

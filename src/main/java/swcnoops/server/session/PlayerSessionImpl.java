@@ -107,6 +107,14 @@ public class PlayerSessionImpl implements PlayerSession {
         }
     };
 
+    private DBCacheObject<Map<String, ObjectiveGroup>> playerObjectivesManager = new DBCacheObjectImpl<Map<String, ObjectiveGroup>>() {
+        @Override
+        protected Map<String, ObjectiveGroup> loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                    false, "playerSettings.playerObjectives").getPlayerObjectives();
+        }
+    };
+
     private DBCacheObject<Long> protectionManager = new DBCacheObjectImpl<Long>() {
         @Override
         protected Long loadDBObject() {
@@ -142,6 +150,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.tournamentsManager.initialise(this.player.getPlayerSettings().getTournaments());
         this.raidLogsManager.initialise(this.player.getPlayerSettings().getRaidLogs());
         this.protectionManager.initialise(this.player.getPlayerSettings().getProtectedUntil());
+        this.playerObjectivesManager.initialise(this.player.getPlayerSettings().getPlayerObjectives());
         this.lastLoginTime = player.getLoginTime();
     }
 
@@ -1517,6 +1526,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.tournamentsManager.doneDBSave();
         this.raidLogsManager.doneDBSave();
         this.protectionManager.doneDBSave();
+        this.playerObjectivesManager.doneDBSave();
     }
 
     @Override
@@ -1557,6 +1567,11 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public DBCacheObject<Map<String, Long>> getRaidLogsManager() {
         return this.raidLogsManager;
+    }
+
+    @Override
+    public DBCacheObject<Map<String, ObjectiveGroup>> getPlayerObjectivesManager() {
+        return this.playerObjectivesManager;
     }
 
     @Override

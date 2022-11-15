@@ -24,7 +24,8 @@ public class PlayerObjectiveForceUpdate extends AbstractCommandAction<PlayerObje
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         ObjectiveGroup objectiveGroup = objectiveManager.getObjectiveGroup(arguments.getPlanetId(),
                 playerSettings.getFaction(),
-                playerSettings.getHqLevel());
+                playerSettings.getHqLevel(),
+                playerSettings.getTimeZoneOffset());
 
         PlayerObjectiveForceResult playerObjectiveForceResult = new PlayerObjectiveForceResult();
         playerObjectiveForceResult.setObjectiveGroup(objectiveGroup);

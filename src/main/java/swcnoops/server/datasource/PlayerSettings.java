@@ -32,6 +32,7 @@ public class PlayerSettings {
     private float timeZoneOffset;
     private Map<String, Long> raidLogs;
     private long protectedUntil;
+    private Map<String, ObjectiveGroup> playerObjectives;
 
     public PlayerSettings() {
     }
@@ -230,5 +231,13 @@ public class PlayerSettings {
 
     public void setProtectedUntil(long protectedUntil) {
         this.protectedUntil = protectedUntil;
+    }
+
+    public Map<String, ObjectiveGroup> getPlayerObjectives() {
+        return playerObjectives;
+    }
+
+    public void setPlayerObjectives(Map<String, ObjectiveGroup> playerObjectives) {
+        this.playerObjectives = playerObjectives;
     }
 }
