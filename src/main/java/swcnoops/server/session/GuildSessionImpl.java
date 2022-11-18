@@ -3,12 +3,12 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.*;
+import swcnoops.server.game.ObjectiveManagerImpl;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -313,20 +313,12 @@ public class GuildSessionImpl implements GuildSession {
                     squadMemberWarData, squadNotification);
         } else {
             String planetId = recipientPlayerSession.getPlayerSettings().getBaseMap().planet;
-            int amount = sum(levelUpTroopsByUid);
+            int amount = ObjectiveManagerImpl.sum(levelUpTroopsByUid);
             ServiceFactory.instance().getPlayerDatasource().saveTroopDonation(this, playerSession,
                     recipientPlayerSession, planetId, amount, squadNotification);
         }
 
         return new TroopDonationResult(squadNotification, troopsDonated);
-    }
-
-    private int sum(Map<String, Integer> levelUpTroopsByUid) {
-        final AtomicInteger total = new AtomicInteger(0);
-        if (levelUpTroopsByUid != null) {
-            levelUpTroopsByUid.values().stream().forEach(a -> total.addAndGet(a));
-        }
-        return total.get();
     }
 
     @Override

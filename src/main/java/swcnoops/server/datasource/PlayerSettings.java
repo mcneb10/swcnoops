@@ -4,6 +4,8 @@ import swcnoops.server.model.*;
 import swcnoops.server.session.inventory.Troops;
 import swcnoops.server.session.training.BuildUnits;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -17,22 +19,22 @@ public class PlayerSettings {
     private Creature creature;
     private Troops troops = new Troops();
     private DonatedTroops donatedTroops = new DonatedTroops();
-    private InventoryStorage inventoryStorage;
+    private InventoryStorage inventoryStorage = new InventoryStorage();
     private String currentQuest;
-    private PlayerCampaignMission playerCampaignMission;
+    private PlayerCampaignMission playerCampaignMission = new PlayerCampaignMission();
     private PreferencesMap sharedPreferences;
     private String guildId;
-    private UnlockedPlanets unlockedPlanets;
+    private UnlockedPlanets unlockedPlanets = new UnlockedPlanets();
     private Scalars scalars = new Scalars();
     private int hqLevel;
     private String guildName;
-    private Map<String,Integer> damagedBuildings;
+    private Map<String,Integer> damagedBuildings = new HashMap<>();
 
-    private List<TournamentStat> tournaments;
+    private List<TournamentStat> tournaments = new ArrayList<>();
     private float timeZoneOffset;
-    private Map<String, Long> raidLogs;
+    private Map<String, Long> raidLogs = new HashMap<>();
     private long protectedUntil;
-    private Map<String, ObjectiveGroup> playerObjectives;
+    private Map<String, ObjectiveGroup> playerObjectives = new HashMap<>();
 
     public PlayerSettings() {
     }

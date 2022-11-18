@@ -7,6 +7,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ObjectiveManagerImpl implements ObjectiveManager {
     final private Random random = new Random();
@@ -279,5 +280,13 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
 
             return null;
         }
+    }
+
+    static public int sum(Map<String, Integer> levelUpTroopsByUid) {
+        final AtomicInteger total = new AtomicInteger(0);
+        if (levelUpTroopsByUid != null) {
+            levelUpTroopsByUid.values().stream().forEach(a -> total.addAndGet(a));
+        }
+        return total.get();
     }
 }

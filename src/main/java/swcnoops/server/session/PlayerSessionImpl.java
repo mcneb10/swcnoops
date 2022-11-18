@@ -280,8 +280,38 @@ public class PlayerSessionImpl implements PlayerSession {
             this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove, time);
 
-            // TODO - set donate objectives
+            ObjectiveGroup group =
+                    this.getPlayerObjectivesManager().getObjectForReading().get(this.getPlayerSettings().getBaseMap().planet);
+
+            ObjectiveProgress progress = getDonationProgress(group);
+            if (progress != null) {
+                progress.count += ObjectiveManagerImpl.sum(deployablesToRemove);
+                if (progress.count >= progress.target) {
+                    progress.count = progress.target;
+                    progress.state = ObjectiveState.complete;
+                }
+                this.getPlayerObjectivesManager().getObjectForWriting();
+            }
         }
+    }
+
+    private ObjectiveProgress getDonationProgress(ObjectiveGroup group) {
+        ObjectiveProgress objective = null;
+        if (group != null && group.progress != null) {
+            for (ObjectiveProgress objectiveProgress : group.progress) {
+                if (objectiveProgress.state == ObjectiveState.active) {
+                    ObjTableData objTableData = ServiceFactory.instance().getGameDataManager().getPatchData()
+                            .getMap(ObjTableData.class).get(objectiveProgress.uid);
+
+                    // TODO - support the other donate goals
+                    if (objTableData != null && objTableData.getType() == GoalType.DonateTroop) {
+                        objective = objectiveProgress;
+                    }
+                }
+            }
+        }
+
+        return objective;
     }
 
     /**
