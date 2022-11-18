@@ -8,6 +8,7 @@ import swcnoops.server.requests.ResponseHelper;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
@@ -302,19 +303,30 @@ public class GuildSessionImpl implements GuildSession {
         troopDonationData.recipientId = recipientPlayerId;
         squadNotification.setData(troopDonationData);
 
+        // we have to pass in the exact troops that was donated (not levelled up) otherwise it will not,
+        // remove properly (need to fix probably needs new way to do troop contracts and deployable troops)
+        playerSession.removeDonatedTroops(troopsDonated, time);
+
         // TODO - if the save fails then we should invalidate/undo the recipient receiving the troops
         if (forWar) {
             ServiceFactory.instance().getPlayerDatasource().saveWarTroopDonation(this, playerSession,
                     squadMemberWarData, squadNotification);
         } else {
+            String planetId = recipientPlayerSession.getPlayerSettings().getBaseMap().planet;
+            int amount = sum(levelUpTroopsByUid);
             ServiceFactory.instance().getPlayerDatasource().saveTroopDonation(this, playerSession,
-                    recipientPlayerSession, squadNotification);
+                    recipientPlayerSession, planetId, amount, squadNotification);
         }
 
-        // we have to pass in the exact troops that was donated (not levelled up) otherwise it will not,
-        // remove properly (need to fix probably needs new way to do troop contracts and deployable troops)
-        playerSession.removeDeployedTroops(troopsDonated, time);
         return new TroopDonationResult(squadNotification, troopsDonated);
+    }
+
+    private int sum(Map<String, Integer> levelUpTroopsByUid) {
+        final AtomicInteger total = new AtomicInteger(0);
+        if (levelUpTroopsByUid != null) {
+            levelUpTroopsByUid.values().stream().forEach(a -> total.addAndGet(a));
+        }
+        return total.get();
     }
 
     @Override

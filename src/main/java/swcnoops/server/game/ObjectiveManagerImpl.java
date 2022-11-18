@@ -21,15 +21,18 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
 
     @Override
     public Map<String, ObjectiveGroup> getObjectiveGroups(Map<String, ObjectiveGroup> existingObjectives,
-                                                          UnlockedPlanets unlockedPlanets, FactionType faction,
+                                                          UnlockedPlanets unlockedPlanets, Map<String, Long> receivedDonations,
+                                                          FactionType faction,
                                                           int hqLevel, float offset)
     {
         unlockedPlanets = this.verifyPlanets(unlockedPlanets);
 
-        this.removeExpiredObjectives(existingObjectives);
+        List<ObjectiveGroup> removed = this.removeExpiredObjectives(existingObjectives);
         UnlockedPlanets planetObjectivesMissing = this.determineObjectivePlanets(existingObjectives, unlockedPlanets);
         if (!planetObjectivesMissing.isEmpty()) {
-            Map<String, ObjectiveGroup> newObjectiveGroups = this.getObjectiveGroups(planetObjectivesMissing, faction,
+            Map<String, ObjectiveGroup> newObjectiveGroups = this.getObjectiveGroups(planetObjectivesMissing,
+                    receivedDonations,
+                    faction,
                     hqLevel, offset);
 
             if (!newObjectiveGroups.isEmpty()) {
@@ -56,25 +59,37 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         return requiredPlanets;
     }
 
-    private void removeExpiredObjectives(Map<String, ObjectiveGroup> existingObjectives) {
+    private List<ObjectiveGroup> removeExpiredObjectives(Map<String, ObjectiveGroup> existingObjectives) {
+        List<ObjectiveGroup> removed = new ArrayList<>(existingObjectives.size());
+
         if (existingObjectives != null) {
             long now = ServiceFactory.getSystemTimeSecondsFromEpoch();
-            for (String planet : existingObjectives.keySet()) {
+            for (String planet : new ArrayList<>(existingObjectives.keySet())) {
                 ObjectiveGroup objectiveGroup = existingObjectives.get(planet);
                 if (objectiveGroup.endTime < now) {
                     existingObjectives.remove(planet);
+                    removed.add(objectiveGroup);
                 }
             }
         }
+
+        return removed;
     }
 
     @Override
-    public Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets, FactionType faction, int hqLevel, float offset)
+    public Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets,
+                                                          Map<String, Long> receivedDonations,
+                                                          FactionType faction, int hqLevel, float offset)
     {
         unlockedPlanets = this.verifyPlanets(unlockedPlanets);
         List<ObjectiveGroup> objectiveGroups = new ArrayList<>(unlockedPlanets.size());
         for (String planetId : unlockedPlanets) {
-            ObjectiveGroup objectiveGroup = getObjectiveGroup(planetId, faction, hqLevel, offset);
+            Long receivedDonation = null;
+            if (receivedDonations != null) {
+                receivedDonation = receivedDonations.get(planetId);
+            }
+
+            ObjectiveGroup objectiveGroup = getObjectiveGroup(planetId, receivedDonation, faction, hqLevel, offset);
             if (objectiveGroup != null)
                 objectiveGroups.add(objectiveGroup);
         }
@@ -98,7 +113,7 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
     }
 
     @Override
-    public ObjectiveGroup getObjectiveGroup(String planetId, FactionType faction, int hqLevel, float offset) {
+    public ObjectiveGroup getObjectiveGroup(String planetId, Long receivedDonation, FactionType faction, int hqLevel, float offset) {
         ObjSeriesData planetData = this.planetSeries.get(planetId);
         if (planetData == null)
             return null;
@@ -108,20 +123,20 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         if (objectiveGroup == null)
             return null;
 
-        ObjectiveProgress objectiveProgress1 = createObjectiveProgress(faction, planetData.getObjBucket(), hqLevel);
+        ObjectiveProgress objectiveProgress1 = createObjectiveProgress(faction, planetData.getObjBucket(), hqLevel, receivedDonation);
         objectiveProgress1.planetId = planetId;
         objectiveGroup.progress.add(objectiveProgress1);
-        ObjectiveProgress objectiveProgress2 = createObjectiveProgress(faction, planetData.getObjBucket2(), hqLevel);
+        ObjectiveProgress objectiveProgress2 = createObjectiveProgress(faction, planetData.getObjBucket2(), hqLevel, receivedDonation);
         objectiveProgress2.planetId = planetId;
         objectiveGroup.progress.add(objectiveProgress2);
-        ObjectiveProgress objectiveProgress3 = createObjectiveProgress(faction, planetData.getObjBucket3(), hqLevel);
+        ObjectiveProgress objectiveProgress3 = createObjectiveProgress(faction, planetData.getObjBucket3(), hqLevel, receivedDonation);
         objectiveProgress3.planetId = planetId;
         objectiveGroup.progress.add(objectiveProgress3);
 
         return objectiveGroup;
     }
 
-    private ObjectiveProgress createObjectiveProgress(FactionType faction, String objBucket, int hqLevel) {
+    private ObjectiveProgress createObjectiveProgress(FactionType faction, String objBucket, int hqLevel, Long receivedDonation) {
         FactionObjectives factionObjectives = this.objectiveBuckets.get(objBucket);
         List<ObjTableData> objectives = factionObjectives.getFactionObj(faction);
 
@@ -130,7 +145,6 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
             objTableData = objectives.get(this.random.nextInt(objectives.size()));
             if (hqLevel < objTableData.getMinHQ())
                 objTableData = null;
-
         } while(objTableData == null);
 
         ObjectiveProgress objectiveProgress = new ObjectiveProgress();
@@ -140,6 +154,12 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         objectiveProgress.hq = hqLevel;
         objectiveProgress.target = getObjectiveTarget(objTableData, hqLevel);
         objectiveProgress.state = ObjectiveState.active;
+
+        if (objTableData.getType() == GoalType.ReceiveDonatedTroops) {
+            if (receivedDonation == null)
+                receivedDonation = Long.valueOf(0);
+            objectiveProgress.receivedStartCount = receivedDonation;
+        }
 
         return objectiveProgress;
     }

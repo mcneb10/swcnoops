@@ -143,12 +143,40 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
             return null;
 
         Map<String, ObjectiveGroup> groups = playerSession.getPlayerObjectivesManager().getObjectForReading();
+        Map<String, Long> receivedDonations = playerSession.getReceivedDonationsManager().getObjectForReading();
 
         groups = ServiceFactory.instance().getGameDataManager()
                 .getObjectiveManager().getObjectiveGroups(groups, playerSettings.getUnlockedPlanets(),
+                        receivedDonations,
                         playerSettings.getFaction(),
                         hqLevel,
                         playerSettings.getTimeZoneOffset());
+
+        // process the donated objectives
+        // TODO - clean up
+        if (groups != null) {
+            for (ObjectiveGroup objectiveGroup : groups.values()) {
+                if (objectiveGroup.progress != null) {
+                    for (ObjectiveProgress objectiveProgress : objectiveGroup.progress) {
+                        if (objectiveProgress.state == ObjectiveState.active) {
+                            if (objectiveProgress.receivedStartCount != null) {
+                                if (receivedDonations != null) {
+                                    Long received = receivedDonations.get(objectiveProgress.planetId);
+                                    if (received != null) {
+                                        objectiveProgress.count = (int)(received - objectiveProgress.receivedStartCount);
+                                        if (objectiveProgress.count >= objectiveProgress.target) {
+                                            objectiveProgress.count = objectiveProgress.target;
+                                            objectiveProgress.state = ObjectiveState.complete;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         playerSession.getPlayerObjectivesManager().setObjectForSaving(groups);
 
         return groups;

@@ -11,10 +11,11 @@ public interface ObjectiveManager {
     void setup(Collection<ObjSeriesData> values, Map<String, ObjTableData> map);
 
     Map<String, ObjectiveGroup> getObjectiveGroups(Map<String, ObjectiveGroup> existingObjectives,
-                                                   UnlockedPlanets unlockedPlanets, FactionType faction,
+                                                   UnlockedPlanets unlockedPlanets, Map<String, Long> receivedDonations, FactionType faction,
                                                    int hqLevel, float offset);
 
-    ObjectiveGroup getObjectiveGroup(String planetId, FactionType faction, int hqLevel, float offset);
+    ObjectiveGroup getObjectiveGroup(String planetId, Long receivedDonation, FactionType faction, int hqLevel, float offset);
 
-    Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets, FactionType faction, int hqLevel, float offset);
+    Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets, Map<String, Long> receivedDonations,
+                                                   FactionType faction, int hqLevel, float offset);
 }

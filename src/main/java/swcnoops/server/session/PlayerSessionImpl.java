@@ -126,6 +126,14 @@ public class PlayerSessionImpl implements PlayerSession {
     private long lastLoginTime;
     private Raid nextRaidSession;
 
+    private DBCacheObjectRead<Map<String, Long>> receivedDonationsManager = new ReadOnlyDBCacheObject<Map<String, Long>>(false) {
+        @Override
+        protected Map<String, Long> loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayer(player.getPlayerId(),
+                    false, "receivedDonations").getReceivedDonations();
+        }
+    };
+
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
     }
@@ -151,6 +159,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.raidLogsManager.initialise(this.player.getPlayerSettings().getRaidLogs());
         this.protectionManager.initialise(this.player.getPlayerSettings().getProtectedUntil());
         this.playerObjectivesManager.initialise(this.player.getPlayerSettings().getPlayerObjectives());
+        this.receivedDonationsManager.initialise(this.player.getReceivedDonations());
         this.lastLoginTime = player.getLoginTime();
     }
 
@@ -262,6 +271,16 @@ public class PlayerSessionImpl implements PlayerSession {
             this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove, time);
             this.savePlayerSession();
+        }
+    }
+
+    @Override
+    public void removeDonatedTroops(Map<String, Integer> deployablesToRemove, long time) {
+        if (deployablesToRemove != null) {
+            this.processCompletedContracts(time);
+            this.trainingManager.removeDeployedTroops(deployablesToRemove, time);
+
+            // TODO - set donate objectives
         }
     }
 
@@ -1572,6 +1591,11 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public DBCacheObject<Map<String, ObjectiveGroup>> getPlayerObjectivesManager() {
         return this.playerObjectivesManager;
+    }
+
+    @Override
+    public DBCacheObjectRead<Map<String, Long>> getReceivedDonationsManager() {
+        return this.receivedDonationsManager;
     }
 
     @Override

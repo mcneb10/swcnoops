@@ -1,9 +1,11 @@
 package swcnoops.server.datasource;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import org.mongojack.Id;
 
-import java.util.Date;
+import java.util.*;
 
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Player {
     @Id
     private String playerId;
@@ -16,6 +18,8 @@ public class Player {
     private PvpAttack currentPvPAttack;
     private PvpAttack currentPvPDefence;
     private long loginTime;
+
+    private Map<String, Long> receivedDonations = new HashMap<>();
 
     public Player() {
     }
@@ -86,5 +90,9 @@ public class Player {
 
     public long getLoginTime() {
         return loginTime;
+    }
+
+    public Map<String, Long> getReceivedDonations() {
+        return receivedDonations;
     }
 }

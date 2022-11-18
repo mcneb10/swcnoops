@@ -19,6 +19,7 @@ public class PlayerPlanetObjective extends AbstractCommandAction<PlayerPlanetObj
         ObjectiveManager objectiveManager = ServiceFactory.instance().getGameDataManager().getObjectiveManager();
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
         Map<String, ObjectiveGroup> groups = objectiveManager.getObjectiveGroups(playerSettings.getUnlockedPlanets(),
+                playerSession.getReceivedDonationsManager().getObjectForReading(),
                 playerSettings.getFaction(),
                 playerSettings.getHqLevel(),
                 playerSettings.getTimeZoneOffset());

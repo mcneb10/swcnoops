@@ -31,6 +31,7 @@ public interface PlayerSession {
     void buyOutTrainTroops(String constructor, String unitTypeId, int quantity, int crystals, long time);
 
     void removeDeployedTroops(Map<String, Integer> deployablesToRemove, long time);
+    void removeDonatedTroops(Map<String, Integer> deployablesToRemove, long time);
     void removeSpentTroops(List<DeploymentRecord> deployablesToRemove, long time);
 
     String playerPveBattleStart(String missionUid, long time);
@@ -185,6 +186,6 @@ public interface PlayerSession {
 
     DBCacheObject<Map<String, Long>> getRaidLogsManager();
     DBCacheObject<Map<String, ObjectiveGroup>> getPlayerObjectivesManager();
-
+    DBCacheObjectRead<Map<String, Long>> getReceivedDonationsManager();
     DBCacheObject<Long> getProtectionManager();
 }
