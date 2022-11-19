@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -107,6 +108,14 @@ public class PlayerSessionImpl implements PlayerSession {
         }
     };
 
+    private DBCacheObject<Map<String, ObjectiveGroup>> playerObjectivesManager = new DBCacheObjectImpl<Map<String, ObjectiveGroup>>() {
+        @Override
+        protected Map<String, ObjectiveGroup> loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayerSettings(player.getPlayerId(),
+                    false, "playerSettings.playerObjectives").getPlayerObjectives();
+        }
+    };
+
     private DBCacheObject<Long> protectionManager = new DBCacheObjectImpl<Long>() {
         @Override
         protected Long loadDBObject() {
@@ -117,6 +126,14 @@ public class PlayerSessionImpl implements PlayerSession {
 
     private long lastLoginTime;
     private Raid nextRaidSession;
+
+    private DBCacheObjectRead<Map<String, Long>> receivedDonationsManager = new ReadOnlyDBCacheObject<Map<String, Long>>(false) {
+        @Override
+        protected Map<String, Long> loadDBObject() {
+            return ServiceFactory.instance().getPlayerDatasource().loadPlayer(player.getPlayerId(),
+                    false, "receivedDonations").getReceivedDonations();
+        }
+    };
 
     public PlayerSessionImpl(Player player) {
         this.initialise(player);
@@ -142,6 +159,8 @@ public class PlayerSessionImpl implements PlayerSession {
         this.tournamentsManager.initialise(this.player.getPlayerSettings().getTournaments());
         this.raidLogsManager.initialise(this.player.getPlayerSettings().getRaidLogs());
         this.protectionManager.initialise(this.player.getPlayerSettings().getProtectedUntil());
+        this.playerObjectivesManager.initialise(this.player.getPlayerSettings().getPlayerObjectives());
+        this.receivedDonationsManager.initialise(this.player.getReceivedDonations());
         this.lastLoginTime = player.getLoginTime();
     }
 
@@ -253,6 +272,35 @@ public class PlayerSessionImpl implements PlayerSession {
             this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove, time);
             this.savePlayerSession();
+        }
+    }
+
+    @Override
+    public void removeDonatedTroops(Map<String, Integer> deployablesToRemove, long time) {
+        if (deployablesToRemove != null) {
+            this.processCompletedContracts(time);
+            this.trainingManager.removeDeployedTroops(deployablesToRemove, time);
+
+            String planet = this.getPlayerSettings().getBaseMap().planet;
+            Map<String, ObjectiveGroup> groups = this.getPlayerObjectivesManager().getObjectForReading();
+            List<ObjectiveProgress> progresses =
+                    ObjectiveManagerImpl.getActiveObjectives(groups, planet, GoalType.DonateTroop);
+
+            if (!progresses.isEmpty()) {
+                boolean updated = false;
+                int donated = ObjectiveManagerImpl.sum(deployablesToRemove);
+
+                for (ObjectiveProgress progress : progresses) {
+                    if (progress.state == ObjectiveState.active) {
+                        ObjectiveManagerImpl.processProgress(progress, donated);
+                        updated = true;
+                    }
+                }
+
+                if (updated) {
+                    this.getPlayerObjectivesManager().getObjectForWriting();
+                }
+            }
         }
     }
 
@@ -859,6 +907,122 @@ public class PlayerSessionImpl implements PlayerSession {
         this.updatePlayerInventoryAfterPvP(pvpMatch);
         this.updateAttackScalars(battleReplay, pvpMatch);
         this.updateTournaments(battleReplay, pvpMatch);
+        this.processLootObjectives(battleReplay);
+        this.processDeployObjectives(battleReplay);
+        this.processDestroyObjectives(battleReplay);
+    }
+
+    private void processLootObjectives(BattleReplay battleReplay) {
+        String planet = battleReplay.battleLog.planetId;
+        Map<String, ObjectiveGroup> playerObjectives = this.getPlayerObjectivesManager().getObjectForReading();
+        List<ObjectiveProgress> lootObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet,
+                GoalType.Loot);
+
+        if (!lootObjectives.isEmpty() && battleReplay.battleLog.looted != null) {
+            Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                    .getPatchData().getMap(ObjTableData.class);
+
+            boolean updated = false;
+
+            for (ObjectiveProgress progress : lootObjectives) {
+                if (progress.state == ObjectiveState.active) {
+                    ObjTableData objTableData = objTableDataMap.get(progress.uid);
+
+                    if (ObjectiveManagerImpl.process(progress, objTableData, battleReplay.battleLog.looted))
+                        updated = true;
+                }
+            }
+
+            if (updated) {
+                this.getPlayerObjectivesManager().getObjectForWriting();
+            }
+        }
+    }
+
+    private void processDeployObjectives(BattleReplay battleReplay) {
+        if (battleReplay.battleLog.troopsExpended != null) {
+            String planet = battleReplay.battleLog.planetId;
+            Map<String, ObjectiveGroup> playerObjectives = this.getPlayerObjectivesManager().getObjectForReading();
+            List<ObjectiveProgress> deployObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet,
+                    GoalType.DeployTroopType, GoalType.DeployTroopID, GoalType.DeploySpecialAttackID);
+
+            if (!deployObjectives.isEmpty() && battleReplay.battleLog.troopsExpended != null) {
+                GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+                Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                        .getPatchData().getMap(ObjTableData.class);
+
+                boolean updated = false;
+
+                for (ObjectiveProgress progress : deployObjectives) {
+                    if (progress.state == ObjectiveState.active) {
+                        ObjTableData objTableData = objTableDataMap.get(progress.uid);
+                        for (Map.Entry<String, Integer> entry : battleReplay.battleLog.troopsExpended.entrySet()) {
+                            TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
+
+                            if (ObjectiveManagerImpl.process(progress, objTableData, troopData, entry.getValue()))
+                                updated = true;
+
+                            if (progress.state != ObjectiveState.active) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (updated) {
+                    this.getPlayerObjectivesManager().getObjectForWriting();
+                }
+            }
+        }
+    }
+
+    private void processDestroyObjectives(BattleReplay battleReplay) {
+        String planet = battleReplay.battleLog.planetId;
+        Map<String, ObjectiveGroup> playerObjectives = this.getPlayerObjectivesManager().getObjectForReading();
+        List<ObjectiveProgress> destroyObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet,
+                GoalType.DestroyBuildingType, GoalType.DestroyBuildingID);
+
+        if (battleReplay.getDamagedBuildings() != null && !destroyObjectives.isEmpty() &&
+                battleReplay.replayData.combatEncounter != null && battleReplay.replayData.combatEncounter.map != null)
+        {
+            List<String> destroyedBuildings = new ArrayList<>(battleReplay.getDamagedBuildings().size());
+            battleReplay.getDamagedBuildings().forEach((k,v) -> {
+                if (v == Integer.valueOf(100)) {
+                    destroyedBuildings.add(k);
+                }
+            });
+
+            PlayerMap playerMap = battleReplay.replayData.combatEncounter.map;
+            Map<String, Building> buildingMap = playerMap.buildings.stream()
+                    .collect(Collectors.toMap(Building::getKey, Function.identity()));
+
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                    .getPatchData().getMap(ObjTableData.class);
+
+            boolean updated = false;
+
+            for (ObjectiveProgress progress : destroyObjectives) {
+                if (progress.state == ObjectiveState.active) {
+                    ObjTableData objTableData = objTableDataMap.get(progress.uid);
+                    for (String buildingKey : destroyedBuildings) {
+                        Building building = buildingMap.get(buildingKey);
+                        BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.getUid());
+
+                        if (ObjectiveManagerImpl.process(progress, objTableData, buildingData))
+                            updated = true;
+
+                        if (progress.state != ObjectiveState.active) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (updated) {
+                this.getPlayerObjectivesManager().getObjectForWriting();
+            }
+        }
     }
 
     private void updateTournaments(BattleReplay battleReplay, PvpMatch pvpMatch) {
@@ -896,6 +1060,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
         CurrencyDelta contraDelta = new CurrencyDelta(pvpMatch.getContraGained(), pvpMatch.getContraGained(),
                 CurrencyType.contraband, false);
+
         this.processInventoryStorage(contraDelta);
     }
 
@@ -1517,6 +1682,7 @@ public class PlayerSessionImpl implements PlayerSession {
         this.tournamentsManager.doneDBSave();
         this.raidLogsManager.doneDBSave();
         this.protectionManager.doneDBSave();
+        this.playerObjectivesManager.doneDBSave();
     }
 
     @Override
@@ -1557,6 +1723,16 @@ public class PlayerSessionImpl implements PlayerSession {
     @Override
     public DBCacheObject<Map<String, Long>> getRaidLogsManager() {
         return this.raidLogsManager;
+    }
+
+    @Override
+    public DBCacheObject<Map<String, ObjectiveGroup>> getPlayerObjectivesManager() {
+        return this.playerObjectivesManager;
+    }
+
+    @Override
+    public DBCacheObjectRead<Map<String, Long>> getReceivedDonationsManager() {
+        return this.receivedDonationsManager;
     }
 
     @Override

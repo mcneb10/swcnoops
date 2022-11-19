@@ -119,8 +119,7 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         playerLoginResponse.playerModel.tournaments = mapTournaments(playerSession);
         playerLoginResponse.playerModel.timeZoneOffset = playerSession.getPlayerSettings().getTimeZoneOffset();
         playerLoginResponse.currentlyDefending = mapCurrentlyDefending(playerSession);
-
-        playerLoginResponse.playerModel.playerObjectives = mapObjectives(playerSession.getPlayerSettings(), time);
+        playerLoginResponse.playerModel.playerObjectives = mapObjectives(playerSession, time);
 
         mapProtection(playerLoginResponse.playerModel, playerSession, time);
     }
@@ -137,15 +136,49 @@ public class PlayerLogin extends AbstractCommandAction<PlayerLogin, PlayerLoginC
         }
     }
 
-    private Map<String, ObjectiveGroup> mapObjectives(PlayerSettings playerSettings, long time) {
+    private Map<String, ObjectiveGroup> mapObjectives(PlayerSession playerSession, long time) {
+        PlayerSettings playerSettings = playerSession.getPlayerSettings();
         int hqLevel = playerSettings.getHqLevel();
         if (hqLevel < ServiceFactory.instance().getGameDataManager().getGameConstants().objectives_unlocked)
             return null;
 
-        Map<String, ObjectiveGroup> groups = ServiceFactory.instance().getGameDataManager()
-                .getObjectiveManager().getObjectiveGroups(playerSettings.getUnlockedPlanets(),
+        Map<String, ObjectiveGroup> groups = playerSession.getPlayerObjectivesManager().getObjectForReading();
+        Map<String, Long> receivedDonations = playerSession.getReceivedDonationsManager().getObjectForReading();
+
+        groups = ServiceFactory.instance().getGameDataManager()
+                .getObjectiveManager().getObjectiveGroups(groups, playerSettings.getUnlockedPlanets(),
+                        receivedDonations,
                         playerSettings.getFaction(),
-                        hqLevel);
+                        hqLevel,
+                        playerSettings.getTimeZoneOffset());
+
+        // process the donated objectives
+        // TODO - clean up
+        if (groups != null) {
+            for (ObjectiveGroup objectiveGroup : groups.values()) {
+                if (objectiveGroup.progress != null) {
+                    for (ObjectiveProgress objectiveProgress : objectiveGroup.progress) {
+                        if (objectiveProgress.state == ObjectiveState.active) {
+                            if (objectiveProgress.receivedStartCount != null) {
+                                if (receivedDonations != null) {
+                                    Long received = receivedDonations.get(objectiveProgress.planetId);
+                                    if (received != null) {
+                                        objectiveProgress.count = (int)(received - objectiveProgress.receivedStartCount);
+                                        if (objectiveProgress.count >= objectiveProgress.target) {
+                                            objectiveProgress.count = objectiveProgress.target;
+                                            objectiveProgress.state = ObjectiveState.complete;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        playerSession.getPlayerObjectivesManager().setObjectForSaving(groups);
+
         return groups;
     }
 

@@ -195,6 +195,9 @@ public class TrainingManagerImpl implements TrainingManager {
         List<BuildUnit> boughtOutContracts =
                 builder.remove(troopData.getUnitId(), quantity, time, true);
 
+        processCompletedTrainObjectives(boughtOutContracts, GoalType.TrainTroopType, GoalType.TrainTroopID,
+                GoalType.TrainSpecialAttackID);
+
         int remainingBuyOut = 0;
         if (boughtOutContracts.size() != quantity) {
             LOG.warn("Number of units " + unitTypeId + " to buy out " + boughtOutContracts.size() + " but expected "
@@ -207,6 +210,11 @@ public class TrainingManagerImpl implements TrainingManager {
                 LOG.warn("There are none or not enough " + unitTypeId + " in deployable " + remainingBuyOut + " for buyout "
                         + this.playerSession.getPlayerId());
             }
+
+            // TODO - we dont do the ones in deployable because if they got in there then they would of been
+            // accounted for when moving completed contracts
+            // maybe we change this to keep the contracts and have markers on them to indicate
+            // if they have been counted towards the objectives
         }
 
         // calculate how much time is being bought out with crystals
@@ -228,10 +236,48 @@ public class TrainingManagerImpl implements TrainingManager {
 
     @Override
     public void moveCompletedBuildUnits(long clientTime) {
-        this.troopTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
-        this.specialAttackTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
-        this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
-        this.championTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed1 = this.troopTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed2 = this.specialAttackTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed3 = this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+        List<BuildUnit> completed4 = this.championTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
+
+        processCompletedTrainObjectives(completed1, GoalType.TrainTroopType, GoalType.TrainTroopID);
+        processCompletedTrainObjectives(completed2, GoalType.TrainSpecialAttackID);
+        processCompletedTrainObjectives(completed3, GoalType.TrainTroopType, GoalType.TrainTroopID);
+    }
+
+    private void processCompletedTrainObjectives(List<BuildUnit> buildUnits, GoalType... goalTypes) {
+        String planet = this.getPlayerSession().getPlayerSettings().getBaseMap().planet;
+        Map<String, ObjectiveGroup> playerObjectives = this.getPlayerSession().getPlayerObjectivesManager()
+                .getObjectForReading();
+        List<ObjectiveProgress> troopObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet, goalTypes);
+
+        if (buildUnits.size() > 0 && !troopObjectives.isEmpty()) {
+            Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                    .getPatchData().getMap(ObjTableData.class);
+
+            boolean updated = false;
+
+            for (ObjectiveProgress progress : troopObjectives) {
+                if (progress.state == ObjectiveState.active) {
+                    ObjTableData objTableData = objTableDataMap.get(progress.uid);
+                    for (BuildUnit buildUnit : buildUnits) {
+                        TroopData troopData = this.getPlayerSession().getTroopInventory().getTroopByUnitId(buildUnit.getUnitId());
+
+                        if (ObjectiveManagerImpl.process(progress, objTableData, troopData, Integer.valueOf(1)))
+                            updated = true;
+
+                        if (progress.state != ObjectiveState.active) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (updated) {
+                this.getPlayerSession().getPlayerObjectivesManager().getObjectForWriting();
+            }
+        }
     }
 
     @Override

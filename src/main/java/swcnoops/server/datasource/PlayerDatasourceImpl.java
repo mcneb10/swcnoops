@@ -396,11 +396,14 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
                 set("squadMembers.$.isOfficer", isOfficer));
     }
 
-    private void saveDonationRecipient(PlayerSession playerSession, ClientSession session) {
+    private void saveDonationRecipient(PlayerSession playerSession, String planetId, int amount, ClientSession session) {
         // TODO - redo these to do straight through amendments to the settings
         mapDonatedTroopsToPlayerSession(playerSession);
-        UpdateResult result = this.playerCollection.updateOne(session, Filters.eq("_id", playerSession.getPlayerId()),
-                set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops()));
+        Bson donatedTroops = set("playerSettings.donatedTroops", playerSession.getPlayer().getPlayerSettings().getDonatedTroops());
+        Bson donated = inc("receivedDonations." + planetId, amount);
+        Player result = this.playerCollection.findOneAndUpdate(session, Filters.eq("_id", playerSession.getPlayerId()),
+                combine(donatedTroops, donated));
+        playerSession.getReceivedDonationsManager().setDirty();
     }
 
     private void savePlayerSettings(PlayerSession playerSession, ClientSession session) {
@@ -436,6 +439,10 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
         if (playerSession.getProtectionManager().needsSaving()) {
             combinedList.add(set("playerSettings.protectedUntil", playerSession.getProtectionManager().getObjectForSaving()));
+        }
+
+        if (playerSession.getPlayerObjectivesManager().needsSaving()) {
+            combinedList.add(set("playerSettings.playerObjectives", playerSession.getPlayerObjectivesManager().getObjectForSaving()));
         }
 
         Bson combinedSet = combine(combinedList);
@@ -485,6 +492,9 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
         }
         if (playerSession.getProtectionManager().needsSaving()) {
             playerSession.getPlayerSettings().setProtectedUntil(playerSession.getProtectionManager().getObjectForSaving());
+        }
+        if (playerSession.getPlayerObjectivesManager().needsSaving()) {
+            playerSession.getPlayerSettings().setPlayerObjectives(playerSession.getPlayerObjectivesManager().getObjectForSaving());
         }
 
         Bson playerQuery = null;
@@ -568,12 +578,12 @@ public class PlayerDatasourceImpl implements PlayerDataSource {
 
     @Override
     public void saveTroopDonation(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
-                                  SquadNotification squadNotification)
+                                  String planetId, int amount, SquadNotification squadNotification)
     {
         try (ClientSession clientSession = this.mongoClient.startSession()) {
             startTransaction(clientSession);
             savePlayerSettings(playerSession, clientSession);
-            saveDonationRecipient(recipientPlayerSession, clientSession);
+            saveDonationRecipient(recipientPlayerSession, planetId, amount, clientSession);
             setAndSaveGuildNotification(clientSession, guildSession, squadNotification);
             clientSession.commitTransaction();
         } catch (MongoCommandException ex) {

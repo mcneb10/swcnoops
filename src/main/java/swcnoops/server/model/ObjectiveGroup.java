@@ -11,6 +11,9 @@ public class ObjectiveGroup {
     public long startTime;
     public String planetId;
 
+    public ObjectiveGroup() {
+    }
+
     public ObjectiveGroup(String groupId, String planetId) {
         this.groupId = groupId;
         this.planetId = planetId;

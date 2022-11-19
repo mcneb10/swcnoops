@@ -8,39 +8,42 @@ import swcnoops.server.game.ConflictManager;
 import swcnoops.server.game.TournamentData;
 import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.Tournament;
+import swcnoops.server.requests.CommandResult;
 
 /**
  * This gets called on PvP find screen to update the conflict status at the bottom for that planet
  */
-public class PlayerLeaderboardTournamentGetRank extends AbstractCommandAction<PlayerLeaderboardTournamentGetRank, TournamentRankResult> {
+public class PlayerLeaderboardTournamentGetRank extends AbstractCommandAction<PlayerLeaderboardTournamentGetRank, CommandResult> {
     private String planetId;
 
     @Override
-    protected TournamentRankResult execute(PlayerLeaderboardTournamentGetRank arguments, long time) throws Exception {
+    protected CommandResult execute(PlayerLeaderboardTournamentGetRank arguments, long time) throws Exception {
         ConflictManager conflictManager = ServiceFactory.instance().getGameDataManager().getConflictManager();
         TournamentData tournamentData = conflictManager.getConflict(arguments.getPlanetId());
 
-        // TODO - to finish, get rating, tier and rank
-        TournamentRankResult tournamentRankResult = new TournamentRankResult();
+        TournamentRankResult tournamentRankResult = null;
         if (tournamentData != null && tournamentData.isActive(time)) {
             TournamentStat tournamentStat = ServiceFactory.instance().getPlayerDatasource()
                     .getTournamentPlayerRank(tournamentData.getUid(), arguments.getPlayerId());
 
-            tournamentRankResult.tournament = new Tournament();
-            tournamentRankResult.tournament.percentile = tournamentStat.percentile;
-            tournamentRankResult.tournament.uid = tournamentStat.uid;
-            tournamentRankResult.tournament.bestTier = 1;
-            tournamentRankResult.tournament.rating = tournamentStat.value;
-            tournamentRankResult.tournament.redeemedRewards = null;
-            tournamentRankResult.tournament.collected = false;
+            if (tournamentStat != null) {
+                tournamentRankResult = new TournamentRankResult();
+                tournamentRankResult.tournament = new Tournament();
+                tournamentRankResult.tournament.percentile = tournamentStat.percentile;
+                tournamentRankResult.tournament.uid = tournamentStat.uid;
+                tournamentRankResult.tournament.bestTier = 1;
+                tournamentRankResult.tournament.rating = tournamentStat.value;
+                tournamentRankResult.tournament.redeemedRewards = null;
+                tournamentRankResult.tournament.collected = false;
 
-            tournamentRankResult.percentile = tournamentStat.percentile;
-            tournamentRankResult.tier = null;
+                tournamentRankResult.percentile = tournamentStat.percentile;
+                tournamentRankResult.tier = null;
 
-            // TODO - when conflict finishes and its our final rank
+                // TODO - when conflict finishes and its our final rank
 //            tournamentRankResult.tournament.finalRank = new TournamentRank();
 //            tournamentRankResult.tournament.finalRank.percentile = 2;
 //            tournamentRankResult.tournament.finalRank.tier = null;
+            }
         }
 
         return tournamentRankResult;

@@ -9,6 +9,8 @@ import swcnoops.server.json.JsonParser;
 import swcnoops.server.model.ObjectiveGroup;
 import swcnoops.server.session.PlayerSession;
 
+import java.util.Map;
+
 /**
  * Called by client when it has been given invalid objectives
  */
@@ -22,9 +24,17 @@ public class PlayerObjectiveForceUpdate extends AbstractCommandAction<PlayerObje
 
         ObjectiveManager objectiveManager = ServiceFactory.instance().getGameDataManager().getObjectiveManager();
         PlayerSettings playerSettings = playerSession.getPlayerSettings();
+        Map<String, Long> receivedDonations = playerSession.getReceivedDonationsManager().getObjectForReading();
+        Long donations = null;
+        if (receivedDonations != null) {
+            donations = receivedDonations.get(arguments.getPlanetId());
+        }
+
         ObjectiveGroup objectiveGroup = objectiveManager.getObjectiveGroup(arguments.getPlanetId(),
+                donations,
                 playerSettings.getFaction(),
-                playerSettings.getHqLevel());
+                playerSettings.getHqLevel(),
+                playerSettings.getTimeZoneOffset());
 
         PlayerObjectiveForceResult playerObjectiveForceResult = new PlayerObjectiveForceResult();
         playerObjectiveForceResult.setObjectiveGroup(objectiveGroup);

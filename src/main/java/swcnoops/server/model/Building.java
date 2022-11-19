@@ -9,4 +9,12 @@ public class Building implements Serializable {
     public String uid;
     public long lastCollectTime;
     public int currentStorage;
+
+    public String getUid() {
+        return uid;
+    }
+
+    public String getKey() {
+        return key;
+    }
 }

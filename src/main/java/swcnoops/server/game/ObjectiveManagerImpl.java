@@ -3,12 +3,112 @@ package swcnoops.server.game;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.model.*;
 
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class ObjectiveManagerImpl implements ObjectiveManager {
     final private Random random = new Random();
     private Map<String, ObjSeriesData> planetSeries;
     private Map<String, FactionObjectives> objectiveBuckets = new HashMap<>();
+
+    public static List<ObjectiveProgress> getActiveObjectives(Map<String, ObjectiveGroup> playerObjectives, String planet, GoalType... goalTypes) {
+        final List<ObjectiveProgress> objectiveProgresses =  new ArrayList<>(3);
+
+        if (playerObjectives != null && playerObjectives.containsKey(planet)) {
+            List<ObjectiveProgress> progress = playerObjectives.get(planet).progress;
+            if (progress != null) {
+                Map<String, ObjTableData> map = ServiceFactory.instance().getGameDataManager().getPatchData().getMap(ObjTableData.class);
+                progress.forEach(p -> {
+                    if (p.state == ObjectiveState.active) {
+                        ObjTableData objTableData = map.get(p.uid);
+                        if (Arrays.stream(goalTypes).anyMatch(t -> t == objTableData.getType()))
+                            objectiveProgresses.add(p);
+                    }
+                });
+            }
+        }
+
+        return objectiveProgresses;
+    }
+
+    public static void processProgress(ObjectiveProgress progress, Integer count) {
+        if (progress != null) {
+            progress.count += count;
+            if (progress.count >= progress.target) {
+                progress.count = progress.target;
+                progress.state = ObjectiveState.complete;
+            }
+        }
+    }
+
+    public static boolean process(ObjectiveProgress progress, ObjTableData objTableData, BuildingData buildingData) {
+        boolean updated = false;
+
+        if (objTableData.getType() == GoalType.DestroyBuildingID) {
+            if (objTableData.getItem().equals(buildingData.getBuildingID())) {
+                updated = true;
+                ObjectiveManagerImpl.processProgress(progress, Integer.valueOf(1));
+            }
+        } else if (objTableData.getType() == GoalType.DestroyBuildingType) {
+            if (buildingData.getType().name().equals(objTableData.getItem())) {
+                updated = true;
+                ObjectiveManagerImpl.processProgress(progress, Integer.valueOf(1));
+            }
+        }
+
+        return updated;
+    }
+
+    public static boolean process(ObjectiveProgress progress, ObjTableData objTableData, TroopData troopData, Integer count) {
+        boolean updated = false;
+
+        switch (objTableData.getType()) {
+            case TrainTroopType:
+            case DeployTroopType:
+                if (troopData.getType().name().equals(objTableData.getItem())) {
+                    updated = true;
+                    ObjectiveManagerImpl.processProgress(progress, count);
+                }
+                break;
+            case TrainSpecialAttackID:
+            case DeploySpecialAttackID:
+            case TrainTroopID:
+            case DeployTroopID:
+                if (objTableData.getItem().equals(troopData.getUnitId())) {
+                    updated = true;
+                    ObjectiveManagerImpl.processProgress(progress, count);
+                }
+                break;
+        }
+
+        return updated;
+    }
+
+    public static boolean process(ObjectiveProgress progress, ObjTableData objTableData, Earned looted) {
+        boolean updated = false;
+
+        if (objTableData.getType() == GoalType.Loot) {
+            switch (objTableData.getItem()) {
+                case "credits" :
+                    ObjectiveManagerImpl.processProgress(progress, looted.credits);
+                    updated = true;
+                    break;
+                case "materials" :
+                    ObjectiveManagerImpl.processProgress(progress, looted.materials);
+                    updated = true;
+                    break;
+                case "contraband" :
+                    ObjectiveManagerImpl.processProgress(progress, looted.contraband);
+                    updated = true;
+                    break;
+            }
+        }
+
+        return updated;
+    }
 
     @Override
     public void setup(Collection<ObjSeriesData> values, Map<String, ObjTableData> map) {
@@ -17,18 +117,76 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
     }
 
     @Override
-    public Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets, FactionType faction, int hqLevel) {
-        if (unlockedPlanets == null) {
-            unlockedPlanets = new UnlockedPlanets();
+    public Map<String, ObjectiveGroup> getObjectiveGroups(Map<String, ObjectiveGroup> existingObjectives,
+                                                          UnlockedPlanets unlockedPlanets, Map<String, Long> receivedDonations,
+                                                          FactionType faction,
+                                                          int hqLevel, float offset)
+    {
+        unlockedPlanets = this.verifyPlanets(unlockedPlanets);
+
+        List<ObjectiveGroup> removed = this.removeExpiredObjectives(existingObjectives);
+        UnlockedPlanets planetObjectivesMissing = this.determineObjectivePlanets(existingObjectives, unlockedPlanets);
+        if (!planetObjectivesMissing.isEmpty()) {
+            Map<String, ObjectiveGroup> newObjectiveGroups = this.getObjectiveGroups(planetObjectivesMissing,
+                    receivedDonations,
+                    faction,
+                    hqLevel, offset);
+
+            if (!newObjectiveGroups.isEmpty()) {
+                if (existingObjectives == null) {
+                    existingObjectives = newObjectiveGroups;
+                } else {
+                    existingObjectives.putAll(newObjectiveGroups);
+                }
+            }
         }
 
-        if (!unlockedPlanets.contains("planet1")) {
-            unlockedPlanets.add("planet1");
+        return existingObjectives;
+    }
+
+    private UnlockedPlanets determineObjectivePlanets(Map<String, ObjectiveGroup> existingObjectives, UnlockedPlanets unlockedPlanets) {
+        if (existingObjectives == null || existingObjectives.isEmpty())
+            return unlockedPlanets;
+
+        UnlockedPlanets requiredPlanets = new UnlockedPlanets();
+        unlockedPlanets.forEach(p -> {
+            if (!existingObjectives.containsKey(p))
+                requiredPlanets.add(p);
+        });
+        return requiredPlanets;
+    }
+
+    private List<ObjectiveGroup> removeExpiredObjectives(Map<String, ObjectiveGroup> existingObjectives) {
+        List<ObjectiveGroup> removed = new ArrayList<>(existingObjectives.size());
+
+        if (existingObjectives != null) {
+            long now = ServiceFactory.getSystemTimeSecondsFromEpoch();
+            for (String planet : new ArrayList<>(existingObjectives.keySet())) {
+                ObjectiveGroup objectiveGroup = existingObjectives.get(planet);
+                if (objectiveGroup.endTime < now) {
+                    existingObjectives.remove(planet);
+                    removed.add(objectiveGroup);
+                }
+            }
         }
 
+        return removed;
+    }
+
+    @Override
+    public Map<String, ObjectiveGroup> getObjectiveGroups(UnlockedPlanets unlockedPlanets,
+                                                          Map<String, Long> receivedDonations,
+                                                          FactionType faction, int hqLevel, float offset)
+    {
+        unlockedPlanets = this.verifyPlanets(unlockedPlanets);
         List<ObjectiveGroup> objectiveGroups = new ArrayList<>(unlockedPlanets.size());
         for (String planetId : unlockedPlanets) {
-            ObjectiveGroup objectiveGroup = getObjectiveGroup(planetId, faction, hqLevel);
+            Long receivedDonation = null;
+            if (receivedDonations != null) {
+                receivedDonation = receivedDonations.get(planetId);
+            }
+
+            ObjectiveGroup objectiveGroup = getObjectiveGroup(planetId, receivedDonation, faction, hqLevel, offset);
             if (objectiveGroup != null)
                 objectiveGroups.add(objectiveGroup);
         }
@@ -39,31 +197,43 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         return groupMap;
     }
 
+    private UnlockedPlanets verifyPlanets(UnlockedPlanets unlockedPlanets) {
+        if (unlockedPlanets == null) {
+            unlockedPlanets = new UnlockedPlanets();
+        }
+
+        if (!unlockedPlanets.contains("planet1")) {
+            unlockedPlanets.add("planet1");
+        }
+
+        return unlockedPlanets;
+    }
+
     @Override
-    public ObjectiveGroup getObjectiveGroup(String planetId, FactionType faction, int hqLevel) {
+    public ObjectiveGroup getObjectiveGroup(String planetId, Long receivedDonation, FactionType faction, int hqLevel, float offset) {
         ObjSeriesData planetData = this.planetSeries.get(planetId);
         if (planetData == null)
             return null;
 
-        ObjectiveGroup objectiveGroup = createObjectiveGroup(planetData);
+        ObjectiveGroup objectiveGroup = createObjectiveGroup(planetData, offset);
 
         if (objectiveGroup == null)
             return null;
 
-        ObjectiveProgress objectiveProgress1 = createObjectiveProgress(faction, planetData.getObjBucket(), hqLevel);
+        ObjectiveProgress objectiveProgress1 = createObjectiveProgress(faction, planetData.getObjBucket(), hqLevel, receivedDonation);
         objectiveProgress1.planetId = planetId;
         objectiveGroup.progress.add(objectiveProgress1);
-        ObjectiveProgress objectiveProgress2 = createObjectiveProgress(faction, planetData.getObjBucket2(), hqLevel);
+        ObjectiveProgress objectiveProgress2 = createObjectiveProgress(faction, planetData.getObjBucket2(), hqLevel, receivedDonation);
         objectiveProgress2.planetId = planetId;
         objectiveGroup.progress.add(objectiveProgress2);
-        ObjectiveProgress objectiveProgress3 = createObjectiveProgress(faction, planetData.getObjBucket3(), hqLevel);
+        ObjectiveProgress objectiveProgress3 = createObjectiveProgress(faction, planetData.getObjBucket3(), hqLevel, receivedDonation);
         objectiveProgress3.planetId = planetId;
         objectiveGroup.progress.add(objectiveProgress3);
 
         return objectiveGroup;
     }
 
-    private ObjectiveProgress createObjectiveProgress(FactionType faction, String objBucket, int hqLevel) {
+    private ObjectiveProgress createObjectiveProgress(FactionType faction, String objBucket, int hqLevel, Long receivedDonation) {
         FactionObjectives factionObjectives = this.objectiveBuckets.get(objBucket);
         List<ObjTableData> objectives = factionObjectives.getFactionObj(faction);
 
@@ -72,7 +242,6 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
             objTableData = objectives.get(this.random.nextInt(objectives.size()));
             if (hqLevel < objTableData.getMinHQ())
                 objTableData = null;
-
         } while(objTableData == null);
 
         ObjectiveProgress objectiveProgress = new ObjectiveProgress();
@@ -82,6 +251,12 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         objectiveProgress.hq = hqLevel;
         objectiveProgress.target = getObjectiveTarget(objTableData, hqLevel);
         objectiveProgress.state = ObjectiveState.active;
+
+        if (objTableData.getType() == GoalType.ReceiveDonatedTroops) {
+            if (receivedDonation == null)
+                receivedDonation = Long.valueOf(0);
+            objectiveProgress.receivedStartCount = receivedDonation;
+        }
 
         return objectiveProgress;
     }
@@ -117,10 +292,23 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
         return target;
     }
 
-    private ObjectiveGroup createObjectiveGroup(ObjSeriesData planetData) {
+    private ObjectiveGroup createObjectiveGroup(ObjSeriesData planetData, float offset) {
         // TODO - generate an index number for player, and determine start and end for player obj refresh
         ObjectiveGroup objectiveGroup = new ObjectiveGroup(planetData.getUid() + "_1", planetData.getPlanetUid());
-        objectiveGroup.startTime = ServiceFactory.getSystemTimeSecondsFromEpoch() - 10;
+
+        // get the time as will use that for the daily objective
+        String startDate = planetData.getStartDate();
+        String hour = startDate.substring(0, 2);
+        String minutes = startDate.substring(3,5);
+
+        ZonedDateTime dayForStartOfDay = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.DAYS);
+        long startHour = Long.parseLong(hour);
+        long startMinute = Long.parseLong(minutes);
+        ZonedDateTime startOfObjective = dayForStartOfDay.plusHours(startHour)
+                .plusMinutes(startMinute);
+        long startTime = startOfObjective.toEpochSecond() - ((long)(offset * 60 * 60));
+
+        objectiveGroup.startTime = startTime;
         objectiveGroup.endTime = objectiveGroup.startTime + (60 * 60 * planetData.getPeriodHours());
         objectiveGroup.graceTime = objectiveGroup.endTime;
         return objectiveGroup;
@@ -188,5 +376,13 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
 
             return null;
         }
+    }
+
+    static public int sum(Map<String, Integer> levelUpTroopsByUid) {
+        final AtomicInteger total = new AtomicInteger(0);
+        if (levelUpTroopsByUid != null) {
+            levelUpTroopsByUid.values().stream().forEach(a -> total.addAndGet(a));
+        }
+        return total.get();
     }
 }

@@ -3,6 +3,7 @@ package swcnoops.server.session;
 import swcnoops.server.ServiceFactory;
 import swcnoops.server.commands.guild.TroopDonationResult;
 import swcnoops.server.datasource.*;
+import swcnoops.server.game.ObjectiveManagerImpl;
 import swcnoops.server.model.*;
 import swcnoops.server.requests.ResponseHelper;
 
@@ -302,18 +303,21 @@ public class GuildSessionImpl implements GuildSession {
         troopDonationData.recipientId = recipientPlayerId;
         squadNotification.setData(troopDonationData);
 
+        // we have to pass in the exact troops that was donated (not levelled up) otherwise it will not,
+        // remove properly (need to fix probably needs new way to do troop contracts and deployable troops)
+        playerSession.removeDonatedTroops(troopsDonated, time);
+
         // TODO - if the save fails then we should invalidate/undo the recipient receiving the troops
         if (forWar) {
             ServiceFactory.instance().getPlayerDatasource().saveWarTroopDonation(this, playerSession,
                     squadMemberWarData, squadNotification);
         } else {
+            String planetId = recipientPlayerSession.getPlayerSettings().getBaseMap().planet;
+            int amount = ObjectiveManagerImpl.sum(levelUpTroopsByUid);
             ServiceFactory.instance().getPlayerDatasource().saveTroopDonation(this, playerSession,
-                    recipientPlayerSession, squadNotification);
+                    recipientPlayerSession, planetId, amount, squadNotification);
         }
 
-        // we have to pass in the exact troops that was donated (not levelled up) otherwise it will not,
-        // remove properly (need to fix probably needs new way to do troop contracts and deployable troops)
-        playerSession.removeDeployedTroops(troopsDonated, time);
         return new TroopDonationResult(squadNotification, troopsDonated);
     }
 

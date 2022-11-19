@@ -83,7 +83,8 @@ public class DeployableQueue {
         return removed;
     }
 
-    public void findAndMoveCompletedUnitsToDeployable(long clientTime) {
+    protected List<BuildUnit> findAndMoveCompletedUnitsToDeployable(long clientTime) {
+        List<BuildUnit> completed = new ArrayList<>();
         Iterator<BuildUnit> buildUnitsIterator = this.unitsInQueue.iterator();
         while(buildUnitsIterator.hasNext()) {
             BuildUnit buildUnit = buildUnitsIterator.next();
@@ -99,9 +100,12 @@ public class DeployableQueue {
                     buildUnitsIterator.remove();
                     buildUnit.getConstructor().removeCompletedBuildUnit(buildUnit);
                     this.moveUnitToDeployable(buildUnit);
+                    completed.add(buildUnit);
                 }
             }
         }
+
+        return completed;
     }
 
     private void moveUnitToDeployable(BuildUnit buildUnit) {
@@ -142,7 +146,7 @@ public class DeployableQueue {
         if (!isBuyout) {
             this.removeUnitsFromQueue(removed);
         } else {
-            this.moveUnitToDeployable(removed);
+            this.buyOutUnitToDeployable(removed);
         }
     }
 
@@ -151,7 +155,7 @@ public class DeployableQueue {
             this.unitsInQueue.removeAll(buildUnits);
     }
 
-    private void moveUnitToDeployable(List<BuildUnit> buildUnits) {
+    private void buyOutUnitToDeployable(List<BuildUnit> buildUnits) {
         if (buildUnits != null) {
             for (BuildUnit buildUnit : buildUnits) {
                 moveUnitToDeployable(buildUnit);

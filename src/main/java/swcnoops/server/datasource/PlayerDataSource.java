@@ -22,7 +22,7 @@ public interface PlayerDataSource {
     void savePlayerLogin(PlayerSession playerSession);
 
     void saveTroopDonation(GuildSession guildSession, PlayerSession playerSession, PlayerSession recipientPlayerSession,
-                           SquadNotification squadNotification);
+                           String planetId, int amount, SquadNotification squadNotification);
 
     void newPlayer(String playerId, String secret, PlayerModel playerModel, Map<String, String> sharedPrefs, String name);
 
