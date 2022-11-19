@@ -25,6 +25,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -280,38 +281,27 @@ public class PlayerSessionImpl implements PlayerSession {
             this.processCompletedContracts(time);
             this.trainingManager.removeDeployedTroops(deployablesToRemove, time);
 
-            ObjectiveGroup group =
-                    this.getPlayerObjectivesManager().getObjectForReading().get(this.getPlayerSettings().getBaseMap().planet);
+            String planet = this.getPlayerSettings().getBaseMap().planet;
+            Map<String, ObjectiveGroup> groups = this.getPlayerObjectivesManager().getObjectForReading();
+            List<ObjectiveProgress> progresses =
+                    ObjectiveManagerImpl.getActiveObjectives(groups, planet, GoalType.DonateTroop);
 
-            ObjectiveProgress progress = getDonationProgress(group);
-            if (progress != null) {
-                progress.count += ObjectiveManagerImpl.sum(deployablesToRemove);
-                if (progress.count >= progress.target) {
-                    progress.count = progress.target;
-                    progress.state = ObjectiveState.complete;
-                }
-                this.getPlayerObjectivesManager().getObjectForWriting();
-            }
-        }
-    }
+            if (!progresses.isEmpty()) {
+                boolean updated = false;
+                int donated = ObjectiveManagerImpl.sum(deployablesToRemove);
 
-    private ObjectiveProgress getDonationProgress(ObjectiveGroup group) {
-        ObjectiveProgress objective = null;
-        if (group != null && group.progress != null) {
-            for (ObjectiveProgress objectiveProgress : group.progress) {
-                if (objectiveProgress.state == ObjectiveState.active) {
-                    ObjTableData objTableData = ServiceFactory.instance().getGameDataManager().getPatchData()
-                            .getMap(ObjTableData.class).get(objectiveProgress.uid);
-
-                    // TODO - support the other donate goals
-                    if (objTableData != null && objTableData.getType() == GoalType.DonateTroop) {
-                        objective = objectiveProgress;
+                for (ObjectiveProgress progress : progresses) {
+                    if (progress.state == ObjectiveState.active) {
+                        ObjectiveManagerImpl.processProgress(progress, donated);
+                        updated = true;
                     }
                 }
+
+                if (updated) {
+                    this.getPlayerObjectivesManager().getObjectForWriting();
+                }
             }
         }
-
-        return objective;
     }
 
     /**
@@ -917,6 +907,122 @@ public class PlayerSessionImpl implements PlayerSession {
         this.updatePlayerInventoryAfterPvP(pvpMatch);
         this.updateAttackScalars(battleReplay, pvpMatch);
         this.updateTournaments(battleReplay, pvpMatch);
+        this.processLootObjectives(battleReplay);
+        this.processDeployObjectives(battleReplay);
+        this.processDestroyObjectives(battleReplay);
+    }
+
+    private void processLootObjectives(BattleReplay battleReplay) {
+        String planet = battleReplay.battleLog.planetId;
+        Map<String, ObjectiveGroup> playerObjectives = this.getPlayerObjectivesManager().getObjectForReading();
+        List<ObjectiveProgress> lootObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet,
+                GoalType.Loot);
+
+        if (!lootObjectives.isEmpty() && battleReplay.battleLog.looted != null) {
+            Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                    .getPatchData().getMap(ObjTableData.class);
+
+            boolean updated = false;
+
+            for (ObjectiveProgress progress : lootObjectives) {
+                if (progress.state == ObjectiveState.active) {
+                    ObjTableData objTableData = objTableDataMap.get(progress.uid);
+
+                    if (ObjectiveManagerImpl.process(progress, objTableData, battleReplay.battleLog.looted))
+                        updated = true;
+                }
+            }
+
+            if (updated) {
+                this.getPlayerObjectivesManager().getObjectForWriting();
+            }
+        }
+    }
+
+    private void processDeployObjectives(BattleReplay battleReplay) {
+        if (battleReplay.battleLog.troopsExpended != null) {
+            String planet = battleReplay.battleLog.planetId;
+            Map<String, ObjectiveGroup> playerObjectives = this.getPlayerObjectivesManager().getObjectForReading();
+            List<ObjectiveProgress> deployObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet,
+                    GoalType.DeployTroopType, GoalType.DeployTroopID, GoalType.DeploySpecialAttackID);
+
+            if (!deployObjectives.isEmpty() && battleReplay.battleLog.troopsExpended != null) {
+                GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+                Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                        .getPatchData().getMap(ObjTableData.class);
+
+                boolean updated = false;
+
+                for (ObjectiveProgress progress : deployObjectives) {
+                    if (progress.state == ObjectiveState.active) {
+                        ObjTableData objTableData = objTableDataMap.get(progress.uid);
+                        for (Map.Entry<String, Integer> entry : battleReplay.battleLog.troopsExpended.entrySet()) {
+                            TroopData troopData = gameDataManager.getTroopDataByUid(entry.getKey());
+
+                            if (ObjectiveManagerImpl.process(progress, objTableData, troopData, entry.getValue()))
+                                updated = true;
+
+                            if (progress.state != ObjectiveState.active) {
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                if (updated) {
+                    this.getPlayerObjectivesManager().getObjectForWriting();
+                }
+            }
+        }
+    }
+
+    private void processDestroyObjectives(BattleReplay battleReplay) {
+        String planet = battleReplay.battleLog.planetId;
+        Map<String, ObjectiveGroup> playerObjectives = this.getPlayerObjectivesManager().getObjectForReading();
+        List<ObjectiveProgress> destroyObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet,
+                GoalType.DestroyBuildingType, GoalType.DestroyBuildingID);
+
+        if (battleReplay.getDamagedBuildings() != null && !destroyObjectives.isEmpty() &&
+                battleReplay.replayData.combatEncounter != null && battleReplay.replayData.combatEncounter.map != null)
+        {
+            List<String> destroyedBuildings = new ArrayList<>(battleReplay.getDamagedBuildings().size());
+            battleReplay.getDamagedBuildings().forEach((k,v) -> {
+                if (v == Integer.valueOf(100)) {
+                    destroyedBuildings.add(k);
+                }
+            });
+
+            PlayerMap playerMap = battleReplay.replayData.combatEncounter.map;
+            Map<String, Building> buildingMap = playerMap.buildings.stream()
+                    .collect(Collectors.toMap(Building::getKey, Function.identity()));
+
+            GameDataManager gameDataManager = ServiceFactory.instance().getGameDataManager();
+            Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                    .getPatchData().getMap(ObjTableData.class);
+
+            boolean updated = false;
+
+            for (ObjectiveProgress progress : destroyObjectives) {
+                if (progress.state == ObjectiveState.active) {
+                    ObjTableData objTableData = objTableDataMap.get(progress.uid);
+                    for (String buildingKey : destroyedBuildings) {
+                        Building building = buildingMap.get(buildingKey);
+                        BuildingData buildingData = gameDataManager.getBuildingDataByUid(building.getUid());
+
+                        if (ObjectiveManagerImpl.process(progress, objTableData, buildingData))
+                            updated = true;
+
+                        if (progress.state != ObjectiveState.active) {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (updated) {
+                this.getPlayerObjectivesManager().getObjectForWriting();
+            }
+        }
     }
 
     private void updateTournaments(BattleReplay battleReplay, PvpMatch pvpMatch) {
@@ -954,6 +1060,7 @@ public class PlayerSessionImpl implements PlayerSession {
 
         CurrencyDelta contraDelta = new CurrencyDelta(pvpMatch.getContraGained(), pvpMatch.getContraGained(),
                 CurrencyType.contraband, false);
+
         this.processInventoryStorage(contraDelta);
     }
 

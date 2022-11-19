@@ -21,6 +21,7 @@ public class BattleReplay {
     public BattleType battleType;
     public long attackDate;
     private Date date;
+    private Map<String, Integer> damagedBuildings;
 
     public BattleReplay() {
     }
@@ -127,6 +128,7 @@ public class BattleReplay {
         // TODO - not sure what this does
         battleReplay.battleLog.server = false;
         battleReplay.replayData = playerBattleComplete.getReplayData();
+        battleReplay.damagedBuildings = playerBattleComplete.getDamagedBuildings();
         return battleReplay;
     }
 
@@ -170,29 +172,15 @@ public class BattleReplay {
         return troops;
     }
 
-    static private Map<String, Integer> mapTroopsUsed(DeploymentData deploymentData) {
-        Map<String, Integer> troops = new HashMap<>();
-        if (deploymentData != null) {
-            if (deploymentData.troop != null)
-                troops.putAll(deploymentData.troop);
-
-            if (deploymentData.champion != null)
-                troops.putAll(deploymentData.champion);
-
-            if (deploymentData.hero != null)
-                troops.putAll(deploymentData.hero);
-
-            if (deploymentData.specialAttack != null)
-                troops.putAll(deploymentData.specialAttack);
-        }
-        return troops;
-    }
-
     public void setDate(Date date) {
         this.date = date;
     }
 
     public Date getDate() {
         return date;
+    }
+
+    public Map<String, Integer> getDamagedBuildings() {
+        return damagedBuildings;
     }
 }

@@ -195,7 +195,8 @@ public class TrainingManagerImpl implements TrainingManager {
         List<BuildUnit> boughtOutContracts =
                 builder.remove(troopData.getUnitId(), quantity, time, true);
 
-        processObjectives(boughtOutContracts);
+        processCompletedTrainObjectives(boughtOutContracts, GoalType.TrainTroopType, GoalType.TrainTroopID,
+                GoalType.TrainSpecialAttackID);
 
         int remainingBuyOut = 0;
         if (boughtOutContracts.size() != quantity) {
@@ -240,60 +241,43 @@ public class TrainingManagerImpl implements TrainingManager {
         List<BuildUnit> completed3 = this.heroTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
         List<BuildUnit> completed4 = this.championTransport.findAndMoveCompletedUnitsToDeployable(clientTime);
 
-        processObjectives(completed1);
-        processObjectives(completed2);
-        processObjectives(completed3);
-        processObjectives(completed4);
+        processCompletedTrainObjectives(completed1, GoalType.TrainTroopType, GoalType.TrainTroopID);
+        processCompletedTrainObjectives(completed2, GoalType.TrainSpecialAttackID);
+        processCompletedTrainObjectives(completed3, GoalType.TrainTroopType, GoalType.TrainTroopID);
     }
 
-    private void processObjectives(List<BuildUnit> buildUnits) {
-        // TODO - find matching objectives
-        String planetId = this.getPlayerSession().getPlayerSettings().getBaseMap().planet;
-        ObjectiveGroup objectiveGroup = this.getPlayerSession().getPlayerObjectivesManager()
-                .getObjectForReading().get(planetId);
+    private void processCompletedTrainObjectives(List<BuildUnit> buildUnits, GoalType... goalTypes) {
+        String planet = this.getPlayerSession().getPlayerSettings().getBaseMap().planet;
+        Map<String, ObjectiveGroup> playerObjectives = this.getPlayerSession().getPlayerObjectivesManager()
+                .getObjectForReading();
+        List<ObjectiveProgress> troopObjectives = ObjectiveManagerImpl.getActiveObjectives(playerObjectives, planet, goalTypes);
 
-        if (buildUnits.size() > 0) {
-            if (objectiveGroup != null && objectiveGroup.progress != null) {
-                for (ObjectiveProgress objectiveProgress : objectiveGroup.progress) {
-                    if (objectiveProgress.state == ObjectiveState.active) {
-                        ObjTableData objTableData = getObjTableData(objectiveProgress);
-                        if (objTableData.getType() == GoalType.TrainTroopID) {
-                            buildUnits.forEach(u -> {
-                                if (objTableData.getItem() != null && objTableData.getItem().equals(u.getUnitId())) {
-                                    if (objectiveProgress.count < objectiveProgress.target) {
-                                        objectiveProgress.count++;
-                                        if (objectiveProgress.count == objectiveProgress.target) {
-                                            objectiveProgress.state = ObjectiveState.complete;
-                                        }
-                                    }
-                                    this.getPlayerSession().getPlayerObjectivesManager().getObjectForWriting();
-                                }
-                            });
-                        } else if (objTableData.getType() == GoalType.TrainTroopType) {
-                            buildUnits.forEach(u -> {
-                                TroopData troopData = this.getPlayerSession().getTroopInventory().getTroopByUnitId(u.getUnitId());
+        if (buildUnits.size() > 0 && !troopObjectives.isEmpty()) {
+            Map<String, ObjTableData> objTableDataMap = ServiceFactory.instance().getGameDataManager()
+                    .getPatchData().getMap(ObjTableData.class);
 
-                                if (troopData != null && troopData.getType().name().equals(objTableData.getItem())) {
-                                    if (objectiveProgress.count < objectiveProgress.target) {
-                                        objectiveProgress.count++;
-                                        if (objectiveProgress.count == objectiveProgress.target) {
-                                            objectiveProgress.state = ObjectiveState.complete;
-                                        }
-                                    }
-                                    this.getPlayerSession().getPlayerObjectivesManager().getObjectForWriting();
-                                }
-                            });
+            boolean updated = false;
+
+            for (ObjectiveProgress progress : troopObjectives) {
+                if (progress.state == ObjectiveState.active) {
+                    ObjTableData objTableData = objTableDataMap.get(progress.uid);
+                    for (BuildUnit buildUnit : buildUnits) {
+                        TroopData troopData = this.getPlayerSession().getTroopInventory().getTroopByUnitId(buildUnit.getUnitId());
+
+                        if (ObjectiveManagerImpl.process(progress, objTableData, troopData, Integer.valueOf(1)))
+                            updated = true;
+
+                        if (progress.state != ObjectiveState.active) {
+                            break;
                         }
                     }
                 }
             }
-        }
-    }
 
-    private ObjTableData getObjTableData(ObjectiveProgress objectiveProgress) {
-        ObjTableData objTableData = ServiceFactory.instance().getGameDataManager().getPatchData().getMap(ObjTableData.class)
-                .get(objectiveProgress.uid);
-        return objTableData;
+            if (updated) {
+                this.getPlayerSession().getPlayerObjectivesManager().getObjectForWriting();
+            }
+        }
     }
 
     @Override

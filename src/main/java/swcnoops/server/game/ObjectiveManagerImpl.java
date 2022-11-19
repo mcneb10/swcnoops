@@ -14,6 +14,102 @@ public class ObjectiveManagerImpl implements ObjectiveManager {
     private Map<String, ObjSeriesData> planetSeries;
     private Map<String, FactionObjectives> objectiveBuckets = new HashMap<>();
 
+    public static List<ObjectiveProgress> getActiveObjectives(Map<String, ObjectiveGroup> playerObjectives, String planet, GoalType... goalTypes) {
+        final List<ObjectiveProgress> objectiveProgresses =  new ArrayList<>(3);
+
+        if (playerObjectives != null && playerObjectives.containsKey(planet)) {
+            List<ObjectiveProgress> progress = playerObjectives.get(planet).progress;
+            if (progress != null) {
+                Map<String, ObjTableData> map = ServiceFactory.instance().getGameDataManager().getPatchData().getMap(ObjTableData.class);
+                progress.forEach(p -> {
+                    if (p.state == ObjectiveState.active) {
+                        ObjTableData objTableData = map.get(p.uid);
+                        if (Arrays.stream(goalTypes).anyMatch(t -> t == objTableData.getType()))
+                            objectiveProgresses.add(p);
+                    }
+                });
+            }
+        }
+
+        return objectiveProgresses;
+    }
+
+    public static void processProgress(ObjectiveProgress progress, Integer count) {
+        if (progress != null) {
+            progress.count += count;
+            if (progress.count >= progress.target) {
+                progress.count = progress.target;
+                progress.state = ObjectiveState.complete;
+            }
+        }
+    }
+
+    public static boolean process(ObjectiveProgress progress, ObjTableData objTableData, BuildingData buildingData) {
+        boolean updated = false;
+
+        if (objTableData.getType() == GoalType.DestroyBuildingID) {
+            if (objTableData.getItem().equals(buildingData.getBuildingID())) {
+                updated = true;
+                ObjectiveManagerImpl.processProgress(progress, Integer.valueOf(1));
+            }
+        } else if (objTableData.getType() == GoalType.DestroyBuildingType) {
+            if (buildingData.getType().name().equals(objTableData.getItem())) {
+                updated = true;
+                ObjectiveManagerImpl.processProgress(progress, Integer.valueOf(1));
+            }
+        }
+
+        return updated;
+    }
+
+    public static boolean process(ObjectiveProgress progress, ObjTableData objTableData, TroopData troopData, Integer count) {
+        boolean updated = false;
+
+        switch (objTableData.getType()) {
+            case TrainTroopType:
+            case DeployTroopType:
+                if (troopData.getType().name().equals(objTableData.getItem())) {
+                    updated = true;
+                    ObjectiveManagerImpl.processProgress(progress, count);
+                }
+                break;
+            case TrainSpecialAttackID:
+            case DeploySpecialAttackID:
+            case TrainTroopID:
+            case DeployTroopID:
+                if (objTableData.getItem().equals(troopData.getUnitId())) {
+                    updated = true;
+                    ObjectiveManagerImpl.processProgress(progress, count);
+                }
+                break;
+        }
+
+        return updated;
+    }
+
+    public static boolean process(ObjectiveProgress progress, ObjTableData objTableData, Earned looted) {
+        boolean updated = false;
+
+        if (objTableData.getType() == GoalType.Loot) {
+            switch (objTableData.getItem()) {
+                case "credits" :
+                    ObjectiveManagerImpl.processProgress(progress, looted.credits);
+                    updated = true;
+                    break;
+                case "materials" :
+                    ObjectiveManagerImpl.processProgress(progress, looted.materials);
+                    updated = true;
+                    break;
+                case "contraband" :
+                    ObjectiveManagerImpl.processProgress(progress, looted.contraband);
+                    updated = true;
+                    break;
+            }
+        }
+
+        return updated;
+    }
+
     @Override
     public void setup(Collection<ObjSeriesData> values, Map<String, ObjTableData> map) {
         this.planetSeries = getActiveObjSeries(values);
