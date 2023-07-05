@@ -1,0 +1,2 @@
+Why do I get the 'Failed to load game data from patches' error message even though I have correctly specified the path for 'swcfiles'? I suspect that the files inside the patches may be incomplete."
+Because you did not open an issue, I can only ask the question this way
